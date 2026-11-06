@@ -7,6 +7,8 @@ export const useTraceReferenceStore = defineStore('unifolioTraceReference', {
     scolarites: [],
     scolaritesChargees: false,
     referentiels: {},
+    /** Granularité imposée par la formation, par année (null = libre). */
+    granularites: {},
   }),
 
   getters: {
@@ -27,6 +29,7 @@ export const useTraceReferenceStore = defineStore('unifolioTraceReference', {
       if (!this.referentiels[scolariteId]) {
         const { data } = await traceService.referentiel(scolariteId);
         this.referentiels[scolariteId] = data?.competences ?? [];
+        this.granularites[scolariteId] = data?.granularite?.value ?? null;
       }
       return this.referentiels[scolariteId];
     },

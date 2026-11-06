@@ -9,7 +9,7 @@ import Tag from 'primevue/tag';
 import ProgressBar from 'primevue/progressbar';
 import traceService, { messageErreur, urlFichier } from '../requests/traceService';
 import { useTraceReferenceStore } from '../stores/traceReferenceStore';
-import { STATUTS } from '../components/traces/options';
+import { STATUTS, couleurCompetence, texteSurCompetence } from '../components/traces/options';
 
 const router = useRouter();
 const references = useTraceReferenceStore();
@@ -140,8 +140,8 @@ const formatDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { d
             <span
               v-for="c in trace.competences"
               :key="c.id"
-              class="text-xs px-2 py-0.5 rounded-full border"
-              :style="{ borderColor: c.couleur || 'var(--p-primary-color)' }"
+              class="text-xs font-medium px-2 py-0.5 rounded-full"
+              :style="{ background: couleurCompetence(c.couleur), color: texteSurCompetence(c.couleur) }"
             >{{ c.nomCourt }}</span>
             <span v-if="trace.competences.length === 0" class="text-xs text-muted-color">Non rattachée</span>
           </div>

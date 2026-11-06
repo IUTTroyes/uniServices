@@ -17,6 +17,7 @@ use UnifolioBundle\Enum\GranulariteEnum;
 use UnifolioBundle\Enum\RealisationIaEnum;
 use UnifolioBundle\Enum\TypeActiviteEnum;
 use UnifolioBundle\Enum\TypeMediaEnum;
+use UnifolioBundle\Service\Grille\GrilleResolver;
 use UnifolioBundle\Service\Media\MediaStorageInterface;
 use UnifolioBundle\Service\Media\MediaValidationException;
 use UnifolioBundle\Service\Perimetre\UnifolioPerimetre;
@@ -36,6 +37,7 @@ class TraceManager
         private readonly UnifolioPerimetre $perimetre,
         private readonly ReferentielAnnee $referentiel,
         private readonly MediaStorageInterface $storage,
+        private readonly GrilleResolver $grilles,
     ) {
     }
 
@@ -229,9 +231,18 @@ class TraceManager
             throw UnifolioValidationException::un(sprintf('Une trace ne peut pas avoir plus de %d rattachements.', self::RATTACHEMENTS_MAX));
         }
 
+        // D5 : la formation impose le niveau du référentiel sur lequel on rattache (s'il est paramétré).
+        $imposee = $scolarite !== null ? $this->grilles->granularitePourScolarite($scolarite) : null;
+
         $rattachements = [];
         foreach ($demandes as $demande) {
             $granularite = GranulariteEnum::tryFrom((string) ($demande['type'] ?? ''));
+            if ($imposee !== null && $granularite !== $imposee) {
+                throw UnifolioValidationException::un(sprintf(
+                    'Votre formation rattache les traces au niveau « %s » uniquement.',
+                    $imposee->getLibelle()
+                ));
+            }
             $id = (int) ($demande['id'] ?? 0);
             $argumentaire = isset($demande['argumentaire']) ? (string) $demande['argumentaire'] : null;
 

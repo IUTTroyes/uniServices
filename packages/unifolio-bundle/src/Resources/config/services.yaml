@@ -31,6 +31,7 @@ services:
       - '../../Service/Media/MediaValidationException.php'
       - '../../Service/Media/EmbedPolicy.php'
       - '../../Service/Trace/UnifolioValidationException.php'
+      - '../../Service/Grille/GrillesParDefaut.php'
       - '../../UnifolioBundle.php'
 
   UnifolioBundle\Service\Media\MediaStorageInterface: '@UnifolioBundle\Service\Media\LocalMediaStorage'

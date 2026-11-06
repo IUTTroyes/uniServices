@@ -9,6 +9,7 @@ import Tag from 'primevue/tag';
 import ProgressBar from 'primevue/progressbar';
 import MediaPreview from '../components/traces/MediaPreview.vue';
 import traceService, { messageErreur } from '../requests/traceService';
+import { couleurCompetence, texteSurCompetence } from '../components/traces/options';
 
 const route = useRoute();
 const router = useRouter();
@@ -130,14 +131,22 @@ const formatDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { d
         <section class="card p-4 flex flex-col gap-3">
           <h3 class="text-base font-semibold m-0">Compétences démontrées</h3>
           <p v-if="trace.rattachements.length === 0" class="text-muted-color m-0 text-sm">Pas encore rattachée au référentiel.</p>
-          <div v-for="groupe in rattachementsParCompetence" :key="groupe.competence?.id ?? 0" class="flex flex-col gap-2">
-            <div class="flex items-center gap-2 font-medium">
-              <span class="w-3 h-3 rounded-full" :style="{ background: groupe.competence?.couleur || 'var(--p-primary-color)' }" />
-              {{ groupe.competence?.nomCourt ?? 'Compétence' }}
-            </div>
-            <div v-for="r in groupe.items" :key="r.id" class="pl-5 flex flex-col gap-1">
+          <div
+            v-for="groupe in rattachementsParCompetence"
+            :key="groupe.competence?.id ?? 0"
+            class="flex flex-col gap-2 rounded-lg p-3 border-l-[6px]"
+            :style="{ borderLeftColor: couleurCompetence(groupe.competence?.couleur), background: couleurCompetence(groupe.competence?.couleur, 0.08) }"
+          >
+            <span
+              class="self-start text-xs font-semibold px-2 py-1 rounded"
+              :style="{ background: couleurCompetence(groupe.competence?.couleur), color: texteSurCompetence(groupe.competence?.couleur) }"
+            >{{ groupe.competence?.nomCourt ?? 'Compétence' }}</span>
+            <div v-for="r in groupe.items" :key="r.id" class="flex flex-col gap-1">
               <span class="text-sm">
-                <Tag :value="r.code || libelleType[r.type]" severity="secondary" class="mr-1" />{{ r.libelle }}
+                <span
+                  class="text-xs font-semibold px-1.5 py-0.5 rounded mr-1"
+                  :style="{ background: couleurCompetence(groupe.competence?.couleur, 0.15), color: couleurCompetence(groupe.competence?.couleur) }"
+                >{{ r.code || libelleType[r.type] }}</span>{{ r.libelle }}
               </span>
               <span v-if="r.argumentaire" class="text-sm text-muted-color whitespace-pre-line">{{ r.argumentaire }}</span>
             </div>

@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use UnifolioBundle\Security\UnifolioVoter;
+use UnifolioBundle\Service\Grille\GrilleResolver;
 use UnifolioBundle\Service\Perimetre\UnifolioPerimetre;
 use UnifolioBundle\Service\Referentiel\ReferentielAnnee;
 use UnifolioBundle\Service\Trace\TraceNormalizer;
@@ -22,6 +23,7 @@ class ReferentielController extends AbstractController
         private readonly UnifolioPerimetre $perimetre,
         private readonly ReferentielAnnee $referentiel,
         private readonly TraceNormalizer $normalizer,
+        private readonly GrilleResolver $grilles,
     ) {
     }
 
@@ -52,8 +54,12 @@ class ReferentielController extends AbstractController
             throw $this->createNotFoundException('Année de BUT introuvable.');
         }
 
+        $granularite = $this->grilles->granularitePourScolarite($scolarite);
+
         return $this->json([
             'scolarite' => $this->normalizer->scolarite($scolarite),
+            // null : formation non paramétrée, tous les niveaux de rattachement sont permis.
+            'granularite' => $granularite !== null ? ['value' => $granularite->value, 'libelle' => $granularite->getLibelle()] : null,
             'competences' => $this->referentiel->arbre($scolarite),
         ]);
     }

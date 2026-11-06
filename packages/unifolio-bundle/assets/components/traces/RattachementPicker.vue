@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import Checkbox from 'primevue/checkbox';
 import Textarea from 'primevue/textarea';
 import Tag from 'primevue/tag';
+import { couleurCompetence, texteSurCompetence } from './options';
 
 /**
  * Sélection des éléments du référentiel de l'année (compétence, niveau ou AC).
@@ -12,7 +13,12 @@ const props = defineProps({
   competences: { type: Array, required: true },
   modelValue: { type: Array, required: true },
   disabled: { type: Boolean, default: false },
+  /** Niveau imposé par la formation ('competence' | 'niveau' | 'ac') ; null = tous. */
+  granularite: { type: String, default: null },
 });
+
+const permis = (type) => !props.granularite || props.granularite === type;
+const LIBELLES = { competence: 'la compétence', niveau: 'le niveau de compétence', ac: 'les apprentissages critiques' };
 const emit = defineEmits(['update:modelValue']);
 
 const cle = (type, id) => `${type}:${id}`;
@@ -73,31 +79,48 @@ const vide = computed(() => props.competences.length === 0);
 
 <template>
   <div class="flex flex-col gap-3">
+    <p v-if="granularite && !vide" class="text-sm m-0 flex items-center gap-2">
+      <i class="pi pi-info-circle text-primary" />
+      Votre formation rattache les traces à {{ LIBELLES[granularite] }}.
+    </p>
     <p v-if="vide" class="text-muted-color text-sm m-0">
       Aucun élément de référentiel n'est défini pour cette année de BUT. Contactez votre référent portfolio.
     </p>
 
-    <div v-for="competence in competences" :key="competence.id" class="border border-surface-200 rounded-lg">
+    <div
+      v-for="competence in competences"
+      :key="competence.id"
+      class="rounded-lg overflow-hidden border border-l-[6px]"
+      :style="{ borderColor: couleurCompetence(competence.couleur, 0.35), borderLeftColor: couleurCompetence(competence.couleur) }"
+    >
       <button
         type="button"
-        class="w-full flex items-center gap-3 p-3 text-left cursor-pointer bg-transparent border-0"
+        class="w-full flex items-center gap-3 p-3 text-left cursor-pointer border-0"
+        :style="{ background: couleurCompetence(competence.couleur, 0.12) }"
         :aria-expanded="ouvertes.has(competence.id)"
         @click="basculerCompetence(competence.id)"
       >
-        <span class="w-3 h-3 rounded-full shrink-0" :style="{ background: competence.couleur || 'var(--p-primary-color)' }" />
-        <span class="flex-1 font-medium">{{ competence.nomCourt || competence.libelle }}</span>
+        <span
+          class="text-xs font-semibold px-2 py-1 rounded shrink-0"
+          :style="{ background: couleurCompetence(competence.couleur), color: texteSurCompetence(competence.couleur) }"
+        >{{ competence.nomCourt || 'Compétence' }}</span>
+        <span class="flex-1 font-medium text-sm">{{ competence.libelle }}</span>
         <Tag v-if="nbChoisisDans(competence)" :value="`${nbChoisisDans(competence)} choisi(s)`" severity="success" />
         <i :class="ouvertes.has(competence.id) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" />
       </button>
 
-      <div v-if="ouvertes.has(competence.id)" class="px-3 pb-3 flex flex-col gap-3">
-        <p class="text-sm text-muted-color m-0">{{ competence.libelle }}</p>
-
-        <div v-for="niveau in competence.niveaux" :key="niveau.id" class="flex flex-col gap-2 pl-2 border-l-2 border-surface-200">
-          <label class="flex items-start gap-2 cursor-pointer">
+      <div v-if="ouvertes.has(competence.id)" class="p-3 flex flex-col gap-3">
+        <div
+          v-for="niveau in competence.niveaux"
+          :key="niveau.id"
+          class="flex flex-col gap-2 pl-3 border-l-2"
+          :style="{ borderLeftColor: couleurCompetence(competence.couleur, 0.5) }"
+        >
+          <label v-if="permis('niveau')" class="flex items-start gap-2 cursor-pointer">
             <Checkbox :model-value="estChoisi('niveau', niveau.id)" binary :disabled="disabled" @update:model-value="basculer('niveau', niveau.id, niveau.libelle)" />
             <span><strong>Niveau {{ niveau.ordre }}</strong> — {{ niveau.libelle }}</span>
           </label>
+          <span v-else class="text-sm"><strong>Niveau {{ niveau.ordre }}</strong> — {{ niveau.libelle }}</span>
           <Textarea
             v-if="estChoisi('niveau', niveau.id)"
             :model-value="selection.get(cle('niveau', niveau.id))?.argumentaire"
@@ -109,10 +132,23 @@ const vide = computed(() => props.competences.length === 0);
           />
 
           <div v-for="ac in niveau.apprentissagesCritiques" :key="ac.id" class="flex flex-col gap-2 pl-6">
-            <label class="flex items-start gap-2 cursor-pointer">
+            <label v-if="permis('ac')" class="flex items-start gap-2 cursor-pointer">
               <Checkbox :model-value="estChoisi('ac', ac.id)" binary :disabled="disabled" @update:model-value="basculer('ac', ac.id, ac.libelle)" />
-              <span><Tag :value="ac.code" severity="secondary" class="mr-1" /> {{ ac.libelle }}</span>
+              <span>
+                <span
+                  class="text-xs font-semibold px-1.5 py-0.5 rounded mr-1"
+                  :style="{ background: couleurCompetence(competence.couleur, 0.15), color: couleurCompetence(competence.couleur) }"
+                >{{ ac.code }}</span>
+                {{ ac.libelle }}
+              </span>
             </label>
+            <span v-else class="text-sm text-muted-color">
+              <span
+                class="text-xs font-semibold px-1.5 py-0.5 rounded mr-1"
+                :style="{ background: couleurCompetence(competence.couleur, 0.15), color: couleurCompetence(competence.couleur) }"
+              >{{ ac.code }}</span>
+              {{ ac.libelle }}
+            </span>
             <Textarea
               v-if="estChoisi('ac', ac.id)"
               :model-value="selection.get(cle('ac', ac.id))?.argumentaire"
@@ -125,7 +161,7 @@ const vide = computed(() => props.competences.length === 0);
           </div>
         </div>
 
-        <label class="flex items-start gap-2 cursor-pointer">
+        <label v-if="permis('competence')" class="flex items-start gap-2 cursor-pointer font-medium">
           <Checkbox :model-value="estChoisi('competence', competence.id)" binary :disabled="disabled" @update:model-value="basculer('competence', competence.id, competence.libelle)" />
           <span>Rattacher à la compétence dans son ensemble</span>
         </label>

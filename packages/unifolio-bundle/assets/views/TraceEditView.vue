@@ -30,6 +30,7 @@ const uuid = computed(() => route.params.uuid ?? trace.value?.uuid ?? null);
 const chargement = ref(false);
 const enregistrement = ref(false);
 const competences = ref([]);
+const granularite = ref(null);
 const rattachements = ref([]);
 const rattachementsModifies = ref(false);
 
@@ -97,6 +98,7 @@ watch(() => form.scolarite, async (id, ancien) => {
     rattachements.value = [];
   }
   competences.value = id ? await references.referentiel(id).catch(() => []) : [];
+  granularite.value = id ? references.granularites[id] ?? null : null;
 });
 
 onMounted(async () => {
@@ -264,7 +266,7 @@ const changementAnneeBloque = computed(() => !!trace.value && trace.value.nbRatt
           Compétences de votre année{{ anneeAffichee ? ` (${anneeAffichee})` : '' }} : cochez ce que cette trace démontre et expliquez pourquoi.
         </p>
         <Message v-if="!form.scolarite" severity="warn">Choisissez l'année de BUT de la trace pour afficher son référentiel.</Message>
-        <RattachementPicker v-else :competences="competences" :model-value="rattachements" :disabled="!modifiable" @update:model-value="surRattachements" />
+        <RattachementPicker v-else :competences="competences" :granularite="granularite" :model-value="rattachements" :disabled="!modifiable" @update:model-value="surRattachements" />
       </section>
     </div>
 

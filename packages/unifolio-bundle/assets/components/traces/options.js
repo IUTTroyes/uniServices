@@ -97,3 +97,28 @@ export const titreDepuisNomFichier = (nom) => {
   const base = (nom || '').replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
   return base ? base.charAt(0).toUpperCase() + base.slice(1) : '';
 };
+
+/**
+ * Couleurs des compétences : le référentiel stocke une clé (c1…c6), cf. shared/styles/layout/_utils.scss.
+ * Accepte aussi une couleur CSS directe (#RRGGBB).
+ */
+const COULEURS_COMPETENCES = {
+  c1: '156, 43, 38',
+  c2: '208, 119, 64',
+  c3: '229, 185, 77',
+  c4: '65, 108, 63',
+  c5: '43, 76, 118',
+  c6: '127, 31, 83',
+};
+
+export const couleurCompetence = (cle, opacite = 1) => {
+  if (cle && COULEURS_COMPETENCES[cle]) return `rgba(${COULEURS_COMPETENCES[cle]}, ${opacite})`;
+  if (cle && /^#[0-9a-f]{6}$/i.test(cle)) {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(cle.slice(i, i + 2), 16));
+    return `rgba(${r}, ${g}, ${b}, ${opacite})`;
+  }
+  return opacite === 1 ? 'var(--p-primary-color)' : 'var(--p-content-hover-background)';
+};
+
+/** Texte lisible sur la couleur pleine (c3 est clair). */
+export const texteSurCompetence = (cle) => (cle === 'c3' ? '#1f2937' : '#ffffff');

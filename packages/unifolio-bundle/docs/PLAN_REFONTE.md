@@ -80,11 +80,13 @@ StructureAnneeUniversitaire ──< Campagne ──< CampagneAffectation (évalu
 - **`Grille`** : `libelle`, `typeDiplome` (obligatoire, `apc = true`), surcharge optionnelle `diplome` / `departement`, `cible` (`rattachement`, `trace`, `portfolio`, `competence_bilan`), `granularite` (`competence`, `niveau`, `ac`), `actif`.
 - **`GrilleVersion`** : `numero`, `publieeLe`, `verrouillee`. **Toute évaluation pointe sur une version figée** : modifier une grille crée une nouvelle version, l'historique reste lisible.
 - **`GrilleCritere`** : `libelle`, `description`, `aide` (indicateurs observables), `type` (`echelle`, `booleen`, `note`, `texte`), `poids`, `obligatoire`, `ordre`, `visibleEtudiant`, `utiliseAutoEval`.
-- **`GrilleEchelon`** (pour `echelle`) : `libelle` (ex. Non acquis / En cours / Acquis / Maîtrisé), `valeur`, `couleur`, `descripteur`.
+- **`GrilleEchelon`** — *réalisé (lot 2) : échelle **commune à la version** (et non par critère), utilisée par tous les critères de type `echelle`* : `libelle` (ex. Non acquis / En cours / Acquis / Maîtrisé), `valeur`, `couleur`, `descripteur`.
 - Grilles **par défaut** fournies via fixtures : une grille BUT par granularité (compétence, niveau, AC — échelle 4 niveaux) ; les départements peuvent les dériver.
 - La `granularite` de la grille doit correspondre à celle du `ParametrageFormation` (contrôle à l'enregistrement d'une campagne).
 - **Critère « Usage de l'IA » optionnel (D6)** : `GrilleCritere.source = declaration_ia` — critère que le référent peut ajouter à une grille (case « Évaluer l'usage de l'IA »). Le formulaire d'évaluation affiche alors la déclaration de l'étudiant (`conceptionIa`, `realisationIa`, `usageIaDetail`) à côté du critère ; l'enseignant évalue la **pertinence et la transparence** de l'usage avec l'échelle de la grille. Pondération libre (0 possible = critère informatif). Absent des grilles par défaut.
-- Résolution de la grille applicable : département > diplôme > type de diplôme (service `GrilleResolver`).
+- Résolution de la grille applicable (service `GrilleResolver`) : grille choisie dans le paramétrage si publiée, sinon la plus spécifique des grilles actives et publiées — diplôme > département > type de diplôme.
+- *Lot 2* : grilles nationales BUT installées par `bin/console unifolio:grilles:init` (idempotent). Les référents adaptent une grille nationale en la dupliquant pour leur département ; seules les grilles de département/diplôme leur sont modifiables.
+- *Lot 2* : les rôles UniFolio ne sont effectifs que si le paquet `unifolio` est activé sur l'affectation départementale du personnel (règle du cœur `PermissionResolver`).
 
 ### 3.3 Auto‑évaluation (M4)
 

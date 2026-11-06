@@ -41,8 +41,29 @@ export const unifolioSections = [
   {
     titre: 'Administration',
     items: [
-      { path: 'admin/formations', label: 'Paramétrage des formations', icon: 'pi pi-fw pi-sliders-h', description: 'Granularité d\'évaluation et grille par défaut.', permission: 'isReferentPortfolio', capacite: 'referent', lot: 2 },
-      { path: 'admin/grilles', label: 'Grilles d\'évaluation', icon: 'pi pi-fw pi-table', description: 'Critères, échelles et versions.', permission: 'isReferentPortfolio', capacite: 'referent', lot: 2 },
+      {
+        path: 'admin/formations',
+        label: 'Paramétrage des formations',
+        icon: 'pi pi-fw pi-sliders-h',
+        description: 'Granularité d\'évaluation et grille par défaut.',
+        permission: 'isReferentPortfolio',
+        capacite: 'referent',
+        lot: 2,
+        component: () => import('./views/admin/FormationsView.vue'),
+      },
+      {
+        path: 'admin/grilles',
+        label: 'Grilles d\'évaluation',
+        icon: 'pi pi-fw pi-table',
+        description: 'Critères, échelles et versions.',
+        permission: 'isReferentPortfolio',
+        capacite: 'referent',
+        lot: 2,
+        component: () => import('./views/admin/GrillesView.vue'),
+        sousRoutes: [
+          { path: 'admin/grilles/:uuid', label: 'Grille', icon: 'pi pi-table', component: () => import('./views/admin/GrilleEditView.vue') },
+        ],
+      },
       { path: 'admin/campagnes', label: 'Campagnes', icon: 'pi pi-fw pi-calendar', description: 'Calendrier de dépôt et d\'évaluation, affectations.', permission: 'isReferentPortfolio', capacite: 'referent', lot: 4 },
       { path: 'admin/modeles', label: 'Modèles de portfolio', icon: 'pi pi-fw pi-clone', description: 'Pages et blocs imposés du portfolio académique.', permission: 'isReferentPortfolio', capacite: 'referent', lot: 5 },
       { path: 'moderation', label: 'Modération', icon: 'pi pi-fw pi-eye', description: 'Portfolios vitrines publiés.', permission: ['isReferentPortfolio', 'ROLE_PORTFOLIO_PUBLISHER'], capacite: 'moderateur', lot: 6 },
