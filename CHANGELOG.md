@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/IUTTroyes/uniServices/compare/v0.9.0...v0.10.0) (2026-11-06)
+
+
+### ✨ Fonctionnalités
+
+* **intranet:** Add enseignement filter to absence queries and refactor absence components ([31d82e1](https://github.com/IUTTroyes/uniServices/commit/31d82e1b0fdd1cf31c86eec2a707f8dea66b5c9d))
+
 ## [0.9.0](https://github.com/IUTTroyes/uniServices/compare/v0.8.0...v0.9.0) (2026-11-05)
 
 
