@@ -651,4 +651,10 @@ class ScolEnseignement
         }
         return null;
     }
+    #[Groups(['enseignement:dashboard'])]
+    public function getAnneeId(): ?int
+    {
+        return $this->getSemestre()?->getAnnee()?->getId();
+    }
+
 }

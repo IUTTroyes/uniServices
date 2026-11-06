@@ -1,4 +1,6 @@
 <script setup>
+import {useRouter} from 'vue-router';
+import {useEnseignementPage} from './useEnseignementPage';
 import {defineProps, defineEmits, ref, watch, computed} from 'vue';
 import { getEvaluationsService, updateEvaluationService } from '@requests';
 import { ListSkeleton } from '@components';
@@ -25,6 +27,7 @@ const props = defineProps({
   enseignement: { type: Object, default: null },
   anneeUniversitaire: { type: [Number, String], default: null },
 });
+const router = useRouter();
 const emit = defineEmits(['update:visible']);
 
 watch(
@@ -115,12 +118,13 @@ const calcEvaluationProgress = (evaluation) => {
   evaluation.entered = notesExistantes.filter(n => n.note !== null && n.note !== undefined).length;
   evaluation.percent = evaluation.total > 0 ? Math.round((evaluation.entered / evaluation.total) * 100) : 0;
 };
+const {destination, accessible} = useEnseignementPage('evaluations', () => props.enseignement);
 </script>
 
 <template>
   <Dialog :visible="visible" @update:visible="emit('update:visible', $event)" modal
           :header="`Évaluations · ${enseignement?.codeEnseignement} - ${enseignement?.libelle}`"
-          class="w-[90vw] md:w-[75vw] lg:w-[75vw]">
+          class="w-[90vw] md:w-[85vw]">
     <ListSkeleton v-if="isLoadingEvaluations" class="card-body"/>
     <div v-else class="flex flex-col gap-2">
       <Message v-if="hasError" severity="error" class="w-fit p-4" icon="pi pi-times-circle">
@@ -146,6 +150,18 @@ const calcEvaluationProgress = (evaluation) => {
         </Message>
       </div>
     </div>
+    <template #footer>
+      <div class="w-full border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800/50 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-3 text-left">
+          <span class="flex items-center justify-center shrink-0 w-10 h-10 rounded-lg bg-primary/10 text-primary" aria-hidden="true"><i class="pi pi-pencil" /></span>
+          <div>
+            <p class="m-0! text-sm font-semibold text-color">Gestion des évaluations</p>
+            <p class="m-0! mt-1! text-xs text-muted-color">Retrouvez les évaluations et la saisie des notes.</p>
+          </div>
+        </div>
+        <Button v-if="accessible" label="Voir les évaluations" icon="pi pi-arrow-right" icon-pos="right" class="w-full sm:w-auto shrink-0" severity="primary" @click="router.push(destination)" />
+      </div>
+    </template>
   </Dialog>
 
   <Dialog :header="dialogHeader" v-model:visible="showDialog" modal :style="{ width: '70vw' }"

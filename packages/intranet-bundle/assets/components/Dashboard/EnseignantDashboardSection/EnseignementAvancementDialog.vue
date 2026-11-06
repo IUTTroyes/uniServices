@@ -1,5 +1,7 @@
 <script setup>
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import {useRouter} from 'vue-router';
+import {useEnseignementPage} from './useEnseignementPage';
+import { computed, ref, watch } from 'vue';
 import { useUsersStore } from '@stores';
 import EnseignementAvancementRepere from './EnseignementAvancementRepere.vue';
 import {
@@ -13,6 +15,7 @@ const props = defineProps({
   anneeUniversitaire: { type: [Number, String], default: null },
 });
 const vFocus = { mounted: element => element.focus() };
+const router = useRouter();
 const emit = defineEmits(['update:visible']);
 const userStore = useUsersStore();
 const groupes = ref([]);
@@ -36,8 +39,6 @@ const historique = ref([]);
 const historiqueAvant = ref(null);
 const historiqueLoading = ref(false);
 const historiqueErreur = ref('');
-let requestId = 0;
-let historiqueRequestId = 0;
 
 const types = computed(() => [...new Set(groupes.value.map(item => item.type))]);
 const filtres = computed(() => [{ label: 'Tous les groupes', value: 'tous' }, ...types.value.map(type => ({ label: type, value: type }))]);
@@ -51,25 +52,24 @@ const messageErreur = err => err.response?.status === 403
 async function charger() {
   if (!props.visible || !props.enseignement?.id) return;
 
-  const current = ++requestId;
   loading.value = true;
   error.value = '';
   try {
     const data = await getAvancementsEnseignementService({ enseignement: props.enseignement.id, anneeUniversitaire: props.anneeUniversitaire || undefined });
-    if (current !== requestId) return;
+
     groupes.value = data.groupes;
     sequences.value = data.sequences ?? [];
     anneeChargee.value = data.anneeUniversitaire;
     anneeLibelle.value = data.anneeLibelle ?? '';
   } catch (err) {
-    if (current === requestId) error.value = messageErreur(err);
+    error.value = messageErreur(err);
   } finally {
-    if (current === requestId) loading.value = false;
+    loading.value = false;
   }
 }
 watch(() => JSON.stringify([props.visible, contexte()]), () => {
-  ++requestId;
-  ++historiqueRequestId;
+
+
   groupes.value = [];
   sequences.value = [];
   drafts.value = {};
@@ -82,7 +82,6 @@ watch(() => JSON.stringify([props.visible, contexte()]), () => {
   historiqueGroupe.value = null;
   if (props.visible && props.enseignement?.id) charger();
 }, { immediate: true });
-onBeforeUnmount(() => { ++requestId; ++historiqueRequestId; });
 
 function modifier(groupe) {
   if (saving.value !== null) return;
@@ -111,8 +110,7 @@ async function enregistrer(groupe) {
   if (!draft || draft.conflict || saving.value !== null) return;
   if (draft.repere.length > 2000 || draft.prochaineEtape.length > 2000) { draft.error = 'Limitez chaque texte à 2 000 caractères. L’ancien repère reste disponible dans l’historique.'; return; }
   if (!draft.sequenceId && !draft.repere.trim()) { draft.error = 'Choisissez une séquence ou indiquez un repère libre.'; return; }
-  const current = requestId;
-  const scope = contexte();
+
   saving.value = groupe.id;
   draft.error = '';
   try {
@@ -120,12 +118,12 @@ async function enregistrer(groupe) {
       repere: draft.repere, prochaineEtape: draft.prochaineEtape, versionId: draft.versionId,
       sequenceId: draft.sequenceId, etatSequence: draft.etatSequence,
     }, { enseignement: props.enseignement.id, groupe: groupe.id, anneeUniversitaire: anneeChargee.value });
-    if (current !== requestId || contexte() !== scope) return;
+
     groupe.avancement = result;
     delete drafts.value[groupe.id];
     saved.value = groupe.id;
   } catch (err) {
-    if (current !== requestId || contexte() !== scope) return;
+
     if (err.response?.status === 409) {
       draft.conflict = true;
       draft.error = 'Un collègue a modifié ce repère. Votre saisie est conservée. Rechargez sa version pour les comparer.';
@@ -135,17 +133,17 @@ async function enregistrer(groupe) {
           : 'Le repère n’a pas pu être enregistré. Votre saisie est conservée.';
     }
   } finally {
-    if (current === requestId) saving.value = null;
+    saving.value = null;
   }
 }
 async function comparer(groupe) {
-  const current = requestId;
+
   const draft = drafts.value[groupe.id];
   if (!draft || saving.value !== null) return;
   saving.value = groupe.id;
   try {
     const result = await getAvancementsEnseignementService({ enseignement: props.enseignement.id, anneeUniversitaire: anneeChargee.value });
-    if (current !== requestId) return;
+
     const actualise = result.groupes.find(item => item.id === groupe.id);
     if (!actualise) { draft.error = 'Ce groupe n’est plus disponible dans votre contexte.'; return; }
     groupe.avancement = actualise.avancement;
@@ -154,9 +152,9 @@ async function comparer(groupe) {
     draft.comparison = true;
     draft.error = '';
   } catch {
-    if (current === requestId) draft.error = 'Impossible de récupérer la version actuelle. Votre saisie est conservée.';
+    draft.error = 'Impossible de récupérer la version actuelle. Votre saisie est conservée.';
   } finally {
-    if (current === requestId) saving.value = null;
+    saving.value = null;
   }
 }
 function conserverSaisie(groupe) {
@@ -171,7 +169,7 @@ function enregistrerAvecEntree(event, groupe) {
   enregistrer(groupe);
 }
 async function ouvrirHistorique(groupe) {
-  ++historiqueRequestId;
+
   historiqueGroupe.value = groupe;
   historique.value = [];
   historiqueAvant.value = null;
@@ -179,23 +177,24 @@ async function ouvrirHistorique(groupe) {
 }
 async function chargerHistorique() {
   if (historiqueLoading.value && historique.value.length) return;
-  const current = ++historiqueRequestId;
-  const scope = requestId;
+
+
   const groupeId = historiqueGroupe.value?.id;
   if (!groupeId) return;
   historiqueLoading.value = true;
   historiqueErreur.value = '';
   try {
     const result = await getAvancementsEnseignementService({ enseignement: props.enseignement.id, groupe: groupeId, anneeUniversitaire: anneeChargee.value, avant: historiqueAvant.value || undefined }, '/historique');
-    if (current !== historiqueRequestId || scope !== requestId) return;
+
     historique.value.push(...result.items);
     historiqueAvant.value = result.avant;
   } catch {
-    if (current === historiqueRequestId && scope === requestId) historiqueErreur.value = 'Impossible de charger l’historique.';
+    historiqueErreur.value = 'Impossible de charger l’historique.';
   } finally {
-    if (current === historiqueRequestId) historiqueLoading.value = false;
+    historiqueLoading.value = false;
   }
 }
+const {destination, accessible} = useEnseignementPage('avancement', () => props.enseignement);
 </script>
 
 <template>
@@ -263,9 +262,21 @@ async function chargerHistorique() {
       </div>
       <p v-else class="text-muted-color">Aucun groupe n’est rattaché aux semestres des UE de cet enseignement pour cette année.</p>
     </template>
+    <template #footer>
+      <div class="w-full border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800/50 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-3 text-left">
+          <span class="flex items-center justify-center shrink-0 w-10 h-10 rounded-lg bg-primary/10 text-primary" aria-hidden="true"><i class="pi pi-map-marker" /></span>
+          <div>
+            <p class="m-0! text-sm font-semibold text-color">Mon espace pédagogique</p>
+            <p class="m-0! mt-1! text-xs text-muted-color">Retrouvez vos enseignements et leur suivi.</p>
+          </div>
+        </div>
+        <Button v-if="accessible" label="Voir mes enseignements" icon="pi pi-arrow-right" icon-pos="right" class="w-full sm:w-auto shrink-0" severity="primary" @click="router.push(destination)" />
+      </div>
+    </template>
   </Dialog>
 
-  <Dialog :visible="!!historiqueGroupe" @update:visible="value => { if (!value) { historiqueGroupe = null; ++historiqueRequestId; historiqueLoading = false; } }" modal :header="`Historique · ${historiqueGroupe?.libelle ?? ''}`" class="w-full max-w-2xl mx-4">
+  <Dialog :visible="!!historiqueGroupe" @update:visible="value => { if (!value) { historiqueGroupe = null; historiqueLoading = false; } }" modal :header="`Historique · ${historiqueGroupe?.libelle ?? ''}`" class="w-full max-w-2xl mx-4">
     <ol class="list-none p-0! m-0! flex flex-col gap-3">
       <li v-for="version in historique" :key="version.id" class="p-4 rounded-xl border border-surface-200 dark:border-surface-700">
         <p class="mt-0! text-xs text-muted-color">{{ version.auteur }} · {{ dateLibelle(version.date) }}</p>

@@ -66,6 +66,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         'annee' => new QueryParameter(filter: AbsenceFilter::class),
         'anneeUniversitaire' => new QueryParameter(filter: AbsenceFilter::class),
         'justifiee' => new QueryParameter(filter: AbsenceFilter::class),
+        'enseignement' => new QueryParameter(filter: AbsenceFilter::class),
         'event' => new QueryParameter(filter: AbsenceFilter::class),
         'personnel' => new QueryParameter(filter: AbsenceFilter::class),
         'scolariteSemestre' => new QueryParameter(filter: AbsenceFilter::class),

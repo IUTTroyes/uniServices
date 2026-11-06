@@ -299,7 +299,7 @@ const reactiverEval = async () => {
       <Button v-if="evaluation.etat !== 'non_initialisee' && evaluation.etat !== 'annulee' && evaluation.etat !== 'publiee'" :label="evaluation.modifiable !== true ? 'Voir les notes' : 'Saisir les notes'" icon="pi pi-file-edit" outlined severity="primary" size="small" @click="onOpen('saisie', 'Saisie des notes')"/>
       <Button v-if="evaluation.etat !== 'non_initialisee' && evaluation.etat !== 'annulee' && evaluation.etat !== 'publiee'" label="Modifier" icon="pi pi-pencil" outlined severity="warn" size="small" @click="onOpen('edit', 'Édition de l\'évaluation')" :disabled="evaluation.modifiable !== true"/>
       <Button v-if="evaluation.etat !== 'non_initialisee' && !props.inStatsContext" label="Statistiques" icon="pi pi-chart-line" outlined severity="info" size="small" @click="onOpen('stat', 'Statistiques de l\'évaluation')" />
-      <Button v-if="evaluation.etat == 'annulee' && !props.inStatsContext" label="Réactiver" icon="pi pi-play-circle" outlined severity="success" size="small" @click="reactiverEval()" />
+      <Button v-if="evaluation.etat === 'annulee' && !props.inStatsContext" label="Réactiver" icon="pi pi-play-circle" outlined severity="success" size="small" @click="reactiverEval()" />
       <Button v-if="evaluation.etat === 'completee'" label="Publier les résultats" icon="pi pi-plus" outlined severity="success" size="small" v-tooltip.top="'Publier les résultats aux étudiants'" @click="showConfirmDialog()"/>
       <Button v-if="evaluation.etat !== 'non_initialisee' && evaluation.etat !== 'annulee'" label="Annuler" icon="pi pi-times" outlined severity="danger" size="small" v-tooltip.top="'Annuler l\'évaluation'" @click="showCancelDialog()"/>
     </div>

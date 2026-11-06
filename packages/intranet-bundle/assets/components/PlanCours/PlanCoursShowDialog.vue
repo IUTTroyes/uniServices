@@ -220,6 +220,7 @@ const printPlan = () => {
     </div>
 
     <template #footer>
+      <slot name="footer">
       <div class="flex justify-between w-full">
         <Button label="Imprimer" icon="pi pi-print" severity="secondary" outlined @click="printPlan" />
         <div class="flex gap-2">
@@ -227,6 +228,7 @@ const printPlan = () => {
           <Button v-if="planCours?.id" label="Modifier" icon="pi pi-pencil" severity="primary" @click="$emit('edit', planCours.id)" />
         </div>
       </div>
+      </slot>
     </template>
   </Dialog>
 </template>
