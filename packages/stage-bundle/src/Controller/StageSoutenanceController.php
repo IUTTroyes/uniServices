@@ -7,31 +7,58 @@ use Doctrine\ORM\EntityManagerInterface;
 use StageBundle\Entity\Stages\StageEtudiant;
 use StageBundle\Entity\Stages\StageSoutenance;
 use StageBundle\Entity\Stages\StagePeriode;
+use StageBundle\Service\Notification\StageNotifier;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/** Planification des soutenances : réservée au service des stages. */
+#[IsGranted('ROLE_STAGE_MANAGER')]
 class StageSoutenanceController extends AbstractController
 {
-    private EntityManagerInterface $em;
+    private const DUREE_MIN = 5;
+    private const DUREE_MAX = 480;
+    private const PAUSE_MAX = 240;
+    private const CRENEAUX_MAX = 200;
 
-    public function __construct(EntityManagerInterface $em)
-    {
-        $this->em = $em;
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly StageNotifier $notifier,
+    ) {
     }
 
-    private function getIdFromIri(string $id): ?int
+    /** Accepte un identifiant, une IRI (« /api/x/12 ») ou rien (null, chaîne vide). */
+    private function getIdFromIri(mixed $id): ?int
     {
-        if ($id === null || $id === '') {
+        if ($id === null || $id === '' || is_bool($id) || is_array($id)) {
             return null;
         }
         if (is_string($id) && str_contains($id, '/')) {
             $parts = explode('/', $id);
-            return (int)end($parts);
+            $id = end($parts);
         }
-        return (int)$id;
+
+        return is_numeric($id) && (int) $id > 0 ? (int) $id : null;
+    }
+
+    private function parseDate(mixed $valeur): ?\DateTime
+    {
+        if (!is_string($valeur) || $valeur === '') {
+            return null;
+        }
+        try {
+            return new \DateTime($valeur);
+        } catch (\Exception) {
+            return null;
+        }
+    }
+
+    private function dureeValide(int $duree): bool
+    {
+        return $duree >= self::DUREE_MIN && $duree <= self::DUREE_MAX;
     }
 
     #[Route('/api/stage_soutenances/validate-conflict', name: 'api_stage_soutenances_validate_conflict', methods: ['POST'])]
@@ -57,7 +84,10 @@ class StageSoutenanceController extends AbstractController
         }
 
         $enseignantJury = $enseignantJuryId ? $this->em->getRepository(Personnel::class)->find($enseignantJuryId) : null;
-        $start = new \DateTime($dateStr);
+        $start = $this->parseDate($dateStr);
+        if ($start === null || !$this->dureeValide($duree)) {
+            return new JsonResponse(['error' => 'Date ou durée invalide.'], Response::HTTP_BAD_REQUEST);
+        }
         $end = (clone $start)->modify("+$duree minutes");
 
         $conflicts = $this->checkConflicts($stagePeriode, $stageEtudiant, $enseignantJury, $start, $end, $soutenanceId);
@@ -91,8 +121,15 @@ class StageSoutenanceController extends AbstractController
             return new JsonResponse(['error' => 'Période de stage non trouvée.'], Response::HTTP_NOT_FOUND);
         }
 
+        if ($stageEtudiant !== null && $stageEtudiant->getStagePeriode() !== $stagePeriode) {
+            return new JsonResponse(['error' => 'L\'étudiant n\'appartient pas à cette période de stage.'], Response::HTTP_BAD_REQUEST);
+        }
+
         $enseignantJury = $enseignantJuryId ? $this->em->getRepository(Personnel::class)->find($enseignantJuryId) : null;
-        $start = new \DateTime($dateStr);
+        $start = $this->parseDate($dateStr);
+        if ($start === null || !$this->dureeValide($duree)) {
+            return new JsonResponse(['error' => 'Date ou durée invalide.'], Response::HTTP_BAD_REQUEST);
+        }
         $end = (clone $start)->modify("+$duree minutes");
 
         // Validate conflicts
@@ -124,6 +161,12 @@ class StageSoutenanceController extends AbstractController
             }
         }
 
+        // Empreinte avant modification : on ne prévient que si l'affectation, l'horaire, la salle ou le jury changent.
+        $empreinte = static fn (StageSoutenance $s): string => implode('|', [
+            $s->getStageEtudiant()?->getId(), $s->getDateSoutenance()?->format('Y-m-d H:i'), $s->getSalle(), $s->getEnseignantJury()?->getId(),
+        ]);
+        $avant = $soutenance->getId() !== null ? $empreinte($soutenance) : null;
+
         $soutenance->setStagePeriode($stagePeriode)
             ->setStageEtudiant($stageEtudiant)
             ->setEnseignantJury($enseignantJury)
@@ -133,6 +176,11 @@ class StageSoutenanceController extends AbstractController
 
         $this->em->persist($soutenance);
         $this->em->flush();
+
+        if ($soutenance->getStageEtudiant() !== null && $avant !== $empreinte($soutenance)) {
+            $user = $this->getUser();
+            $this->notifier->soutenancePlanifiee($soutenance, $user instanceof Personnel ? $user : null);
+        }
 
         return new JsonResponse([
             'success' => true,
@@ -161,11 +209,15 @@ class StageSoutenanceController extends AbstractController
             return new JsonResponse(['error' => 'Période de stage non trouvée.'], Response::HTTP_NOT_FOUND);
         }
 
-        $start = new \DateTime($dateStr . ' ' . $startTimeStr);
-        $endLimit = new \DateTime($dateStr . ' ' . $endTimeStr);
+        $start = $this->parseDate($dateStr . ' ' . $startTimeStr);
+        $endLimit = $this->parseDate($dateStr . ' ' . $endTimeStr);
+        // Une durée nulle ou négative bouclerait indéfiniment.
+        if ($start === null || $endLimit === null || !$this->dureeValide($duree) || $pauseDuree < 0 || $pauseDuree > self::PAUSE_MAX) {
+            return new JsonResponse(['error' => 'Date, horaires, durée ou pause invalides.'], Response::HTTP_BAD_REQUEST);
+        }
         $slotsCreated = 0;
 
-        while ($start < $endLimit) {
+        while ($start < $endLimit && $slotsCreated < self::CRENEAUX_MAX) {
             $slotEnd = (clone $start)->modify("+$duree minutes");
             if ($slotEnd > $endLimit) {
                 break;

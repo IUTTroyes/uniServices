@@ -10,6 +10,8 @@ use StageBundle\Adapter\StageConventionAdapter;
 use StageBundle\Entity\Stages\StageEtudiant;
 use StageBundle\Entity\Stages\StageAvenant;
 use StageBundle\Entity\Stages\StageConventionTemplate;
+use StageBundle\Security\StageVoter;
+use StageBundle\Service\Notification\StageNotifier;
 use StageBundle\Services\GotenbergService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,6 +24,7 @@ class StagePdfController extends AbstractController
         private readonly EntityManagerInterface $em,
         private readonly GotenbergService $gotenbergService,
         private readonly PdfExportService $pdfExportService,
+        private readonly StageNotifier $notifier,
     ) {
     }
 
@@ -32,6 +35,7 @@ class StagePdfController extends AbstractController
         if (!$stage) {
             return new Response('Stage étudiant non trouvé', Response::HTTP_NOT_FOUND);
         }
+        $this->denyAccessUnlessGranted(StageVoter::STAGE_ETUDIANT_VIEW, $stage);
 
         // Get main establishment
         $etab = $this->em->getRepository(Etablissement::class)->findOneBy(['isMain' => true])
@@ -117,6 +121,7 @@ class StagePdfController extends AbstractController
         if (!$stage) {
             return new Response('Stage associé à l\'avenant non trouvé', Response::HTTP_NOT_FOUND);
         }
+        $this->denyAccessUnlessGranted(StageVoter::STAGE_ETUDIANT_VIEW, $stage);
 
         $template = $this->em->getRepository(StageConventionTemplate::class)->findOneBy(['code' => 'default_avenant']);
         $templateText = $template ? $template->getTexte() : "AVENANT À LA CONVENTION DE STAGE\n(Modèle par défaut non configuré en base)";
@@ -148,29 +153,40 @@ class StagePdfController extends AbstractController
             return new Response('Avenant non trouvé', Response::HTTP_NOT_FOUND);
         }
 
+        $stage = $avenant->getStageEtudiant();
+        if (!$stage) {
+            return new Response('Stage associé à l\'avenant non trouvé', Response::HTTP_NOT_FOUND);
+        }
+        $this->denyAccessUnlessGranted(StageVoter::STAGE_ETUDIANT_MANAGE, $stage);
+
+        // Idempotent : un avenant déjà validé n'est ni ré-appliqué ni re-notifié.
+        if ($avenant->isValide()) {
+            return $this->json(['success' => true, 'dejaValide' => true]);
+        }
+
         $avenant->setValide(true);
         $avenant->setDateValidation(new \DateTime());
 
-        $stage = $avenant->getStageEtudiant();
-        if ($stage) {
-            if ($avenant->getNewDateDebut()) {
-                $stage->setDateDebutStage($avenant->getNewDateDebut());
-            }
-            if ($avenant->getNewDateFin()) {
-                $stage->setDateFinStage($avenant->getNewDateFin());
-            }
-            if (null !== $avenant->getNewDureeHebdomadaire()) {
-                $stage->setDureeHebdomadaire($avenant->getNewDureeHebdomadaire());
-            }
-            if (null !== $avenant->getNewGratificationMontant()) {
-                $stage->setGratificationMontant($avenant->getNewGratificationMontant());
-            }
-            if ($avenant->getNewTuteur()) {
-                $stage->setTuteur($avenant->getNewTuteur());
-            }
+        if ($avenant->getNewDateDebut()) {
+            $stage->setDateDebutStage($avenant->getNewDateDebut());
+        }
+        if ($avenant->getNewDateFin()) {
+            $stage->setDateFinStage($avenant->getNewDateFin());
+        }
+        if (null !== $avenant->getNewDureeHebdomadaire()) {
+            $stage->setDureeHebdomadaire($avenant->getNewDureeHebdomadaire());
+        }
+        if (null !== $avenant->getNewGratificationMontant()) {
+            $stage->setGratificationMontant($avenant->getNewGratificationMontant());
+        }
+        if ($avenant->getNewTuteur()) {
+            $stage->setTuteur($avenant->getNewTuteur());
         }
 
         $this->em->flush();
+
+        $user = $this->getUser();
+        $this->notifier->avenantValide($avenant, $user instanceof \App\Entity\Users\Personnel ? $user : null);
 
         return new Response(json_encode(['success' => true]), Response::HTTP_OK, [
             'Content-Type' => 'application/json'

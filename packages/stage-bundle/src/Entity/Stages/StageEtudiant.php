@@ -17,6 +17,7 @@ use App\Entity\Users\Personnel;
 use App\ValueObject\Adresse;
 use StageBundle\Enum\EtatStageEnum;
 use StageBundle\Repository\Stages\StageEtudiantRepository;
+use StageBundle\State\StageEtudiantProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -31,17 +32,29 @@ use App\Filter\StageEtudiantFilter;
 #[ApiFilter(StageEtudiantFilter::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']]),
+        new Get(
+            normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']],
+            security: "is_granted('STAGE_ETUDIANT_VIEW', object)"
+        ),
+        // Liste restreinte aux dossiers visibles par l'utilisateur : StageEtudiantVisibiliteExtension
+        new GetCollection(
+            normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']],
+            security: "is_granted('IS_PERSONNEL') or is_granted('IS_ETUDIANT')"
+        ),
         new Post(
             normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']],
-            denormalizationContext: ['groups' => ['stage_etudiant:write']]
+            denormalizationContext: ['groups' => ['stage_etudiant:write']],
+            securityPostDenormalize: "is_granted('STAGE_ETUDIANT_EDIT', object)",
+            processor: StageEtudiantProcessor::class
         ),
         new Patch(
             normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']],
-            denormalizationContext: ['groups' => ['stage_etudiant:write']]
+            denormalizationContext: ['groups' => ['stage_etudiant:write']],
+            security: "is_granted('STAGE_ETUDIANT_EDIT', object)",
+            securityPostDenormalize: "is_granted('STAGE_ETUDIANT_EDIT', object)",
+            processor: StageEtudiantProcessor::class
         ),
-        new Delete()
+        new Delete(security: "is_granted('STAGE_ETUDIANT_MANAGE', object)")
     ],
     parameters: [
         'stagePeriode' => new QueryParameter(filter: StageEtudiantFilter::class),

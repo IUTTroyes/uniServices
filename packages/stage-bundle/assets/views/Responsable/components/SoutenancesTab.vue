@@ -92,33 +92,35 @@ async function updatePeriodDuration() {
   }
 }
 
+// Une relation arrive en objet ({ id } / { '@id' }) ou en IRI (« /api/x/12 ») selon le format de réponse.
+const idFromRelation = (rel) => {
+  if (!rel) return null;
+  if (typeof rel === 'object') {
+    if (rel.id) return parseInt(rel.id, 10);
+    rel = rel['@id'];
+  }
+  const id = parseInt(String(rel ?? '').split('/').pop(), 10);
+  return Number.isNaN(id) ? null : id;
+};
+
 async function fetchSlots() {
   isLoading.value = true;
   try {
-    const response = await api.get('/api/stage_soutenances');
-    
-    let rawList = [];
-    if (response.data) {
-      if (Array.isArray(response.data)) {
-        rawList = response.data;
-      } else if (response.data['hydra:member'] && Array.isArray(response.data['hydra:member'])) {
-        rawList = response.data['hydra:member'];
-      }
-    }
-    
-    // Filter and map slots for the selected period
-    const list = rawList.filter(s => {
-      const pId = s.stagePeriode?.id || (typeof s.stagePeriode === 'string' && s.stagePeriode.split('/').pop());
-      return String(pId) === String(props.selectedPeriodId);
+    const response = await api.get('/api/stage_soutenances', {
+      params: { stagePeriode: props.selectedPeriodId, pagination: false }
     });
+
+    const data = response.data || [];
+    const rawList = Array.isArray(data) ? data : (data.member || data['hydra:member'] || []);
+    const list = rawList.filter(s => String(idFromRelation(s.stagePeriode)) === String(props.selectedPeriodId));
 
     // Sort chronologically
     list.sort((a, b) => new Date(a.dateSoutenance) - new Date(b.dateSoutenance));
 
     // Map to local edit state
     slots.value = list.map(s => {
-      const stageEtudiantId = s.stageEtudiant ? (s.stageEtudiant.id || parseInt(s.stageEtudiant['@id']?.split('/').pop(), 10)) : null;
-      const enseignantJuryId = s.enseignantJury ? (s.enseignantJury.id || parseInt(s.enseignantJury['@id']?.split('/').pop(), 10)) : null;
+      const stageEtudiantId = idFromRelation(s.stageEtudiant);
+      const enseignantJuryId = idFromRelation(s.enseignantJury);
 
       return {
         id: s.id,

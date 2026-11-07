@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\Post;
 use App\Entity\Contracts\TimestampableInterface;
 use App\Entity\Traits\TimestampableTrait;
 use StageBundle\Repository\Stages\StageAvenantRepository;
+use StageBundle\State\StageAvenantProcessor;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -18,17 +19,29 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: StageAvenantRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['stage_avenant:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['stage_avenant:read']]),
+        new Get(
+            normalizationContext: ['groups' => ['stage_avenant:read']],
+            security: "object.getStageEtudiant() and is_granted('STAGE_ETUDIANT_VIEW', object.getStageEtudiant())"
+        ),
+        // Les avenants d'un dossier sont exposés dans le dossier lui-même (stage_etudiant:read).
+        new GetCollection(
+            normalizationContext: ['groups' => ['stage_avenant:read']],
+            security: "is_granted('ROLE_STAGE_MANAGER')"
+        ),
+        // Demande d'avenant : l'étudiant pour son dossier, ou le service des stages
         new Post(
             normalizationContext: ['groups' => ['stage_avenant:read']],
-            denormalizationContext: ['groups' => ['stage_avenant:write']]
+            denormalizationContext: ['groups' => ['stage_avenant:write']],
+            securityPostDenormalize: "object.getStageEtudiant() and (is_granted('STAGE_ETUDIANT_MANAGE', object.getStageEtudiant()) or (is_granted('IS_ETUDIANT') and is_granted('STAGE_ETUDIANT_VIEW', object.getStageEtudiant())))",
+            processor: StageAvenantProcessor::class
         ),
         new Patch(
             normalizationContext: ['groups' => ['stage_avenant:read']],
-            denormalizationContext: ['groups' => ['stage_avenant:write']]
+            denormalizationContext: ['groups' => ['stage_avenant:write']],
+            security: "object.getStageEtudiant() and is_granted('STAGE_ETUDIANT_MANAGE', object.getStageEtudiant())",
+            securityPostDenormalize: "object.getStageEtudiant() and is_granted('STAGE_ETUDIANT_MANAGE', object.getStageEtudiant())"
         ),
-        new Delete()
+        new Delete(security: "object.getStageEtudiant() and is_granted('STAGE_ETUDIANT_MANAGE', object.getStageEtudiant())")
     ]
 )]
 class StageAvenant implements TimestampableInterface

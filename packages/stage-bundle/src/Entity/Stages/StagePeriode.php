@@ -26,8 +26,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiFilter(StagePeriodeFilter::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['stage_periode:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['stage_periode:read']]),
+        new Get(normalizationContext: ['groups' => ['stage_periode:read']], security: "is_granted('IS_PERSONNEL') or is_granted('IS_ETUDIANT')"),
+        new GetCollection(normalizationContext: ['groups' => ['stage_periode:read']], security: "is_granted('IS_PERSONNEL') or is_granted('IS_ETUDIANT')"),
         new Post(securityPostDenormalize: "is_granted('ROLE_STAGE_MANAGER')"),
         new Patch(securityPostDenormalize: "is_granted('ROLE_STAGE_MANAGER')"),
         new Delete(security: "is_granted('ROLE_STAGE_MANAGER')"),

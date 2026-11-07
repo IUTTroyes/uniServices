@@ -173,7 +173,8 @@ const mapStageEtudiantToVue = (se) => {
 
 const fetchAllStudents = async () => {
   try {
-    const data = await getStageEtudiantsService();
+    // Sans « pagination: false », l'API ne renvoie que les 30 premiers dossiers.
+    const data = await getStageEtudiantsService({ pagination: false });
     students.value = (data || []).map(mapStageEtudiantToVue);
   } catch (error) {
     console.error('Erreur lors du chargement des étudiants:', error);

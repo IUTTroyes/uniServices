@@ -21,5 +21,11 @@ spl_autoload_register(function (string $class): void {
             require_once $file;
         }
     }
+    if (str_starts_with($class, 'StageBundle\\Tests\\')) {
+        $file = __DIR__ . '/../packages/stage-bundle/tests/' . str_replace('\\', '/', substr($class, 18)) . '.php';
+        if (file_exists($file)) {
+            require_once $file;
+        }
+    }
 });
 

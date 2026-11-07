@@ -14,6 +14,9 @@
         <testsuite name="UnifolioBundle">
             <directory>packages/unifolio-bundle/tests</directory>
         </testsuite>
+        <testsuite name="StageBundle">
+            <directory>packages/stage-bundle/tests</directory>
+        </testsuite>
     </testsuites>
 </phpunit>
 

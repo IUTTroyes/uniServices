@@ -262,3 +262,11 @@ UniFolio est le premier consommateur :
 - Appels : `EvaluationNotifier` (avec e-mails dédiés conservés via `$envoiImmediat`), `TraceManager::deposer()`,
   `CommentaireService::ajouter()`, `PublicationManager::moderer()`.
 - Tâche périodique propre : `unifolio:taches:installer` (relance des évaluateurs).
+
+Stages est le deuxième consommateur (détail : `packages/stage-bundle/docs/notifications.md`) :
+
+- Types : `packages/stage-bundle/src/Enum/TypeNotificationEnum.php` + `Service/Notification/StageNotificationTypes.php`
+  (11 types, étudiants et personnels), sans gabarit d'e-mail dédié (e-mail générique).
+- Appels regroupés dans `StageNotifier`, déclenché par le processeur API Platform des dossiers
+  (`State/StageEtudiantProcessor`, à partir du statut avant / après), celui des avenants et les contrôleurs
+  (validation d'avenant, planification des soutenances).

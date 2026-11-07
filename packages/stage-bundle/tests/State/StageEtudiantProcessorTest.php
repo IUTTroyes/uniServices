@@ -1,0 +1,140 @@
+<?php
+
+namespace StageBundle\Tests\State;
+
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\State\ProcessorInterface;
+use App\Entity\Users\Etudiant;
+use App\Entity\Users\Personnel;
+use App\Security\UserEffectivePermissionService;
+use PHPUnit\Framework\TestCase;
+use StageBundle\Entity\Stages\StageEtudiant;
+use StageBundle\Entity\Stages\StagePeriode;
+use StageBundle\Enum\EtatStageEnum;
+use StageBundle\Security\StageAccess;
+use StageBundle\Service\Notification\StageNotifier;
+use StageBundle\State\StageEtudiantProcessor;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+
+class StageEtudiantProcessorTest extends TestCase
+{
+    private int $persistances = 0;
+    private int $notifications = 0;
+
+    private function processor(Etudiant|Personnel $user, bool $gestionnaire = false): StageEtudiantProcessor
+    {
+        $persist = $this->createMock(ProcessorInterface::class);
+        $persist->method('process')->willReturnCallback(function ($data) {
+            ++$this->persistances;
+
+            return $data;
+        });
+        $security = $this->createMock(Security::class);
+        $security->method('getUser')->willReturn($user);
+        $permissions = $this->createMock(UserEffectivePermissionService::class);
+        $permissions->method('isSuperAdmin')->willReturn(false);
+        $permissions->method('hasPermission')->willReturn($gestionnaire);
+        $notifier = $this->createMock(StageNotifier::class);
+        $notifier->method('dossierEnregistre')->willReturnCallback(function () {
+            ++$this->notifications;
+        });
+
+        return new StageEtudiantProcessor($persist, $security, new StageAccess($permissions), $notifier);
+    }
+
+    /** @param array<string, mixed> $corps */
+    private function patch(StageEtudiantProcessor $p, StageEtudiant $apres, StageEtudiant $avant, array $corps): void
+    {
+        $request = new Request(content: json_encode($corps, \JSON_THROW_ON_ERROR));
+        $p->process($apres, new Patch(), [], ['previous_data' => $avant, 'request' => $request]);
+    }
+
+    private function stage(Etudiant $etudiant, EtatStageEnum $etat, ?Personnel $tuteur = null): StageEtudiant
+    {
+        return (new StageEtudiant())->setEtudiant($etudiant)->setEtatStage($etat)->setTuteurUniversitaire($tuteur)
+            ->setStagePeriode((new StagePeriode())->setLibelle('P'));
+    }
+
+    public function testLEtudiantDeposeSaDemande(): void
+    {
+        $etu = new Etudiant();
+        $avant = $this->stage($etu, EtatStageEnum::AUTORISE);
+        $apres = (clone $avant)->setEtatStage(EtatStageEnum::DEPOSE)->setSujetStage('Sujet');
+
+        $this->patch($this->processor($etu), $apres, $avant, ['etatStage' => 'ETAT_STAGE_DEPOSE', 'sujetStage' => 'Sujet']);
+
+        self::assertSame(1, $this->persistances);
+        self::assertSame(1, $this->notifications);
+    }
+
+    public function testLEtudiantNePeutPasSeValider(): void
+    {
+        $etu = new Etudiant();
+        $avant = $this->stage($etu, EtatStageEnum::DEPOSE);
+        $apres = (clone $avant)->setEtatStage(EtatStageEnum::VALIDE);
+
+        $this->expectException(AccessDeniedHttpException::class);
+        $this->patch($this->processor($etu), $apres, $avant, ['etatStage' => 'ETAT_STAGE_VALIDE']);
+    }
+
+    public function testLEtudiantNePeutPasEcrireUnChampReserve(): void
+    {
+        $etu = new Etudiant();
+        $avant = $this->stage($etu, EtatStageEnum::DEPOSE);
+        $apres = (clone $avant)->setEvaluationNote(20.0);
+
+        $this->expectException(AccessDeniedHttpException::class);
+        $this->patch($this->processor($etu), $apres, $avant, ['evaluationNote' => 20]);
+    }
+
+    public function testConventionSigneeVerrouilleeCoteEtudiant(): void
+    {
+        $etu = new Etudiant();
+        $avant = $this->stage($etu, EtatStageEnum::CONVENTION_RECUE);
+        $apres = (clone $avant)->setEtatStage(EtatStageEnum::DEPOSE);
+
+        $this->expectException(AccessDeniedHttpException::class);
+        $this->patch($this->processor($etu), $apres, $avant, ['etatStage' => 'ETAT_STAGE_DEPOSE']);
+    }
+
+    public function testLeTuteurSaisitLEvaluationMaisPasLeStatut(): void
+    {
+        $tuteur = new Personnel();
+        $avant = $this->stage(new Etudiant(), EtatStageEnum::VALIDE, $tuteur);
+
+        $this->patch($this->processor($tuteur), (clone $avant)->setEvaluationNote(15.0), $avant, ['evaluationNote' => 15, 'evaluationCommentaire' => 'Bien']);
+        self::assertSame(1, $this->persistances);
+
+        $this->expectException(AccessDeniedHttpException::class);
+        $this->patch($this->processor($tuteur), (clone $avant)->setEtatStage(EtatStageEnum::CONVENTION_RECUE), $avant, ['etatStage' => 'ETAT_STAGE_CONVENTION_RECUE']);
+    }
+
+    public function testUnAutrePersonnelEstRefuse(): void
+    {
+        $avant = $this->stage(new Etudiant(), EtatStageEnum::VALIDE, new Personnel());
+
+        $this->expectException(AccessDeniedHttpException::class);
+        $this->patch($this->processor(new Personnel()), clone $avant, $avant, ['sujetStage' => 'x']);
+    }
+
+    public function testLeGestionnaireFaitTout(): void
+    {
+        $avant = $this->stage(new Etudiant(), EtatStageEnum::DEPOSE);
+        $this->patch($this->processor(new Personnel(), true), (clone $avant)->setEtatStage(EtatStageEnum::VALIDE), $avant, ['etatStage' => 'ETAT_STAGE_VALIDE', 'evaluationNote' => 12]);
+
+        self::assertSame(1, $this->persistances);
+    }
+
+    public function testCreationParLEtudiant(): void
+    {
+        $etu = new Etudiant();
+        $stage = $this->stage($etu, EtatStageEnum::DEPOSE);
+        $request = new Request(content: json_encode(['etatStage' => 'ETAT_STAGE_DEPOSE', 'etudiant' => '/api/etudiants/1']));
+
+        $this->processor($etu)->process($stage, new Post(), [], ['request' => $request]);
+        self::assertSame(1, $this->persistances);
+    }
+}
