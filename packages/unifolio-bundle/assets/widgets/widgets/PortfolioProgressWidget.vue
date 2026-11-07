@@ -27,6 +27,6 @@ const percentage = computed(() => {
             <span class="text-sm font-semibold">{{ percentage }}%</span>
         </div>
         <ProgressBar :value="percentage" />
-        <div class="text-xs text-color-secondary">{{ data.validated ?? 0 }} / {{ data.target ?? 0 }}</div>
+        <div class="text-xs text-color-secondary">{{ data.validated ?? 0 }} / {{ data.target ?? 0 }} {{ data.label ?? '' }}</div>
     </div>
 </template>

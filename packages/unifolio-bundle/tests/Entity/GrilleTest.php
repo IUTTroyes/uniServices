@@ -115,6 +115,20 @@ class GrilleTest extends TestCase
         $this->assertSame(['Au moins un critère évalué (hors appréciation libre) doit avoir un poids positif.'], $v->getErreursPublication());
     }
 
+    public function testUneAppreciationLibreEstToujoursFacultative(): void
+    {
+        $v = (new Grille('G', $this->but, GranulariteEnum::AC))->creerBrouillon();
+        $critere = $v->ajouterCritere('Appréciation', TypeCritereEnum::TEXTE)->setObligatoire(true);
+
+        $this->assertFalse($critere->isObligatoire(), 'Un critère texte ne bloque jamais la remise');
+
+        // Changer un critère obligatoire en appréciation libre le rend facultatif.
+        $echelle = $v->ajouterCritere('Maîtrise', TypeCritereEnum::ECHELLE)->setObligatoire(true);
+        $this->assertTrue($echelle->isObligatoire());
+        $echelle->setType(TypeCritereEnum::TEXTE);
+        $this->assertFalse($echelle->isObligatoire());
+    }
+
     public function testCouleurEchelonValidee(): void
     {
         $v = (new Grille('G', $this->but, GranulariteEnum::AC))->creerBrouillon();

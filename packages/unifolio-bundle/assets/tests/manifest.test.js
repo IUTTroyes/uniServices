@@ -48,6 +48,20 @@ describe('unifolio manifest', () => {
     }
   });
 
+  it('déclare les écrans de campagne et d\'évaluation avec les bonnes permissions', () => {
+    const route = (path) => racine.children.find((c) => c.path === path);
+
+    for (const path of ['evaluations', 'evaluations/etudiants/:campagne/:etudiant', 'evaluations/bilans/:campagne/:etudiant', 'evaluations/traces/:uuid']) {
+      expect(route(path), path).toBeDefined();
+      expect(route(path).meta.permission).toContain('isEnseignant');
+      expect(typeof route(path).component).toBe('function');
+    }
+    for (const path of ['admin/campagnes', 'admin/campagnes/:uuid']) {
+      expect(route(path), path).toBeDefined();
+      expect(route(path).meta.permission).toBe('isReferentPortfolio');
+    }
+  });
+
   it('a des noms de routes uniques', () => {
     const names = racine.children.map((c) => c.name);
     expect(new Set(names).size).toBe(names.length);

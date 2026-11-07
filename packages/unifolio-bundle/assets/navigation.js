@@ -43,7 +43,21 @@ export const unifolioSections = [
   {
     titre: 'Évaluation',
     items: [
-      { path: 'evaluations', label: 'À évaluer', icon: 'pi pi-fw pi-check-square', description: 'Traces et portfolios des étudiants qui vous sont affectés.', permission: ['isEnseignant', 'isReferentPortfolio', 'ROLE_PORTFOLIO_CORRECTOR'], capacite: 'correcteur', lot: 4 },
+      {
+        path: 'evaluations',
+        label: 'À évaluer',
+        icon: 'pi pi-fw pi-check-square',
+        description: 'Traces et portfolios des étudiants qui vous sont affectés.',
+        permission: ['isEnseignant', 'isReferentPortfolio', 'ROLE_PORTFOLIO_CORRECTOR'],
+        capacite: 'correcteur',
+        lot: 4,
+        component: () => import('./views/EvaluationsView.vue'),
+        sousRoutes: [
+          { path: 'evaluations/etudiants/:campagne/:etudiant', label: 'Suivi d\'un étudiant', icon: 'pi pi-user', component: () => import('./views/EvaluationEtudiantView.vue') },
+          { path: 'evaluations/bilans/:campagne/:etudiant', label: 'Bilans d\'un étudiant', icon: 'pi pi-check-square', component: () => import('./views/EvaluationBilansView.vue') },
+          { path: 'evaluations/traces/:uuid', label: 'Évaluation d\'une trace', icon: 'pi pi-images', component: () => import('./views/EvaluationTraceView.vue') },
+        ],
+      },
       { path: 'suivi', label: 'Suivi des étudiants', icon: 'pi pi-fw pi-users', description: 'Progression par compétence, promo par promo.', permission: ['isEnseignant', 'isReferentPortfolio', 'ROLE_PORTFOLIO_CORRECTOR'], capacite: 'correcteur', lot: 7 },
     ],
   },
@@ -73,7 +87,19 @@ export const unifolioSections = [
           { path: 'admin/grilles/:uuid', label: 'Grille', icon: 'pi pi-table', component: () => import('./views/admin/GrilleEditView.vue') },
         ],
       },
-      { path: 'admin/campagnes', label: 'Campagnes', icon: 'pi pi-fw pi-calendar', description: 'Calendrier de dépôt et d\'évaluation, affectations.', permission: 'isReferentPortfolio', capacite: 'referent', lot: 4 },
+      {
+        path: 'admin/campagnes',
+        label: 'Campagnes',
+        icon: 'pi pi-fw pi-calendar',
+        description: 'Calendrier de dépôt et d\'évaluation, affectations.',
+        permission: 'isReferentPortfolio',
+        capacite: 'referent',
+        lot: 4,
+        component: () => import('./views/admin/CampagnesView.vue'),
+        sousRoutes: [
+          { path: 'admin/campagnes/:uuid', label: 'Campagne', icon: 'pi pi-calendar', component: () => import('./views/admin/CampagneEditView.vue') },
+        ],
+      },
       { path: 'admin/modeles', label: 'Modèles de portfolio', icon: 'pi pi-fw pi-clone', description: 'Pages et blocs imposés du portfolio académique.', permission: 'isReferentPortfolio', capacite: 'referent', lot: 5 },
       { path: 'moderation', label: 'Modération', icon: 'pi pi-fw pi-eye', description: 'Portfolios vitrines publiés.', permission: ['isReferentPortfolio', 'ROLE_PORTFOLIO_PUBLISHER'], capacite: 'moderateur', lot: 6 },
     ],

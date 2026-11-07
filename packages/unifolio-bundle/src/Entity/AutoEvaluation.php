@@ -256,25 +256,14 @@ class AutoEvaluation implements TimestampableInterface
     public function repondre(array $saisies): void
     {
         $this->assertModifiable();
-        $criteres = [];
-        foreach ($this->getCriteres() as $critere) {
-            $criteres[(string) $critere->getId()] = $critere;
-        }
-        foreach (array_keys($saisies) as $id) {
-            if (!isset($criteres[(string) $id])) {
-                throw new \InvalidArgumentException('Réponse à un critère qui ne fait pas partie de la grille.');
-            }
-        }
+        $reponses = ReponseCritere::depuisSaisies($this->getCriteres(), $saisies);
 
         $this->reponses->clear();
-        foreach ($saisies as $id => $saisie) {
-            $reponse = ReponseCritere::depuisSaisie($criteres[(string) $id], $saisie);
-            if ($reponse !== null) {
-                $reponse->attacherA($this);
-                $this->reponses->add($reponse);
-            }
+        foreach ($reponses as $reponse) {
+            $reponse->attacherA($this);
+            $this->reponses->add($reponse);
         }
-        $this->score = self::calculerScore($this->reponses->toArray());
+        $this->score = ReponseCritere::calculerScore($reponses);
     }
 
     /** @return string[] */
@@ -306,27 +295,6 @@ class AutoEvaluation implements TimestampableInterface
     {
         $this->statut = StatutAutoEvaluationEnum::BROUILLON;
         $this->soumiseLe = null;
-    }
-
-    /**
-     * Moyenne pondérée des réponses quantifiables, entre 0 et 1 ; null si aucune.
-     *
-     * @param ReponseCritere[] $reponses
-     */
-    public static function calculerScore(array $reponses): ?float
-    {
-        $total = 0.0;
-        $poids = 0.0;
-        foreach ($reponses as $reponse) {
-            $valeur = $reponse->getValeurNormalisee();
-            $p = $reponse->getCritere()->getPoids();
-            if ($valeur !== null && $p > 0) {
-                $total += $valeur * $p;
-                $poids += $p;
-            }
-        }
-
-        return $poids > 0 ? round($total / $poids, 4) : null;
     }
 
     private function assertModifiable(): void

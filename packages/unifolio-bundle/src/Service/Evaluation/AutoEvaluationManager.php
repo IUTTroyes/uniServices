@@ -13,6 +13,7 @@ use UnifolioBundle\Entity\GrilleVersion;
 use UnifolioBundle\Entity\TraceRattachement;
 use UnifolioBundle\Enum\GranulariteEnum;
 use UnifolioBundle\Repository\AutoEvaluationRepository;
+use UnifolioBundle\Repository\EvaluationRepository;
 use UnifolioBundle\Service\Grille\GrilleResolver;
 use UnifolioBundle\Service\Referentiel\ReferentielAnnee;
 use UnifolioBundle\Service\Trace\UnifolioValidationException;
@@ -24,6 +25,7 @@ class AutoEvaluationManager
         private readonly AutoEvaluationRepository $autoEvaluations,
         private readonly GrilleResolver $grilles,
         private readonly ReferentielAnnee $referentiel,
+        private readonly EvaluationRepository $evaluations,
     ) {
     }
 
@@ -120,6 +122,12 @@ class AutoEvaluationManager
 
     public function reprendre(AutoEvaluation $auto): void
     {
+        $evaluee = $auto->isBilan()
+            ? $this->evaluations->existeRendueSurBilan($auto->getScolarite(), $auto->getGranularite(), (int) $auto->getCible()->getId())
+            : $this->evaluations->existeRendueSurRattachement($auto->getRattachement());
+        if ($evaluee) {
+            throw UnifolioValidationException::un('Un enseignant a déjà rendu son évaluation : cette auto-évaluation ne peut plus être modifiée.');
+        }
         $auto->reprendre();
         $this->em->flush();
     }

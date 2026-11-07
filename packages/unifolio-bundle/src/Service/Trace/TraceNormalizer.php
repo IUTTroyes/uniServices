@@ -6,7 +6,10 @@ use App\Entity\Etudiant\EtudiantScolarite;
 use UnifolioBundle\Entity\Trace;
 use UnifolioBundle\Entity\TraceMedia;
 use UnifolioBundle\Entity\TraceRattachement;
+use UnifolioBundle\Enum\StatutEvaluationEnum;
 use UnifolioBundle\Repository\AutoEvaluationRepository;
+use UnifolioBundle\Repository\EvaluationRepository;
+use UnifolioBundle\Service\Evaluation\EvaluationNormalizer;
 use UnifolioBundle\Service\Perimetre\UnifolioPerimetre;
 
 /** Représentation JSON des traces pour l'API. */
@@ -15,6 +18,8 @@ class TraceNormalizer
     public function __construct(
         private readonly UnifolioPerimetre $perimetre,
         private readonly AutoEvaluationRepository $autoEvaluations,
+        private readonly EvaluationRepository $evaluations,
+        private readonly EvaluationNormalizer $evaluationNormalizer,
     ) {
     }
 
@@ -58,6 +63,12 @@ class TraceNormalizer
     public function detail(Trace $trace): array
     {
         $autos = $this->autoEvaluations->findParRattachements($trace->getRattachements()->toArray());
+        $retours = [];
+        foreach ($this->evaluations->findParTrace($trace) as $e) {
+            if ($e->isVisibleEtudiant() && $e->getStatut() !== StatutEvaluationEnum::EN_COURS) {
+                $retours[$e->getRattachement()->getId()][] = $this->evaluationNormalizer->retourEtudiant($e);
+            }
+        }
 
         return $this->resume($trace) + [
             'contexte' => $trace->getContexte(),
@@ -67,10 +78,10 @@ class TraceNormalizer
             'deposeeLe' => $trace->getDeposeeLe()?->format(\DATE_ATOM),
             'erreursDepot' => $trace->getErreursDepot(),
             'medias' => array_map(fn (TraceMedia $m) => $this->media($trace, $m), $trace->getMedias()->toArray()),
-            'rattachements' => array_map(function (TraceRattachement $r) use ($autos) {
+            'rattachements' => array_map(function (TraceRattachement $r) use ($autos, $retours) {
                 $auto = $autos[$r->getId()] ?? null;
 
-                return $this->rattachement($r) + ['autoEvaluation' => $auto !== null ? [
+                return $this->rattachement($r) + ['retours' => $retours[$r->getId()] ?? [], 'autoEvaluation' => $auto !== null ? [
                     'uuid' => $auto->getUuidString(),
                     'statut' => ['value' => $auto->getStatut()->value, 'libelle' => $auto->getStatut()->getLibelle(), 'badge' => $auto->getStatut()->getBadge()],
                     'score' => $auto->getScore(),

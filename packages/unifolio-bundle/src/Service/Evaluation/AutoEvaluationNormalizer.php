@@ -5,12 +5,16 @@ namespace UnifolioBundle\Service\Evaluation;
 use UnifolioBundle\Entity\AutoEvaluation;
 use UnifolioBundle\Entity\GrilleCritere;
 use UnifolioBundle\Entity\ReponseCritere;
+use UnifolioBundle\Enum\StatutEvaluationEnum;
+use UnifolioBundle\Repository\EvaluationRepository;
 use UnifolioBundle\Service\Grille\GrilleNormalizer;
 
 class AutoEvaluationNormalizer
 {
     public function __construct(
         private readonly GrilleNormalizer $grilles,
+        private readonly EvaluationRepository $evaluations,
+        private readonly EvaluationNormalizer $evaluationNormalizer,
     ) {
     }
 
@@ -50,7 +54,16 @@ class AutoEvaluationNormalizer
         $contenu['criteres'] = array_values(array_filter($contenu['criteres'], static fn (array $c) => \in_array($c['id'], $ids, true)));
         unset($contenu['erreursPublication']);
 
+        $memeCible = $a->getRattachement() !== null
+            ? $this->evaluations->findBy(['rattachement' => $a->getRattachement()])
+            : $this->evaluations->findBilans($a->getScolarite(), $a->getGranularite(), (int) $a->getCible()->getId());
+        $retours = array_values(array_map(
+            $this->evaluationNormalizer->retourEtudiant(...),
+            array_filter($memeCible, static fn ($e) => $e->isVisibleEtudiant() && $e->getStatut() !== StatutEvaluationEnum::EN_COURS)
+        ));
+
         return $this->resume($a) + [
+            'retours' => $retours,
             'reflexion' => $a->getReflexion(),
             'modifiable' => $a->isModifiable(),
             'erreursSoumission' => $a->getErreursSoumission(),

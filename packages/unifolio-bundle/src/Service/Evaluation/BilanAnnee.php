@@ -7,17 +7,23 @@ use App\Entity\Apc\ApcCompetence;
 use App\Entity\Apc\ApcNiveau;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Users\Etudiant;
-use UnifolioBundle\Entity\AutoEvaluation;
+use App\Entity\Users\Personnel;
+use UnifolioBundle\Entity\Evaluation;
 use UnifolioBundle\Entity\TraceRattachement;
 use UnifolioBundle\Enum\GranulariteEnum;
+use UnifolioBundle\Enum\StatutEvaluationEnum;
 use UnifolioBundle\Repository\AutoEvaluationRepository;
+use UnifolioBundle\Repository\EvaluationRepository;
 use UnifolioBundle\Repository\TraceRepository;
+use UnifolioBundle\Service\Grille\GrilleResolver;
 use UnifolioBundle\Service\Referentiel\ReferentielAnnee;
 
 /**
- * Vue d'ensemble de l'auto-évaluation d'une année : pour chaque élément du référentiel
- * (selon la granularité de la formation), les traces qui le démontrent, leurs auto-évaluations
- * et le bilan de l'étudiant.
+ * Vue d'ensemble d'une année : pour chaque élément du référentiel (selon la granularité de la formation),
+ * les traces qui le démontrent, leurs auto-évaluations, les évaluations des enseignants et la synthèse.
+ *
+ * Vue étudiante (sans évaluateur) : seules les évaluations communiquées apparaissent.
+ * Vue évaluateur : ses évaluations (quel que soit leur statut) et celles, rendues, des autres.
  */
 class BilanAnnee
 {
@@ -25,12 +31,15 @@ class BilanAnnee
         private readonly ReferentielAnnee $referentiel,
         private readonly TraceRepository $traces,
         private readonly AutoEvaluationRepository $autoEvaluations,
+        private readonly EvaluationRepository $evaluations,
         private readonly AutoEvaluationNormalizer $normalizer,
+        private readonly EvaluationNormalizer $evaluationNormalizer,
+        private readonly GrilleResolver $grilles,
     ) {
     }
 
     /** @return list<array<string, mixed>> */
-    public function elements(Etudiant $etudiant, EtudiantScolarite $scolarite, GranulariteEnum $granularite): array
+    public function elements(Etudiant $etudiant, EtudiantScolarite $scolarite, GranulariteEnum $granularite, ?Personnel $evaluateur = null): array
     {
         $rattachements = [];
         foreach ($this->traces->findBibliotheque($etudiant, ['scolarite' => $scolarite->getId()]) as $trace) {
@@ -47,26 +56,50 @@ class BilanAnnee
             }
         }
 
+        // Évaluations visibles selon le point de vue.
+        $evalParRattachement = [];
+        $evalBilan = [];
+        foreach ($this->evaluations->findParScolarite($scolarite) as $e) {
+            if (!$this->visible($e, $evaluateur)) {
+                continue;
+            }
+            if ($e->isBilan()) {
+                $evalBilan[$e->getCible()->getId()][] = $e;
+            } else {
+                $evalParRattachement[$e->getRattachement()->getId()][] = $e;
+            }
+        }
+        $regle = $this->grilles->agregationPourScolarite($scolarite);
+
         $elements = [];
         foreach ($this->cibles($scolarite, $granularite) as $cible) {
             $competence = $cible instanceof ApcCompetence ? $cible
                 : ($cible instanceof ApcNiveau ? $cible->getCompetence() : $cible->getNiveau()?->getCompetence());
 
             $traces = [];
+            $evaluationsElement = [];
             foreach ($rattachements as $r) {
-                if ($this->concerne($r, $cible)) {
-                    $auto = $autoParRattachement[$r->getId()] ?? null;
-                    $traces[] = [
-                        'uuid' => $r->getTrace()->getUuidString(),
-                        'titre' => $r->getTrace()->getTitre(),
-                        'statut' => $r->getTrace()->getStatut()->getLibelle(),
-                        'rattachementId' => $r->getId(),
-                        'autoEvaluation' => $auto !== null ? $this->normalizer->resume($auto) : null,
-                    ];
+                if (!$this->concerne($r, $cible)) {
+                    continue;
                 }
+                $auto = $autoParRattachement[$r->getId()] ?? null;
+                $evalsTrace = $evalParRattachement[$r->getId()] ?? [];
+                array_push($evaluationsElement, ...$evalsTrace);
+                $traces[] = [
+                    'uuid' => $r->getTrace()->getUuidString(),
+                    'titre' => $r->getTrace()->getTitre(),
+                    'statut' => $r->getTrace()->getStatut()->getLibelle(),
+                    'statutValue' => $r->getTrace()->getStatut()->value,
+                    'rattachementId' => $r->getId(),
+                    'autoEvaluation' => $auto !== null ? $this->normalizer->resume($auto) : null,
+                    'evaluations' => $this->resumes($evalsTrace, $evaluateur),
+                ];
             }
 
             $bilan = $bilans[$cible->getId()] ?? null;
+            $evalsBilan = $evalBilan[$cible->getId()] ?? [];
+            $synthese = SyntheseElement::calculer($regle, $evaluationsElement);
+
             $elements[] = [
                 'type' => $granularite->value,
                 'id' => $cible->getId(),
@@ -76,14 +109,39 @@ class BilanAnnee
                 'competence' => $competence !== null ? ['id' => $competence->getId(), 'nomCourt' => $competence->getNomCourt() ?? $competence->getLibelle(), 'libelle' => $competence->getLibelle(), 'couleur' => $competence->getCouleur()] : null,
                 'traces' => $traces,
                 'bilan' => $bilan !== null ? $this->normalizer->resume($bilan) : null,
+                'evaluationsBilan' => $this->resumes($evalsBilan, $evaluateur),
+                'synthese' => ['score' => $synthese['score'], 'nbTraces' => $synthese['nbTraces'], 'regle' => $regle->value],
             ];
         }
 
         return $elements;
     }
 
-    /** @return list<ApcCompetence|ApcNiveau|ApcApprentissageCritique> */
-    private function cibles(EtudiantScolarite $scolarite, GranulariteEnum $granularite): array
+    /**
+     * @param Evaluation[] $evaluations
+     *
+     * @return list<array<string, mixed>> résumés, avec l'indicateur « mienne » pour l'évaluateur courant
+     */
+    private function resumes(array $evaluations, ?Personnel $evaluateur): array
+    {
+        return array_map(
+            fn (Evaluation $e) => $this->evaluationNormalizer->resume($e) + ['mienne' => $evaluateur !== null && $e->estDe($evaluateur)],
+            $evaluations
+        );
+    }
+
+    /** L'évaluateur voit les siennes (même en cours) et les rendues des autres ; l'étudiant les communiquées. */
+    private function visible(Evaluation $e, ?Personnel $evaluateur): bool
+    {
+        if ($evaluateur === null) {
+            return $e->isVisibleEtudiant() && $e->getStatut() !== StatutEvaluationEnum::EN_COURS;
+        }
+
+        return $e->estDe($evaluateur) || $e->getStatut() === StatutEvaluationEnum::RENDUE;
+    }
+
+    /** @return list<ApcCompetence|ApcNiveau|ApcApprentissageCritique> éléments du référentiel de l'année, selon la granularité */
+    public function cibles(EtudiantScolarite $scolarite, GranulariteEnum $granularite): array
     {
         $niveaux = $this->referentiel->niveaux($scolarite);
 

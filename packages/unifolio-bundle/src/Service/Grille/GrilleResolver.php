@@ -7,6 +7,7 @@ use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDiplome;
 use UnifolioBundle\Entity\Grille;
 use UnifolioBundle\Entity\ParametrageFormation;
+use UnifolioBundle\Enum\AgregationEnum;
 use UnifolioBundle\Enum\GranulariteEnum;
 use UnifolioBundle\Repository\GrilleRepository;
 use UnifolioBundle\Repository\ParametrageFormationRepository;
@@ -34,6 +35,13 @@ class GrilleResolver
     public function granularite(StructureDiplome $diplome, StructureAnneeUniversitaire $annee): ?GranulariteEnum
     {
         return $this->parametrage($diplome, $annee)?->getGranularite();
+    }
+
+    public function agregationPourScolarite(EtudiantScolarite $scolarite): AgregationEnum
+    {
+        [$diplome, $annee] = $this->contexte($scolarite);
+
+        return ($diplome !== null && $annee !== null ? $this->parametrage($diplome, $annee)?->getAgregation() : null) ?? AgregationEnum::MAX;
     }
 
     public function granularitePourScolarite(EtudiantScolarite $scolarite): ?GranulariteEnum

@@ -23,6 +23,10 @@ class ReponseCritere
     #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?AutoEvaluation $autoEvaluation = null;
 
+    #[ORM\ManyToOne(inversedBy: 'reponses')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    private ?Evaluation $evaluation = null;
+
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private GrilleCritere $critere;
@@ -100,9 +104,68 @@ class ReponseCritere
         return null;
     }
 
-    public function attacherA(AutoEvaluation $autoEvaluation): void
+    public function attacherA(AutoEvaluation|Evaluation $parent): void
     {
-        $this->autoEvaluation = $autoEvaluation;
+        if ($parent instanceof AutoEvaluation) {
+            $this->autoEvaluation = $parent;
+            $this->evaluation = null;
+        } else {
+            $this->evaluation = $parent;
+            $this->autoEvaluation = null;
+        }
+    }
+
+    /**
+     * Construit les réponses d'une saisie pour un ensemble de critères (indexés ou non).
+     *
+     * @param GrilleCritere[]                        $criteres critères acceptés
+     * @param array<int|string, array<string, mixed>> $saisies  indexées par identifiant de critère
+     *
+     * @return ReponseCritere[]
+     *
+     * @throws \InvalidArgumentException critère inconnu ou valeur invalide
+     */
+    public static function depuisSaisies(array $criteres, array $saisies): array
+    {
+        $parId = [];
+        foreach ($criteres as $critere) {
+            $parId[(string) $critere->getId()] = $critere;
+        }
+        foreach (array_keys($saisies) as $id) {
+            if (!isset($parId[(string) $id])) {
+                throw new \InvalidArgumentException('Réponse à un critère qui ne fait pas partie de la grille.');
+            }
+        }
+        $reponses = [];
+        foreach ($saisies as $id => $saisie) {
+            $reponse = self::depuisSaisie($parId[(string) $id], $saisie);
+            if ($reponse !== null) {
+                $reponses[] = $reponse;
+            }
+        }
+
+        return $reponses;
+    }
+
+    /**
+     * Moyenne pondérée des réponses quantifiables, entre 0 et 1 ; null si aucune.
+     *
+     * @param ReponseCritere[] $reponses
+     */
+    public static function calculerScore(array $reponses): ?float
+    {
+        $total = 0.0;
+        $poids = 0.0;
+        foreach ($reponses as $reponse) {
+            $valeur = $reponse->getValeurNormalisee();
+            $p = $reponse->getCritere()->getPoids();
+            if ($valeur !== null && $p > 0) {
+                $total += $valeur * $p;
+                $poids += $p;
+            }
+        }
+
+        return $poids > 0 ? round($total / $poids, 4) : null;
     }
 
     public function getId(): ?int

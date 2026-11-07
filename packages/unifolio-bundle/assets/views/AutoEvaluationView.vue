@@ -164,6 +164,13 @@ const libelleScolarite = (s) => [s.annee, s.anneeUniversitaire].filter(Boolean).
               <Tag :value="el.bilan.statut.libelle" :severity="el.bilan.statut.badge" />
               <span v-if="pourcentage(el.bilan.score) !== null" class="text-sm text-muted-color">{{ pourcentage(el.bilan.score) }} %</span>
             </template>
+            <Tag
+              v-if="el.synthese && el.synthese.score !== null"
+              :value="`Évalué : ${pourcentage(el.synthese.score)} %`"
+              severity="success"
+              icon="pi pi-check-circle"
+              title="Synthèse des évaluations de vos enseignants sur les traces de cet élément"
+            />
             <Button
               :label="el.bilan ? 'Mon bilan' : 'Faire mon bilan'"
               :icon="el.bilan ? 'pi pi-pencil' : 'pi pi-plus'"

@@ -8,6 +8,7 @@ import Tag from 'primevue/tag';
 import Message from 'primevue/message';
 import ProgressBar from 'primevue/progressbar';
 import GrilleSaisie from './GrilleSaisie.vue';
+import RetourEnseignant from '../evaluation/RetourEnseignant.vue';
 import autoEvaluationService, { pourcentage } from '../../requests/autoEvaluationService';
 import { messageErreur } from '../../requests/traceService';
 import { couleurCompetence, texteSurCompetence } from '../traces/options';
@@ -138,6 +139,11 @@ const score = computed(() => pourcentage(auto.value?.score));
           @input="modifie = true"
         />
       </div>
+
+      <section v-if="auto.retours?.length" class="flex flex-col gap-2">
+        <h4 class="text-base font-semibold m-0">Retour de vos enseignants</h4>
+        <RetourEnseignant v-for="retour in auto.retours" :key="retour.uuid" :retour="retour" />
+      </section>
 
       <small class="text-muted-color">Grille : {{ auto.grille.libelle }} (version {{ auto.grille.version }})</small>
     </div>

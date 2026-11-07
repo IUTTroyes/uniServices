@@ -18,6 +18,7 @@ use UnifolioBundle\Enum\StatutTraceEnum;
 use UnifolioBundle\Enum\TypeMediaEnum;
 use UnifolioBundle\Security\TraceVoter;
 use UnifolioBundle\Security\UnifolioRoles;
+use UnifolioBundle\Service\Campagne\EvaluateurAcces;
 
 class TraceVoterTest extends TestCase
 {
@@ -75,6 +76,16 @@ class TraceVoterTest extends TestCase
         $this->assertSame(VoterInterface::ACCESS_DENIED, $voter->vote($token, $this->trace, [TraceVoter::MODIFIER]));
     }
 
+    public function testEvaluateurAffecteVoitSansPouvoirModifier(): void
+    {
+        $voter = $this->voter([UnifolioRoles::ENSEIGNANT], evaluateurAffecte: true);
+        $token = $this->token($this->createMock(Personnel::class));
+
+        $this->assertSame(VoterInterface::ACCESS_GRANTED, $voter->vote($token, $this->trace, [TraceVoter::VOIR]));
+        $this->assertSame(VoterInterface::ACCESS_DENIED, $voter->vote($token, $this->trace, [TraceVoter::MODIFIER]));
+        $this->assertSame(VoterInterface::ACCESS_DENIED, $voter->vote($token, $this->trace, [TraceVoter::DEPOSER]));
+    }
+
     public function testEnseignantSansAffectationNeVoitPas(): void
     {
         $vote = $this->voter([UnifolioRoles::ENSEIGNANT])->vote($this->token($this->createMock(Personnel::class)), $this->trace, [TraceVoter::VOIR]);
@@ -90,13 +101,16 @@ class TraceVoterTest extends TestCase
     }
 
     /** @param string[] $roles */
-    private function voter(array $roles): TraceVoter
+    private function voter(array $roles, bool $evaluateurAffecte = false): TraceVoter
     {
+        $evaluateurs = $this->createMock(EvaluateurAcces::class);
+        $evaluateurs->method('peutVoirTrace')->willReturn($evaluateurAffecte);
+
         $permissions = $this->createMock(UserEffectivePermissionService::class);
         $permissions->method('isSuperAdmin')->willReturn(false);
         $permissions->method('hasAnyPermission')->willReturnCallback(static fn ($u, array $d) => array_intersect($d, $roles) !== []);
 
-        return new TraceVoter($permissions);
+        return new TraceVoter($permissions, $evaluateurs);
     }
 
     private function etudiant(int $id): Etudiant

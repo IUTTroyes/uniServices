@@ -56,6 +56,14 @@ class EnumsTest extends TestCase
         }
     }
 
+    public function testUneTraceEvalueePeutEtreRouverteParUnEvaluateur(): void
+    {
+        $this->assertTrue(StatutTraceEnum::EVALUEE->peutPasserA(StatutTraceEnum::EN_EVALUATION));
+        $this->assertTrue(StatutTraceEnum::EVALUEE->peutPasserA(StatutTraceEnum::A_REVISER));
+        $this->assertFalse(StatutTraceEnum::EVALUEE->peutPasserA(StatutTraceEnum::BROUILLON));
+        $this->assertFalse(StatutTraceEnum::EVALUEE->isModifiableParEtudiant());
+    }
+
     public function testMediasAFichierOntDesTypesMime(): void
     {
         foreach (TypeMediaEnum::cases() as $type) {

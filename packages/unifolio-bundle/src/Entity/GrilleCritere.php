@@ -124,6 +124,7 @@ class GrilleCritere
         }
         if ($type === TypeCritereEnum::TEXTE) {
             $this->poids = 0.0;
+            $this->obligatoire = false;
         }
 
         return $this;
@@ -168,9 +169,10 @@ class GrilleCritere
         return $this;
     }
 
+    /** Une appréciation libre (critère texte) ne bloque jamais la remise : elle reste facultative. */
     public function isObligatoire(): bool
     {
-        return $this->obligatoire;
+        return $this->obligatoire && $this->type !== TypeCritereEnum::TEXTE;
     }
 
     public function setObligatoire(bool $obligatoire): static

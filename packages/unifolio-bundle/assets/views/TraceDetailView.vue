@@ -9,6 +9,9 @@ import Tag from 'primevue/tag';
 import ProgressBar from 'primevue/progressbar';
 import MediaPreview from '../components/traces/MediaPreview.vue';
 import AutoEvaluationPanel from '../components/autoeval/AutoEvaluationPanel.vue';
+import RetourEnseignant from '../components/evaluation/RetourEnseignant.vue';
+import CommentairesThread from '../components/commentaires/CommentairesThread.vue';
+import Message from 'primevue/message';
 import { pourcentage } from '../requests/autoEvaluationService';
 import traceService, { messageErreur } from '../requests/traceService';
 import { couleurCompetence, texteSurCompetence } from '../components/traces/options';
@@ -47,6 +50,13 @@ const rattachementsParCompetence = computed(() => {
 });
 
 const libelleType = { competence: 'Compétence', niveau: 'Niveau', ac: 'AC' };
+
+/** Dernière demande de révision tant que la trace est à réviser. */
+const revisionDemandee = computed(() => {
+  if (trace.value?.statut.value !== 'a_reviser') return null;
+  const retours = trace.value.rattachements.flatMap((r) => r.retours ?? []).filter((x) => x.statut.value === 'revision_demandee');
+  return retours.sort((a, b) => String(b.rendueLe).localeCompare(String(a.rendueLe)))[0] ?? null;
+});
 
 const panneau = ref(false);
 const cibleAuto = ref(null);
@@ -130,6 +140,14 @@ const formatDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { d
 
     <div class="grid gap-4 xl:grid-cols-3">
       <div class="xl:col-span-2 flex flex-col gap-4">
+        <Message v-if="revisionDemandee" severity="warn" :closable="false">
+          <div class="flex flex-col gap-1">
+            <strong>{{ revisionDemandee.evaluateur.nom }} vous demande de réviser cette trace.</strong>
+            <span class="whitespace-pre-line">{{ revisionDemandee.appreciation }}</span>
+            <span class="text-sm">Modifiez la trace puis déposez-la à nouveau.</span>
+          </div>
+        </Message>
+
         <section v-if="trace.contexte" class="card p-4">
           <h3 class="text-base font-semibold mt-0">Contexte et démarche</h3>
           <p class="whitespace-pre-line m-0">{{ trace.contexte }}</p>
@@ -139,6 +157,10 @@ const formatDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { d
           <h3 class="text-base font-semibold m-0">Preuves</h3>
           <p v-if="trace.medias.length === 0" class="text-muted-color m-0">Aucune preuve.</p>
           <MediaPreview v-for="media in trace.medias" :key="media.id" :media="media" />
+        </section>
+
+        <section v-if="trace.statut.value !== 'brouillon'" class="card p-4">
+          <CommentairesThread :trace-uuid="trace.uuid" :rattachements="trace.rattachements" />
         </section>
       </div>
 
@@ -176,6 +198,7 @@ const formatDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { d
                 <Tag v-if="r.autoEvaluation" :value="r.autoEvaluation.statut.libelle" :severity="r.autoEvaluation.statut.badge" />
                 <span v-if="pourcentage(r.autoEvaluation?.score) !== null" class="text-xs text-muted-color">{{ pourcentage(r.autoEvaluation.score) }} %</span>
               </div>
+              <RetourEnseignant v-for="retour in r.retours" :key="retour.uuid" :retour="retour" />
             </div>
           </div>
         </section>

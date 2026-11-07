@@ -48,7 +48,7 @@ enum StatutTraceEnum: string implements BadgeEnumInterface
             self::DEPOSEE => [self::BROUILLON, self::EN_EVALUATION],
             self::EN_EVALUATION => [self::EVALUEE, self::A_REVISER],
             self::A_REVISER => [self::DEPOSEE],
-            self::EVALUEE => [self::A_REVISER],
+            self::EVALUEE => [self::A_REVISER, self::EN_EVALUATION],
         };
     }
 

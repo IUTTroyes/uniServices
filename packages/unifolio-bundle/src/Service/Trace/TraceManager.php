@@ -17,6 +17,9 @@ use UnifolioBundle\Enum\GranulariteEnum;
 use UnifolioBundle\Enum\RealisationIaEnum;
 use UnifolioBundle\Enum\TypeActiviteEnum;
 use UnifolioBundle\Enum\TypeMediaEnum;
+use UnifolioBundle\Enum\PhaseCampagneEnum;
+use UnifolioBundle\Enum\StatutTraceEnum;
+use UnifolioBundle\Service\Campagne\CampagneResolver;
 use UnifolioBundle\Service\Grille\GrilleResolver;
 use UnifolioBundle\Service\Media\MediaStorageInterface;
 use UnifolioBundle\Service\Media\MediaValidationException;
@@ -38,6 +41,7 @@ class TraceManager
         private readonly ReferentielAnnee $referentiel,
         private readonly MediaStorageInterface $storage,
         private readonly GrilleResolver $grilles,
+        private readonly CampagneResolver $campagnes,
     ) {
     }
 
@@ -116,6 +120,7 @@ class TraceManager
 
     public function deposer(Trace $trace): void
     {
+        $this->verifierCalendrierDepot($trace);
         $erreurs = $trace->getErreursDepot();
         if ($erreurs !== []) {
             throw new UnifolioValidationException($erreurs);
@@ -128,6 +133,26 @@ class TraceManager
     {
         $this->garder(fn () => $trace->retirerEnBrouillon());
         $this->em->flush();
+    }
+
+    /**
+     * Dépôt encadré par la campagne de l'année : impossible une fois clôturée, et après la limite de dépôt
+     * seules les traces dont une révision a été demandée peuvent être redéposées.
+     */
+    private function verifierCalendrierDepot(Trace $trace): void
+    {
+        $scolarite = $trace->getScolarite();
+        $campagne = $scolarite !== null ? $this->campagnes->pourScolarite($scolarite) : null;
+        if ($campagne === null) {
+            return;
+        }
+        $phase = $campagne->getPhase();
+        if ($phase === PhaseCampagneEnum::CLOTUREE) {
+            throw UnifolioValidationException::un(sprintf('La campagne « %s » est clôturée : le dépôt n\'est plus possible.', $campagne->getLibelle()));
+        }
+        if ($phase === PhaseCampagneEnum::EVALUATION && $trace->getStatut() !== StatutTraceEnum::A_REVISER) {
+            throw UnifolioValidationException::un(sprintf('La date limite de dépôt de la campagne « %s » est dépassée.', $campagne->getLibelle()));
+        }
     }
 
     // ---------- Médias ----------

@@ -261,7 +261,8 @@ const libelleType = (v) => TYPES_CRITERE.find((t) => t.value === v)?.label ?? v;
                   <label v-if="c.type === 'note'" class="flex items-center gap-2">
                     Sur <InputNumber v-model="c.noteMax" :min="1" input-class="w-16" @input="marquer" />
                   </label>
-                  <label class="flex items-center gap-2 cursor-pointer"><Checkbox v-model="c.obligatoire" binary @change="marquer" /> Obligatoire</label>
+                  <label v-if="c.type !== 'texte'" class="flex items-center gap-2 cursor-pointer"><Checkbox v-model="c.obligatoire" binary @change="marquer" /> Obligatoire</label>
+                  <span v-else class="text-muted-color">Une appréciation libre est toujours facultative.</span>
                   <label class="flex items-center gap-2 cursor-pointer"><Checkbox v-model="c.visibleEtudiant" binary @change="marquer" /> Visible par l'étudiant</label>
                   <label class="flex items-center gap-2 cursor-pointer"><Checkbox v-model="c.utiliseAutoEval" binary @change="marquer" /> Utilisé en auto-évaluation</label>
                 </div>

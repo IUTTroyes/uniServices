@@ -102,6 +102,21 @@ StructureAnneeUniversitaire ──< Campagne ──< CampagneAffectation (évalu
 - **`Evaluation`** : `evaluateur`, `cible`, `campagne`, `grilleVersion`, `appreciation`, `score` calculé (pondération), `statut` (`en_cours`, `rendue`, `revision_demandee`), `rendueLe`, `visibleEtudiant`.
 - **`Commentaire`** : fil de discussion sur trace / rattachement / bloc de portfolio (`parent`, `auteur` étudiant|personnel, `visibilite`, ancrage `blockId` optionnel).
 - Multi‑évaluateurs possibles (double correction, jury) : plusieurs `Evaluation` sur une même cible + vue de synthèse.
+- *Réalisé (lot 4)* :
+  - **Campagne** = une formation × une année universitaire × (optionnellement) une année de BUT ; unique par triplet. Phases calculées : à venir → dépôt → évaluation → clôturée. Évaluer est possible dès l'ouverture (au fil de l'eau) ; le dépôt se ferme à la limite de dépôt, sauf pour les traces dont une révision est demandée ; la clôture fige tout (évaluations, dépôts).
+  - **Affectation** = un enseignant ↔ un étudiant pour une campagne (plusieurs enseignants possibles par étudiant) ; par étudiants cochés, par groupe ou pour toute la campagne ; l'enseignant doit appartenir au département de la formation. Un évaluateur ne voit que les traces **déposées** de ses étudiants, jamais les brouillons.
+  - **Évaluation** = sur un rattachement de trace *ou* un bilan d'élément (comme l'auto-évaluation), avec la version de grille figée, un score pondéré 0–1 et une appréciation. Statuts : en cours → rendue (communiquée ou non à l'étudiant) ou révision demandée (trace uniquement, motif obligatoire). Une évaluation rendue se rouvre tant que la campagne n'est pas clôturée.
+  - **Statut des traces synchronisé** : première évaluation ouverte → « en évaluation » ; tous les rattachements avec une évaluation rendue → « évaluée » ; révision demandée depuis le dernier dépôt → « à réviser » ; redépôt → « déposée » (l'évaluateur reprend en rouvrant son évaluation).
+  - **Auto-évaluation** : verrouillée dès qu'une évaluation rendue existe sur la même cible ; si la campagne l'exige, l'enseignant ne peut ouvrir une évaluation que sur une auto-évaluation soumise.
+  - **Synthèse d'un élément** : moyenne des évaluateurs par rattachement, puis règle de la formation (meilleure / moyenne / plus récente) — `SyntheseElement`.
+  - **Comparaison** auto-évaluation / évaluation critère par critère (rapprochement par libellé, car les deux peuvent reposer sur deux versions de grille), écart qualifié « concordant » sous 10 points.
+  - **Commentaires** : fil à un seul niveau sur une trace, ancrable sur un rattachement, visible de l'étudiant, de ses évaluateurs affectés et du référent.
+  - **Notifications** (système d'e-mails du cœur, jamais bloquantes) : évaluation rendue, révision demandée, relance d'évaluateur (`unifolio:campagnes:relancer [--jours=7] [--dry-run]`, **à planifier dans le Scheduler**).
+  - **Widgets** : « à corriger », « progression » (éléments couverts par une trace déposée) et « alertes » alimentés par les vraies données.
+  - **Évaluation en lot (retour d'usage)** : tous les points d'une trace (ses rattachements) ou de l'année d'un étudiant (ses bilans) s'évaluent sur **une seule page**, sans fenêtre : trace à gauche, points à droite regroupés par compétence (couleur), barre d'actions fixe (enregistrer tout, rendre tout, tout rouvrir, demander une révision, « remplir d'un coup »). Afficher le formulaire ne crée rien : une évaluation n'est créée que pour un point renseigné. « Rendre » est **tout ou rien** (toutes les anomalies sont listées) et n'envoie **qu'un seul e-mail** par lot. La demande de révision s'applique à toute la trace (un motif, un e-mail). API : `/api/unifolio/evaluations/lot/{trace|bilans}/…` (`EvaluationLot`).
+  - **Commentaires facultatifs** : un critère de type texte (appréciation libre) n'est jamais obligatoire, ni pour l'enseignant ni pour l'étudiant ; sans critère texte dans la grille, un commentaire facultatif est proposé par point.
+  - *Reporté* : évaluation de portfolios (lots 5-6), tableaux de bord de promo (lot 7), notification des commentaires.
+
 - **Granularité choisie par la formation (D5)** — une seule granularité active, au choix de chaque formation :
   - `competence` : évaluation par compétence (`ApcCompetence`) ;
   - `niveau` : évaluation par niveau de compétence (`ApcNiveau`) ;

@@ -1,0 +1,383 @@
+// @vitest-environment jsdom
+// Test de rendu des écrans : chaque vue est montée avec des réponses d'API réalistes ; le moindre avertissement
+// Vue (propriété non définie, composant inconnu…) fait échouer le test.
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { createApp, defineComponent, h, nextTick } from 'vue';
+import { createPinia } from 'pinia';
+import PrimeVue from 'primevue/config';
+import ToastService from 'primevue/toastservice';
+import ConfirmationService from 'primevue/confirmationservice';
+
+const route = { params: {}, query: {}, meta: {} };
+const router = { push: vi.fn(), replace: vi.fn() };
+vi.mock('vue-router', () => ({ useRoute: () => route, useRouter: () => router }));
+
+vi.mock('@components', () => ({
+  HeaderComponent: defineComponent({
+    props: ['titre', 'description', 'icon', 'showBack', 'backUrl', 'color'],
+    setup: (p, { slots }) => () => h('header', [h('h1', p.titre), h('p', p.description), slots.actions?.()]),
+  }),
+  EmptyState: defineComponent({
+    props: ['title', 'description', 'icon', 'color', 'actionLabel', 'actionIcon', 'compact'],
+    setup: (p) => () => h('div', { class: 'empty' }, [h('strong', p.title), h('span', p.description)]),
+  }),
+  registerWidgetComponent: vi.fn(),
+}));
+
+const api = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), put: vi.fn(), patch: vi.fn(), delete: vi.fn() }));
+vi.mock('@helpers/axios', () => ({ default: api }));
+vi.mock('vue-draggable-next', () => ({ VueDraggableNext: defineComponent({ setup: (_, { slots }) => () => h('div', slots.default?.()) }) }));
+
+import EvaluationsView from '../views/EvaluationsView.vue';
+import EvaluationEtudiantView from '../views/EvaluationEtudiantView.vue';
+import EvaluationTraceView from '../views/EvaluationTraceView.vue';
+import CampagnesView from '../views/admin/CampagnesView.vue';
+import CampagneEditView from '../views/admin/CampagneEditView.vue';
+import TraceDetailView from '../views/TraceDetailView.vue';
+import AutoEvaluationView from '../views/AutoEvaluationView.vue';
+import EvaluationLot from '../components/evaluation/EvaluationLot.vue';
+import EvaluationBilansView from '../views/EvaluationBilansView.vue';
+import CommentairesThread from '../components/commentaires/CommentairesThread.vue';
+
+// jsdom n'implémente pas ces API navigateur, utilisées par PrimeVue.
+globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} };
+window.matchMedia ??= (requete) => ({ matches: false, media: requete, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, dispatchEvent: () => false });
+
+// ---------- Jeux de données ----------
+const phase = { value: 'depot', libelle: 'Dépôt en cours', badge: 'info' };
+const campagne = {
+  uuid: 'c1c1c1c1-0000-4000-8000-000000000001', libelle: 'MMI 2026-2027',
+  diplome: { id: 35, libelle: 'MMI', parcours: 'DWeb-DI', departement: 'MMI' },
+  anneeUniversitaire: { id: 9, libelle: '2026-2027' }, anneeFormation: { id: 67, libelle: 'MMI - DWeb-DI - 2' },
+  ouvertureLe: '2026-09-01T08:00:00+00:00', depotLimite: '2026-12-15T08:00:00+00:00', evaluationLimite: '2027-01-15T08:00:00+00:00', clotureLe: null,
+  autoEvaluationRequise: false, phase, enRetard: false, nbEtudiants: 30, nbAffectes: 12, nbEvaluations: 4,
+};
+const competence = { id: 49, nomCourt: 'Comprendre', libelle: 'Comprendre les écosystèmes', couleur: 'c1' };
+const echelons = [{ id: 1, libelle: 'Non acquis', valeur: 0, couleur: '#b91c1c', descripteur: 'Non démontré' }, { id: 2, libelle: 'Acquis', valeur: 2, couleur: '#16a34a', descripteur: 'Démontré' }];
+const criteres = [
+  { id: 10, libelle: 'Maîtrise', type: 'echelle', source: 'saisie', poids: 2, obligatoire: true, description: 'Niveau', visibleEtudiant: true },
+  { id: 11, libelle: 'Usage de l\'IA', type: 'echelle', source: 'declaration_ia', poids: 0, obligatoire: false, visibleEtudiant: true },
+  { id: 12, libelle: 'Appréciation', type: 'texte', source: 'saisie', poids: 0, obligatoire: false, visibleEtudiant: true },
+];
+const grille = { libelle: 'BUT — AC', version: 1, echelons, criteres };
+const resumeEval = (extra = {}) => ({
+  uuid: 'e1e1e1e1-0000-4000-8000-000000000001', bilan: false, statut: { value: 'en_cours', libelle: 'En cours', badge: 'warn' }, score: null, rendueLe: null, visibleEtudiant: false,
+  evaluateur: { id: 7, nom: 'Dupont Alice' }, cible: { type: 'ac', id: 479, code: 'AC21.01', libelle: 'Analyser la stratégie' }, competence,
+  trace: { uuid: 't1', titre: 'Maquette', rattachementId: 5 }, mienne: true, ...extra,
+});
+const detailEval = (extra = {}) => ({
+  ...resumeEval(), appreciation: null, modifiable: true, erreursRendu: [], etudiant: { id: 1, nom: 'LAMOUREUX Lauren' }, campagne: { uuid: campagne.uuid, libelle: campagne.libelle, phase: 'depot' },
+  grille, reponses: [], reponsesDetaillees: [{ critere: 10, libelle: 'Maîtrise', type: 'echelle', normalisee: 1, echelon: { libelle: 'Acquis', couleur: '#16a34a', valeur: 2 }, texte: null }],
+  autoEvaluation: { uuid: 'a1', score: 0.5, reflexion: 'Je progresse', soumiseLe: '2026-11-01T10:00:00+00:00', reponses: [{ critere: 10, libelle: 'Maîtrise', type: 'echelle', normalisee: 0.4, echelon: { libelle: 'Non acquis', couleur: '#b91c1c', valeur: 0 }, texte: null }] },
+  autres: [{ ...resumeEval({ mienne: false, statut: { value: 'rendue', libelle: 'Rendue', badge: 'success' }, score: 0.8 }), evaluateur: { id: 8, nom: 'Martin Paul' } }], ...extra,
+});
+const itemLot = (cle, code, extra = {}) => ({
+  cle, cible: { type: 'ac', id: Number(cle.split(':')[1]), code, ordre: null, libelle: `Libellé ${code}` }, competence, argumentaire: 'Parce que', grilleVersion: 1, evaluation: null,
+  autoEvaluation: { uuid: 'a1', score: 0.5, reflexion: 'Je progresse', soumiseLe: '2026-11-01T10:00:00+00:00', reponses: [{ critere: 10, libelle: 'Maîtrise', type: 'echelle', normalisee: 0.4, echelon: { libelle: 'Non acquis', couleur: '#b91c1c', valeur: 0 }, texte: null }] },
+  autres: [], ...extra,
+});
+const evalLegere = (extra = {}) => ({ ...resumeEval(), appreciation: null, modifiable: true, grilleVersion: 1, erreursRendu: [], reponses: [], reponsesDetaillees: [], ...extra });
+const lotPayload = (extra = {}) => ({
+  mode: 'trace', campagne, etudiant: { id: 1, nom: 'LAMOUREUX Lauren' }, peutEvaluer: true, autoEvaluationRequise: false, versionCourante: 1, grilles: { 1: grille },
+  items: [itemLot('r:5', 'AC21.01'), itemLot('r:6', 'AC21.02')], traceStatut: { value: 'en_evaluation', libelle: 'En évaluation' }, ...extra,
+});
+const traceDetail = (extra = {}) => ({
+  uuid: 't1t1t1t1-0000-4000-8000-000000000001', titre: 'Maquette', dateRealisation: '2026-10-15', typeActivite: { value: 'sae', libelle: 'SAÉ' },
+  statut: { value: 'en_evaluation', libelle: 'En évaluation', badge: 'warn' }, scolarite: { id: 1, annee: 'MMI - DWeb-DI - 2', anneeUniversitaire: '2026-2027', active: true },
+  modifiable: false, contexte: 'Contexte', conceptionIa: { value: 0, libelle: 'Aucune utilisation' }, realisationIa: { value: 1, libelle: 'Utilisation ponctuelle' }, usageIaDetail: 'Correcteur',
+  medias: [{ id: 1, type: 'texte', libelleType: 'Texte', icone: 'pi pi-align-left', contenu: 'Compte rendu', legende: null, fichier: null, url: null, metadata: {} }],
+  rattachements: [{
+    id: 5, type: 'ac', cibleId: 479, code: 'AC21.01', libelle: 'Analyser', competence, argumentaire: 'Parce que',
+    autoEvaluation: { uuid: 'a1', statut: { value: 'soumise', libelle: 'Soumise', badge: 'success' }, score: 0.5 },
+    retours: [], ...extra.rattachement,
+  }], erreursDepot: [], ...extra.trace,
+});
+
+const routeur = (table) => (url) => {
+  const [chemin] = url.split('?');
+  for (const [motif, reponse] of table) {
+    if (typeof motif === 'string' ? chemin === motif : motif.test(chemin)) return Promise.resolve({ data: typeof reponse === 'function' ? reponse() : reponse });
+  }
+  return Promise.reject({ response: { status: 404, data: { message: `Pas de jeu de données pour ${chemin}` } } });
+};
+
+// ---------- Montage ----------
+const attendre = async () => {
+  for (let i = 0; i < 12; i++) {
+    await nextTick();
+    await new Promise((r) => setTimeout(r, 0));
+  }
+};
+
+const monter = async (composant, props = {}) => {
+  const avertissements = [];
+  const conteneur = document.createElement('div');
+  document.body.appendChild(conteneur);
+  const app = createApp({ render: () => h(composant, props) });
+  app.config.warnHandler = (msg, _inst, trace) => avertissements.push(`${msg}\n${trace}`);
+  app.config.errorHandler = (err) => avertissements.push(`ERREUR: ${err?.stack ?? err}`);
+  app.use(createPinia()).use(PrimeVue).use(ToastService).use(ConfirmationService);
+  app.mount(conteneur);
+  await attendre();
+  return { app, conteneur, avertissements, texte: () => document.body.textContent.replace(/\s+/g, ' ') };
+};
+
+const demonter = (m) => {
+  m.app.unmount();
+  m.conteneur.remove();
+  document.body.innerHTML = '';
+};
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  Object.assign(route, { params: {}, query: {}, meta: {} });
+  for (const m of Object.values(api)) m.mockReset();
+  api.get.mockImplementation(() => Promise.reject({ response: { status: 404, data: {} } }));
+});
+
+describe('rendu des écrans (aucun avertissement Vue)', () => {
+  it('file d\'évaluation', async () => {
+    api.get.mockImplementation(routeur([['/api/unifolio/evaluations/file', [{
+      campagne: { ...campagne, enRetard: true },
+      etudiants: [{ id: 1, nom: 'LAMOUREUX', prenom: 'Lauren', scolarite: 1, nbTraces: 3, aEvaluer: 2, enCours: 1, rendues: 0, aReprendre: 1, enAttente: 0, attenteAutoEvaluation: 1 }],
+      totaux: { aEvaluer: 2, enCours: 1, aReprendre: 1, enAttente: 0 },
+    }]]]));
+    const m = await monter(EvaluationsView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('LAMOUREUX Lauren');
+    expect(m.texte()).toContain('Limite d\'évaluation dépassée');
+    expect(m.texte()).toContain('4 élément(s) restent à traiter');
+    demonter(m);
+  });
+
+  it('file vide', async () => {
+    api.get.mockImplementation(routeur([['/api/unifolio/evaluations/file', []]]));
+    const m = await monter(EvaluationsView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('Aucun étudiant à évaluer');
+    demonter(m);
+  });
+
+  it('suivi d\'un étudiant', async () => {
+    route.params = { campagne: campagne.uuid, etudiant: '1' };
+    api.get.mockImplementation(routeur([[/\/api\/unifolio\/evaluations\/etudiants\//, {
+      campagne, etudiant: { id: 1, nom: 'LAMOUREUX', prenom: 'Lauren' }, scolarite: { id: 1, annee: 'MMI - DWeb-DI - 2' }, disponible: true,
+      granularite: { value: 'ac', libelle: 'Apprentissage critique' }, grille: { libelle: 'BUT — AC', version: 1 },
+      elements: [{
+        type: 'ac', id: 479, code: 'AC21.01', ordre: null, libelle: 'Analyser la stratégie', competence,
+        traces: [{ uuid: 't1', titre: 'Maquette', statut: 'En évaluation', statutValue: 'en_evaluation', rattachementId: 5, autoEvaluation: { statut: { value: 'soumise' } }, evaluations: [resumeEval({ score: 0.66, statut: { value: 'rendue', libelle: 'Rendue', badge: 'success' } })] }],
+        bilan: { statut: { value: 'soumise', libelle: 'Soumise', badge: 'success' } }, evaluationsBilan: [],
+        synthese: { score: 0.66, nbTraces: 1, regle: 'max' },
+      }],
+    }]]));
+    const m = await monter(EvaluationEtudiantView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('AC21.01');
+    expect(m.texte()).toContain('Synthèse 66 %');
+    expect(m.texte()).toContain('Mon évaluation : rendue');
+    demonter(m);
+  });
+
+  it('page d\'évaluation d\'une trace : tous les points sont visibles sans ouvrir de fenêtre', async () => {
+    route.params = { uuid: 't1t1t1t1-0000-4000-8000-000000000001' };
+    api.get.mockImplementation(routeur([
+      [/\/api\/unifolio\/evaluations\/traces\//, { trace: traceDetail(), etudiant: { id: 1, nom: 'LAMOUREUX Lauren' }, campagne, evaluations: {} }],
+      [/\/api\/unifolio\/evaluations\/lot\/trace\//, lotPayload()],
+      [/\/commentaires$/, []],
+    ]));
+    const m = await monter(EvaluationTraceView);
+    expect(m.avertissements).toEqual([]);
+    const t = m.texte();
+    expect(t).toContain('Maquette');
+    expect(t).toContain('AC21.01');
+    expect(t).toContain('AC21.02');
+    expect(t).toContain('2 point(s)');
+    expect(t).toContain('Auto 50 %');
+    expect(document.querySelectorAll('[role="radiogroup"]').length).toBeGreaterThanOrEqual(2); // une grille par point, toutes affichées
+    expect(document.querySelector('[role="dialog"]')).toBeNull(); // aucun panneau ni fenêtre modale
+    demonter(m);
+  });
+
+  it('lot : l\'appréciation est facultative (critère texte non obligatoire, aucun astérisque)', async () => {
+    api.get.mockImplementation(routeur([[/\/lot\/trace\//, lotPayload()]]));
+    const m = await monter(EvaluationLot, { portee: { type: 'trace', uuid: 'T' } });
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('(facultatif)');
+    expect(m.texte()).not.toContain('Ajouter un commentaire'); // la grille a déjà un critère « Appréciation »
+    demonter(m);
+  });
+
+  it('lot : sans critère texte, un commentaire facultatif est proposé', async () => {
+    const grilleSansTexte = { ...grille, criteres: grille.criteres.filter((c) => c.type !== 'texte') };
+    api.get.mockImplementation(routeur([[/\/lot\/trace\//, lotPayload({ grilles: { 1: grilleSansTexte } })]]));
+    const m = await monter(EvaluationLot, { portee: { type: 'trace', uuid: 'T' } });
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('Ajouter un commentaire');
+    demonter(m);
+  });
+
+  it('lot : saisir deux points puis rendre enregistre tout, puis remet tout en une fois', async () => {
+    api.get.mockImplementation(routeur([[/\/lot\/trace\//, lotPayload()]]));
+    api.put.mockResolvedValue({ data: lotPayload({ items: [itemLot('r:5', 'AC21.01', { evaluation: evalLegere() }), itemLot('r:6', 'AC21.02', { evaluation: evalLegere() })] }) });
+    api.post.mockResolvedValue({ data: { ...lotPayload(), nbRendues: 2 } });
+    const m = await monter(EvaluationLot, { portee: { type: 'trace', uuid: 'T' } });
+
+    const niveaux = [...document.querySelectorAll('[role="radiogroup"][aria-label="Maîtrise"] [role="radio"]')].filter((b) => b.textContent.trim() === 'Acquis');
+    expect(niveaux.length).toBe(2);
+    niveaux.forEach((b) => b.click());
+    await attendre();
+    expect(m.texte()).toContain('2 renseigné(s)');
+    expect(m.texte()).toContain('2 à enregistrer');
+
+    [...document.querySelectorAll('button')].find((b) => b.textContent.includes('Rendre')).click();
+    await attendre();
+
+    expect(api.put).toHaveBeenCalledTimes(1);
+    const [url, corps] = api.put.mock.calls[0];
+    expect(url).toBe('/api/unifolio/evaluations/lot/trace/T');
+    expect(corps.items.map((i) => i.cle)).toEqual(['r:5', 'r:6']);
+    expect(corps.items[0].reponses[0]).toMatchObject({ critere: 10, echelon: 2 });
+    expect(api.post).toHaveBeenCalledWith('/api/unifolio/evaluations/lot/trace/T/rendre', { visibleEtudiant: true });
+    expect(m.avertissements).toEqual([]);
+    demonter(m);
+  });
+
+  it('lot : « Remplir d\'un coup » applique le même niveau à tous les points', async () => {
+    api.get.mockImplementation(routeur([[/\/lot\/trace\//, lotPayload()]]));
+    const m = await monter(EvaluationLot, { portee: { type: 'trace', uuid: 'T' } });
+
+    [...document.querySelectorAll('button')].find((b) => b.textContent.includes('Remplir d\'un coup')).click();
+    await attendre();
+    const section = [...document.querySelectorAll('section')][0];
+    [...section.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Maîtrisé' || b.textContent.trim() === 'Acquis').click();
+    await attendre();
+
+    expect(m.texte()).toContain('2 renseigné(s)');
+    expect(m.avertissements).toEqual([]);
+    demonter(m);
+  });
+
+  it('lot : les anomalies d\'une remise « tout ou rien » sont toutes listées', async () => {
+    api.get.mockImplementation(routeur([[/\/lot\/trace\//, lotPayload({ items: [itemLot('r:5', 'AC21.01', { evaluation: evalLegere({ reponses: [{ critere: 10, echelon: 2 }] }) })] })]]));
+    api.post.mockRejectedValue({ response: { status: 422, data: { message: 'x', erreurs: ['AC21.01 — Répondez aux critères obligatoires : Maîtrise.', 'AC21.02 — Répondez aux critères obligatoires : Maîtrise.'] } } });
+    const m = await monter(EvaluationLot, { portee: { type: 'trace', uuid: 'T' } });
+
+    [...document.querySelectorAll('button')].find((b) => b.textContent.includes('Rendre')).click();
+    await attendre();
+
+    expect(m.texte()).toContain('AC21.01 — Répondez aux critères obligatoires');
+    expect(m.texte()).toContain('AC21.02 — Répondez aux critères obligatoires');
+    demonter(m);
+  });
+
+  it('lot : des points rendus se rouvrent ensemble ou un par un', async () => {
+    const rendue = evalLegere({ modifiable: false, statut: { value: 'rendue', libelle: 'Rendue', badge: 'success' }, score: 0.66, visibleEtudiant: true });
+    api.get.mockImplementation(routeur([[/\/lot\/trace\//, lotPayload({ items: [itemLot('r:5', 'AC21.01', { evaluation: rendue }), itemLot('r:6', 'AC21.02', { evaluation: rendue })] })]]));
+    const m = await monter(EvaluationLot, { portee: { type: 'trace', uuid: 'T' } });
+
+    expect(m.texte()).toContain('2 rendu(s)');
+    expect(m.texte()).toContain('Tout rouvrir');
+    expect(m.texte()).toContain('Ce point est rendu.');
+    expect([...document.querySelectorAll('[role="radio"]')].every((b) => b.disabled)).toBe(true);
+    expect(m.avertissements).toEqual([]);
+    demonter(m);
+  });
+
+  it('lot : campagne clôturée, lecture seule', async () => {
+    api.get.mockImplementation(routeur([[/\/lot\/trace\//, lotPayload({ peutEvaluer: false })]]));
+    const m = await monter(EvaluationLot, { portee: { type: 'trace', uuid: 'T' } });
+
+    expect(m.texte()).toContain('n\'accepte plus');
+    expect([...document.querySelectorAll('button')].some((b) => b.textContent.includes('Rendre'))).toBe(false);
+    demonter(m);
+  });
+
+  it('page des bilans de l\'année', async () => {
+    route.params = { campagne: campagne.uuid, etudiant: '1' };
+    api.get.mockImplementation(routeur([[/\/lot\/bilans\//, lotPayload({ mode: 'bilans', traceStatut: null, items: [itemLot('ac:479', 'AC21.01'), itemLot('ac:480', 'AC21.02'), itemLot('ac:481', 'AC21.03')] })]]));
+    const m = await monter(EvaluationBilansView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('Bilans de LAMOUREUX Lauren');
+    expect(m.texte()).toContain('3 point(s)');
+    demonter(m);
+  });
+
+  it('fil de discussion', async () => {
+    api.get.mockImplementation(routeur([[/\/commentaires$/, [
+      { uuid: 'c1', parent: null, rattachementId: 5, auteur: { type: 'etudiant', nom: 'LAMOUREUX Lauren', moi: true }, contenu: 'Bonjour', creeLe: '2026-11-06T10:00:00+00:00' },
+      { uuid: 'c2', parent: 'c1', rattachementId: 5, auteur: { type: 'personnel', nom: 'Dupont Alice', moi: false }, contenu: 'Bonjour Lauren', creeLe: '2026-11-06T11:00:00+00:00' },
+    ]]]));
+    const m = await monter(CommentairesThread, { traceUuid: 't1', rattachements: traceDetail().rattachements });
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('Bonjour Lauren');
+    expect(m.texte()).toContain('Enseignant');
+    demonter(m);
+  });
+
+  it('liste des campagnes', async () => {
+    api.get.mockImplementation(routeur([
+      ['/api/unifolio/admin/campagnes', [campagne]],
+      ['/api/unifolio/admin/campagnes/options', { formations: [{ id: 35, libelle: 'MMI', parcours: 'DWeb-DI', departement: 'MMI', annees: [{ id: 67, libelle: 'MMI - DWeb-DI - 2', ordre: 2, anneeUniversitaire: 9 }] }], anneesUniversitaires: [{ id: 9, libelle: '2026-2027' }], anneeCourante: 9 }],
+    ]));
+    const m = await monter(CampagnesView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('MMI 2026-2027');
+    expect(m.texte()).toContain('12 / 30 étudiants affectés');
+    demonter(m);
+  });
+
+  it('édition d\'une campagne et affectations', async () => {
+    route.params = { uuid: campagne.uuid };
+    api.get.mockImplementation(routeur([
+      [`/api/unifolio/admin/campagnes/${campagne.uuid}`, campagne],
+      [`/api/unifolio/admin/campagnes/${campagne.uuid}/affectations`, {
+        campagne, evaluateurs: [{ id: 7, nom: 'Dupont Alice', nbEtudiants: 1 }], groupes: [{ id: 3, libelle: 'TD1', nbEtudiants: 15 }], candidats: [{ id: 7, nom: 'Dupont Alice' }, { id: 8, nom: 'Martin Paul' }],
+        etudiants: [{ id: 1, nom: 'LAMOUREUX', prenom: 'Lauren', annee: 'MMI - DWeb-DI - 2', groupes: ['TD1'], evaluateurs: [7] }, { id: 2, nom: 'DUPUIS', prenom: 'Jean', annee: 'MMI - DWeb-DI - 2', groupes: [], evaluateurs: [] }],
+      }],
+    ]));
+    const m = await monter(CampagneEditView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('LAMOUREUX Lauren');
+    expect(m.texte()).toContain('Dupont Alice');
+    expect(m.texte()).toContain('Clôturer maintenant');
+    demonter(m);
+  });
+
+  it('trace côté étudiant : retour de l\'enseignant et révision demandée', async () => {
+    route.params = { uuid: 't1t1t1t1-0000-4000-8000-000000000001' };
+    const retour = {
+      uuid: 'r1', bilan: false, statut: { value: 'revision_demandee', libelle: 'Révision demandée', badge: 'warn' }, score: null, rendueLe: '2026-11-06T10:00:00+00:00',
+      evaluateur: { id: 7, nom: 'Dupont Alice' }, appreciation: 'Précisez votre démarche.', reponses: [],
+    };
+    const retourRendu = {
+      uuid: 'r2', statut: { value: 'rendue', libelle: 'Rendue', badge: 'success' }, score: 0.66, rendueLe: '2026-11-07T10:00:00+00:00', evaluateur: { id: 8, nom: 'Martin Paul' }, appreciation: 'Très bien',
+      reponses: [{ critere: 10, libelle: 'Maîtrise', type: 'echelle', echelon: { libelle: 'Acquis', couleur: '#16a34a', valeur: 2 }, normalisee: 1 }],
+    };
+    api.get.mockImplementation(routeur([
+      [/\/api\/unifolio\/traces\/[^/]+$/, traceDetail({ trace: { statut: { value: 'a_reviser', libelle: 'À réviser', badge: 'danger' }, modifiable: true }, rattachement: { retours: [retour, retourRendu] } })],
+      [/\/commentaires$/, []],
+    ]));
+    const m = await monter(TraceDetailView);
+    expect(m.avertissements).toEqual([]);
+    const t = m.texte();
+    expect(t).toContain('Dupont Alice vous demande de réviser cette trace');
+    expect(t).toContain('Précisez votre démarche.');
+    expect(t).toContain('66 %');
+    expect(t).toContain('Très bien');
+    demonter(m);
+  });
+
+  it('bilan de l\'étudiant avec synthèse des évaluations', async () => {
+    api.get.mockImplementation(routeur([
+      ['/api/unifolio/scolarites', [{ id: 1, annee: 'MMI - DWeb-DI - 2', anneeUniversitaire: '2026-2027', active: true }]],
+      ['/api/unifolio/auto-evaluations/bilan', {
+        scolarite: { id: 1, annee: 'MMI - DWeb-DI - 2' }, disponible: true, granularite: { value: 'ac', libelle: 'Apprentissage critique' }, grille: { libelle: 'BUT — AC', version: 1 },
+        elements: [{ type: 'ac', id: 479, code: 'AC21.01', ordre: null, libelle: 'Analyser', competence, traces: [], bilan: null, evaluationsBilan: [], synthese: { score: 0.66, nbTraces: 1, regle: 'max' } }],
+      }],
+    ]));
+    const m = await monter(AutoEvaluationView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('Évalué : 66 %');
+    demonter(m);
+  });
+});

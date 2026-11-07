@@ -10,10 +10,11 @@ use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 use UnifolioBundle\Entity\Trace;
 use UnifolioBundle\Enum\StatutTraceEnum;
+use UnifolioBundle\Service\Campagne\EvaluateurAcces;
 
 /**
  * Droits sur une trace.
- * Les correcteurs verront les traces de leurs étudiants affectés à partir du lot 4 (campagnes).
+ * Les évaluateurs affectés à un étudiant voient ses traces déposées (jamais ses brouillons).
  *
  * @extends Voter<string, Trace>
  */
@@ -28,6 +29,7 @@ class TraceVoter extends Voter
 
     public function __construct(
         private readonly UserEffectivePermissionService $permissions,
+        private readonly EvaluateurAcces $evaluateurs,
     ) {
     }
 
@@ -59,7 +61,8 @@ class TraceVoter extends Voter
 
         if ($user instanceof Personnel && $attribute === self::VOIR) {
             return $this->permissions->isSuperAdmin($user)
-                || $this->permissions->hasAnyPermission($user, [UnifolioRoles::REFERENT]);
+                || $this->permissions->hasAnyPermission($user, [UnifolioRoles::REFERENT])
+                || $this->evaluateurs->peutVoirTrace($user, $subject);
         }
 
         return false;
