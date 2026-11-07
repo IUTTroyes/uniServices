@@ -21,20 +21,22 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: StageSoutenanceRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['stage_soutenance:read']], security: "is_granted('ROLE_STAGE_MANAGER')"),
-        new GetCollection(normalizationContext: ['groups' => ['stage_soutenance:read']], security: "is_granted('ROLE_STAGE_MANAGER')"),
+        new Get(normalizationContext: ['groups' => ['stage_soutenance:read']], security: "is_granted('STAGE_PERIODE_MANAGE', object.getStagePeriode())"),
+        // Liste restreinte aux départements gérés : StageVisibiliteExtension
+        new GetCollection(normalizationContext: ['groups' => ['stage_soutenance:read']], security: "is_granted('IS_PERSONNEL')"),
         // La planification passe par StageSoutenanceController (contrôle des conflits + notifications).
         new Post(
             normalizationContext: ['groups' => ['stage_soutenance:read']],
             denormalizationContext: ['groups' => ['stage_soutenance:write']],
-            securityPostDenormalize: "is_granted('ROLE_STAGE_MANAGER')"
+            securityPostDenormalize: "is_granted('STAGE_PERIODE_MANAGE', object.getStagePeriode())"
         ),
         new Patch(
             normalizationContext: ['groups' => ['stage_soutenance:read']],
             denormalizationContext: ['groups' => ['stage_soutenance:write']],
-            securityPostDenormalize: "is_granted('ROLE_STAGE_MANAGER')"
+            security: "is_granted('STAGE_PERIODE_MANAGE', object.getStagePeriode())",
+            securityPostDenormalize: "is_granted('STAGE_PERIODE_MANAGE', object.getStagePeriode())"
         ),
-        new Delete(security: "is_granted('ROLE_STAGE_MANAGER')")
+        new Delete(security: "is_granted('STAGE_PERIODE_MANAGE', object.getStagePeriode())")
     ],
     parameters: [
         'stagePeriode' => new QueryParameter(filter: SearchFilter::class),

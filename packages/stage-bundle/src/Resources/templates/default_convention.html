@@ -83,12 +83,12 @@
                 <div class="center"><strong><u>L’ÉTABLISSEMENT D’ENSEIGNEMENT OU DE
                                                FORMATION</u></strong></div>
                 <br>
-                <p>Nom : UNIVERSITÉ DE REIMS CHAMPAGNE-ARDENNE</p>
-                <p>Adresse : 2, avenue Robert Schuman 51100 Reims</p>
-                <p>Tél. : 03.26.91.34.68</p>
-                <p>Représentée par (signataire de la convention) : Martial Martin</p>
-                <p>Qualité du représentant : DIRECTEUR</p>
-                <p>Département/Composante : {etudiant.parcours} / IUT de Troyes</p>
+                <p>Nom : {universite.nom}</p>
+                <p>Adresse : {universite.adresse}</p>
+                <p>Tél. : {universite.telephone}</p>
+                <p>Représentée par (signataire de la convention) : {etablissement.signataire}</p>
+                <p>Qualité du représentant : {etablissement.signataire_qualite}</p>
+                <p>Département/Composante : {etudiant.parcours} / {etablissement.nom}</p>
                 <p>Tél. : {dept.tel}</p>
                 <p>Email : {dept.mail}</p>
                 <p>Adresse (si différente de celle de l’établissement)
@@ -651,7 +651,7 @@
     <br>
     <table style="width:100%">
         <tr>
-            <td style="width:50%"><strong>POUR L’UNIVERSITÉ DE REIMS CHAMPAGNE-ARDENNE</strong></td>
+            <td style="width:50%"><strong>POUR L’ÉTABLISSEMENT : {universite.nom}</strong></td>
             <td style="width:50%"><strong>ORGANISME D’ACCUEIL</strong></td>
         </tr>
         <tr>
@@ -740,7 +740,7 @@
                 <p>{etudiant.formation}</p>
                 <p><strong style="font-size: 14px">AU SEIN DE </strong>(nom de l'établissement d'enseignement supérieur)
                 </p>
-                <p>UNIVERSITÉ DE REIMS CHAMPAGNE-ARDENNE / IUT de Troyes</p>
+                <p>{universite.nom} / {etablissement.nom}</p>
             </td>
         </tr>
     </table>

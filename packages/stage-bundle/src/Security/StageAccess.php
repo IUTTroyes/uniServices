@@ -4,29 +4,71 @@ namespace StageBundle\Security;
 
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
+use App\Security\DepartmentPermissionChecker;
 use App\Security\UserEffectivePermissionService;
 use StageBundle\Entity\Stages\StageEtudiant;
+use StageBundle\Entity\Stages\StagePeriode;
 
 /**
  * Règles d'accès aux dossiers de stage, partagées par le voter, les processeurs et l'extension de collection.
- *  - responsable des stages (ROLE_STAGE_MANAGER) / super administrateur : tout ;
+ *  - super administrateur : tout ;
+ *  - responsable des stages (ROLE_STAGE_MANAGER) : tout, mais uniquement dans les départements où il a ce rôle ;
  *  - responsable (principal ou co-) de la période : lecture et écriture des dossiers de sa période ;
  *  - tuteur universitaire : lecture de ses stagiaires, saisie du suivi et de l'évaluation ;
  *  - étudiant : son propre dossier.
  */
 class StageAccess
 {
-    public function __construct(private readonly UserEffectivePermissionService $permissions)
-    {
+    public const ROLE_GESTIONNAIRE = 'ROLE_STAGE_MANAGER';
+
+    public function __construct(
+        private readonly UserEffectivePermissionService $permissions,
+        private readonly DepartmentPermissionChecker $departements,
+    ) {
     }
 
-    public function estGestionnaire(mixed $user): bool
+    public function estSuperAdmin(mixed $user): bool
+    {
+        return $user instanceof Personnel && $this->permissions->isSuperAdmin($user);
+    }
+
+    /**
+     * Gestionnaire des stages de la période : ROLE_STAGE_MANAGER dans le département de la période.
+     * Sans période, la question porte sur le département actif de la personne (menus, écrans).
+     * Une période sans département n'est gérable que par le super administrateur.
+     */
+    public function estGestionnaire(mixed $user, ?StagePeriode $periode = null): bool
     {
         if (!$user instanceof Personnel) {
             return false;
         }
+        if ($this->permissions->isSuperAdmin($user)) {
+            return true;
+        }
+        if ($periode === null) {
+            return $this->permissions->hasPermission($user, self::ROLE_GESTIONNAIRE);
+        }
+        $departement = $periode->getDepartement();
 
-        return $this->permissions->isSuperAdmin($user) || $this->permissions->hasPermission($user, 'ROLE_STAGE_MANAGER');
+        return $departement !== null && $this->departements->checkPermission($user, $departement, self::ROLE_GESTIONNAIRE);
+    }
+
+    /**
+     * Départements dont la personne gère les stages (pour filtrer les listes).
+     *
+     * @return list<int>
+     */
+    public function departementsGeres(Personnel $user): array
+    {
+        $ids = [];
+        foreach ($user->getDepartementsPersonnel() as $affectation) {
+            $departement = $affectation->getDepartement();
+            if ($departement?->getId() !== null && $this->departements->checkPermission($user, $departement, self::ROLE_GESTIONNAIRE)) {
+                $ids[] = $departement->getId();
+            }
+        }
+
+        return array_values(array_unique($ids));
     }
 
     public function peutVoir(mixed $user, StageEtudiant $stage): bool
@@ -37,10 +79,13 @@ class StageAccess
     /** Écriture complète d'un dossier (statut, tuteur, entreprise…). */
     public function peutGerer(mixed $user, StageEtudiant $stage): bool
     {
-        if ($this->estGestionnaire($user)) {
+        if ($stage->getStagePeriode() === null) {
+            return $this->estSuperAdmin($user);
+        }
+        if ($this->estGestionnaire($user, $stage->getStagePeriode())) {
             return true;
         }
-        if (!$user instanceof Personnel || $stage->getStagePeriode() === null) {
+        if (!$user instanceof Personnel) {
             return false;
         }
         $periode = $stage->getStagePeriode();

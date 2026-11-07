@@ -52,6 +52,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
 )]
 class Etablissement
 {
+    public function __construct()
+    {
+        $this->universite = new Universite();
+    }
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -76,6 +81,26 @@ class Etablissement
 
     #[ORM\Column(nullable: true)]
     private ?bool $isMain = null;
+
+    /** Directeur(trice) de l'établissement (prénom et nom). */
+    #[ORM\Column(length: 150, nullable: true)]
+    #[Groups(['etablissement:read', 'etablissement:write'])]
+    private ?string $directeurNom = null;
+
+    /** Université de rattachement (colonnes universite_*). */
+    #[ORM\Embedded(class: Universite::class, columnPrefix: 'universite_')]
+    #[Groups(['etablissement:read', 'etablissement:write'])]
+    private Universite $universite;
+
+    /** Signataire des conventions de stage (souvent le directeur, par délégation du président de l'université). */
+    #[ORM\Column(length: 150, nullable: true)]
+    #[Groups(['etablissement:read', 'etablissement:write'])]
+    private ?string $signataireNom = null;
+
+    /** Qualité du signataire (ex. « Directeur de l'IUT, par délégation du Président »). */
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['etablissement:read', 'etablissement:write'])]
+    private ?string $signataireQualite = null;
 
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $telephone = null;
@@ -161,6 +186,54 @@ class Etablissement
     public function setTelephone(?string $telephone): static
     {
         $this->telephone = $telephone;
+
+        return $this;
+    }
+
+    public function getDirecteurNom(): ?string
+    {
+        return $this->directeurNom;
+    }
+
+    public function setDirecteurNom(?string $directeurNom): static
+    {
+        $this->directeurNom = $directeurNom !== null && trim($directeurNom) !== '' ? trim($directeurNom) : null;
+
+        return $this;
+    }
+
+    public function getUniversite(): Universite
+    {
+        return $this->universite;
+    }
+
+    public function setUniversite(Universite $universite): static
+    {
+        $this->universite = $universite;
+
+        return $this;
+    }
+
+    public function getSignataireNom(): ?string
+    {
+        return $this->signataireNom;
+    }
+
+    public function setSignataireNom(?string $signataireNom): static
+    {
+        $this->signataireNom = $signataireNom !== null && trim($signataireNom) !== '' ? trim($signataireNom) : null;
+
+        return $this;
+    }
+
+    public function getSignataireQualite(): ?string
+    {
+        return $this->signataireQualite;
+    }
+
+    public function setSignataireQualite(?string $signataireQualite): static
+    {
+        $this->signataireQualite = $signataireQualite !== null && trim($signataireQualite) !== '' ? trim($signataireQualite) : null;
 
         return $this;
     }

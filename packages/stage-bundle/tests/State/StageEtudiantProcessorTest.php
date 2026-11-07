@@ -7,6 +7,8 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
+use App\Entity\Structure\StructureDepartement;
+use App\Security\DepartmentPermissionChecker;
 use App\Security\UserEffectivePermissionService;
 use PHPUnit\Framework\TestCase;
 use StageBundle\Entity\Stages\StageEtudiant;
@@ -37,12 +39,14 @@ class StageEtudiantProcessorTest extends TestCase
         $permissions = $this->createMock(UserEffectivePermissionService::class);
         $permissions->method('isSuperAdmin')->willReturn(false);
         $permissions->method('hasPermission')->willReturn($gestionnaire);
+        $departements = $this->createMock(DepartmentPermissionChecker::class);
+        $departements->method('checkPermission')->willReturn($gestionnaire);
         $notifier = $this->createMock(StageNotifier::class);
         $notifier->method('dossierEnregistre')->willReturnCallback(function () {
             ++$this->notifications;
         });
 
-        return new StageEtudiantProcessor($persist, $security, new StageAccess($permissions), $notifier);
+        return new StageEtudiantProcessor($persist, $security, new StageAccess($permissions, $departements), $notifier);
     }
 
     /** @param array<string, mixed> $corps */
@@ -56,6 +60,15 @@ class StageEtudiantProcessorTest extends TestCase
     {
         return (new StageEtudiant())->setEtudiant($etudiant)->setEtatStage($etat)->setTuteurUniversitaire($tuteur)
             ->setStagePeriode((new StagePeriode())->setLibelle('P'));
+    }
+
+    private function periodeDuDepartement(): StagePeriode
+    {
+        $periode = $this->createMock(StagePeriode::class);
+        $periode->method('getDepartement')->willReturn(new StructureDepartement());
+        $periode->method('getCoResponsables')->willReturn(new \Doctrine\Common\Collections\ArrayCollection());
+
+        return $periode;
     }
 
     public function testLEtudiantDeposeSaDemande(): void
@@ -122,7 +135,7 @@ class StageEtudiantProcessorTest extends TestCase
 
     public function testLeGestionnaireFaitTout(): void
     {
-        $avant = $this->stage(new Etudiant(), EtatStageEnum::DEPOSE);
+        $avant = $this->stage(new Etudiant(), EtatStageEnum::DEPOSE)->setStagePeriode($this->periodeDuDepartement());
         $this->patch($this->processor(new Personnel(), true), (clone $avant)->setEtatStage(EtatStageEnum::VALIDE), $avant, ['etatStage' => 'ETAT_STAGE_VALIDE', 'evaluationNote' => 12]);
 
         self::assertSame(1, $this->persistances);

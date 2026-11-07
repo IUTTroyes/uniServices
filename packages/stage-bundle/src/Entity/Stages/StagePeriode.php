@@ -14,7 +14,7 @@ use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Traits\OldIdTrait;
-use App\Filter\StagePeriodeFilter;
+use StageBundle\Filter\StagePeriodeFilter;
 use StageBundle\Repository\Stages\StagePeriodeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -28,9 +28,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['stage_periode:read']], security: "is_granted('IS_PERSONNEL') or is_granted('IS_ETUDIANT')"),
         new GetCollection(normalizationContext: ['groups' => ['stage_periode:read']], security: "is_granted('IS_PERSONNEL') or is_granted('IS_ETUDIANT')"),
-        new Post(securityPostDenormalize: "is_granted('ROLE_STAGE_MANAGER')"),
-        new Patch(securityPostDenormalize: "is_granted('ROLE_STAGE_MANAGER')"),
-        new Delete(security: "is_granted('ROLE_STAGE_MANAGER')"),
+        // Gestion réservée au responsable des stages du département de la période (StageAccess::estGestionnaire)
+        new Post(securityPostDenormalize: "is_granted('STAGE_PERIODE_MANAGE', object)"),
+        new Patch(security: "is_granted('STAGE_PERIODE_MANAGE', object)", securityPostDenormalize: "is_granted('STAGE_PERIODE_MANAGE', object)"),
+        new Delete(security: "is_granted('STAGE_PERIODE_MANAGE', object)"),
     ],
     parameters: [
         'departement' => new QueryParameter(filter: StagePeriodeFilter::class),

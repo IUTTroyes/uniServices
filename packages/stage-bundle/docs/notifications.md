@@ -24,10 +24,14 @@ L'auteur d'une action n'est jamais notifié. Les liens visent l'espace concerné
 
 ## Droits (rappel)
 
-Règles centralisées dans `Security/StageAccess` (voter `STAGE_ETUDIANT_VIEW|EDIT|MANAGE`, extension de collection,
-processeur) :
+Règles centralisées dans `Security/StageAccess` (voter `STAGE_ETUDIANT_VIEW|EDIT|MANAGE` et `STAGE_PERIODE_MANAGE`,
+extension `Doctrine/StageVisibiliteExtension`, processeur) :
 
-- gestionnaire (`ROLE_STAGE_MANAGER`, super admin) et responsables de la période : tout sur les dossiers ;
+- super administrateur : tout ;
+- responsable des stages (`ROLE_STAGE_MANAGER`) : tout, **uniquement dans les départements où il a ce rôle**
+  (département de la période : semestre → année → PN → diplôme) ; une période sans département n'est gérable que par
+  le super administrateur ; les modèles de convention, communs à tous, sont réservés au super administrateur ;
+- responsables (principal ou co-) d'une période : tout sur les dossiers de cette période ;
 - tuteur universitaire : lecture, et seulement `suiviRencontres`, `evaluationNote`, `evaluationCommentaire` en écriture ;
 - étudiant : son dossier ; il ne peut que le déposer (`DEPOSE`), pas écrire les champs réservés (tuteur, évaluation,
   suivi, dates de traitement), et plus rien une fois la saisie fermée (`INCOMPLET`) ou la convention signée.

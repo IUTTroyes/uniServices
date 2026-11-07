@@ -13,10 +13,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
+use StageBundle\Security\StageVoter;
 
-/** Planification des soutenances : réservée au service des stages. */
-#[IsGranted('ROLE_STAGE_MANAGER')]
+/** Planification des soutenances : réservée au responsable des stages du département de la période. */
 class StageSoutenanceController extends AbstractController
 {
     private const DUREE_MIN = 5;
@@ -82,6 +81,7 @@ class StageSoutenanceController extends AbstractController
         if (!$stagePeriode) {
             return new JsonResponse(['error' => 'Période de stage non trouvée.'], Response::HTTP_NOT_FOUND);
         }
+        $this->denyAccessUnlessGranted(StageVoter::STAGE_PERIODE_MANAGE, $stagePeriode);
 
         $enseignantJury = $enseignantJuryId ? $this->em->getRepository(Personnel::class)->find($enseignantJuryId) : null;
         $start = $this->parseDate($dateStr);
@@ -120,6 +120,7 @@ class StageSoutenanceController extends AbstractController
         if (!$stagePeriode) {
             return new JsonResponse(['error' => 'Période de stage non trouvée.'], Response::HTTP_NOT_FOUND);
         }
+        $this->denyAccessUnlessGranted(StageVoter::STAGE_PERIODE_MANAGE, $stagePeriode);
 
         if ($stageEtudiant !== null && $stageEtudiant->getStagePeriode() !== $stagePeriode) {
             return new JsonResponse(['error' => 'L\'étudiant n\'appartient pas à cette période de stage.'], Response::HTTP_BAD_REQUEST);
@@ -146,6 +147,10 @@ class StageSoutenanceController extends AbstractController
             $soutenance = $this->em->getRepository(StageSoutenance::class)->find($soutenanceId);
             if (!$soutenance) {
                 return new JsonResponse(['error' => 'Créneau non trouvé.'], Response::HTTP_NOT_FOUND);
+            }
+            // Un créneau ne change pas de période (sinon on pourrait déplacer celui d'un autre département).
+            if ($soutenance->getStagePeriode() !== $stagePeriode) {
+                return new JsonResponse(['error' => 'Ce créneau appartient à une autre période.'], Response::HTTP_BAD_REQUEST);
             }
         } else {
             $soutenance = new StageSoutenance();
@@ -208,6 +213,7 @@ class StageSoutenanceController extends AbstractController
         if (!$periode) {
             return new JsonResponse(['error' => 'Période de stage non trouvée.'], Response::HTTP_NOT_FOUND);
         }
+        $this->denyAccessUnlessGranted(StageVoter::STAGE_PERIODE_MANAGE, $periode);
 
         $start = $this->parseDate($dateStr . ' ' . $startTimeStr);
         $endLimit = $this->parseDate($dateStr . ' ' . $endTimeStr);

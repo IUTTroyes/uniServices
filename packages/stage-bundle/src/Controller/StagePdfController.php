@@ -52,11 +52,27 @@ class StagePdfController extends AbstractController
             ? $periode->getAnneeUniversitaire()->getLibelle()
             : (date('Y') . '/' . (date('Y') + 1));
 
-        $deptTel = $dept?->getTelContact() ?? ($etab?->getTelephone() ?? '03.26.91.34.68');
-        $directeurNom = 'Martial Martin';
+        // Coordonnées et signataire : table établissement (configuration de l'établissement principal).
+        $universite = $etab?->getUniversite();
+        $deptTel = $dept?->getTelContact() ?? $etab?->getTelephone() ?? '';
 
         $userData = [
             'displayAnneeUniversitaire' => $anneeUnivStr,
+            // Établissement = la composante (l'IUT) ; l'université de rattachement signe la convention.
+            'etablissement' => [
+                'libelle' => $etab?->getLibelle() ?? '',
+                'adresse' => $etab?->getAdresse()?->getInlineAdresse() ?? '',
+                'telephone' => $etab?->getTelephone() ?? '',
+                'directeur' => $etab?->getDirecteurNom() ?? '',
+                'signataireNom' => $etab?->getSignataireNom() ?? '',
+                'signataireQualite' => $etab?->getSignataireQualite() ?? '',
+            ],
+            'universite' => [
+                'libelle' => $universite?->getLibelle() ?? $etab?->getLibelle() ?? '',
+                'adresse' => $universite?->getAdresse()?->getInlineAdresse() ?? '',
+                'telephone' => $universite?->getTelephone() ?? '',
+                'president' => $universite?->getPresident() ?? '',
+            ],
             'departement' => [
                 'telcontact' => $deptTel,
                 'ufr' => [
@@ -64,7 +80,7 @@ class StagePdfController extends AbstractController
                         'adresse' => $etab?->getAdresse(),
                     ],
                     'responsable' => [
-                        'display' => $directeurNom,
+                        'display' => $etab?->getSignataireNom() ?? '',
                     ],
                 ],
             ],
@@ -305,7 +321,16 @@ class StagePdfController extends AbstractController
             '{tuteur_entreprise.telephone}' => $tut ? ($tut->getTelephone() ?? $tut->getPortable() ?? '') : ($ent && $ent->getResponsable() ? ($ent->getResponsable()->getTelephone() ?? $ent->getResponsable()->getPortable() ?? '') : ''),
             '{tuteur_entreprise.email}' => $tut ? $tut->getEmail() : ($ent && $ent->getResponsable() ? $ent->getResponsable()->getEmail() : ''),
 
-            '{etablissement.signataire}' => 'Martial Martin',
+            '{universite.nom}' => $etab?->getUniversite()->getLibelle() ?? $etab?->getLibelle() ?? '',
+            '{universite.adresse}' => $etab?->getUniversite()->getAdresse()?->getInlineAdresse() ?? '',
+            '{universite.telephone}' => $etab?->getUniversite()->getTelephone() ?? '',
+            '{universite.president}' => $etab?->getUniversite()->getPresident() ?? '',
+            '{etablissement.nom}' => $etab?->getLibelle() ?? '',
+            '{etablissement.directeur}' => $etab?->getDirecteurNom() ?? '',
+            '{etablissement.adresse}' => $etab?->getAdresse()?->getInlineAdresse() ?? '',
+            '{etablissement.telephone}' => $etab?->getTelephone() ?? '',
+            '{etablissement.signataire}' => $etab?->getSignataireNom() ?? '',
+            '{etablissement.signataire_qualite}' => $etab?->getSignataireQualite() ?? '',
             '{date_creation}' => date('d/m/Y'),
             '{dept.tel}' => $deptTel,
             '{dept.mail}' => $deptMail,
@@ -321,6 +346,18 @@ class StagePdfController extends AbstractController
         return strtr($templateText, $replaces);
     }
 
+    /** @return array{string, string} noms (échappés) de l'établissement et de son université */
+    private function nomsEtablissement(): array
+    {
+        $etab = $this->em->getRepository(Etablissement::class)->findOneBy(['isMain' => true])
+            ?? $this->em->getRepository(Etablissement::class)->findOneBy([]);
+
+        return [
+            htmlspecialchars($etab?->getLibelle() ?? ''),
+            htmlspecialchars($etab?->getUniversite()->getLibelle() ?? ''),
+        ];
+    }
+
     private function renderConventionHtml(string $text, StageEtudiant $stage): string
     {
         if (str_contains($text, '<html') || str_contains($text, '<HTML')) {
@@ -328,7 +365,8 @@ class StagePdfController extends AbstractController
         }
 
         $paragraphs = nl2br(htmlspecialchars($text));
-        
+        [$nomEtab, $nomUniv] = $this->nomsEtablissement();
+
         return <<<HTML
 <!DOCTYPE html>
 <html>
@@ -392,8 +430,8 @@ class StagePdfController extends AbstractController
     <table style="width: 100%; margin-bottom: 20px;">
         <tr>
             <td>
-                <div class="logo">IUT de Troyes</div>
-                <div class="subheader">Université de Reims Champagne-Ardenne</div>
+                <div class="logo">{$nomEtab}</div>
+                <div class="subheader">{$nomUniv}</div>
             </td>
             <td style="text-align: right; vertical-align: top; font-size: 9pt; color: #999; font-family: monospace;">
                 Réf: CONV-STAGE-{$stage->getId()}
@@ -421,7 +459,7 @@ class StagePdfController extends AbstractController
             </td>
             <td>
                 <div class="sig-box">
-                    <strong>Pour l'IUT de Troyes</strong><br>
+                    <strong>Pour l'établissement : {$nomEtab}</strong><br>
                     <span style="font-size: 8pt; color: #888;">Le Directeur</span>
                 </div>
             </td>
@@ -434,6 +472,8 @@ HTML;
 
     private function renderAvenantHtml(string $text, StageEtudiant $stage, StageAvenant $avenant): string
     {
+        [$nomEtab] = $this->nomsEtablissement();
+
         return <<<HTML
 <!DOCTYPE html>
 <html>
@@ -497,7 +537,7 @@ HTML;
     <table style="width: 100%; margin-bottom: 20px;">
         <tr>
             <td>
-                <div class="logo">IUT de Troyes</div>
+                <div class="logo">{$nomEtab}</div>
                 <div class="subheader">Avenant à la convention CONV-STAGE-{$stage->getId()}</div>
             </td>
             <td style="text-align: right; vertical-align: top; font-size: 9pt; color: #999; font-family: monospace;">
@@ -526,7 +566,7 @@ HTML;
             </td>
             <td>
                 <div class="sig-box">
-                    <strong>Pour l'IUT de Troyes</strong><br>
+                    <strong>Pour l'établissement : {$nomEtab}</strong><br>
                     <span style="font-size: 8pt; color: #888;">Le Directeur</span>
                 </div>
             </td>

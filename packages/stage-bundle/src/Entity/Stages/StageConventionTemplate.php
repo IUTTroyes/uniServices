@@ -14,6 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StageConventionTemplateRepository::class)]
+// Modèles communs à tous les départements : modification réservée au super administrateur.
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['stage_template:read']]),
@@ -21,14 +22,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Post(
             normalizationContext: ['groups' => ['stage_template:read']],
             denormalizationContext: ['groups' => ['stage_template:write']],
-            securityPostDenormalize: "is_granted('ROLE_STAGE_MANAGER')"
+            securityPostDenormalize: "is_granted('SUPER_ADMIN')"
         ),
         new Patch(
             normalizationContext: ['groups' => ['stage_template:read']],
             denormalizationContext: ['groups' => ['stage_template:write']],
-            securityPostDenormalize: "is_granted('ROLE_STAGE_MANAGER')"
+            securityPostDenormalize: "is_granted('SUPER_ADMIN')"
         ),
-        new Delete(security: "is_granted('ROLE_STAGE_MANAGER')"),
+        new Delete(security: "is_granted('SUPER_ADMIN')"),
     ]
 )]
 class StageConventionTemplate

@@ -26,7 +26,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 use ApiPlatform\Metadata\ApiFilter;
-use App\Filter\StageEtudiantFilter;
+use StageBundle\Filter\StageEtudiantFilter;
 
 #[ORM\Entity(repositoryClass: StageEtudiantRepository::class)]
 #[ApiFilter(StageEtudiantFilter::class)]
@@ -36,7 +36,7 @@ use App\Filter\StageEtudiantFilter;
             normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']],
             security: "is_granted('STAGE_ETUDIANT_VIEW', object)"
         ),
-        // Liste restreinte aux dossiers visibles par l'utilisateur : StageEtudiantVisibiliteExtension
+        // Liste restreinte aux dossiers visibles par l'utilisateur : StageVisibiliteExtension
         new GetCollection(
             normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']],
             security: "is_granted('IS_PERSONNEL') or is_granted('IS_ETUDIANT')"

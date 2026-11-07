@@ -1,5 +1,6 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useEtablissementStore } from '@stores';
 import { useToast } from 'primevue/usetoast';
 import Button from 'primevue/button';
 import {
@@ -11,11 +12,21 @@ import { FormSection } from '../../components/Form';
 
 const toast = useToast();
 
+// En-tête de l'aperçu : établissement (composante) et université issus de la configuration.
+const etablissementStore = useEtablissementStore();
+const nomEtablissement = computed(() => etablissementStore.etablissement?.libelle || 'Établissement');
+const nomUniversite = computed(() => etablissementStore.etablissement?.universite?.libelle || '');
+onMounted(() => {
+  if (!etablissementStore.etablissement) {
+    etablissementStore.getEtablissement();
+  }
+});
+
 // Mock initial template content
 const templateBody = ref(`CONVENTION DE STAGE
 ENTRE LES SOUSSIGNÉS :
 
-L'Établissement d'enseignement : IUT de Troyes, représenté par son Directeur, d'une part,
+L'Établissement d'enseignement : {universite.nom} / {etablissement.nom}, représenté par {etablissement.signataire} ({etablissement.signataire_qualite}), d'une part,
 Et l'Entreprise : {entreprise.nom}, située au {entreprise.adresse}, représentée par {entreprise.signataire}, d'autre part,
 Et l'étudiant(e) : {etudiant.prenom} {etudiant.nom}, inscrit en {etudiant.parcours}.
 
@@ -41,7 +52,17 @@ const placeholders = [
   { tag: '{stage.missions}', desc: 'Sujet/Missions du stage', example: 'Développement d\'une interface moderne et migration vers Vue.js 3.' },
   { tag: '{stage.gratification}', desc: 'Taux horaire de gratification', example: '4.95' },
   { tag: '{stage.heures_hebdo}', desc: 'Heures de travail par semaine', example: '35' },
-  { tag: '{tuteur.nom}', desc: 'Nom du tuteur affecté', example: 'Mme. Sophie Gomez' }
+  { tag: '{tuteur.nom}', desc: 'Nom du tuteur affecté', example: 'Mme. Sophie Gomez' },
+  { tag: '{universite.nom}', desc: 'Nom de l\'université de rattachement', example: 'Université de Reims Champagne-Ardenne' },
+  { tag: '{universite.adresse}', desc: 'Adresse de l\'université', example: '2 avenue Robert Schuman, 51100 Reims' },
+  { tag: '{universite.telephone}', desc: 'Téléphone de l\'université', example: '03 26 91 34 68' },
+  { tag: '{universite.president}', desc: 'Président(e) de l\'université', example: 'Prénom Nom' },
+  { tag: '{etablissement.nom}', desc: 'Nom de l\'établissement (composante)', example: 'IUT de Troyes' },
+  { tag: '{etablissement.adresse}', desc: 'Adresse de l\'établissement', example: '9 rue de Québec, 10430 Rosières-près-Troyes' },
+  { tag: '{etablissement.telephone}', desc: 'Téléphone de l\'établissement', example: '03 25 42 46 46' },
+  { tag: '{etablissement.directeur}', desc: 'Directeur(trice) de l\'établissement', example: 'Martial Martin' },
+  { tag: '{etablissement.signataire}', desc: 'Signataire des conventions (configuration)', example: 'Martial Martin' },
+  { tag: '{etablissement.signataire_qualite}', desc: 'Qualité du signataire', example: 'Directeur' }
 ];
 
 // Helper to insert tag at current position or end
@@ -165,8 +186,8 @@ const saveTemplate = () => {
                 IUT
               </div>
               <div>
-                <h4 class="text-xs font-black text-slate-900 dark:text-white uppercase leading-none">IUT de Troyes</h4>
-                <span class="text-[9px] text-slate-400 leading-none">Université de Reims Champagne-Ardenne</span>
+                <h4 class="text-xs font-black text-slate-900 dark:text-white uppercase leading-none">{{ nomEtablissement }}</h4>
+                <span class="text-[9px] text-slate-400 leading-none">{{ nomUniversite }}</span>
               </div>
             </div>
             <span class="text-[9px] text-slate-400 font-mono">DOC_CONV_V2</span>
@@ -180,7 +201,7 @@ const saveTemplate = () => {
 
           <!-- Letterhead footer -->
           <div class="border-t border-slate-100 dark:border-slate-800 pt-3 mt-8 text-[8px] text-center text-slate-400 uppercase tracking-wider">
-            Document officiel généré numériquement par UniServices - IUT de Troyes
+            Document officiel généré numériquement par UniServices - {{ nomEtablissement }}
           </div>
 
           <!-- Page watermark -->

@@ -23,10 +23,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
             normalizationContext: ['groups' => ['stage_avenant:read']],
             security: "object.getStageEtudiant() and is_granted('STAGE_ETUDIANT_VIEW', object.getStageEtudiant())"
         ),
-        // Les avenants d'un dossier sont exposés dans le dossier lui-même (stage_etudiant:read).
+        // Les avenants d'un dossier sont exposés dans le dossier lui-même (stage_etudiant:read) ;
+        // la liste brute, tous départements confondus, est réservée au super administrateur.
         new GetCollection(
             normalizationContext: ['groups' => ['stage_avenant:read']],
-            security: "is_granted('ROLE_STAGE_MANAGER')"
+            security: "is_granted('SUPER_ADMIN')"
         ),
         // Demande d'avenant : l'étudiant pour son dossier, ou le service des stages
         new Post(

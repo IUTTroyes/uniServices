@@ -45,10 +45,21 @@ const ensureAdresseObject = (adresse) => {
   };
 };
 
+// Université de rattachement (objet embarqué côté API : libellé, adresse, téléphone, président).
+const ensureUniversite = (universite) => ({
+  libelle: universite?.libelle ?? '',
+  telephone: universite?.telephone ?? '',
+  president: universite?.president ?? '',
+  adresse: ensureAdresseObject(universite?.adresse)
+});
+
+const nullIfEmpty = (value) => (typeof value === 'string' && value.trim() === '' ? null : value ?? null);
+
 onMounted(async () => {
   try {
     etablissement.value = await etablissementStore.etablissement;
     etablissement.value.adresse = ensureAdresseObject(etablissement.value?.adresse);
+    etablissement.value.universite = ensureUniversite(etablissement.value?.universite);
   } catch (error) {
     hasError.value = true;
     console.error('Error fetching etablissement:', error)
@@ -60,12 +71,22 @@ onMounted(async () => {
 const updateEtablissement = async () => {
   try {
     etablissement.value.adresse = ensureAdresseObject(etablissement.value?.adresse);
+    const universite = ensureUniversite(etablissement.value?.universite);
 
     await updateEtablissementService(etablissement.value.id, {
       libelle: etablissement.value.libelle,
       adresse: etablissement.value.adresse,
       site_web: etablissement.value.site_web,
-      telephone: etablissement.value.telephone
+      telephone: etablissement.value.telephone,
+      directeurNom: nullIfEmpty(etablissement.value.directeurNom),
+      signataireNom: nullIfEmpty(etablissement.value.signataireNom),
+      signataireQualite: nullIfEmpty(etablissement.value.signataireQualite),
+      universite: {
+        libelle: nullIfEmpty(universite.libelle),
+        telephone: nullIfEmpty(universite.telephone),
+        president: nullIfEmpty(universite.president),
+        adresse: universite.adresse
+      }
     }, true);
 
     if (logoFile.value) {
@@ -94,7 +115,7 @@ const handleValidation = (field, result) => {
 <template>
   <div class="card">
     <h2 class="text-2xl! mb-0! font-bold">Données de l'Établissement</h2>
-    <em>Gestion des données d'identification de l'établissement</em>
+    <em>Gestion des données d'identification de l'établissement (la composante, ex. l'IUT) et de son université de rattachement</em>
     <Divider/>
 
     <ErrorView v-if="hasError"/>
@@ -160,6 +181,81 @@ const handleValidation = (field, result) => {
             :rules="[]"
             @validation="result => handleValidation('telephone', result)"
             help-text="Entrez le numéro de téléphone de l'établissement"
+            class="w-full"
+            />
+          <ValidatedInput
+            v-model="etablissement.directeurNom"
+            name="directeurNom"
+            label="Directeur ou directrice"
+            type="text"
+            :rules="[]"
+            @validation="result => handleValidation('directeurNom', result)"
+            help-text="Prénom et nom de la personne qui dirige l'établissement"
+            class="w-full"
+            />
+
+          <h3 class="text-lg font-bold mt-4 mb-1">Université de rattachement</h3>
+          <ValidatedInput
+            v-model="etablissement.universite.libelle"
+            name="universiteLibelle"
+            label="Nom de l'université"
+            type="text"
+            :rules="[]"
+            @validation="result => handleValidation('universiteLibelle', result)"
+            help-text="Ex. : Université de Reims Champagne-Ardenne"
+            class="w-full"
+            />
+          <ValidatedInput
+            v-model="etablissement.universite.adresse"
+            name="universiteAdresse"
+            label="Adresse de l'université"
+            type="address"
+            :rules="[]"
+            @validation="result => handleValidation('universiteAdresse', result)"
+            placeholder="Entrez une adresse (minimum 3 caractères)"
+            help-text="Adresse du siège de l'université"
+            class="w-full"
+            country="fr"
+            />
+          <ValidatedInput
+            v-model="etablissement.universite.telephone"
+            name="universiteTelephone"
+            label="Téléphone de l'université"
+            type="text"
+            :rules="[]"
+            @validation="result => handleValidation('universiteTelephone', result)"
+            class="w-full"
+            />
+          <ValidatedInput
+            v-model="etablissement.universite.president"
+            name="universitePresident"
+            label="Président ou présidente de l'université"
+            type="text"
+            :rules="[]"
+            @validation="result => handleValidation('universitePresident', result)"
+            help-text="Prénom et nom"
+            class="w-full"
+            />
+
+          <h3 class="text-lg font-bold mt-4 mb-1">Conventions de stage</h3>
+          <ValidatedInput
+            v-model="etablissement.signataireNom"
+            name="signataireNom"
+            label="Signataire des conventions"
+            type="text"
+            :rules="[]"
+            @validation="result => handleValidation('signataireNom', result)"
+            help-text="Représentant de l'établissement qui signe les conventions de stage (prénom et nom)"
+            class="w-full"
+            />
+          <ValidatedInput
+            v-model="etablissement.signataireQualite"
+            name="signataireQualite"
+            label="Qualité du signataire"
+            type="text"
+            :rules="[]"
+            @validation="result => handleValidation('signataireQualite', result)"
+            help-text="Ex. : Directeur de l'IUT, par délégation du Président"
             class="w-full"
             />
 
