@@ -207,6 +207,32 @@ StructureAnneeUniversitaire ──< Campagne ──< CampagneAffectation (évalu
   - **Export CSV** de la matrice (UTF-8 avec BOM pour Excel, `;`, cellules neutralisées contre l'injection de formules, jamais mis en cache). Archivage : déjà assuré par la lecture seule à la clôture (lots 4-5).
   - *Limites connues* : le calcul se fait à la volée, étudiant par étudiant (quelques requêtes chacun) — correct pour une promo, à mettre en cache ou à agréger en SQL si les temps d'affichage deviennent gênants. *Reporté* : suivi comparatif entre promos / années, export PDF, notification automatique des alertes.
 
+### 7.4 Réalisé (lot 8) — mode d'emploi
+
+```bash
+# 1. Vérifier que la base v1 a bien le schéma attendu (aucune écriture)
+php bin/console unifolio:migrate:v1 --dsn="mysql://…/unifolio_v1" --files-dir=/chemin/fichiers_v1 --check
+# 2. Essai à blanc : tout est exécuté puis annulé (fichiers copiés supprimés), rapport CSV
+php bin/console unifolio:migrate:v1 --dsn=… --files-dir=… --dry-run --rapport=rapport.csv
+# 3. Migration réelle (rejouable) ; --step=traces|evaluations|commentaires|portfolios|cv ; --limite=N pour un échantillon
+php bin/console unifolio:migrate:v1 --dsn=… --files-dir=… --rapport=rapport.csv
+# Repartir de zéro (supprime traces, portfolios et CV migrés ; conserve les grilles et campagnes héritées)
+php bin/console unifolio:migrate:v1 --purge
+```
+
+Variables possibles : `UNIFOLIO_V1_DATABASE_URL`, `UNIFOLIO_V1_FILES_DIR`. La commande refuse la base de l'application.
+
+- **Rejouable** : table de correspondance `unifolio_migration_v1` (au lieu d'un `oldId` sur chaque entité) ; un objet déjà migré est compté « déjà migré » et **n'est pas mis à jour** (la relance ne traite que ce qui manque).
+- **Rapport** : compteurs par type (créé / déjà migré / ignoré) et écarts classés erreur / avertissement / info, en CSV (cellules neutralisées). Aucune donnée n'est ignorée sans y figurer : étudiant ou enseignant introuvable, année ou niveau non résolu, fichier manquant ou refusé, lien invalide, type de trace inconnu, IA non renseignée, doublons, tronquages.
+- **Résolution** : étudiant / enseignant par `username` puis `mail_univ` ; scolarité par année universitaire + rang de l'année de BUT ; niveau par `nom_court` (ou libellé) de la compétence + `ordre` **parmi les niveaux de l'année de l'étudiant** (aucune ambiguïté entre référentiels).
+- **Traces** : toutes reprises « déposées » (la v1 n'a pas de brouillon), sans contrôle de dépôt, dates d'origine conservées ; `description` et `contexte` fusionnés en un texte brut (HTML retiré) ; fichiers copiés depuis `--files-dir` (nom de fichier seul, jamais de chemin issu de la base, source jamais modifiée) puis contrôlés par le stockage v2 ; vidéos YouTube → intégrations, autres liens → liens ; une validation = un rattachement au niveau.
+- **Évaluations** : grille inactive « Héritage UniFolio v1 » (3 échelons : non acquis / en cours d'acquisition / acquis) ; état 0 non repris ; plusieurs validations du même enseignant sur le même niveau → la plus récente. Campagne existante sinon, pour une année universitaire **révolue**, campagne « Héritage UniFolio v1 » clôturée créée à la volée (portfolios et évaluations en lecture seule) ; pour l'année en cours sans campagne, évaluation non reprise et signalée (créer la campagne puis relancer l'étape). Trace « évaluée » quand tous ses rattachements portent une évaluation rendue.
+- **Commentaires** : fils des traces (réponses de l'étudiant → auteur étudiant) ; commentaires de portfolio et commentaires vides non repris (signalés).
+- **Portfolios** : un portfolio académique par année de BUT (page = titre + description + traces dans l'ordre, page « CV » si un CV était lié) ; si un portfolio académique existe déjà pour l'année, les pages v1 y sont ajoutées sous « Archive v1 — » ; v1 visible → visibilité « établissement » (**aucune publication générée** : à republier). Bannière personnalisée non reprise (non gérée en v2).
+- **CV** : le plus récent par étudiant, sans écraser un CV déjà saisi en v2 ; liens de réseaux non http(s) écartés et signalés ; `activite` → description à puces.
+- **Vérifié sur une base v1 synthétique** (schéma déduit des entités v1 publiées, jeux de test couvrant chaque cas ci-dessus) : essai à blanc, migration, relance idempotente, purge, chemin « campagne héritée ». **Pas encore éprouvé sur une vraie copie de la v1** : lancer d'abord `--check` (il liste précisément toute différence de schéma) puis un essai à blanc, comme prévu par la recette du § 7.3.
+- *Non repris, à décider* : bannières, commentaires de portfolio, mise à jour d'un objet déjà migré, génération des publications.
+
 ---
 
 ## 4. Architecture technique

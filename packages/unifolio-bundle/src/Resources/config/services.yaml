@@ -51,6 +51,7 @@ services:
       - '../../Service/Portfolio/ModeleParDefaut.php'
       - '../../Service/Evaluation/CibleLot.php'
       - '../../Message/GenererPublication.php'
+      - '../../Service/Migration/V1/RapportMigration.php'
       - '../../UnifolioBundle.php'
 
   UnifolioBundle\Service\Media\MediaStorageInterface: '@UnifolioBundle\Service\Media\LocalMediaStorage'
