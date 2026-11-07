@@ -45,6 +45,8 @@ import ModeleEditView from '../views/admin/ModeleEditView.vue';
 import PartageDialog from '../components/portfolio/PartageDialog.vue';
 import CopieVitrineDialog from '../components/portfolio/CopieVitrineDialog.vue';
 import ApparenceDialog from '../components/portfolio/ApparenceDialog.vue';
+import ProgressionView from '../views/ProgressionView.vue';
+import SuiviView from '../views/SuiviView.vue';
 import ModerationView from '../views/admin/ModerationView.vue';
 import CommentairesThread from '../components/commentaires/CommentairesThread.vue';
 
@@ -577,5 +579,73 @@ describe('rendu des écrans (aucun avertissement Vue)', () => {
     expect(clair.texte()).toContain('trop claire');
     expect(clair.texte()).toContain('Aucun logo');
     demonter(clair);
+  });
+
+  // ---------- Lot 7 : suivi ----------
+  it('progression de l\'étudiant : années, compétences, éléments, échéances', async () => {
+    const annee = (id, libelle, extra = {}) => ({
+      scolarite: { id, annee: libelle, anneeUniversitaire: '2026-2027' }, campagne, disponible: true, granularite: { value: 'ac', libelle: 'Apprentissage critique' },
+      competences: [{ id: 49, nomCourt: 'Comprendre', libelle: 'Comprendre', couleur: 'c1', total: 2, couverts: 1, nbTraces: 1, evalScore: 0.8, autoScore: 0.5, elements: [
+        { type: 'ac', id: 1, code: 'AC21.01', ordre: null, libelle: 'Analyser', couvert: true, nbTraces: 1, evalScore: 0.8, autoScore: 0.5 },
+        { type: 'ac', id: 2, code: 'AC21.02', ordre: null, libelle: 'Concevoir', couvert: false, nbTraces: 0, evalScore: null, autoScore: null },
+      ] }],
+      resume: { total: 2, couverts: 1, nbTraces: 1, aEvaluer: 0, evalScore: 0.8, autoScore: 0.5, ecartMax: 0.3 }, ...extra,
+    });
+    api.get.mockImplementation(routeur([['/api/unifolio/progression', {
+      annees: [annee(3, 'MMI 3', { disponible: false, message: 'Pas de paramétrage', competences: [] }), annee(1, 'MMI 1'), annee(2, 'MMI 2')],
+      echeances: [{ type: 'depotLimite', libelle: 'Dépôt des traces', campagne: 'MMI 2026-2027', date: '2026-12-15T08:00:00+00:00' }],
+    }]]));
+    const m = await monter(ProgressionView);
+    expect(m.avertissements).toEqual([]);
+    const t = m.texte();
+    expect(t).toContain('MMI 3');
+    expect(t).toContain('AC21.01');
+    expect(t).toContain('Dépôt des traces');
+    expect(t).not.toContain('Pas de paramétrage'); // année repliée
+    document.body.querySelector('button[aria-expanded="false"]').click();
+    await attendre();
+    expect(m.texte()).toContain('Pas de paramétrage');
+    demonter(m);
+  });
+
+  it('progression vide', async () => {
+    api.get.mockImplementation(routeur([['/api/unifolio/progression', { annees: [], echeances: [] }]]));
+    const m = await monter(ProgressionView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('Pas encore de progression');
+    demonter(m);
+  });
+
+  it('suivi de promo : matrice, indicateurs, alertes', async () => {
+    api.get.mockImplementation(routeur([
+      ['/api/unifolio/suivi/campagnes', [{ ...campagne, perimetre: 'promo' }]],
+      [/\/suivi\/campagnes\/[^/]+$/, {
+        campagne, disponible: true, message: null,
+        competences: [{ id: 49, nomCourt: 'Comprendre', libelle: 'Comprendre', couleur: 'c1', total: 4 }, { id: 50, nomCourt: 'Concevoir', libelle: 'Concevoir', couleur: 'c2', total: 3 }],
+        lignes: [
+          { etudiant: { id: 1, nom: 'LAMOUREUX', prenom: 'Lauren' }, cellules: { 49: { total: 4, couverts: 2, nbTraces: 2, evalScore: 0.8, autoScore: 0.4 }, 50: { total: 3, couverts: 0, nbTraces: 0, evalScore: null, autoScore: null } }, resume: { nbTraces: 2, aEvaluer: 1, ecartMax: 0.4 }, alertes: ['a_evaluer', 'ecart_notable'] },
+          { etudiant: { id: 2, nom: 'MARTIN', prenom: 'Paul' }, cellules: {}, resume: { nbTraces: 0, aEvaluer: 0, ecartMax: null }, alertes: ['sans_depot'] },
+        ],
+        indicateurs: { nbEtudiants: 2, tauxDepot: 0.5, tauxCouverture: 0.29, sansDepot: 1, aEvaluer: 1, enRetard: 0, ecartsNotables: 1 },
+      }],
+    ]));
+    const m = await monter(SuiviView);
+    expect(m.avertissements).toEqual([]);
+    const t = m.texte();
+    expect(t).toContain('LAMOUREUX Lauren');
+    expect(t).toContain('2/4');
+    expect(t).toContain('80 %');
+    expect(t).toContain('Aucun dépôt');
+    expect(t).toContain('Écart auto-évaluation / évaluation');
+    expect(t).toContain('1 sans dépôt');
+    demonter(m);
+  });
+
+  it('suivi : aucune campagne', async () => {
+    api.get.mockImplementation(routeur([['/api/unifolio/suivi/campagnes', []]]));
+    const m = await monter(SuiviView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('Aucune campagne à suivre');
+    demonter(m);
   });
 });

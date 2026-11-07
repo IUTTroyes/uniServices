@@ -39,7 +39,7 @@ class BilanAnnee
     }
 
     /** @return list<array<string, mixed>> */
-    public function elements(Etudiant $etudiant, EtudiantScolarite $scolarite, GranulariteEnum $granularite, ?Personnel $evaluateur = null): array
+    public function elements(Etudiant $etudiant, EtudiantScolarite $scolarite, GranulariteEnum $granularite, ?Personnel $evaluateur = null, bool $toutesRendues = false): array
     {
         $rattachements = [];
         foreach ($this->traces->findBibliotheque($etudiant, ['scolarite' => $scolarite->getId()]) as $trace) {
@@ -60,7 +60,7 @@ class BilanAnnee
         $evalParRattachement = [];
         $evalBilan = [];
         foreach ($this->evaluations->findParScolarite($scolarite) as $e) {
-            if (!$this->visible($e, $evaluateur)) {
+            if (!$this->visible($e, $evaluateur, $toutesRendues)) {
                 continue;
             }
             if ($e->isBilan()) {
@@ -131,8 +131,13 @@ class BilanAnnee
     }
 
     /** L'évaluateur voit les siennes (même en cours) et les rendues des autres ; l'étudiant les communiquées. */
-    private function visible(Evaluation $e, ?Personnel $evaluateur): bool
+    private function visible(Evaluation $e, ?Personnel $evaluateur, bool $toutesRendues = false): bool
     {
+        // Suivi de promo : toutes les évaluations rendues, quel qu'en soit l'auteur ou la communication à l'étudiant.
+        if ($toutesRendues) {
+            return $e->getStatut() === StatutEvaluationEnum::RENDUE;
+        }
+
         if ($evaluateur === null) {
             return $e->isVisibleEtudiant() && $e->getStatut() !== StatutEvaluationEnum::EN_COURS;
         }

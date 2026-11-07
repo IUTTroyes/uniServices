@@ -201,6 +201,12 @@ StructureAnneeUniversitaire ──< Campagne ──< CampagneAffectation (évalu
   - Enseignant / référent : matrice étudiants × compétences d'une promo, taux de dépôt, évaluations en retard, écarts auto‑éval/éval.
   - Les 3 widgets existants branchés sur des données réelles.
 
+- *Réalisé (lot 7)* :
+  - **Progression de l'étudiant** (`/progression`, écran « Ma progression ») : une entrée par année de BUT du cursus, à la granularité choisie par la formation — éléments couverts (au moins une trace déposée), nombre de traces, auto-évaluation, évaluation (**uniquement celles communiquées à l'étudiant**), échéances à venir triées. L'année en cours est dépliée.
+  - **Suivi de promo** (`/suivi/campagnes/{uuid}`, écran « Suivi des étudiants ») : matrice étudiants × compétences (couverts / total, score d'évaluation moyen en couleur), indicateurs (taux de dépôt, couverture, traces à évaluer, en retard, écarts notables) et alertes par étudiant : aucun dépôt, à évaluer, évaluation en retard (limite dépassée), écart auto-évaluation / évaluation ≥ 20 points. Le référent voit toute la campagne ; l'enseignant uniquement ses étudiants affectés (403 sinon). La matrice agrège **toutes les évaluations rendues**, communiquées ou non.
+  - **Export CSV** de la matrice (UTF-8 avec BOM pour Excel, `;`, cellules neutralisées contre l'injection de formules, jamais mis en cache). Archivage : déjà assuré par la lecture seule à la clôture (lots 4-5).
+  - *Limites connues* : le calcul se fait à la volée, étudiant par étudiant (quelques requêtes chacun) — correct pour une promo, à mettre en cache ou à agréger en SQL si les temps d'affichage deviennent gênants. *Reporté* : suivi comparatif entre promos / années, export PDF, notification automatique des alertes.
+
 ---
 
 ## 4. Architecture technique
