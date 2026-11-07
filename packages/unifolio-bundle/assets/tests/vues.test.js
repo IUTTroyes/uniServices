@@ -37,6 +37,11 @@ import TraceDetailView from '../views/TraceDetailView.vue';
 import AutoEvaluationView from '../views/AutoEvaluationView.vue';
 import EvaluationLot from '../components/evaluation/EvaluationLot.vue';
 import EvaluationBilansView from '../views/EvaluationBilansView.vue';
+import PortfoliosView from '../views/PortfoliosView.vue';
+import PortfolioEditView from '../views/PortfolioEditView.vue';
+import CvView from '../views/CvView.vue';
+import ModelesView from '../views/admin/ModelesView.vue';
+import ModeleEditView from '../views/admin/ModeleEditView.vue';
 import CommentairesThread from '../components/commentaires/CommentairesThread.vue';
 
 // jsdom n'implémente pas ces API navigateur, utilisées par PrimeVue.
@@ -378,6 +383,109 @@ describe('rendu des écrans (aucun avertissement Vue)', () => {
     const m = await monter(AutoEvaluationView);
     expect(m.avertissements).toEqual([]);
     expect(m.texte()).toContain('Évalué : 66 %');
+    demonter(m);
+  });
+
+  // ---------- Lot 5 : portfolio à blocs ----------
+  const U = (n) => `p0p0p0p0-0000-4000-8000-00000000000${n}`;
+  const visibilite = { value: 'prive', libelle: 'Privé' };
+  const resumePortfolio = (extra = {}) => ({
+    uuid: U(1), type: { value: 'academique', libelle: 'Académique' }, titre: 'Portfolio 2026-2027', visibilite,
+    scolarite: { id: 1, annee: 'MMI - DWeb-DI - 2', anneeUniversitaire: '2026-2027', diplome: 'MMI', actif: true },
+    campagne: campagne, modele: null, modifiable: true, nbPages: 2, misAJourLe: '2026-11-06T10:00:00+00:00', ...extra,
+  });
+  const pageBlocs = (extra = {}) => ({
+    uuid: U(2), titre: 'Présentation', ordre: 0, verrouillee: false, verrouilles: ['b-titre'], version: 1, incomplets: [],
+    blocs: [
+      { id: 'b-titre', type: 'heading', attrs: { texte: 'Bonjour', niveau: 2 } },
+      { id: 'b-para', type: 'paragraph', attrs: { texte: 'Un **texte** <script>alert(1)</script>' } },
+      { id: 'b-col', type: 'columns', attrs: { ratio: '50-50' }, children: [
+        { id: 'c1', type: 'column', attrs: {}, children: [{ id: 'c1p', type: 'paragraph', attrs: { texte: 'Gauche' } }] },
+        { id: 'c2', type: 'column', attrs: {}, children: [{ id: 'c2p', type: 'divider', attrs: {} }] },
+      ] },
+      { id: 'b-prog', type: 'progression', attrs: {} },
+    ], ...extra,
+  });
+  const donneesPortfolio = () => ({
+    traces: [{ uuid: 't1', titre: 'Maquette', contexte: 'Contexte', statut: { value: 'deposee', libelle: 'Déposée' }, medias: [], rattachements: [{ competence }] }],
+    progression: [{ competence, total: 4, couverts: 1 }], cv: { poste: null, description: null, langues: [], softSkills: [], hardSkills: [], reseaux: [], experiences: [], formations: [] }, parcours: [],
+  });
+
+  it('liste des portfolios', async () => {
+    api.get.mockImplementation(routeur([['/api/unifolio/portfolios', [resumePortfolio(), resumePortfolio({ uuid: U(3), type: { value: 'vitrine', libelle: 'Vitrine' }, titre: 'Ma vitrine', scolarite: null, campagne: null })]]]));
+    const m = await monter(PortfoliosView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('Portfolio 2026-2027');
+    demonter(m);
+  });
+
+  it('éditeur de portfolio : blocs, bloc imposé, aucun HTML injecté', async () => {
+    route.params = { uuid: U(1) };
+    api.get.mockImplementation(routeur([
+      [/\/portfolios\/[^/]+\/donnees$/, donneesPortfolio()],
+      [/\/portfolios\/[^/]+$/, { ...resumePortfolio(), theme: null, pages: [pageBlocs(), pageBlocs({ uuid: U(4), titre: 'Comprendre', verrouillee: true, verrouilles: [], blocs: [] })] }],
+    ]));
+    const m = await monter(PortfolioEditView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('Présentation');
+    expect(m.texte()).toContain('Comprendre');
+    expect(document.body.querySelector('script')).toBeNull();
+    demonter(m);
+  });
+
+  it('éditeur de portfolio : portfolio clôturé en lecture seule', async () => {
+    route.params = { uuid: U(1) };
+    api.get.mockImplementation(routeur([
+      [/\/portfolios\/[^/]+\/donnees$/, donneesPortfolio()],
+      [/\/portfolios\/[^/]+$/, { ...resumePortfolio({ modifiable: false }), theme: null, pages: [pageBlocs()] }],
+    ]));
+    const m = await monter(PortfolioEditView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('Bonjour');
+    demonter(m);
+  });
+
+  it('éditeur de portfolio : accès refusé', async () => {
+    route.params = { uuid: U(1) };
+    api.get.mockImplementation(() => Promise.reject({ response: { status: 403, data: {} } }));
+    const m = await monter(PortfolioEditView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('ne vous appartient pas');
+    demonter(m);
+  });
+
+  it('CV', async () => {
+    api.get.mockImplementation(routeur([['/api/unifolio/cv', {
+      poste: 'Intégrateur', description: 'Alternant', langues: ['Anglais'], softSkills: ['Rigueur'], hardSkills: ['Vue'], reseaux: ['https://example.org'],
+      experiences: [{ poste: 'Stagiaire', entreprise: 'Acme', dateDebut: '2026-04-01', dateFin: null, description: 'Dev' }],
+      formations: [{ diplome: 'BUT MMI', etablissement: 'IUT', dateDebut: '2025-09-01', dateFin: null, description: null }], misAJourLe: null,
+    }]]));
+    const m = await monter(CvView);
+    expect(m.avertissements).toEqual([]);
+    demonter(m);
+  });
+
+  const modele = (extra = {}) => ({
+    uuid: U(5), libelle: 'Modèle MMI', description: 'Départ', portee: 'departement', libellePortee: 'MMI', actif: true, nbPages: 1, nbCampagnes: 1, modifiable: true, ...extra,
+  });
+
+  it('liste des modèles', async () => {
+    api.get.mockImplementation(routeur([
+      ['/api/unifolio/admin/modeles', [modele(), modele({ uuid: U(6), libelle: 'National', portee: 'national', modifiable: false })]],
+      ['/api/unifolio/admin/campagnes/options', { formations: [{ id: 35, libelle: 'MMI' }] }],
+    ]));
+    const m = await monter(ModelesView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('Modèle MMI');
+    demonter(m);
+  });
+
+  it('édition d\'un modèle', async () => {
+    route.params = { uuid: U(5) };
+    api.get.mockImplementation(routeur([[/\/admin\/modeles\/[^/]+$/, { ...modele(), pages: [{ titre: 'Présentation', verrouillee: true, verrouilles: ['b-titre'], blocs: pageBlocs().blocs }] }]]));
+    const m = await monter(ModeleEditView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('Présentation');
     demonter(m);
   });
 });

@@ -15,6 +15,7 @@ import Message from 'primevue/message';
 import Tag from 'primevue/tag';
 import ProgressBar from 'primevue/progressbar';
 import campagneService from '../../requests/campagneService';
+import { modeleService } from '../../requests/portfolioService';
 import { messageErreur } from '../../requests/traceService';
 
 const route = useRoute();
@@ -25,7 +26,8 @@ const confirm = useConfirm();
 const campagne = ref(null);
 const chargement = ref(true);
 const occupe = ref(false);
-const form = reactive({ libelle: '', ouvertureLe: null, depotLimite: null, evaluationLimite: null, clotureLe: null, autoEvaluationRequise: false });
+const form = reactive({ libelle: '', ouvertureLe: null, depotLimite: null, evaluationLimite: null, clotureLe: null, autoEvaluationRequise: false, modele: null });
+const modeles = ref([]);
 
 const affectations = ref(null);
 const evaluateur = ref(null);
@@ -37,7 +39,7 @@ const filtre = ref('');
 const verser = (c) => {
   campagne.value = c;
   const d = (iso) => (iso ? new Date(iso) : null);
-  Object.assign(form, { libelle: c.libelle, ouvertureLe: d(c.ouvertureLe), depotLimite: d(c.depotLimite), evaluationLimite: d(c.evaluationLimite), clotureLe: d(c.clotureLe), autoEvaluationRequise: c.autoEvaluationRequise });
+  Object.assign(form, { libelle: c.libelle, ouvertureLe: d(c.ouvertureLe), depotLimite: d(c.depotLimite), evaluationLimite: d(c.evaluationLimite), clotureLe: d(c.clotureLe), autoEvaluationRequise: c.autoEvaluationRequise, modele: c.modele?.uuid ?? null });
 };
 
 const chargerAffectations = async () => {
@@ -50,6 +52,7 @@ onMounted(async () => {
     const { data } = await campagneService.lire(route.params.uuid);
     verser(data);
     await chargerAffectations();
+    modeleService.liste().then(({ data: liste }) => { modeles.value = liste.filter((m) => m.actif); }).catch(() => {});
   } catch (e) {
     toast.add({ severity: 'error', summary: 'Campagne introuvable', detail: messageErreur(e), life: 6000 });
   } finally {
@@ -70,6 +73,7 @@ const enregistrer = async () => {
       evaluationLimite: iso(form.evaluationLimite),
       clotureLe: iso(form.clotureLe),
       autoEvaluationRequise: form.autoEvaluationRequise,
+      modele: form.modele,
     });
     verser(data);
     toast.add({ severity: 'success', summary: 'Campagne enregistrée', life: 3000 });
@@ -206,6 +210,11 @@ const toutCocher = (coche) => { cochees.value = coche ? etudiants.value.map((e) 
           <label for="e-clot" class="font-medium">Clôture</label>
           <DatePicker id="e-clot" v-model="form.clotureLe" show-time hour-format="24" date-format="dd/mm/yy" show-icon show-button-bar :disabled="cloturee" />
           <small class="text-muted-color">À la clôture, les évaluations sont figées et le dépôt est fermé.</small>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="e-modele" class="font-medium">Modèle de portfolio</label>
+          <Select id="e-modele" v-model="form.modele" :options="modeles" option-label="libelle" option-value="uuid" show-clear placeholder="Structure par défaut (une page par compétence)" :disabled="cloturee" />
+          <small class="text-muted-color">Appliqué aux portfolios créés ensuite ; les portfolios existants ne changent pas.</small>
         </div>
         <label class="flex items-center gap-3 cursor-pointer">
           <ToggleSwitch v-model="form.autoEvaluationRequise" :disabled="cloturee" />

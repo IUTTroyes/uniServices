@@ -32,6 +32,10 @@ services:
       - '../../Service/Media/EmbedPolicy.php'
       - '../../Service/Trace/UnifolioValidationException.php'
       - '../../Service/Grille/GrillesParDefaut.php'
+      - '../../Service/Portfolio/ContexteModele.php'
+      - '../../Service/Portfolio/ContexteEtudiant.php'
+      - '../../Service/Portfolio/ModeleParDefaut.php'
+      - '../../Service/Evaluation/CibleLot.php'
       - '../../UnifolioBundle.php'
 
   UnifolioBundle\Service\Media\MediaStorageInterface: '@UnifolioBundle\Service\Media\LocalMediaStorage'

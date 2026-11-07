@@ -170,6 +170,14 @@ StructureAnneeUniversitaire ──< Campagne ──< CampagneAffectation (évalu
   - **Blocs métier** : trace (carte / détaillée), liste de traces filtrée par compétence, radar/progression des compétences, matrice compétences × années, CV (expériences, formations, langues, skills), timeline du parcours, auto‑évaluation/réflexion.
 - **CV** : `Cv`, `CvExperience`, `CvFormation` (reprise v1) — données sources des blocs CV, export PDF via `GotenbergService`.
 - **Modèles** de portfolio (remplacent `Templates` v1) définis par les référents : structure de pages + blocs pré‑remplis, éventuellement imposés pour le portfolio académique.
+- *Réalisé (lot 5)* :
+  - **Schéma de blocs unique** `blocs.json` (22 types, 4 groupes, limites : profondeur 4, 300 blocs, 256 Ko) lu par le back (`BlocRegistry`, `BlocValidator`) **et** le front (`blocs/schema.js`) : un seul endroit à modifier pour ajouter un bloc.
+  - **Frontière de sécurité = `BlocValidator`** : aucun HTML accepté, URL en http(s) uniquement, intégrations limitées à une liste blanche (`EmbedPolicy`), traces et médias vérifiés comme appartenant à l'étudiant (rien de personnel dans un modèle), attributs inconnus supprimés, valeurs par défaut complétées. Un bloc incomplet reste enregistrable mais est signalé (`incomplets`) : il bloquera la publication (lot 6).
+  - **Texte riche = Markdown simplifié** (`blocs/markdown.js`, tout HTML échappé avant rendu) au lieu de Tiptap, non installé : aucune dépendance ajoutée. Remplaçable plus tard sans toucher au schéma.
+  - **Pages plates** (pas de sous-pages) ; concurrence optimiste par `version` de page (conflit → « Recharger »). Pages et blocs **imposés** par le modèle : ni suppression, ni renommage, ni changement de type (le contenu reste libre).
+  - **Portfolio académique** créé automatiquement à la première consultation de la liste par l'étudiant (idempotent) pour chaque campagne ; copie du modèle de la campagne (identifiants régénérés), à défaut structure par défaut (présentation, une page par compétence, CV) ; **lecture seule à la clôture**.
+  - **Modèles** par département ou formation (national en lecture seule, duplicable), liés à une campagne ; suppression refusée s'ils sont utilisés. **CV** : document complet remplacé à chaque enregistrement, toutes les erreurs listées.
+  - *Reporté au lot 6* : `slug`, bannière, jeton de partage, indexation, création de la vitrine, « Copier dans ma vitrine », publication / snapshot et rendu statique. Filtre par compétence dans un modèle (les traces y sont personnelles) non disponible.
 
 ### 3.6 Suivi pluriannuel (M8)
 

@@ -58,6 +58,11 @@ class Campagne implements TimestampableInterface
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $clotureLe = null;
 
+    /** Modèle des portfolios académiques créés pour cette campagne ; null = structure par défaut (une page par compétence). */
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?PortfolioModele $modele = null;
+
     /** Si vrai, un enseignant ne peut évaluer que ce qui a été auto-évalué (et soumis) par l'étudiant. */
     #[ORM\Column(options: ['default' => false])]
     private bool $autoEvaluationRequise = false;
@@ -174,6 +179,26 @@ class Campagne implements TimestampableInterface
                 $this->$champ = $le;
             }
         }
+
+        return $this;
+    }
+
+    public function getModele(): ?PortfolioModele
+    {
+        return $this->modele;
+    }
+
+    public function setModele(?PortfolioModele $modele): static
+    {
+        if ($modele !== null) {
+            if ($modele->getType()->value !== 'academique') {
+                throw new \InvalidArgumentException('Une campagne utilise un modèle de portfolio académique.');
+            }
+            if (!$modele->estApplicableA($this->diplome)) {
+                throw new \InvalidArgumentException('Ce modèle ne s\'applique pas à la formation de la campagne.');
+            }
+        }
+        $this->modele = $modele;
 
         return $this;
     }

@@ -17,6 +17,8 @@ use UnifolioBundle\Entity\Campagne;
 use UnifolioBundle\Entity\Evaluation;
 use UnifolioBundle\Repository\CampagneAffectationRepository;
 use UnifolioBundle\Repository\CampagneRepository;
+use UnifolioBundle\Repository\PortfolioModeleRepository;
+use UnifolioBundle\Security\ModeleVoter;
 use UnifolioBundle\Security\CampagneVoter;
 use UnifolioBundle\Security\ReferentContexte;
 use UnifolioBundle\Security\UnifolioVoter;
@@ -42,6 +44,7 @@ class AdminCampagneController extends AbstractController
         private readonly CampagneEtudiants $etudiants,
         private readonly CampagneNormalizer $normalizer,
         private readonly ReferentContexte $contexte,
+        private readonly PortfolioModeleRepository $modeles,
     ) {
     }
 
@@ -96,6 +99,7 @@ class AdminCampagneController extends AbstractController
         $d = $this->corps($request);
         $diplome = $this->em->find(StructureDiplome::class, (int) ($d['diplome'] ?? 0)) ?? throw UnifolioValidationException::un('Choisissez la formation.');
         $this->denyAccessUnlessGranted(CampagneVoter::GERER, $diplome);
+        $this->verifierModele($d);
 
         $campagne = $this->manager->enregistrer($this->manager->preparer($diplome, $d));
 
@@ -111,7 +115,10 @@ class AdminCampagneController extends AbstractController
     #[Route('/{uuid}', name: 'unifolio_admin_campagnes_modifier', requirements: ['uuid' => self::UUID], methods: ['PATCH'])]
     public function modifier(string $uuid, Request $request): JsonResponse
     {
-        $campagne = $this->manager->modifier($this->campagne($uuid), $this->corps($request));
+        $d = $this->corps($request);
+        $campagne = $this->campagne($uuid);
+        $this->verifierModele($d);
+        $campagne = $this->manager->modifier($campagne, $d);
 
         return $this->json($this->avecCompteurs($campagne));
     }
@@ -236,6 +243,15 @@ class AdminCampagneController extends AbstractController
             'nbAffectes' => \count($affectes),
             'nbEvaluations' => $evaluations->count(['campagne' => $c]),
         ];
+    }
+
+    /** @param array<string, mixed> $d Le modèle choisi doit être visible du référent. */
+    private function verifierModele(array $d): void
+    {
+        if (!empty($d['modele'])) {
+            $modele = $this->modeles->findOneByUuid((string) $d['modele']) ?? throw UnifolioValidationException::un('Modèle de portfolio introuvable.');
+            $this->denyAccessUnlessGranted(ModeleVoter::VOIR, $modele);
+        }
     }
 
     private function campagne(string $uuid): Campagne

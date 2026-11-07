@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use UnifolioBundle\Entity\Campagne;
 use UnifolioBundle\Entity\Evaluation;
 use UnifolioBundle\Repository\CampagneRepository;
+use UnifolioBundle\Repository\PortfolioModeleRepository;
 use UnifolioBundle\Service\Trace\UnifolioValidationException;
 
 class CampagneManager
@@ -16,6 +17,7 @@ class CampagneManager
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly CampagneRepository $campagnes,
+        private readonly PortfolioModeleRepository $modeles,
     ) {
     }
 
@@ -89,6 +91,13 @@ class CampagneManager
                     throw new \InvalidArgumentException('Année de BUT inconnue.');
                 }
                 $campagne->setAnneeFormation($af);
+            }
+            if (\array_key_exists('modele', $d)) {
+                $modele = $d['modele'] ? $this->modeles->findOneByUuid((string) $d['modele']) : null;
+                if ($d['modele'] && $modele === null) {
+                    throw new \InvalidArgumentException('Modèle de portfolio introuvable.');
+                }
+                $campagne->setModele($modele);
             }
             if (\array_key_exists('autoEvaluationRequise', $d)) {
                 $campagne->setAutoEvaluationRequise((bool) $d['autoEvaluationRequise']);

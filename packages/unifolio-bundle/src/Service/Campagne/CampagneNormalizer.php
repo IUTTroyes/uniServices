@@ -28,6 +28,7 @@ class CampagneNormalizer
             'evaluationLimite' => $f($c->getEvaluationLimite()),
             'clotureLe' => $f($c->getClotureLe()),
             'autoEvaluationRequise' => $c->isAutoEvaluationRequise(),
+            'modele' => $c->getModele() !== null ? ['uuid' => $c->getModele()->getUuidString(), 'libelle' => $c->getModele()->getLibelle()] : null,
             'phase' => ['value' => $phase->value, 'libelle' => $phase->getLibelle(), 'badge' => $phase->getBadge()],
             'enRetard' => $c->isEvaluationEnRetard(),
         ];

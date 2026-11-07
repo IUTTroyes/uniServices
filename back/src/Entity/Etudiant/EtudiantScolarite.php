@@ -58,6 +58,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
         'anneeUniversitaire' => new QueryParameter(filter: EtudiantScolariteFilter::class),
         'etudiant' => new QueryParameter(filter: EtudiantScolariteFilter::class),
         'annee' => new QueryParameter(filter: EtudiantScolariteFilter::class),
+        'search' => new QueryParameter(filter: EtudiantScolariteFilter::class),
+        'nom' => new QueryParameter(filter: EtudiantScolariteFilter::class),
+        'prenom' => new QueryParameter(filter: EtudiantScolariteFilter::class),
+        'mailUniv' => new QueryParameter(filter: EtudiantScolariteFilter::class),
     ]
 )]
 class EtudiantScolarite

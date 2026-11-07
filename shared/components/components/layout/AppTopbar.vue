@@ -9,6 +9,7 @@ import { tools } from '@config/uniServices.js';
 import noImage from "@images/photos_etudiants/noimage.png";
 import { PermissionGuard } from "@components";
 import ApplicationBadge from '../Application/ApplicationBadge.vue';
+import { normalizeAppSlug } from '@utils';
 import api from '@helpers/axios';
 
 const anneeUnivStore = useAnneeUnivStore();
@@ -216,7 +217,9 @@ const initiales = computed(() => {
 });
 
 const isEnabled = (item) => {
-  return item.urlSlug === 'intranet' || userStore.applications.includes(item.urlSlug);
+  const userApps = (userStore.applications || []).map(normalizeAppSlug);
+  const slug = normalizeAppSlug(item.urlSlug || item.name || item);
+  return slug === 'intranet' || userApps.includes(slug);
 };
 
 const activeTools = computed(() => {

@@ -85,7 +85,17 @@ watch(
     }
 
     if (isSingleStudent.value && singleStudent.value) {
-      const studentApps = singleStudent.value.applications || ['intranet'];
+      let studentApps = singleStudent.value.applications;
+      if (typeof studentApps === 'string') {
+        try {
+          studentApps = JSON.parse(studentApps);
+        } catch {
+          studentApps = [studentApps];
+        }
+      }
+      if (!Array.isArray(studentApps) || studentApps.length === 0) {
+        studentApps = ['intranet'];
+      }
       selectedApps.value = studentApps.map(normalizeAppSlug);
     } else {
       // Default selection: intranet by default
