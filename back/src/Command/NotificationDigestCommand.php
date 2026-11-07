@@ -1,23 +1,23 @@
 <?php
 
-namespace UnifolioBundle\Command;
+namespace App\Command;
 
+use App\Enum\FrequenceResumeEnum;
+use App\Notification\NotificationDigest;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use UnifolioBundle\Enum\FrequenceResumeEnum;
-use UnifolioBundle\Service\Notification\ResumeNotifications;
 
 #[AsCommand(
-    name: 'unifolio:notifications:resume',
-    description: 'Envoie le résumé groupé des notifications (un seul e-mail par personne) aux abonnés de la fréquence demandée.',
+    name: 'app:notifications:resume',
+    description: 'Envoie le résumé groupé des notifications (un seul e-mail par personne, toute l\'application) aux abonnés de la fréquence demandée.',
 )]
-final class ResumeNotificationsCommand extends Command
+final class NotificationDigestCommand extends Command
 {
-    public function __construct(private readonly ResumeNotifications $resume)
+    public function __construct(private readonly NotificationDigest $digest)
     {
         parent::__construct();
     }
@@ -39,7 +39,7 @@ final class ResumeNotificationsCommand extends Command
             return Command::INVALID;
         }
         $essai = (bool) $input->getOption('dry-run');
-        $s = $this->resume->envoyer($frequence, $essai);
+        $s = $this->digest->envoyer($frequence, $essai);
         $io->success(sprintf(
             '%s : %d personne(s) concernée(s), %d résumé(s) %s (%d événement(s)), %d événement(s) écarté(s) (type désactivé depuis).',
             $frequence->getLibelle(), $s['personnes'], $s['envoyes'], $essai ? 'à envoyer' : 'envoyé(s)', $s['evenements'], $s['ecartes']

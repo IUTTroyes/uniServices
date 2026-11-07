@@ -68,6 +68,7 @@ services:
       - "../src/Entity/"
       - "../src/Kernel.php"
       - "../src/Services/Dashboard/Provider/"
+      - "../src/Notification/NotificationType.php"
 
   App\DataProvider\SingleRecordDataProvider:
     arguments:

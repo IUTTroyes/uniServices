@@ -244,15 +244,16 @@ Sans changement de rendu (vérifié par instantanés HTML de 40 écrans et boît
 - **Volontairement conservés** : barre de chargement (pas de squelettes : rendu inchangé), pastilles de compétence (rendu différent de `ApcCompetenceBadge`), 4 tableaux sur mesure (matrice de suivi, comparaison, file d'évaluation, affectations : `CustomDataTable` ne couvre ni la sélection ni les cellules colorées), boutons d'action `Button*` (messages de confirmation propres à chaque écran, couverts par `useConfirmation`).
 - **Filet de non-régression** : `tests/vues.test.js` fige le HTML de chaque écran (identifiants et classes de transition PrimeVue normalisés). Toute évolution voulue du rendu se valide avec `vitest -u`, en relisant le diff.
 
-### 7.6 Notifications groupées (lot 9)
+### 7.6 Notifications (lot 9) — mécanisme global dans le cœur
 
-- **Types** (`TypeNotificationEnum`) : étudiant — évaluation communiquée, révision demandée, commentaire d'un enseignant, publication retirée par la modération ; personnel — trace déposée par un étudiant dont on a la charge, commentaire d'un étudiant, rappel des évaluations en attente.
-- **Trois modes par type** (`ModeNotificationEnum`) : *tout de suite*, *dans le résumé*, *jamais*, plus un **interrupteur général** et le **rythme du résumé** (chaque soir à 18 h, ou chaque lundi à 8 h). Par défaut, ce qui appelle une réaction rapide (évaluation, révision, modération) part tout de suite ; le reste (commentaires, dépôts) va dans le résumé. Un rappel périodique ne peut pas être « dans un résumé » ; un retrait de modération ne peut pas être ignoré.
-- **Anti-spam** : un seul e-mail de résumé par personne et par passage, rubriques groupées (8 lignes par rubrique puis « … et N autres »), **événements identiques fusionnés** (dix commentaires sur la même trace = une ligne « ×10 »), préférences **relues à l'envoi** (un type passé en « jamais » depuis la mise de côté est écarté), purge à 60 jours, relance du résumé sans doublon.
-- **Mécanisme** : `NotificationManager::notifier()` applique les préférences (jamais / e-mail immédiat / file `unifolio_notification_attente`) ; une notification ne fait jamais échouer l'action qui la déclenche. Les e-mails existants (évaluation, révision, relance) gardent leurs gabarits et passent par ce point d'entrée ; nouveaux gabarits `unifolio.notification` et `unifolio.resume_notifications`.
-- **Commandes** : `unifolio:notifications:resume --frequence=quotidien|hebdomadaire [--dry-run]` ; `unifolio:taches:installer [--inactives]` crée, sans doublon, les tâches du planificateur (résumé quotidien, résumé hebdomadaire, **relance des évaluateurs**) dans la table `SchedulerTask` existante. À lancer une fois en production.
-- **Écran** « Notifications » (menu *Préférences*, ouvert à tous les profils UniFolio), enregistrement immédiat de chaque changement.
-- *Non traité* : notification des référents lors d'une publication publique à modérer, notifications dans l'application (cloche), lien de désinscription en un clic sans connexion.
+UniFolio n'a plus de système de notification propre : il s'appuie sur le **mécanisme global de l'application**
+(documenté pour tous les packages dans `docs/NOTIFICATIONS_SYSTEM.md`).
+
+- **Cœur** : registre de types déclarés par les packages (`NotificationTypeProviderInterface`), `NotificationService::notifier()` (point d'entrée unique), journal `notification` (cloche), préférences `notification_preference` (interrupteur général, rythme du résumé, mode par type : *tout de suite / dans le résumé / jamais*), résumé groupé unique par personne pour toute l'application, API `/api/notifications/*`, cloche dans la barre du haut, page de préférences partagée (`/auth/notifications`, entrée « Notifications » du menu du profil).
+- **UniFolio** : déclare 7 types (`TypeNotificationEnum`, fournisseur `UnifolioNotificationTypes`) — étudiant : évaluation communiquée, révision demandée, commentaire d'un enseignant, publication retirée par la modération ; personnel : trace déposée, commentaire d'un étudiant, rappel des évaluations. Défauts : l'urgent part tout de suite (évaluation, révision, modération), le reste va dans le résumé. Un rappel ne peut pas être « dans un résumé », un retrait de modération ne peut pas être ignoré. Les e-mails existants gardent leurs gabarits.
+- **Anti-spam** : cloche indépendante des préférences d'e-mail ; événements identiques fusionnés (×N) ; préférences relues à l'envoi ; échec d'un e-mail immédiat → l'événement part dans le résumé ; purge à 90 jours.
+- **Pas de notification** pour un changement de visibilité d'un portfolio.
+- **Mise en service** : `php bin/console app:notifications:taches` (résumés quotidien et hebdomadaire) et `php bin/console unifolio:taches:installer` (relance des évaluateurs), une fois par environnement.
 
 ---
 

@@ -11,7 +11,7 @@ use UnifolioBundle\Entity\TraceMedia;
 use UnifolioBundle\Enum\StatutRenduEnum;
 use UnifolioBundle\Enum\TypeNotificationEnum;
 use UnifolioBundle\Enum\VisibilitePortfolioEnum;
-use UnifolioBundle\Service\Notification\NotificationManager;
+use App\Notification\NotificationService;
 use UnifolioBundle\Message\GenererPublication;
 use UnifolioBundle\Repository\PortfolioPublicationRepository;
 use UnifolioBundle\Service\Media\MediaStorageInterface;
@@ -31,7 +31,7 @@ class PublicationManager
         private readonly RendererClient $rendu,
         private readonly MediaStorageInterface $medias,
         private readonly LogoManager $logos,
-        private readonly NotificationManager $notifications,
+        private readonly NotificationService $notifications,
         private readonly MessageBusInterface $bus,
         private readonly LoggerInterface $logger,
         private readonly int $unifolioPublicationsConservees,
@@ -110,7 +110,7 @@ class PublicationManager
         $portfolio = $publication->getPortfolio();
         $this->notifications->notifier(
             $portfolio->getEtudiant(),
-            TypeNotificationEnum::PUBLICATION_MODEREE,
+            TypeNotificationEnum::PUBLICATION_MODEREE->cle(),
             sprintf('Votre portfolio « %s » a été retiré par la modération : %s', $portfolio->getTitre(), $publication->getMotifModeration()),
             '/app/unifolio/portfolios/'.$portfolio->getUuidString(),
         );

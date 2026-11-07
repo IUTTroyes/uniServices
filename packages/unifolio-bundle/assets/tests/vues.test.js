@@ -56,7 +56,6 @@ import ProgressionView from '../views/ProgressionView.vue';
 import SuiviView from '../views/SuiviView.vue';
 import GrilleEditView from '../views/admin/GrilleEditView.vue';
 import TraceEditView from '../views/TraceEditView.vue';
-import NotificationsView from '../views/NotificationsView.vue';
 import ModerationView from '../views/admin/ModerationView.vue';
 import CommentairesThread from '../components/commentaires/CommentairesThread.vue';
 
@@ -743,52 +742,5 @@ describe('rendu des écrans (aucun avertissement Vue)', () => {
     expect(n.avertissements).toEqual([]);
     expect(n.texte()).toContain('Nouvelle trace');
     demonter(n);
-  });
-
-  // ---------- Notifications ----------
-  const prefsNotif = (extra = {}) => ({
-    actif: true, frequence: { value: 'quotidien', libelle: 'Chaque soir' },
-    frequences: [{ value: 'quotidien', libelle: 'Chaque soir' }, { value: 'hebdomadaire', libelle: 'Chaque lundi matin' }],
-    types: [
-      { cle: 'evaluation_rendue', libelle: 'Une évaluation m\'est communiquée', description: 'Une évaluation vient de vous être communiquée.', mode: 'immediat', defaut: 'immediat', modes: [{ value: 'immediat', libelle: 'Tout de suite' }, { value: 'resume', libelle: 'Dans le résumé' }, { value: 'aucun', libelle: 'Jamais' }] },
-      { cle: 'commentaire_enseignant', libelle: 'Un enseignant commente une de mes traces', description: 'Nouveau commentaire.', mode: 'resume', defaut: 'resume', modes: [{ value: 'immediat', libelle: 'Tout de suite' }, { value: 'resume', libelle: 'Dans le résumé' }, { value: 'aucun', libelle: 'Jamais' }] },
-      { cle: 'publication_moderee', libelle: 'Un de mes portfolios est retiré par la modération', description: 'Retrait avec motif.', mode: 'immediat', defaut: 'immediat', modes: [{ value: 'immediat', libelle: 'Tout de suite' }, { value: 'resume', libelle: 'Dans le résumé' }] },
-    ],
-    enAttente: 3, dernierResume: '2026-11-06T18:00:00+00:00', ...extra,
-  });
-
-  it('préférences de notification : types, rythme du résumé, événements en attente', async () => {
-    api.get.mockImplementation(routeur([['/api/unifolio/notifications/preferences', prefsNotif()]]));
-    const m = await monter(NotificationsView);
-    expect(m.avertissements).toEqual([]);
-    const t = m.texte();
-    expect(t).toContain('Recevoir des e-mails UniFolio');
-    expect(t).toContain('Un enseignant commente une de mes traces');
-    expect(t).toContain('Chaque lundi matin');
-    expect(t).toContain('3 événement(s) en attente');
-    expect(t).not.toContain('Jamais Dans le résumé Tout de suite Un de mes portfolios'); // la modération n'a pas « Jamais »
-    demonter(m);
-  });
-
-  it('préférences de notification : interrupteur général coupé', async () => {
-    api.get.mockImplementation(routeur([['/api/unifolio/notifications/preferences', prefsNotif({ actif: false })]]));
-    const m = await monter(NotificationsView);
-    expect(m.avertissements).toEqual([]);
-    expect(m.texte()).toContain('désactivées');
-    expect(document.body.querySelectorAll('.p-togglebutton[data-p-disabled="true"]').length).toBeGreaterThan(0);
-    demonter(m);
-  });
-
-  it('préférences de notification : un changement de mode est envoyé puis reflété', async () => {
-    api.get.mockImplementation(routeur([['/api/unifolio/notifications/preferences', prefsNotif()]]));
-    api.put.mockImplementation((url, corps) => Promise.resolve({ data: prefsNotif({ types: prefsNotif().types.map((t) => (corps.reglages?.[t.cle] ? { ...t, mode: corps.reglages[t.cle] } : t)) }) }));
-    const m = await monter(NotificationsView);
-    const bouton = [...document.body.querySelectorAll('[role="group"][aria-label="Un enseignant commente une de mes traces"] .p-togglebutton')].find((b) => b.textContent.includes('Jamais'));
-    expect(bouton).toBeTruthy();
-    expect(bouton.getAttribute('data-p-disabled')).toBe('false');
-    bouton.click();
-    await attendre();
-    expect(api.put).toHaveBeenCalledWith('/api/unifolio/notifications/preferences', { reglages: { commentaire_enseignant: 'aucun' } });
-    demonter(m);
   });
 });

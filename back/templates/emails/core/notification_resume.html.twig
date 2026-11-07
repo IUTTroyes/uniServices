@@ -1,11 +1,11 @@
 {% extends 'emails/layout.html.twig' %}
 
-{% block subject %}[UniFolio] {{ nb_total }} nouveauté(s) {{ periode }}{% endblock %}
+{% block subject %}{{ nb_total }} nouveauté(s) {{ periode }}{% endblock %}
 
 {% block preheader %}{% for r in rubriques %}{{ r.libelle }} ({{ r.nombre }}){% if not loop.last %} · {% endif %}{% endfor %}{% endblock %}
 
 {% block body %}
-    <h1>Votre résumé UniFolio</h1>
+    <h1>Votre résumé</h1>
 
     <p>Bonjour {{ destinataire_nom }},</p>
 
@@ -27,12 +27,12 @@
     {% endfor %}
 
     <p style="margin-top: 24px;">
-        <a href="{{ urlPortal|default('/app/unifolio') }}" class="btn">Ouvrir UniFolio</a>
+        <a href="{{ urlPortal|default('/app') }}" class="btn">Ouvrir l'application</a>
     </p>
 
     <p style="color: #6b7280; font-size: 12px;">
         Ce résumé regroupe vos notifications pour éviter les e-mails à répétition.
         Choisissez ce que vous recevez, quand, ou désactivez tout dans vos
-        <a href="{{ urlPreferences|default('/app/unifolio/notifications') }}">préférences de notification</a>.
+        <a href="{{ urlPreferences|default('/app/auth/notifications') }}">préférences de notification</a>.
     </p>
 {% endblock %}

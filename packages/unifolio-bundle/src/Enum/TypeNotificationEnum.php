@@ -2,6 +2,9 @@
 
 namespace UnifolioBundle\Enum;
 
+use App\Enum\ModeNotificationEnum;
+use App\Notification\NotificationType;
+
 /**
  * Événements notifiables. Chaque type a son public, son mode par défaut et les modes qu'on peut lui donner.
  * Par défaut, ce qui appelle une réaction rapide part tout de suite ; le reste est regroupé dans un résumé.
@@ -16,8 +19,13 @@ enum TypeNotificationEnum: string
     case COMMENTAIRE_ETUDIANT = 'commentaire_etudiant';
     case RELANCE_EVALUATEUR = 'relance_evaluateur';
 
-    public const AUDIENCE_ETUDIANT = 'etudiant';
-    public const AUDIENCE_PERSONNEL = 'personnel';
+    public const SOURCE = 'unifolio';
+
+    /** Clé globale du type dans le système de notifications de l'application. */
+    public function cle(): string
+    {
+        return self::SOURCE.'.'.$this->value;
+    }
 
     public function getLibelle(): string
     {
@@ -61,8 +69,8 @@ enum TypeNotificationEnum: string
     public function getAudience(): string
     {
         return match ($this) {
-            self::EVALUATION_RENDUE, self::REVISION_DEMANDEE, self::COMMENTAIRE_ENSEIGNANT, self::PUBLICATION_MODEREE => self::AUDIENCE_ETUDIANT,
-            self::TRACE_DEPOSEE, self::COMMENTAIRE_ETUDIANT, self::RELANCE_EVALUATEUR => self::AUDIENCE_PERSONNEL,
+            self::EVALUATION_RENDUE, self::REVISION_DEMANDEE, self::COMMENTAIRE_ENSEIGNANT, self::PUBLICATION_MODEREE => NotificationType::AUDIENCE_ETUDIANT,
+            self::TRACE_DEPOSEE, self::COMMENTAIRE_ETUDIANT, self::RELANCE_EVALUATEUR => NotificationType::AUDIENCE_PERSONNEL,
         };
     }
 
@@ -89,9 +97,20 @@ enum TypeNotificationEnum: string
         };
     }
 
-    /** @return list<self> types destinés à ce public */
-    public static function pourAudience(string $audience): array
+
+    /** Déclaration auprès du registre global des notifications. */
+    public function definition(): NotificationType
     {
-        return array_values(array_filter(self::cases(), static fn (self $t) => $t->getAudience() === $audience));
+        return new NotificationType(
+            cle: $this->cle(),
+            source: self::SOURCE,
+            sourceLibelle: 'UniFolio',
+            libelle: $this->getLibelle(),
+            description: $this->getDescription(),
+            rubrique: $this->getRubrique(),
+            audience: $this->getAudience(),
+            modeParDefaut: $this->getModeParDefaut(),
+            modesAutorises: $this->getModesAutorises(),
+        );
     }
 }

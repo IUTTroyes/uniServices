@@ -13,14 +13,12 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'unifolio:taches:installer',
-    description: 'Crée (sans doublon) les tâches planifiées d\'UniFolio : résumés de notifications et relances d\'évaluateurs.',
+    description: 'Crée (sans doublon) la tâche planifiée d\'UniFolio : la relance des évaluateurs (les résumés de notifications : app:notifications:taches).',
 )]
 final class InstallerTachesCommand extends Command
 {
     /** Nom → [commande, arguments, cron, description] */
     private const TACHES = [
-        'UniFolio — résumé quotidien' => ['unifolio:notifications:resume', ['--frequence=quotidien'], '0 18 * * *', 'Envoie chaque soir le résumé des notifications aux abonnés « quotidien ».'],
-        'UniFolio — résumé hebdomadaire' => ['unifolio:notifications:resume', ['--frequence=hebdomadaire'], '0 8 * * 1', 'Envoie chaque lundi matin le résumé des notifications aux abonnés « hebdomadaire ».'],
         'UniFolio — relance des évaluateurs' => ['unifolio:campagnes:relancer', [], '0 7 * * 1-5', 'Rappelle les évaluations en attente à l\'approche (ou après) la limite d\'évaluation.'],
     ];
 

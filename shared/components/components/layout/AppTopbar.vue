@@ -9,6 +9,7 @@ import { tools } from '@config/uniServices.js';
 import noImage from "@images/photos_etudiants/noimage.png";
 import { PermissionGuard } from "@components";
 import ApplicationBadge from '../Application/ApplicationBadge.vue';
+import NotificationBell from './NotificationBell.vue';
 import { normalizeAppSlug } from '@utils';
 import api from '@helpers/axios';
 
@@ -154,6 +155,13 @@ const profileItems = ref([
         icon: 'pi pi-user',
         command: () => {
           router.push('/profil');
+        }
+      },
+      {
+        label: 'Notifications',
+        icon: 'pi pi-bell',
+        command: () => {
+          router.push('/auth/notifications');
         }
       },
       {
@@ -353,10 +361,7 @@ const selectAnneeUniversitaire = (annee) => {
             </span>
             <span>Messages</span>
           </button>
-          <button type="button" class="layout-topbar-action">
-            <i class="pi pi-bell"></i>
-            <span>Notifications</span>
-          </button>
+          <NotificationBell />
           <div class="layout-config-menu">
             <button type="button" class="layout-topbar-action" @click="toggleDarkMode">
               <i :class="['pi', { 'pi-moon': isDarkTheme, 'pi-sun': !isDarkTheme }]"></i>

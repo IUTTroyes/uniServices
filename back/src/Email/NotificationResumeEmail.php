@@ -1,34 +1,34 @@
 <?php
 
-namespace UnifolioBundle\Email;
+namespace App\Email;
 
 use App\Service\Email\AbstractEmailDefinition;
 
-final class ResumeNotificationsEmail extends AbstractEmailDefinition
+final class NotificationResumeEmail extends AbstractEmailDefinition
 {
     public function getKey(): string
     {
-        return 'unifolio.resume_notifications';
+        return 'notification.resume';
     }
 
     public function getLabel(): string
     {
-        return 'UniFolio — résumé des notifications';
+        return 'Résumé des notifications';
     }
 
     public function getDescription(): string
     {
-        return 'Un seul e-mail regroupant les événements récents (quotidien ou hebdomadaire, au choix de chacun).';
+        return 'Un seul e-mail regroupant les événements récents de toute l\'application (quotidien ou hebdomadaire, au choix de chacun).';
     }
 
     public function getDefaultSubject(): string
     {
-        return '[UniFolio] {{ nb_total }} nouveauté(s) {{ periode }}';
+        return '{{ nb_total }} nouveauté(s) {{ periode }}';
     }
 
     public function getHtmlTemplatePath(): string
     {
-        return 'emails/unifolio/resume_notifications.html.twig';
+        return 'emails/core/notification_resume.html.twig';
     }
 
     public function getAvailableVariables(): array
@@ -38,8 +38,8 @@ final class ResumeNotificationsEmail extends AbstractEmailDefinition
             'periode' => '« de la journée » ou « de la semaine »',
             'nb_total' => 'Nombre total d\'événements',
             'rubriques' => 'Rubriques : libelle, nombre, elements (texte, url, nombre), reste',
-            'urlPreferences' => 'Lien vers les préférences de notification',
-            'urlPortal' => 'Lien vers UniFolio',
+            'urlPreferences' => 'Chemin des préférences de notification',
+            'urlPortal' => 'Chemin du portail',
         ];
     }
 }

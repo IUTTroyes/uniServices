@@ -82,6 +82,22 @@ export default {
       ]
     },
     {
+      path: '/auth/notifications',
+      component: LayoutComponent,
+      props: () => ({
+        logoUrl: LogoIut,
+        appName: 'Uniservices',
+        breadcrumbItems: [{ label: 'Portail', route: '/portail' }, { label: 'Notifications', route: null }]
+      }),
+      children: [
+        {
+          path: '',
+          name: 'notifications-preferences',
+          component: () => import('@components/pages/NotificationPreferences.vue'),
+        }
+      ]
+    },
+    {
       path: '/auth/profil',
       component: AppProfil,
       props: route => ({

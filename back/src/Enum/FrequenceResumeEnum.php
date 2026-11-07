@@ -1,6 +1,6 @@
 <?php
 
-namespace UnifolioBundle\Enum;
+namespace App\Enum;
 
 /** Rythme d'envoi du résumé groupé des notifications. */
 enum FrequenceResumeEnum: string

@@ -10,7 +10,7 @@ use UnifolioBundle\Entity\Campagne;
 use UnifolioBundle\Entity\Evaluation;
 use UnifolioBundle\Entity\Trace;
 use UnifolioBundle\Enum\TypeNotificationEnum;
-use UnifolioBundle\Service\Notification\NotificationManager;
+use App\Notification\NotificationService;
 
 /**
  * Notifications par e-mail. Un échec d'envoi est journalisé mais ne bloque jamais l'évaluation.
@@ -20,7 +20,7 @@ class EvaluationNotifier
     public function __construct(
         private readonly EmailService $emails,
         private readonly LoggerInterface $logger,
-        private readonly NotificationManager $notifications,
+        private readonly NotificationService $notifications,
     ) {
     }
 
@@ -45,7 +45,7 @@ class EvaluationNotifier
 
         return $this->notifications->notifier(
             $e->getEtudiant(),
-            TypeNotificationEnum::EVALUATION_RENDUE,
+            TypeNotificationEnum::EVALUATION_RENDUE->cle(),
             sprintf('%s a évalué %s.', $e->getEvaluateur()->getDisplay(), $quoi),
             $trace !== null ? '/app/unifolio/traces/'.$trace->getUuidString() : '/app/unifolio/auto-evaluation',
             fn () => $this->envoyer('unifolio.evaluation_rendue', $e->getEtudiant(), $e->getCampagne(), $contexte),
@@ -80,7 +80,7 @@ class EvaluationNotifier
 
         return $this->notifications->notifier(
             $etudiant,
-            TypeNotificationEnum::EVALUATION_RENDUE,
+            TypeNotificationEnum::EVALUATION_RENDUE->cle(),
             $trace !== null
                 ? sprintf('%s a évalué votre trace « %s ».', $evaluateur->getDisplay(), $trace->getTitre())
                 : sprintf('%s a évalué votre bilan de l\'année (%d point(s)).', $evaluateur->getDisplay(), \count($evaluations)),
@@ -106,7 +106,7 @@ class EvaluationNotifier
 
         return $this->notifications->notifier(
             $e->getEtudiant(),
-            TypeNotificationEnum::REVISION_DEMANDEE,
+            TypeNotificationEnum::REVISION_DEMANDEE->cle(),
             sprintf('%s vous demande de réviser la trace « %s ».', $e->getEvaluateur()->getDisplay(), $trace->getTitre()),
             $contexte['urlPortal'],
             fn () => $this->envoyer('unifolio.revision_demandee', $e->getEtudiant(), $e->getCampagne(), $contexte),
@@ -134,7 +134,7 @@ class EvaluationNotifier
         // Un rappel qui part « dans un résumé » n'aurait pas de sens : seuls « tout de suite » et « jamais » sont possibles.
         return $this->notifications->notifier(
             $evaluateur,
-            TypeNotificationEnum::RELANCE_EVALUATEUR,
+            TypeNotificationEnum::RELANCE_EVALUATEUR->cle(),
             sprintf('%d évaluation(s) en attente — %s', $nbAEvaluer, $campagne->getLibelle()),
             $contexte['urlPortal'],
             fn () => $this->envoyerA('unifolio.relance_evaluateur', $to, $campagne, $contexte),

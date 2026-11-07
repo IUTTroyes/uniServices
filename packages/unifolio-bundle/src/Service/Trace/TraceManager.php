@@ -25,7 +25,7 @@ use UnifolioBundle\Service\Media\MediaStorageInterface;
 use UnifolioBundle\Service\Media\MediaValidationException;
 use UnifolioBundle\Enum\TypeNotificationEnum;
 use UnifolioBundle\Repository\CampagneAffectationRepository;
-use UnifolioBundle\Service\Notification\NotificationManager;
+use App\Notification\NotificationService;
 use UnifolioBundle\Service\Perimetre\UnifolioPerimetre;
 use UnifolioBundle\Service\Referentiel\ReferentielAnnee;
 
@@ -45,7 +45,7 @@ class TraceManager
         private readonly MediaStorageInterface $storage,
         private readonly GrilleResolver $grilles,
         private readonly CampagneResolver $campagnes,
-        private readonly NotificationManager $notifications,
+        private readonly NotificationService $notifications,
         private readonly CampagneAffectationRepository $affectations,
     ) {
     }
@@ -139,7 +139,7 @@ class TraceManager
             $evaluateur = $this->em->getReference(\App\Entity\Users\Personnel::class, $id);
             $this->notifications->notifier(
                 $evaluateur,
-                TypeNotificationEnum::TRACE_DEPOSEE,
+                TypeNotificationEnum::TRACE_DEPOSEE->cle(),
                 sprintf('%s a déposé la trace « %s ».', $deposant->getDisplay(), $trace->getTitre()),
                 '/app/unifolio/evaluations/traces/'.$trace->getUuidString(),
             );

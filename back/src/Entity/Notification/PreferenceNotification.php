@@ -1,22 +1,22 @@
 <?php
 
-namespace UnifolioBundle\Entity;
+namespace App\Entity\Notification;
 
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
+use App\Enum\FrequenceResumeEnum;
+use App\Enum\ModeNotificationEnum;
+use App\Notification\NotificationType;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use UnifolioBundle\Enum\FrequenceResumeEnum;
-use UnifolioBundle\Enum\ModeNotificationEnum;
-use UnifolioBundle\Enum\TypeNotificationEnum;
 
 /**
- * Réglages de notification d'une personne (étudiant ou personnel). Absence de ligne = réglages par défaut.
+ * Réglages de notification par e-mail d'une personne, pour toute l'application. Absence de ligne = réglages par défaut.
  */
 #[ORM\Entity]
-#[ORM\Table(name: 'unifolio_preference_notification')]
-#[ORM\UniqueConstraint(name: 'uniq_unifolio_pref_notif_etudiant', columns: ['etudiant_id'])]
-#[ORM\UniqueConstraint(name: 'uniq_unifolio_pref_notif_personnel', columns: ['personnel_id'])]
+#[ORM\Table(name: 'notification_preference')]
+#[ORM\UniqueConstraint(name: 'uniq_notification_pref_etudiant', columns: ['etudiant_id'])]
+#[ORM\UniqueConstraint(name: 'uniq_notification_pref_personnel', columns: ['personnel_id'])]
 class PreferenceNotification
 {
     #[ORM\Id]
@@ -32,14 +32,14 @@ class PreferenceNotification
     #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?Personnel $personnel = null;
 
-    /** Interrupteur général : faux = aucun e-mail UniFolio. */
+    /** Interrupteur général des e-mails (la cloche n'est pas concernée). */
     #[ORM\Column(options: ['default' => true])]
     private bool $actif = true;
 
     #[ORM\Column(length: 20, enumType: FrequenceResumeEnum::class, options: ['default' => 'quotidien'])]
     private FrequenceResumeEnum $frequence = FrequenceResumeEnum::QUOTIDIEN;
 
-    /** @var array<string, string> type de notification → mode ; les types absents suivent leur valeur par défaut */
+    /** @var array<string, string> clé de type → mode ; les types absents suivent leur valeur par défaut */
     #[ORM\Column(type: Types::JSON)]
     private array $reglages = [];
 
@@ -96,30 +96,36 @@ class PreferenceNotification
         return $this;
     }
 
-    /** Mode effectif d'un type : interrupteur général, réglage personnel, sinon valeur par défaut. */
-    public function modePour(TypeNotificationEnum $type): ModeNotificationEnum
+    /** Mode effectif par e-mail : interrupteur général, réglage personnel (s'il reste valide), sinon valeur par défaut. */
+    public function modePour(NotificationType $type): ModeNotificationEnum
     {
         if (!$this->actif) {
             return ModeNotificationEnum::AUCUN;
         }
-        $mode = ModeNotificationEnum::tryFrom((string) ($this->reglages[$type->value] ?? ''));
 
-        return $mode !== null && \in_array($mode, $type->getModesAutorises(), true) ? $mode : $type->getModeParDefaut();
+        return $this->reglageValide($type) ?? $type->modeParDefaut;
     }
 
-    /** Réglage explicite (ou null s'il suit la valeur par défaut). */
-    public function reglage(TypeNotificationEnum $type): ?ModeNotificationEnum
+    /** Mode affiché dans les préférences : le réglage personnel s'il existe et reste valide, sinon le défaut (hors interrupteur). */
+    public function modeAffiche(NotificationType $type): ModeNotificationEnum
     {
-        return ModeNotificationEnum::tryFrom((string) ($this->reglages[$type->value] ?? ''));
+        return $this->reglageValide($type) ?? $type->modeParDefaut;
     }
 
-    public function definirMode(TypeNotificationEnum $type, ModeNotificationEnum $mode): static
+    public function definirMode(NotificationType $type, ModeNotificationEnum $mode): static
     {
-        if (!\in_array($mode, $type->getModesAutorises(), true)) {
-            throw new \InvalidArgumentException(sprintf('Le mode « %s » n\'est pas possible pour « %s ».', mb_strtolower($mode->getLibelle()), $type->getLibelle()));
+        if (!$type->autorise($mode)) {
+            throw new \InvalidArgumentException(sprintf('Le mode « %s » n\'est pas possible pour « %s ».', mb_strtolower($mode->getLibelle()), $type->libelle));
         }
-        $this->reglages[$type->value] = $mode->value;
+        $this->reglages[$type->cle] = $mode->value;
 
         return $this;
+    }
+
+    private function reglageValide(NotificationType $type): ?ModeNotificationEnum
+    {
+        $mode = ModeNotificationEnum::tryFrom((string) ($this->reglages[$type->cle] ?? ''));
+
+        return $mode !== null && $type->autorise($mode) ? $mode : null;
     }
 }

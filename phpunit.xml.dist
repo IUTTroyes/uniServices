@@ -5,6 +5,9 @@
          colors="true"
          cacheDirectory=".phpunit.cache">
     <testsuites>
+        <testsuite name="Core">
+            <directory>tests/Notification</directory>
+        </testsuite>
         <testsuite name="MessageBundle">
             <directory>packages/message-bundle/tests</directory>
         </testsuite>

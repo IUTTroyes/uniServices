@@ -1,8 +1,8 @@
 <?php
 
-namespace UnifolioBundle\Enum;
+namespace App\Enum;
 
-/** Comment un type de notification parvient à son destinataire. */
+/** Comment une notification parvient à son destinataire par e-mail (la cloche de l'application reçoit tout, dans tous les cas). */
 enum ModeNotificationEnum: string
 {
     case IMMEDIAT = 'immediat';

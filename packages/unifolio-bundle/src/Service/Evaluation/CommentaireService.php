@@ -10,7 +10,7 @@ use UnifolioBundle\Entity\Trace;
 use UnifolioBundle\Enum\TypeNotificationEnum;
 use UnifolioBundle\Repository\CampagneAffectationRepository;
 use UnifolioBundle\Repository\CommentaireRepository;
-use UnifolioBundle\Service\Notification\NotificationManager;
+use App\Notification\NotificationService;
 use UnifolioBundle\Service\Trace\UnifolioValidationException;
 
 /** Fil de discussion d'une trace entre l'étudiant et ses évaluateurs. */
@@ -19,7 +19,7 @@ class CommentaireService
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly CommentaireRepository $commentaires,
-        private readonly NotificationManager $notifications,
+        private readonly NotificationService $notifications,
         private readonly CampagneAffectationRepository $affectations,
     ) {
     }
@@ -73,7 +73,7 @@ class CommentaireService
         if ($auteur instanceof Personnel) {
             $this->notifications->notifier(
                 $trace->getEtudiant(),
-                TypeNotificationEnum::COMMENTAIRE_ENSEIGNANT,
+                TypeNotificationEnum::COMMENTAIRE_ENSEIGNANT->cle(),
                 sprintf('%s a commenté votre trace « %s ».', $auteur->getDisplay(), $trace->getTitre()),
                 '/app/unifolio/traces/'.$trace->getUuidString(),
             );
@@ -83,7 +83,7 @@ class CommentaireService
         foreach ($this->affectations->evaluateursDe($auteur) as $evaluateur) {
             $this->notifications->notifier(
                 $evaluateur,
-                TypeNotificationEnum::COMMENTAIRE_ETUDIANT,
+                TypeNotificationEnum::COMMENTAIRE_ETUDIANT->cle(),
                 sprintf('%s a commenté sa trace « %s ».', $auteur->getDisplay(), $trace->getTitre()),
                 '/app/unifolio/evaluations/traces/'.$trace->getUuidString(),
             );

@@ -11,6 +11,7 @@ use App\Security\DepartmentPermissionChecker;
 use App\Security\PermissionRegistry;
 use App\Security\PermissionResolver;
 use App\Security\UserEffectivePermissionService;
+use App\Security\UserPackageResolver;
 use App\Entity\Users\Personnel;
 use App\Entity\Users\Etudiant;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
@@ -234,7 +235,8 @@ class SecurityController extends AbstractController
         DepartmentPermissionChecker $checker,
         StructureDepartementPersonnelRepository $sdpRepo,
         PermissionResolver $resolver,
-        UserEffectivePermissionService $effectivePermissionService
+        UserEffectivePermissionService $effectivePermissionService,
+        UserPackageResolver $packageResolver
     ): JsonResponse
     {
         $user = $this->getUser();
@@ -268,7 +270,6 @@ class SecurityController extends AbstractController
                         'libelle' => $dept->getLibelle(),
                         'couleur' => $dept->getCouleur(),
                     ];
-                    $activePackages = $dp->getPackages();
                     $resolvedPermissions = $resolver->resolveForDepartment($dp);
                 }
             }
@@ -282,10 +283,10 @@ class SecurityController extends AbstractController
                         'libelle' => $dept->getLibelle(),
                         'couleur' => $dept->getCouleur(),
                     ];
-                    $activePackages = $dp->getPackages();
                     $resolvedPermissions = $resolver->resolveForDepartment($dp);
                 }
             }
+            $activePackages = $packageResolver->packages($user);
         } elseif ($user instanceof Etudiant) {
             $studentDept = $checker->getStudentDepartment($user);
             if ($studentDept) {
@@ -297,14 +298,7 @@ class SecurityController extends AbstractController
                 $departmentsData[] = $currentDepartment;
             }
 
-            $rawApps = $user->getApplications() ?? ['Intranet'];
-            $activePackages = array_values(array_unique(array_map(function($app) {
-                $low = strtolower((string) $app);
-                return $low === 'intranet' ? 'intranet' : $low;
-            }, $rawApps)));
-            if (empty($activePackages)) {
-                $activePackages = ['intranet'];
-            }
+            $activePackages = $packageResolver->packages($user);
             $resolvedPermissions = [];
         }
 
