@@ -10,6 +10,7 @@
         "dev": "npm run dev:shell",
         "dev:shell": "cd packages/shell && vite --port 3000",
         "build:shell": "cd packages/shell && vite build",
+        "build:unifolio-renderer": "cd packages/unifolio-bundle/renderer && vite build -c vite.ssr.config.js && vite build -c vite.css.config.js && rm -f dist/style.tmp.js",
         "test": "npm run test:backend && npm run test:frontend",
         "test:frontend": "vitest run",
         "test:frontend:message": "vitest run packages/message-bundle",

@@ -14,6 +14,9 @@ import ProgressBar from 'primevue/progressbar';
 import BlocEditor from '../blocs/BlocEditor.vue';
 import BlocRender from '../blocs/BlocRender.vue';
 import { copie, incomplets } from '../blocs/schema';
+import PartageDialog from '../components/portfolio/PartageDialog.vue';
+import ApparenceDialog from '../components/portfolio/ApparenceDialog.vue';
+import CopieVitrineDialog from '../components/portfolio/CopieVitrineDialog.vue';
 import { portfolioService, messagesErreur } from '../requests/portfolioService';
 
 const route = useRoute();
@@ -33,6 +36,10 @@ const enregistrement = ref(false);
 const erreurs = ref([]);
 const selection = ref(null);
 provide('selectionBloc', selection);
+const partageOuvert = ref(false);
+const copieOuverte = ref(false);
+const apparenceOuverte = ref(false);
+const majApparence = (detail) => { portfolio.value.apparence = detail.apparence; portfolio.value.logo = detail.logo; };
 const dialogue = reactive({ ouvert: false, mode: 'ajout', titre: '', page: null });
 
 const pages = computed(() => portfolio.value?.pages ?? []);
@@ -196,6 +203,9 @@ const reordonner = async () => {
         <Tag :value="portfolio.type.libelle" :severity="portfolio.type.value === 'academique' ? 'success' : 'info'" />
         <Tag v-if="lectureSeule" value="Lecture seule" severity="warn" icon="pi pi-lock" />
         <Button v-if="!lectureSeule" icon="pi pi-pencil" severity="secondary" text rounded aria-label="Renommer le portfolio" @click="ouvrirDialogue('portfolio')" />
+        <Button v-if="portfolio.type.value === 'academique'" label="Copier dans ma vitrine" icon="pi pi-copy" severity="secondary" outlined @click="copieOuverte = true" />
+        <Button v-if="!lectureSeule" label="Apparence" icon="pi pi-palette" severity="secondary" outlined @click="apparenceOuverte = true" />
+        <Button label="Partager" icon="pi pi-share-alt" @click="partageOuvert = true" />
       </template>
     </HeaderComponent>
 
@@ -253,6 +263,10 @@ const reordonner = async () => {
         </div>
       </section>
     </div>
+
+    <PartageDialog v-model:visible="partageOuvert" :portfolio="portfolio" :modifs-en-attente="dirty" />
+    <ApparenceDialog v-model:visible="apparenceOuverte" :portfolio="portfolio" @change="majApparence" />
+    <CopieVitrineDialog v-if="portfolio.type.value === 'academique'" v-model:visible="copieOuverte" :portfolio="portfolio" />
 
     <Dialog v-model:visible="dialogue.ouvert" :header="dialogue.mode === 'ajout' ? 'Nouvelle page' : dialogue.mode === 'portfolio' ? 'Renommer le portfolio' : 'Renommer la page'" modal :style="{ width: '26rem' }">
       <div class="flex flex-col gap-2">

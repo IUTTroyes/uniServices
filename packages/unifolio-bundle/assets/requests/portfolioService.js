@@ -1,4 +1,5 @@
 import api from '@helpers/axios';
+import { apiBaseUrl } from './traceService';
 
 const base = '/api/unifolio/portfolios';
 const modeles = '/api/unifolio/admin/modeles';
@@ -30,6 +31,54 @@ export const portfolioService = {
   },
   enregistrerBlocs(uuid, page, blocs, version) {
     return api.put(`${base}/${uuid}/pages/${page}/blocs`, { blocs, version });
+  },
+  // ----- Vitrine, partage, publication (lot 6) -----
+  creerVitrine(titre = null) {
+    return api.post(`${base}/vitrine`, titre ? { titre } : {});
+  },
+  copierVersVitrine(uuid, pages = []) {
+    return api.post(`${base}/${uuid}/copier-vers-vitrine`, { pages });
+  },
+  partage(uuid) {
+    return api.get(`${base}/${uuid}/partage`);
+  },
+  modifierPartage(uuid, donnees) {
+    return api.patch(`${base}/${uuid}/partage`, donnees);
+  },
+  publier(uuid) {
+    return api.post(`${base}/${uuid}/publier`);
+  },
+  depublier(uuid) {
+    return api.delete(`${base}/${uuid}/publication`);
+  },
+  // ----- Apparence et logo -----
+  apparence(uuid, theme) {
+    return api.put(`${base}/${uuid}/apparence`, theme);
+  },
+  definirLogo(uuid, fichier) {
+    const donnees = new FormData();
+    donnees.append('logo', fichier);
+
+    return api.post(`${base}/${uuid}/logo`, donnees, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+  retirerLogo(uuid) {
+    return api.delete(`${base}/${uuid}/logo`);
+  },
+  urlLogo: (uuid) => `${apiBaseUrl()}${base}/${uuid}/logo`,
+  /** Adresses de téléchargement (le cookie d'authentification accompagne la navigation). */
+  exportZip: (uuid) => `${apiBaseUrl()}${base}/${uuid}/export.zip`,
+  exportPdf: (uuid) => `${apiBaseUrl()}${base}/${uuid}/export.pdf`,
+};
+
+export const moderationService = {
+  liste() {
+    return api.get('/api/unifolio/admin/publications');
+  },
+  moderer(uuid, motif) {
+    return api.post(`/api/unifolio/admin/publications/${uuid}/moderer`, { motif });
+  },
+  retablir(uuid) {
+    return api.post(`/api/unifolio/admin/publications/${uuid}/retablir`);
   },
 };
 

@@ -134,7 +134,16 @@ export const unifolioSections = [
           { path: 'admin/modeles/:uuid', label: 'Modèle', icon: 'pi pi-clone', component: () => import('./views/admin/ModeleEditView.vue') },
         ],
       },
-      { path: 'moderation', label: 'Modération', icon: 'pi pi-fw pi-eye', description: 'Portfolios vitrines publiés.', permission: ['isReferentPortfolio', 'ROLE_PORTFOLIO_PUBLISHER'], capacite: 'moderateur', lot: 6 },
+      {
+        path: 'moderation',
+        label: 'Modération',
+        icon: 'pi pi-fw pi-eye',
+        description: 'Portfolios publiés.',
+        permission: ['isReferentPortfolio', 'ROLE_PORTFOLIO_PUBLISHER'],
+        capacite: 'moderateur',
+        lot: 6,
+        component: () => import('./views/admin/ModerationView.vue'),
+      },
     ],
   },
 ].map((section) => ({

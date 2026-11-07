@@ -2,6 +2,7 @@
 
 namespace UnifolioBundle\Service\Portfolio;
 
+use UnifolioBundle\Service\Publication\ThemeNormalizer;
 use UnifolioBundle\Entity\Portfolio;
 use UnifolioBundle\Entity\PortfolioPage;
 use UnifolioBundle\Service\Campagne\CampagneNormalizer;
@@ -15,6 +16,7 @@ class PortfolioNormalizer
         private readonly CampagneResolver $campagnes,
         private readonly CampagneNormalizer $campagneNormalizer,
         private readonly TraceNormalizer $traceNormalizer,
+        private readonly ThemeNormalizer $themes,
     ) {
     }
 
@@ -41,7 +43,8 @@ class PortfolioNormalizer
     public function detail(Portfolio $p): array
     {
         return $this->resume($p) + [
-            'theme' => $p->getTheme(),
+            'apparence' => $this->themes->lire($p->getTheme()),
+            'logo' => $p->aUnLogo() ? ['nom' => $p->getLogoNom()] : null,
             'pages' => array_map($this->page(...), $p->getPages()->toArray()),
         ];
     }

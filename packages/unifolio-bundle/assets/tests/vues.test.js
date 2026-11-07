@@ -42,6 +42,10 @@ import PortfolioEditView from '../views/PortfolioEditView.vue';
 import CvView from '../views/CvView.vue';
 import ModelesView from '../views/admin/ModelesView.vue';
 import ModeleEditView from '../views/admin/ModeleEditView.vue';
+import PartageDialog from '../components/portfolio/PartageDialog.vue';
+import CopieVitrineDialog from '../components/portfolio/CopieVitrineDialog.vue';
+import ApparenceDialog from '../components/portfolio/ApparenceDialog.vue';
+import ModerationView from '../views/admin/ModerationView.vue';
 import CommentairesThread from '../components/commentaires/CommentairesThread.vue';
 
 // jsdom n'implémente pas ces API navigateur, utilisées par PrimeVue.
@@ -487,5 +491,91 @@ describe('rendu des écrans (aucun avertissement Vue)', () => {
     expect(m.avertissements).toEqual([]);
     expect(m.texte()).toContain('Présentation');
     demonter(m);
+  });
+
+  // ---------- Lot 6 : vitrine, partage, publication, modération ----------
+  const partage = (extra = {}) => ({
+    visibilite: { value: 'public', libelle: 'Public' },
+    visibilitesAutorisees: ['prive', 'lien_secret', 'etablissement', 'public'].map((v) => ({ value: v, libelle: v })),
+    slug: 'lauren-lamoureux', indexable: true, description: 'Mon portfolio', url: 'http://localhost/api/unifolio/public/lauren-lamoureux/index.html',
+    apercu: 'http://localhost/api/unifolio/portfolios/x/publication/index.html', renduDisponible: true, peutPublier: true, type: 'vitrine',
+    publicationActive: { uuid: 'pub1', numero: 2, statut: { value: 'genere', libelle: 'Généré' }, active: true, moderee: false, motifModeration: null, erreur: null, pages: 3, genereLe: '2026-11-07T09:00:00+00:00', creeLe: '2026-11-07T09:00:00+00:00' },
+    historique: [
+      { uuid: 'pub1', numero: 2, statut: { value: 'genere', libelle: 'Généré' }, active: true, moderee: false, erreur: null, genereLe: '2026-11-07T09:00:00+00:00', creeLe: '2026-11-07T09:00:00+00:00' },
+      { uuid: 'pub0', numero: 1, statut: { value: 'erreur', libelle: 'Erreur' }, active: false, moderee: false, erreur: 'boom', genereLe: null, creeLe: '2026-11-06T09:00:00+00:00' },
+    ],
+    ...extra,
+  });
+
+  it('dialogue de partage : publication en ligne, versions, exports', async () => {
+    api.get.mockImplementation(routeur([[/\/partage$/, partage()]]));
+    const m = await monter(PartageDialog, { visible: true, portfolio: { uuid: U(1), pages: [] }, modifsEnAttente: true });
+    expect(m.avertissements).toEqual([]);
+    const t = m.texte();
+    expect(t).toContain('Qui peut voir ce portfolio');
+    expect(t).toContain('Version 2 en ligne');
+    expect(t).toContain('pas enregistrées');
+    expect(t).toContain('Archive ZIP');
+    expect((document.body.querySelector('input[aria-label="Adresse de partage"]') ?? {}).value).toContain('/public/lauren-lamoureux');
+    demonter(m);
+  });
+
+  it('dialogue de partage : portfolio privé non publiable, publication modérée signalée', async () => {
+    api.get.mockImplementation(routeur([[/\/partage$/, partage({ visibilite: { value: 'prive', libelle: 'Privé' }, url: null, publicationActive: { ...partage().publicationActive, moderee: true, motifModeration: 'Contenu inapproprié' } })]]));
+    const m = await monter(PartageDialog, { visible: true, portfolio: { uuid: U(1), pages: [] } });
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('un portfolio privé n\'est pas publié');
+    expect(m.texte()).toContain('retirée par la modération');
+    expect(m.texte()).toContain('Contenu inapproprié');
+    demonter(m);
+  });
+
+  it('copie vers la vitrine', async () => {
+    const m = await monter(CopieVitrineDialog, { visible: true, portfolio: { uuid: U(1), pages: [{ uuid: U(2), titre: 'Présentation' }, { uuid: U(4), titre: 'Comprendre' }] } });
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('Comprendre');
+    demonter(m);
+  });
+
+  it('modération des publications', async () => {
+    api.get.mockImplementation(routeur([['/api/unifolio/admin/publications', [
+      { uuid: 'pub1', numero: 2, moderee: false, motifModeration: null, genereLe: '2026-11-07T09:00:00+00:00', url: 'http://localhost/x', portfolio: { uuid: U(1), titre: 'Ma vitrine', etudiant: 'Lauren LAMOUREUX', type: { value: 'vitrine', libelle: 'Vitrine' }, visibilite: { value: 'public', libelle: 'Public' } } },
+      { uuid: 'pub2', numero: 1, moderee: true, motifModeration: 'Hors sujet', genereLe: null, url: null, portfolio: { uuid: U(3), titre: 'Autre', etudiant: 'Paul MARTIN', type: { value: 'academique', libelle: 'Académique' }, visibilite: { value: 'etablissement', libelle: 'Établissement' } } },
+    ]]]));
+    const m = await monter(ModerationView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('Lauren LAMOUREUX');
+    expect(m.texte()).toContain('Retirée : Hors sujet');
+    demonter(m);
+  });
+
+  it('liste des portfolios : proposition de créer la vitrine', async () => {
+    api.get.mockImplementation(routeur([['/api/unifolio/portfolios', [resumePortfolio()]]]));
+    const m = await monter(PortfoliosView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('Créer ma vitrine');
+    demonter(m);
+    api.get.mockImplementation(routeur([['/api/unifolio/portfolios', [resumePortfolio(), resumePortfolio({ uuid: U(3), type: { value: 'vitrine', libelle: 'Vitrine' }, scolarite: null, campagne: null })]]]));
+    const m2 = await monter(PortfoliosView);
+    expect(m2.texte()).not.toContain('Créer ma vitrine');
+    demonter(m2);
+  });
+
+  it('apparence : réglages, aperçu, logo, couleur trop claire refusée', async () => {
+    const portfolioAvecLogo = { uuid: U(1), apparence: { couleur: '#7c3aed', police: 'classique', entete: 'couleur', largeur: 'large', coins: 'droits' }, logo: { nom: 'logo.png' } };
+    const m = await monter(ApparenceDialog, { visible: true, portfolio: portfolioAvecLogo });
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('Couleur d\'accent');
+    expect(m.texte()).toContain('Classique');
+    expect(m.texte()).toContain('Retirer');
+    expect(m.texte()).not.toContain('trop claire');
+    expect(document.body.querySelector('img[alt^="Logo"]')?.getAttribute('src')).toContain('/portfolios/');
+    demonter(m);
+
+    const clair = await monter(ApparenceDialog, { visible: true, portfolio: { uuid: U(1), apparence: { couleur: '#ffff99', police: 'systeme', entete: 'clair', largeur: 'standard', coins: 'arrondis' }, logo: null } });
+    expect(clair.avertissements).toEqual([]);
+    expect(clair.texte()).toContain('trop claire');
+    expect(clair.texte()).toContain('Aucun logo');
+    demonter(clair);
   });
 });

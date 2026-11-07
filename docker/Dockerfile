@@ -30,6 +30,9 @@ COPY shared/   ./shared/
 # Build de tous les bundles frontend
 RUN pnpm --filter "./packages/*" run build
 
+# Service de rendu des portfolios UniFolio (SSR Node) : produit renderer/dist/{cli.mjs,portfolio.css}
+RUN pnpm run build:unifolio-renderer
+
 ###############################################
 # STAGE 2 : Dépendances PHP (Composer)
 ###############################################
@@ -74,6 +77,7 @@ RUN apk add --no-cache \
         oniguruma-dev \
         nginx \
         supervisor \
+        nodejs \
     && docker-php-ext-configure gd \
         --with-freetype \
         --with-jpeg \
@@ -116,6 +120,10 @@ COPY --from=frontend-builder /build/packages/edt-bundle/src/Resources/public    
 COPY --from=frontend-builder /build/packages/intranet-bundle/src/Resources/public ./back/public/build/intranet-bundle
 COPY --from=frontend-builder /build/packages/unifolio-bundle/src/Resources/public ./back/public/build/unifolio-bundle
 
+# Rendu statique des portfolios UniFolio : Node (installé ci-dessus) exécute ce script autonome, appelé par Symfony
+# (paramètre unifolio.renderer_dir = ../packages/unifolio-bundle/renderer depuis back/).
+COPY --from=frontend-builder /build/packages/unifolio-bundle/renderer/dist ./packages/unifolio-bundle/renderer/dist
+
 # ---- Copie des fichiers de config de l'app ----
 # (ce qui n'est pas dans back/ ou packages/)
 COPY monorepo-builder.php ./
@@ -138,5 +146,7 @@ EXPOSE 9000
 # Variables d'environnement par défaut
 ENV APP_ENV=prod
 ENV APP_DEBUG=0
+# PHP-FPM n'hérite pas toujours du PATH : chemin absolu de Node pour le rendu des portfolios UniFolio
+ENV UNIFOLIO_NODE=/usr/bin/node
 
 ENTRYPOINT ["/entrypoint.sh"]

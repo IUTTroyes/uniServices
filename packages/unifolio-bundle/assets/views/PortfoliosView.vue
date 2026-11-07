@@ -1,13 +1,16 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { HeaderComponent, EmptyState } from '@components';
 import Button from 'primevue/button';
 import Tag from 'primevue/tag';
 import ProgressBar from 'primevue/progressbar';
+import { useToast } from 'primevue/usetoast';
 import { portfolioService, messagesErreur } from '../requests/portfolioService';
 
 const router = useRouter();
+const toast = useToast();
+const creation = ref(false);
 const portfolios = ref([]);
 const chargement = ref(true);
 const erreur = ref(null);
@@ -23,6 +26,19 @@ onMounted(async () => {
   }
 });
 
+const aVitrine = computed(() => portfolios.value.some((p) => p.type.value === 'vitrine'));
+const creerVitrine = async () => {
+  creation.value = true;
+  try {
+    const { data } = await portfolioService.creerVitrine();
+    router.push(`/unifolio/portfolios/${data.uuid}`);
+  } catch (e) {
+    toast.add({ severity: 'error', summary: 'Création impossible', detail: messagesErreur(e).join(' '), life: 6000 });
+  } finally {
+    creation.value = false;
+  }
+};
+
 const date = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : null);
 </script>
 
@@ -36,6 +52,7 @@ const date = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'n
     color="emerald"
   >
     <template #actions>
+      <Button v-if="!aVitrine && !chargement && !erreur" label="Créer ma vitrine" icon="pi pi-star" :loading="creation" @click="creerVitrine" />
       <Button label="Mon CV" icon="pi pi-id-card" severity="secondary" outlined @click="router.push('/unifolio/cv')" />
     </template>
   </HeaderComponent>
@@ -47,7 +64,7 @@ const date = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'n
     icon="pi pi-book"
     color="emerald"
     title="Pas encore de portfolio"
-    description="Votre portfolio académique est créé dès l'ouverture d'une campagne pour votre année de BUT. En attendant, vous pouvez déposer vos traces et compléter votre CV."
+    description="Votre portfolio académique est créé dès l'ouverture d'une campagne pour votre année de BUT. En attendant, vous pouvez déposer vos traces, compléter votre CV et créer votre vitrine : un portfolio libre et durable, que vous pouvez partager."
   />
 
   <div v-else class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

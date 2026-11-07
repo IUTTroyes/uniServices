@@ -22,6 +22,8 @@ use UnifolioBundle\Repository\PortfolioRepository;
 #[ORM\Entity(repositoryClass: PortfolioRepository::class)]
 #[ORM\Table(name: 'unifolio_portfolio')]
 #[ORM\UniqueConstraint(name: 'uniq_unifolio_portfolio_uuid', columns: ['uuid'])]
+#[ORM\UniqueConstraint(name: 'uniq_unifolio_portfolio_slug', columns: ['slug'])]
+#[ORM\UniqueConstraint(name: 'uniq_unifolio_portfolio_token', columns: ['token_partage'])]
 #[ORM\UniqueConstraint(name: 'uniq_unifolio_portfolio_scolarite', columns: ['etudiant_id', 'scolarite_id', 'type'])]
 class Portfolio implements TimestampableInterface
 {
@@ -56,6 +58,31 @@ class Portfolio implements TimestampableInterface
 
     #[ORM\Column(length: 20, enumType: VisibilitePortfolioEnum::class, options: ['default' => 'prive'])]
     private VisibilitePortfolioEnum $visibilite = VisibilitePortfolioEnum::PRIVE;
+
+    /** Adresse publique (/public/{slug}) ; null tant que le portfolio n'a jamais été partagé. */
+    #[ORM\Column(length: 60, nullable: true)]
+    private ?string $slug = null;
+
+    /** Secret du lien de partage (visibilité « lien secret »). */
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $tokenPartage = null;
+
+    /** Autorise les moteurs de recherche (sitemap, balise robots) ; faux par défaut (opt-in). */
+    #[ORM\Column(options: ['default' => false])]
+    private bool $indexable = false;
+
+    #[ORM\Column(length: 300, nullable: true)]
+    private ?string $description = null;
+
+    /** Logo affiché dans l'en-tête des pages publiées (chemin dans le stockage de médias). */
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $logoChemin = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $logoNom = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $logoMime = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
@@ -204,5 +231,97 @@ class Portfolio implements TimestampableInterface
         foreach ($this->pages as $page) {
             $page->setOrdre($position[$page->getUuidString()] ?? $suivant++);
         }
+    }
+
+    public const SLUG_PATTERN = '/^[a-z0-9](?:[a-z0-9-]{1,56}[a-z0-9])$/';
+
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): static
+    {
+        $slug = strtolower(trim($slug));
+        if (!preg_match(self::SLUG_PATTERN, $slug) || str_contains($slug, '--')) {
+            throw new \InvalidArgumentException('L\'adresse doit comporter 3 à 58 caractères : lettres minuscules, chiffres et tirets isolés.');
+        }
+        $this->slug = $slug;
+
+        return $this;
+    }
+
+    public function getTokenPartage(): ?string
+    {
+        return $this->tokenPartage;
+    }
+
+    /** Génère un nouveau secret (l'ancien lien cesse immédiatement de fonctionner). */
+    public function regenererTokenPartage(): static
+    {
+        $this->tokenPartage = bin2hex(random_bytes(24));
+
+        return $this;
+    }
+
+    public function isIndexable(): bool
+    {
+        return $this->indexable;
+    }
+
+    public function setIndexable(bool $indexable): static
+    {
+        $this->indexable = $indexable;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): static
+    {
+        $description = $description !== null ? trim($description) : null;
+        $this->description = $description === '' || $description === null ? null : mb_substr($description, 0, 300);
+
+        return $this;
+    }
+
+    public function getLogoChemin(): ?string
+    {
+        return $this->logoChemin;
+    }
+
+    public function getLogoNom(): ?string
+    {
+        return $this->logoNom;
+    }
+
+    public function getLogoMime(): ?string
+    {
+        return $this->logoMime;
+    }
+
+    public function aUnLogo(): bool
+    {
+        return $this->logoChemin !== null;
+    }
+
+    public function definirLogo(string $chemin, string $nom, string $mime): static
+    {
+        $this->logoChemin = $chemin;
+        $this->logoNom = mb_substr($nom, 0, 255);
+        $this->logoMime = $mime;
+
+        return $this;
+    }
+
+    public function retirerLogo(): static
+    {
+        $this->logoChemin = $this->logoNom = $this->logoMime = null;
+
+        return $this;
     }
 }
