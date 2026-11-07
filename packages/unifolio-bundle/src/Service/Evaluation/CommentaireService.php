@@ -7,7 +7,10 @@ use App\Entity\Users\Personnel;
 use Doctrine\ORM\EntityManagerInterface;
 use UnifolioBundle\Entity\Commentaire;
 use UnifolioBundle\Entity\Trace;
+use UnifolioBundle\Enum\TypeNotificationEnum;
+use UnifolioBundle\Repository\CampagneAffectationRepository;
 use UnifolioBundle\Repository\CommentaireRepository;
+use UnifolioBundle\Service\Notification\NotificationManager;
 use UnifolioBundle\Service\Trace\UnifolioValidationException;
 
 /** Fil de discussion d'une trace entre l'étudiant et ses évaluateurs. */
@@ -16,6 +19,8 @@ class CommentaireService
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly CommentaireRepository $commentaires,
+        private readonly NotificationManager $notifications,
+        private readonly CampagneAffectationRepository $affectations,
     ) {
     }
 
@@ -56,11 +61,35 @@ class CommentaireService
         }
         $this->em->persist($commentaire);
         $this->em->flush();
+        $this->notifier($trace, $auteur);
 
         return $this->normaliser($commentaire, $auteur);
     }
 
     /** @return array<string, mixed> */
+    /** Un enseignant commente : l'étudiant est prévenu ; un étudiant commente : ses évaluateurs le sont. */
+    private function notifier(Trace $trace, Etudiant|Personnel $auteur): void
+    {
+        if ($auteur instanceof Personnel) {
+            $this->notifications->notifier(
+                $trace->getEtudiant(),
+                TypeNotificationEnum::COMMENTAIRE_ENSEIGNANT,
+                sprintf('%s a commenté votre trace « %s ».', $auteur->getDisplay(), $trace->getTitre()),
+                '/app/unifolio/traces/'.$trace->getUuidString(),
+            );
+
+            return;
+        }
+        foreach ($this->affectations->evaluateursDe($auteur) as $evaluateur) {
+            $this->notifications->notifier(
+                $evaluateur,
+                TypeNotificationEnum::COMMENTAIRE_ETUDIANT,
+                sprintf('%s a commenté sa trace « %s ».', $auteur->getDisplay(), $trace->getTitre()),
+                '/app/unifolio/evaluations/traces/'.$trace->getUuidString(),
+            );
+        }
+    }
+
     private function normaliser(Commentaire $c, Etudiant|Personnel $moi): array
     {
         $auteur = $c->getAuteurEtudiant() ?? $c->getAuteurPersonnel();

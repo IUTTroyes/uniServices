@@ -23,6 +23,9 @@ use UnifolioBundle\Service\Campagne\CampagneResolver;
 use UnifolioBundle\Service\Grille\GrilleResolver;
 use UnifolioBundle\Service\Media\MediaStorageInterface;
 use UnifolioBundle\Service\Media\MediaValidationException;
+use UnifolioBundle\Enum\TypeNotificationEnum;
+use UnifolioBundle\Repository\CampagneAffectationRepository;
+use UnifolioBundle\Service\Notification\NotificationManager;
 use UnifolioBundle\Service\Perimetre\UnifolioPerimetre;
 use UnifolioBundle\Service\Referentiel\ReferentielAnnee;
 
@@ -42,6 +45,8 @@ class TraceManager
         private readonly MediaStorageInterface $storage,
         private readonly GrilleResolver $grilles,
         private readonly CampagneResolver $campagnes,
+        private readonly NotificationManager $notifications,
+        private readonly CampagneAffectationRepository $affectations,
     ) {
     }
 
@@ -127,6 +132,18 @@ class TraceManager
         }
         $this->garder(fn () => $trace->deposer());
         $this->em->flush();
+
+        // Les enseignants chargés de cet étudiant sont prévenus (tout de suite ou dans leur résumé, selon leur choix).
+        $deposant = $trace->getEtudiant();
+        foreach (array_unique(array_map(static fn ($p) => $p->getId(), $this->affectations->evaluateursDe($deposant))) as $id) {
+            $evaluateur = $this->em->getReference(\App\Entity\Users\Personnel::class, $id);
+            $this->notifications->notifier(
+                $evaluateur,
+                TypeNotificationEnum::TRACE_DEPOSEE,
+                sprintf('%s a déposé la trace « %s ».', $deposant->getDisplay(), $trace->getTitre()),
+                '/app/unifolio/evaluations/traces/'.$trace->getUuidString(),
+            );
+        }
     }
 
     public function retirerEnBrouillon(Trace $trace): void

@@ -1,0 +1,23 @@
+{% extends 'emails/layout.html.twig' %}
+
+{% block subject %}[UniFolio] {{ titre }}{% endblock %}
+
+{% block preheader %}{{ texte }}{% endblock %}
+
+{% block body %}
+    <h1>{{ titre }}</h1>
+
+    <p>Bonjour {{ destinataire_nom }},</p>
+
+    <p>{{ texte }}</p>
+
+    <p>
+        <a href="{{ urlPortal|default('/app/unifolio') }}" class="btn">Ouvrir dans UniFolio</a>
+    </p>
+
+    <p style="color: #6b7280; font-size: 12px;">
+        Vous recevez ce message car vous avez choisi d'être prévenu(e) tout de suite de ce type d'événement.
+        Vous pouvez le regrouper dans un résumé ou le désactiver dans vos
+        <a href="/app/unifolio/notifications">préférences de notification</a>.
+    </p>
+{% endblock %}

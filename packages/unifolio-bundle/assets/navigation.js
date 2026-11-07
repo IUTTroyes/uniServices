@@ -165,6 +165,21 @@ export const unifolioSections = [
       },
     ],
   },
+  {
+    titre: 'Préférences',
+    items: [
+      {
+        path: 'notifications',
+        label: 'Notifications',
+        icon: 'pi pi-fw pi-bell',
+        description: 'Choisir ce que vous recevez par e-mail, et quand.',
+        permission: ['isEtudiant', 'isEnseignant', 'isReferentPortfolio', 'ROLE_PORTFOLIO_CORRECTOR', 'ROLE_PORTFOLIO_PUBLISHER'],
+        capacite: 'acces',
+        lot: 9,
+        component: () => import('./views/NotificationsView.vue'),
+      },
+    ],
+  },
 ].map((section) => ({
   ...section,
   items: section.items.map((item) => ({ ...item, to: `/unifolio/${item.path}` })),
