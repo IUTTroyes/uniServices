@@ -1,17 +1,14 @@
 <script setup>
+import { showDanger, showSuccess } from '@helpers/toast';
 import { computed, onMounted, ref } from 'vue';
-import { useToast } from 'primevue/usetoast';
-import { HeaderComponent, EmptyState } from '@components';
+import { HeaderComponent, EmptyState, Card, Alert, LoadingBar } from '@components';
 import Button from 'primevue/button';
 import Select from 'primevue/select';
 import Tag from 'primevue/tag';
-import Message from 'primevue/message';
-import ProgressBar from 'primevue/progressbar';
 import adminService from '../../requests/adminService';
 import { messageErreur } from '../../requests/traceService';
 import { GRANULARITES, libelleGranularite, PORTEES } from '../../components/grilles/options';
 
-const toast = useToast();
 const donnees = ref(null);
 const lignes = ref([]);
 const chargement = ref(true);
@@ -63,13 +60,13 @@ const enregistrer = async (ligne) => {
   ligne.enregistrement = true;
   try {
     await adminService.parametrerFormation(ligne.id, ligne.form);
-    toast.add({ severity: 'success', summary: 'Paramétrage enregistré', detail: ligne.libelle, life: 3000 });
+    showSuccess(ligne.libelle, 'Paramétrage enregistré', 3000);
     const { data } = await adminService.formations();
     donnees.value = data;
     const maj = data.formations.find((f) => f.id === ligne.id);
     if (maj) Object.assign(ligne, versLigne(maj, data.anneeCourante));
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Enregistrement impossible', detail: messageErreur(e), life: 7000 });
+    showDanger(messageErreur(e), 'Enregistrement impossible', 7000);
   } finally {
     ligne.enregistrement = false;
   }
@@ -88,23 +85,23 @@ const nonParametrees = computed(() => lignes.value.filter((l) => !l.parametrage)
     color="emerald"
   />
 
-  <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
+  <LoadingBar v-if="chargement" />
   <EmptyState v-else-if="erreur" icon="pi pi-exclamation-triangle" color="rose" title="Erreur" :description="erreur" />
   <EmptyState v-else-if="lignes.length === 0" icon="pi pi-sliders-h" color="emerald" title="Aucune formation BUT" description="Aucun BUT n'est rattaché à votre département." />
 
   <div v-else class="flex flex-col gap-4">
-    <Message v-if="nonParametrees" severity="warn">
+    <Alert icon-native :closable="false" v-if="nonParametrees" severity="warn">
       {{ nonParametrees }} formation(s) non paramétrée(s) : leurs étudiants peuvent rattacher leurs traces à n'importe quel niveau du référentiel.
-    </Message>
+    </Alert>
 
     <div class="grid gap-2 sm:grid-cols-3 text-sm">
-      <div v-for="g in GRANULARITES" :key="g.value" class="card p-3 m-0">
+      <Card bare v-for="g in GRANULARITES" :key="g.value" class="p-3 m-0">
         <strong>{{ g.label }}</strong>
         <p class="m-0 text-muted-color">{{ g.description }}</p>
-      </div>
+      </Card>
     </div>
 
-    <div v-for="ligne in lignes" :key="ligne.id" class="card p-4 flex flex-col gap-3">
+    <Card bare v-for="ligne in lignes" :key="ligne.id" class="p-4 flex flex-col gap-3">
       <div class="flex flex-wrap items-start justify-between gap-2">
         <div>
           <div class="font-semibold">{{ ligne.libelle }}</div>
@@ -152,6 +149,6 @@ const nonParametrees = computed(() => lignes.value.filter((l) => !l.parametrage)
           @click="enregistrer(ligne)"
         />
       </div>
-    </div>
+    </Card>
   </div>
 </template>

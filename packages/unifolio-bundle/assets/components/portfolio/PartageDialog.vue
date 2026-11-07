@@ -1,16 +1,16 @@
 <script setup>
+import { Alert, LoadingBar } from '@components';
+import { showSuccess, showWarn } from '@helpers/toast';
+import { formatDateFr } from '@helpers/date';
 import { computed, reactive, ref, watch } from 'vue';
-import { useToast } from 'primevue/usetoast';
-import { useConfirm } from 'primevue/useconfirm';
+import { useConfirmation } from '@composables/useConfirmation';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
 import ToggleSwitch from 'primevue/toggleswitch';
 import RadioButton from 'primevue/radiobutton';
-import Message from 'primevue/message';
 import Tag from 'primevue/tag';
-import ProgressBar from 'primevue/progressbar';
 import { portfolioService, messagesErreur } from '../../requests/portfolioService';
 
 const props = defineProps({
@@ -21,8 +21,7 @@ const props = defineProps({
 });
 const emit = defineEmits(['update:visible', 'change']);
 
-const toast = useToast();
-const confirm = useConfirm();
+const { confirmer } = useConfirmation();
 const etat = ref(null);
 const chargement = ref(false);
 const enregistrement = ref(false);
@@ -92,7 +91,7 @@ const publier = async () => {
     const { data } = await portfolioService.publier(props.portfolio.uuid);
     verser(data);
     emit('change');
-    toast.add({ severity: 'success', summary: 'Portfolio publié', detail: `Version ${data.publicationActive.numero} en ligne.`, life: 4000 });
+    showSuccess(`Version ${data.publicationActive.numero} en ligne.`, 'Portfolio publié', 4000);
   } catch (e) {
     erreurs.value = messagesErreur(e, 'La publication a échoué.');
   } finally {
@@ -100,12 +99,12 @@ const publier = async () => {
   }
 };
 
-const depublier = () => confirm.require({
+const depublier = () => confirmer({
   header: 'Retirer la publication',
   message: 'Le portfolio ne sera plus accessible à l\'adresse partagée. Vous pourrez le republier à tout moment.',
   icon: 'pi pi-eye-slash',
-  acceptProps: { label: 'Retirer', severity: 'danger' },
-  rejectProps: { label: 'Annuler', severity: 'secondary', outlined: true },
+  libelle: 'Retirer',
+  danger: true,
   accept: async () => {
     try {
       const { data } = await portfolioService.depublier(props.portfolio.uuid);
@@ -117,25 +116,24 @@ const depublier = () => confirm.require({
   },
 });
 
-const regenerer = () => confirm.require({
+const regenerer = () => confirmer({
   header: 'Régénérer le lien',
   message: 'L\'ancien lien cessera immédiatement de fonctionner. Les personnes à qui vous l\'avez donné devront recevoir le nouveau.',
   icon: 'pi pi-refresh',
-  acceptProps: { label: 'Régénérer' },
-  rejectProps: { label: 'Annuler', severity: 'secondary', outlined: true },
+  libelle: 'Régénérer',
   accept: () => appliquer({ regenererLien: true }),
 });
 
 const copier = async () => {
   try {
     await navigator.clipboard.writeText(url.value);
-    toast.add({ severity: 'success', summary: 'Lien copié', life: 2000 });
+    showSuccess(undefined, 'Lien copié', 2000);
   } catch {
-    toast.add({ severity: 'warn', summary: 'Copie impossible', detail: 'Sélectionnez le lien et copiez-le manuellement.', life: 4000 });
+    showWarn('Sélectionnez le lien et copiez-le manuellement.', 'Copie impossible', 4000);
   }
 };
 
-const date = (iso) => (iso ? new Date(iso).toLocaleString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '');
+const date = (iso) => formatDateFr(iso, 'moyenneHeure', '');
 </script>
 
 <template>
@@ -147,17 +145,17 @@ const date = (iso) => (iso ? new Date(iso).toLocaleString('fr-FR', { day: 'numer
     :breakpoints="{ '768px': '95vw' }"
     @update:visible="emit('update:visible', $event)"
   >
-    <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
+    <LoadingBar v-if="chargement" />
     <div v-else-if="etat" class="flex flex-col gap-5">
-      <Message v-if="erreurs.length" severity="error" :closable="true" @close="erreurs = []">
+      <Alert icon-native v-if="erreurs.length" severity="error" :closable="true" @close="erreurs = []">
         <ul class="m-0 pl-4 flex flex-col gap-1"><li v-for="e in erreurs" :key="e">{{ e }}</li></ul>
-      </Message>
-      <Message v-if="modifsEnAttente" severity="warn" :closable="false">
+      </Alert>
+      <Alert icon-native v-if="modifsEnAttente" severity="warn" :closable="false">
         Des modifications de la page en cours ne sont pas enregistrées : elles ne seront pas incluses dans la publication.
-      </Message>
-      <Message v-if="actif?.moderee" severity="error" :closable="false">
+      </Alert>
+      <Alert icon-native v-if="actif?.moderee" severity="error" :closable="false">
         <strong>Cette publication a été retirée par la modération.</strong> {{ actif.motifModeration }}
-      </Message>
+      </Alert>
 
       <!-- Qui peut voir -->
       <fieldset class="border-0 p-0 m-0 flex flex-col gap-2">

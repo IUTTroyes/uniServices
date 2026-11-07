@@ -1,10 +1,9 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { HeaderComponent, EmptyState } from '@components';
+import { HeaderComponent, EmptyState, Card, LoadingBar } from '@components';
 import Button from 'primevue/button';
 import Tag from 'primevue/tag';
-import ProgressBar from 'primevue/progressbar';
 import evaluationService from '../requests/evaluationService';
 import { messageErreur } from '../requests/traceService';
 import { pourcentage } from '../requests/autoEvaluationService';
@@ -48,7 +47,7 @@ const versBilans = () => router.push(`/unifolio/evaluations/bilans/${route.param
 </script>
 
 <template>
-  <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
+  <LoadingBar v-if="chargement" />
   <EmptyState v-else-if="erreur" icon="pi pi-exclamation-triangle" color="rose" title="Suivi indisponible" :description="erreur" />
 
   <template v-else-if="donnees">
@@ -69,16 +68,15 @@ const versBilans = () => router.push(`/unifolio/evaluations/bilans/${route.param
     <EmptyState v-if="!donnees.disponible" icon="pi pi-clock" color="amber" title="Évaluation indisponible" :description="donnees.message" />
 
     <div v-else class="flex flex-col gap-4">
-      <div class="card p-4 text-sm text-muted-color">
+      <Card bare class="p-4 text-sm text-muted-color">
         Évaluation par {{ donnees.granularite.libelle.toLowerCase() }} · {{ donnees.grille.libelle }} (v{{ donnees.grille.version }})
-      </div>
+      </Card>
 
-      <section
-        v-for="groupe in groupes"
-        :key="groupe.competence?.id ?? 0"
-        class="card p-0 overflow-hidden border-l-[6px]"
-        :style="{ borderLeftColor: couleurCompetence(groupe.competence?.couleur) }"
-      >
+      <Card bare tag="section"
+ v-for="groupe in groupes"
+ :key="groupe.competence?.id ?? 0"
+ class="p-0 overflow-hidden border-l-[6px]"
+ :style="{ borderLeftColor: couleurCompetence(groupe.competence?.couleur) }">
         <header class="p-4 flex items-center gap-3" :style="{ background: couleurCompetence(groupe.competence?.couleur, 0.1) }">
           <span
             class="text-xs font-semibold px-2 py-1 rounded"
@@ -133,7 +131,7 @@ const versBilans = () => router.push(`/unifolio/evaluations/bilans/${route.param
             </div>
           </div>
         </div>
-      </section>
+      </Card>
     </div>
   </template>
 </template>

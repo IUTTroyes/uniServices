@@ -1,12 +1,11 @@
 <script setup>
+import { Alert, LoadingBar } from '@components';
+import { showSuccess, showWarn } from '@helpers/toast';
 import { computed, ref, watch } from 'vue';
-import { useToast } from 'primevue/usetoast';
 import Drawer from 'primevue/drawer';
 import Button from 'primevue/button';
 import Textarea from 'primevue/textarea';
 import Tag from 'primevue/tag';
-import Message from 'primevue/message';
-import ProgressBar from 'primevue/progressbar';
 import GrilleSaisie from './GrilleSaisie.vue';
 import RetourEnseignant from '../evaluation/RetourEnseignant.vue';
 import autoEvaluationService, { pourcentage } from '../../requests/autoEvaluationService';
@@ -24,7 +23,6 @@ const props = defineProps({
 });
 const emit = defineEmits(['update:visible', 'change']);
 
-const toast = useToast();
 const auto = ref(null);
 const reponses = ref({});
 const reflexion = ref('');
@@ -63,10 +61,10 @@ const executer = async (fn, succes) => {
     const { data } = await fn();
     appliquer(data);
     emit('change');
-    if (succes) toast.add({ severity: 'success', summary: succes, life: 3000 });
+    if (succes) showSuccess(undefined, succes, 3000);
     return true;
   } catch (e) {
-    toast.add({ severity: 'warn', summary: 'Action impossible', detail: messageErreur(e), life: 7000 });
+    showWarn(messageErreur(e), 'Action impossible', 7000);
     return false;
   } finally {
     occupe.value = false;
@@ -97,8 +95,8 @@ const score = computed(() => pourcentage(auto.value?.score));
     :header="auto?.bilan ? 'Mon bilan' : 'M\'auto-évaluer sur cette trace'"
     @update:visible="(v) => emit('update:visible', v)"
   >
-    <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
-    <Message v-else-if="erreur" severity="warn">{{ erreur }}</Message>
+    <LoadingBar v-if="chargement" />
+    <Alert icon-native :closable="false" v-else-if="erreur" severity="warn">{{ erreur }}</Alert>
 
     <div v-else-if="auto" class="flex flex-col gap-5">
       <div

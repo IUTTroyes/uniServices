@@ -1,30 +1,17 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { showDanger } from '@helpers/toast';
+import { formatDateFr } from '@helpers/date';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { HeaderComponent, EmptyState } from '@components';
+import { HeaderComponent, EmptyState, Card, LoadingBar } from '@components';
 import Button from 'primevue/button';
 import Tag from 'primevue/tag';
-import ProgressBar from 'primevue/progressbar';
-import { useToast } from 'primevue/usetoast';
+import { useChargement } from '../composables/useChargement';
 import { portfolioService, messagesErreur } from '../requests/portfolioService';
 
 const router = useRouter();
-const toast = useToast();
 const creation = ref(false);
-const portfolios = ref([]);
-const chargement = ref(true);
-const erreur = ref(null);
-
-onMounted(async () => {
-  try {
-    const { data } = await portfolioService.liste();
-    portfolios.value = data;
-  } catch (e) {
-    erreur.value = messagesErreur(e, 'Impossible de charger vos portfolios.')[0];
-  } finally {
-    chargement.value = false;
-  }
-});
+const { donnees: portfolios, chargement, erreur } = useChargement(() => portfolioService.liste(), { initial: [], messageParDefaut: 'Impossible de charger vos portfolios.' });
 
 const aVitrine = computed(() => portfolios.value.some((p) => p.type.value === 'vitrine'));
 const creerVitrine = async () => {
@@ -33,13 +20,13 @@ const creerVitrine = async () => {
     const { data } = await portfolioService.creerVitrine();
     router.push(`/unifolio/portfolios/${data.uuid}`);
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Création impossible', detail: messagesErreur(e).join(' '), life: 6000 });
+    showDanger(messagesErreur(e).join(' '), 'Création impossible', 6000);
   } finally {
     creation.value = false;
   }
 };
 
-const date = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : null);
+const date = (iso) => formatDateFr(iso);
 </script>
 
 <template>
@@ -57,7 +44,7 @@ const date = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'n
     </template>
   </HeaderComponent>
 
-  <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
+  <LoadingBar v-if="chargement" />
   <EmptyState v-else-if="erreur" icon="pi pi-exclamation-triangle" color="rose" title="Erreur" :description="erreur" />
   <EmptyState
     v-else-if="portfolios.length === 0"
@@ -68,13 +55,12 @@ const date = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'n
   />
 
   <div v-else class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-    <button
-      v-for="p in portfolios"
-      :key="p.uuid"
-      type="button"
-      class="card p-4 m-0 text-left flex flex-col gap-3 hover:shadow-md transition-shadow cursor-pointer"
-      @click="router.push(`/unifolio/portfolios/${p.uuid}`)"
-    >
+    <Card bare tag="button"
+ v-for="p in portfolios"
+ :key="p.uuid"
+ type="button"
+ class="p-4 m-0 text-left flex flex-col gap-3 hover:shadow-md transition-shadow cursor-pointer"
+ @click="router.push(`/unifolio/portfolios/${p.uuid}`)">
       <div class="flex items-start justify-between gap-2">
         <span class="font-semibold">{{ p.titre }}</span>
         <Tag :value="p.type.libelle" :severity="p.type.value === 'academique' ? 'success' : 'info'" />
@@ -89,6 +75,6 @@ const date = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'n
         <Tag :value="p.visibilite.libelle" severity="secondary" />
       </div>
       <span class="text-xs text-muted-color">Modifié le {{ date(p.misAJourLe) }}<template v-if="p.modele"> · modèle « {{ p.modele }} »</template></span>
-    </button>
+    </Card>
   </div>
 </template>

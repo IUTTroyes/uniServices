@@ -1,8 +1,8 @@
 <script setup>
+import { showDanger, showSuccess } from '@helpers/toast';
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useToast } from 'primevue/usetoast';
-import { HeaderComponent, EmptyState } from '@components';
+import { HeaderComponent, EmptyState, Card, LoadingBar } from '@components';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
@@ -10,13 +10,11 @@ import Textarea from 'primevue/textarea';
 import Select from 'primevue/select';
 import SelectButton from 'primevue/selectbutton';
 import Tag from 'primevue/tag';
-import ProgressBar from 'primevue/progressbar';
 import adminService from '../../requests/adminService';
 import { messageErreur } from '../../requests/traceService';
 import { GRANULARITES, PORTEES, formatDate } from '../../components/grilles/options';
 
 const router = useRouter();
-const toast = useToast();
 const grilles = ref([]);
 const formations = ref([]);
 const chargement = ref(true);
@@ -33,7 +31,7 @@ const charger = async () => {
     grilles.value = g;
     formations.value = f.formations;
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Chargement impossible', detail: messageErreur(e), life: 6000 });
+    showDanger(messageErreur(e), 'Chargement impossible', 6000);
   } finally {
     chargement.value = false;
   }
@@ -54,7 +52,7 @@ const creer = async () => {
     dialogue.value = false;
     router.push(`/unifolio/admin/grilles/${data.uuid}`);
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Création impossible', detail: messageErreur(e), life: 7000 });
+    showDanger(messageErreur(e), 'Création impossible', 7000);
   } finally {
     envoi.value = false;
   }
@@ -63,10 +61,10 @@ const creer = async () => {
 const adapter = async (grille) => {
   try {
     const { data } = await adminService.dupliquer(grille.uuid, { portee: 'departement', libelle: `${grille.libelle} (département)` });
-    toast.add({ severity: 'success', summary: 'Copie créée', detail: 'Adaptez-la puis publiez-la.', life: 4000 });
+    showSuccess('Adaptez-la puis publiez-la.', 'Copie créée', 4000);
     router.push(`/unifolio/admin/grilles/${data.uuid}`);
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Copie impossible', detail: messageErreur(e), life: 7000 });
+    showDanger(messageErreur(e), 'Copie impossible', 7000);
   }
 };
 </script>
@@ -85,7 +83,7 @@ const adapter = async (grille) => {
     </template>
   </HeaderComponent>
 
-  <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
+  <LoadingBar v-if="chargement" />
 
   <div v-else class="flex flex-col gap-4">
     <SelectButton
@@ -105,7 +103,7 @@ const adapter = async (grille) => {
     />
 
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      <div v-for="g in visibles" :key="g.uuid" class="card p-4 m-0 flex flex-col gap-3" :class="{ 'opacity-60': !g.actif }">
+      <Card bare v-for="g in visibles" :key="g.uuid" class="p-4 m-0 flex flex-col gap-3" :class="{ 'opacity-60': !g.actif }">
         <div class="flex items-start justify-between gap-2">
           <span class="font-semibold">{{ g.libelle }}</span>
           <Tag :value="PORTEES[g.portee].label" :severity="PORTEES[g.portee].severity" :icon="PORTEES[g.portee].icon" />
@@ -120,7 +118,7 @@ const adapter = async (grille) => {
           <Button :label="g.modifiable ? 'Modifier' : 'Consulter'" :icon="g.modifiable ? 'pi pi-pencil' : 'pi pi-eye'" size="small" outlined @click="router.push(`/unifolio/admin/grilles/${g.uuid}`)" />
           <Button v-if="!g.modifiable" label="Adapter pour mon département" icon="pi pi-copy" size="small" text @click="adapter(g)" />
         </div>
-      </div>
+      </Card>
     </div>
   </div>
 

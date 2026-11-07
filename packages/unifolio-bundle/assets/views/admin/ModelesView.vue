@@ -1,8 +1,8 @@
 <script setup>
+import { showDanger } from '@helpers/toast';
 import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useToast } from 'primevue/usetoast';
-import { HeaderComponent, EmptyState } from '@components';
+import { HeaderComponent, EmptyState, Card, LoadingBar } from '@components';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
@@ -10,12 +10,10 @@ import Textarea from 'primevue/textarea';
 import Select from 'primevue/select';
 import SelectButton from 'primevue/selectbutton';
 import Tag from 'primevue/tag';
-import ProgressBar from 'primevue/progressbar';
 import { modeleService, messagesErreur } from '../../requests/portfolioService';
 import campagneService from '../../requests/campagneService';
 
 const router = useRouter();
-const toast = useToast();
 const modeles = ref([]);
 const formations = ref([]);
 const chargement = ref(true);
@@ -29,7 +27,7 @@ const charger = async () => {
     modeles.value = liste;
     formations.value = options.formations;
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Chargement impossible', detail: messagesErreur(e).join(' '), life: 6000 });
+    showDanger(messagesErreur(e).join(' '), 'Chargement impossible', 6000);
   } finally {
     chargement.value = false;
   }
@@ -48,7 +46,7 @@ const creer = async () => {
     dialogue.value = false;
     router.push(`/unifolio/admin/modeles/${data.uuid}`);
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Création impossible', detail: messagesErreur(e).join(' '), life: 7000 });
+    showDanger(messagesErreur(e).join(' '), 'Création impossible', 7000);
   } finally {
     envoi.value = false;
   }
@@ -59,7 +57,7 @@ const adapter = async (m) => {
     const { data } = await modeleService.dupliquer(m.uuid, { portee: 'departement', libelle: `${m.libelle} (département)` });
     router.push(`/unifolio/admin/modeles/${data.uuid}`);
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Copie impossible', detail: messagesErreur(e).join(' '), life: 7000 });
+    showDanger(messagesErreur(e).join(' '), 'Copie impossible', 7000);
   }
 };
 
@@ -81,7 +79,7 @@ const libellePortee = { national: 'National', departement: 'Département', diplo
     </template>
   </HeaderComponent>
 
-  <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
+  <LoadingBar v-if="chargement" />
   <EmptyState
     v-else-if="modeles.length === 0"
     icon="pi pi-clone"
@@ -91,7 +89,7 @@ const libellePortee = { national: 'National', departement: 'Département', diplo
   />
 
   <div v-else class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-    <div v-for="m in modeles" :key="m.uuid" class="card p-4 m-0 flex flex-col gap-3" :class="{ 'opacity-60': !m.actif }">
+    <Card bare v-for="m in modeles" :key="m.uuid" class="p-4 m-0 flex flex-col gap-3" :class="{ 'opacity-60': !m.actif }">
       <div class="flex items-start justify-between gap-2">
         <span class="font-semibold">{{ m.libelle }}</span>
         <Tag :value="libellePortee[m.portee]" :severity="severite[m.portee]" />
@@ -107,7 +105,7 @@ const libellePortee = { national: 'National', departement: 'Département', diplo
         <Button :label="m.modifiable ? 'Modifier' : 'Consulter'" :icon="m.modifiable ? 'pi pi-pencil' : 'pi pi-eye'" size="small" outlined @click="router.push(`/unifolio/admin/modeles/${m.uuid}`)" />
         <Button v-if="!m.modifiable" label="Adapter pour mon département" icon="pi pi-copy" size="small" text @click="adapter(m)" />
       </div>
-    </div>
+    </Card>
   </div>
 
   <Dialog v-model:visible="dialogue" header="Nouveau modèle" modal :style="{ width: '34rem' }" :breakpoints="{ '640px': '95vw' }">

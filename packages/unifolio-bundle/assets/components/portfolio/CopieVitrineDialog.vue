@@ -1,11 +1,11 @@
 <script setup>
+import { Alert } from '@components';
+import { showSuccess } from '@helpers/toast';
 import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { useToast } from 'primevue/usetoast';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
-import Message from 'primevue/message';
 import { portfolioService, messagesErreur } from '../../requests/portfolioService';
 
 const props = defineProps({
@@ -15,7 +15,6 @@ const props = defineProps({
 const emit = defineEmits(['update:visible']);
 
 const router = useRouter();
-const toast = useToast();
 const choisies = ref([]);
 const envoi = ref(false);
 const erreurs = ref([]);
@@ -32,7 +31,7 @@ const copier = async () => {
   erreurs.value = [];
   try {
     const { data } = await portfolioService.copierVersVitrine(props.portfolio.uuid, choisies.value);
-    toast.add({ severity: 'success', summary: `${data.copiees} page(s) copiée(s) dans votre vitrine`, life: 4000 });
+    showSuccess(undefined, `${data.copiees} page(s) copiée(s) dans votre vitrine`, 4000);
     emit('update:visible', false);
     router.push(`/unifolio/portfolios/${data.vitrine.uuid}`);
   } catch (e) {
@@ -49,9 +48,9 @@ const copier = async () => {
       <p class="m-0 text-sm text-muted-color">
         Les pages choisies sont copiées dans votre portfolio vitrine, sans lien avec l'original : vous pourrez les modifier librement, votre portfolio académique reste intact.
       </p>
-      <Message v-if="erreurs.length" severity="error" :closable="false">
+      <Alert icon-native v-if="erreurs.length" severity="error" :closable="false">
         <ul class="m-0 pl-4"><li v-for="e in erreurs" :key="e">{{ e }}</li></ul>
-      </Message>
+      </Alert>
       <label v-for="p in portfolio.pages" :key="p.uuid" class="flex items-center gap-2 cursor-pointer">
         <Checkbox v-model="choisies" :value="p.uuid" />
         <span>{{ p.titre }}</span>

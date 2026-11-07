@@ -1,11 +1,10 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { HeaderComponent, EmptyState } from '@components';
+import { HeaderComponent, EmptyState, Card, Alert, LoadingBar } from '@components';
 import Button from 'primevue/button';
 import Select from 'primevue/select';
 import Tag from 'primevue/tag';
-import Message from 'primevue/message';
 import ProgressBar from 'primevue/progressbar';
 import AutoEvaluationPanel from '../components/autoeval/AutoEvaluationPanel.vue';
 import autoEvaluationService, { pourcentage } from '../requests/autoEvaluationService';
@@ -95,12 +94,12 @@ const libelleScolarite = (s) => [s.annee, s.anneeUniversitaire].filter(Boolean).
     </template>
   </HeaderComponent>
 
-  <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
+  <LoadingBar v-if="chargement" />
   <EmptyState v-else-if="erreur" icon="pi pi-exclamation-triangle" color="rose" title="Erreur" :description="erreur" />
   <EmptyState v-else-if="donnees && !donnees.disponible" icon="pi pi-clock" color="amber" title="Pas encore disponible" :description="donnees.message" />
 
   <div v-else-if="donnees" class="flex flex-col gap-4">
-    <div class="card p-4 flex flex-wrap items-center gap-4">
+    <Card bare class="p-4 flex flex-wrap items-center gap-4">
       <div class="flex-1 min-w-60">
         <div class="text-sm text-muted-color">
           {{ donnees.scolarite?.annee }} · bilan par {{ donnees.granularite.libelle.toLowerCase() }} · {{ donnees.grille.libelle }}
@@ -108,16 +107,15 @@ const libelleScolarite = (s) => [s.annee, s.anneeUniversitaire].filter(Boolean).
         <div class="font-medium">{{ avancement.soumis }} / {{ avancement.total }} bilan(s) soumis</div>
       </div>
       <ProgressBar :value="avancement.total ? Math.round((avancement.soumis * 100) / avancement.total) : 0" class="w-60" />
-    </div>
+    </Card>
 
-    <Message v-if="avancement.total === 0" severity="info">Aucun élément du référentiel n'est défini pour votre année.</Message>
+    <Alert icon-native :closable="false" v-if="avancement.total === 0" severity="info">Aucun élément du référentiel n'est défini pour votre année.</Alert>
 
-    <section
-      v-for="groupe in groupes"
-      :key="groupe.competence?.id ?? 0"
-      class="card p-0 overflow-hidden border-l-[6px]"
-      :style="{ borderLeftColor: couleurCompetence(groupe.competence?.couleur) }"
-    >
+    <Card bare tag="section"
+ v-for="groupe in groupes"
+ :key="groupe.competence?.id ?? 0"
+ class="p-0 overflow-hidden border-l-[6px]"
+ :style="{ borderLeftColor: couleurCompetence(groupe.competence?.couleur) }">
       <header class="p-4 flex items-center gap-3" :style="{ background: couleurCompetence(groupe.competence?.couleur, 0.1) }">
         <span
           class="text-xs font-semibold px-2 py-1 rounded"
@@ -181,7 +179,7 @@ const libelleScolarite = (s) => [s.annee, s.anneeUniversitaire].filter(Boolean).
           </div>
         </div>
       </div>
-    </section>
+    </Card>
   </div>
 
   <AutoEvaluationPanel v-model:visible="panneau" :cible="cible" @change="charger(true)" />

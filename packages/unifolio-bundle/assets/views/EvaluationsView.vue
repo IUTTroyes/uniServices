@@ -1,29 +1,15 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { formatDateFr } from '@helpers/date';
 import { useRouter } from 'vue-router';
-import { HeaderComponent, EmptyState } from '@components';
+import { HeaderComponent, EmptyState, Card, LoadingBar } from '@components';
 import Tag from 'primevue/tag';
-import ProgressBar from 'primevue/progressbar';
 import evaluationService from '../requests/evaluationService';
-import { messageErreur } from '../requests/traceService';
+import { useChargement } from '../composables/useChargement';
 
 const router = useRouter();
-const file = ref([]);
-const chargement = ref(true);
-const erreur = ref(null);
+const { donnees: file, chargement, erreur } = useChargement(() => evaluationService.file(), { initial: [], messageParDefaut: 'Impossible de charger votre file d\'évaluation.' });
 
-onMounted(async () => {
-  try {
-    const { data } = await evaluationService.file();
-    file.value = data;
-  } catch (e) {
-    erreur.value = messageErreur(e, 'Impossible de charger votre file d\'évaluation.');
-  } finally {
-    chargement.value = false;
-  }
-});
-
-const date = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : null);
+const date = (iso) => formatDateFr(iso);
 const ouvrir = (groupe, etudiant) => router.push(`/unifolio/evaluations/etudiants/${groupe.campagne.uuid}/${etudiant.id}`);
 const aFaire = (e) => e.aEvaluer + e.enCours + e.aReprendre;
 </script>
@@ -38,7 +24,7 @@ const aFaire = (e) => e.aEvaluer + e.enCours + e.aReprendre;
     color="emerald"
   />
 
-  <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
+  <LoadingBar v-if="chargement" />
   <EmptyState v-else-if="erreur" icon="pi pi-exclamation-triangle" color="rose" title="Erreur" :description="erreur" />
   <EmptyState
     v-else-if="file.length === 0"
@@ -49,7 +35,7 @@ const aFaire = (e) => e.aEvaluer + e.enCours + e.aReprendre;
   />
 
   <div v-else class="flex flex-col gap-4">
-    <section v-for="g in file" :key="g.campagne.uuid" class="card p-0 overflow-hidden" :class="{ 'opacity-70': g.campagne.phase.value === 'cloturee' }">
+    <Card bare tag="section" v-for="g in file" :key="g.campagne.uuid" class="p-0 overflow-hidden" :class="{ 'opacity-70': g.campagne.phase.value === 'cloturee' }">
       <header class="p-4 flex flex-wrap items-center gap-3 border-b border-surface-200">
         <div class="flex-1 min-w-60">
           <div class="font-semibold">{{ g.campagne.libelle }}</div>
@@ -102,6 +88,6 @@ const aFaire = (e) => e.aEvaluer + e.enCours + e.aReprendre;
           <tr><td colspan="7" class="p-3 text-right text-sm font-medium">{{ aFaire(g.totaux) }} élément(s) restent à traiter</td></tr>
         </tfoot>
       </table>
-    </section>
+    </Card>
   </div>
 </template>

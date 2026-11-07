@@ -1,36 +1,28 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { formatDateFr } from '@helpers/date';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { HeaderComponent, EmptyState } from '@components';
+import { HeaderComponent, EmptyState, Card, LoadingBar } from '@components';
 import Button from 'primevue/button';
 import Tag from 'primevue/tag';
-import ProgressBar from 'primevue/progressbar';
 import { suiviService, pourcent } from '../requests/suiviService';
-import { messageErreur } from '../requests/traceService';
+import { useChargement } from '../composables/useChargement';
 import { couleurCompetence } from '../components/traces/options';
 
 const router = useRouter();
-const donnees = ref(null);
-const chargement = ref(true);
-const erreur = ref(null);
 const ouverts = ref({});
-
-onMounted(async () => {
-  try {
-    const { data } = await suiviService.progression();
+const { donnees, chargement, erreur } = useChargement(() => suiviService.progression(), {
+  messageParDefaut: 'Impossible de charger votre progression.',
+  apres: (data) => {
     donnees.value = data;
     // L'année en cours (dernière) est dépliée par défaut.
     const derniere = data.annees.length - 1;
     if (derniere >= 0) ouverts.value[derniere] = true;
-  } catch (e) {
-    erreur.value = messageErreur(e, 'Impossible de charger votre progression.');
-  } finally {
-    chargement.value = false;
-  }
+  },
 });
 
 const bascule = (i) => { ouverts.value[i] = !ouverts.value[i]; };
-const date = (iso) => new Date(iso).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+const date = (iso) => formatDateFr(iso, 'jourMois');
 const part = (c) => (c.total > 0 ? Math.round((c.couverts * 100) / c.total) : 0);
 </script>
 
@@ -48,13 +40,13 @@ const part = (c) => (c.total > 0 ? Math.round((c.couverts * 100) / c.total) : 0)
     </template>
   </HeaderComponent>
 
-  <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
+  <LoadingBar v-if="chargement" />
   <EmptyState v-else-if="erreur" icon="pi pi-exclamation-triangle" color="rose" title="Erreur" :description="erreur" />
   <EmptyState v-else-if="!donnees.annees.length" icon="pi pi-chart-bar" color="emerald" title="Pas encore de progression" description="Votre progression apparaîtra dès que vous serez inscrit·e dans une année de BUT et que vous aurez déposé des traces." />
 
   <div v-else class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem] items-start">
     <div class="flex flex-col gap-4">
-      <section v-for="(a, i) in donnees.annees" :key="a.scolarite.id" class="card p-0 overflow-hidden">
+      <Card bare tag="section" v-for="(a, i) in donnees.annees" :key="a.scolarite.id" class="p-0 overflow-hidden">
         <button type="button" class="w-full flex flex-wrap items-center gap-3 p-4 bg-transparent border-0 cursor-pointer text-left" :aria-expanded="!!ouverts[i]" @click="bascule(i)">
           <i :class="ouverts[i] ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" aria-hidden="true" />
           <div class="flex-1 min-w-48">
@@ -90,10 +82,10 @@ const part = (c) => (c.total > 0 ? Math.round((c.couverts * 100) / c.total) : 0)
             </ul>
           </article>
         </div>
-      </section>
+      </Card>
     </div>
 
-    <aside class="card p-4 flex flex-col gap-3 xl:sticky xl:top-2" aria-label="Échéances">
+    <Card bare tag="aside" class="p-4 flex flex-col gap-3 xl:sticky xl:top-2" aria-label="Échéances">
       <h3 class="m-0 text-base font-semibold"><i class="pi pi-calendar mr-1" /> Échéances</h3>
       <p v-if="!donnees.echeances.length" class="m-0 text-sm text-muted-color">Aucune échéance à venir.</p>
       <ul v-else class="list-none m-0 p-0 flex flex-col gap-3">
@@ -102,6 +94,6 @@ const part = (c) => (c.total > 0 ? Math.round((c.couverts * 100) / c.total) : 0)
           <span class="text-sm text-muted-color">{{ date(e.date) }} · {{ e.campagne }}</span>
         </li>
       </ul>
-    </aside>
+    </Card>
   </div>
 </template>

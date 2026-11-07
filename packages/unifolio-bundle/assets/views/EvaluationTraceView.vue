@@ -1,9 +1,9 @@
 <script setup>
+import { formatDateFr } from '@helpers/date';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { HeaderComponent, EmptyState } from '@components';
+import { HeaderComponent, EmptyState, Card, LoadingBar } from '@components';
 import Tag from 'primevue/tag';
-import ProgressBar from 'primevue/progressbar';
 import MediaPreview from '../components/traces/MediaPreview.vue';
 import EvaluationLot from '../components/evaluation/EvaluationLot.vue';
 import CommentairesThread from '../components/commentaires/CommentairesThread.vue';
@@ -33,11 +33,11 @@ const trace = computed(() => donnees.value?.trace);
 const portee = computed(() => ({ type: 'trace', uuid: route.params.uuid }));
 const retour = computed(() => (donnees.value?.campagne ? `/unifolio/evaluations/etudiants/${donnees.value.campagne.uuid}/${donnees.value.etudiant.id}` : '/unifolio/evaluations'));
 const declarationIa = computed(() => (trace.value ? { conception: trace.value.conceptionIa.libelle, realisation: trace.value.realisationIa.libelle, detail: trace.value.usageIaDetail } : null));
-const formatDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null);
+const formatDate = (iso) => formatDateFr(iso, 'longue');
 </script>
 
 <template>
-  <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
+  <LoadingBar v-if="chargement" />
   <EmptyState v-else-if="erreur" icon="pi pi-exclamation-triangle" color="rose" title="Trace indisponible" :description="erreur" />
 
   <template v-else-if="trace">
@@ -57,27 +57,27 @@ const formatDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { d
     <div class="grid gap-4 xl:grid-cols-12">
       <!-- La trace, à consulter pendant l'évaluation -->
       <div class="xl:col-span-5 flex flex-col gap-4">
-        <section v-if="trace.contexte" class="card p-4">
+        <Card bare tag="section" v-if="trace.contexte" class="p-4">
           <h3 class="text-base font-semibold mt-0">Contexte et démarche</h3>
           <p class="whitespace-pre-line m-0">{{ trace.contexte }}</p>
-        </section>
+        </Card>
 
-        <section class="card p-4 flex flex-col gap-6">
+        <Card bare tag="section" class="p-4 flex flex-col gap-6">
           <h3 class="text-base font-semibold m-0">Preuves</h3>
           <p v-if="trace.medias.length === 0" class="text-muted-color m-0">Aucune preuve.</p>
           <MediaPreview v-for="media in trace.medias" :key="media.id" :media="media" />
-        </section>
+        </Card>
 
-        <section class="card p-4 flex flex-col gap-2 text-sm">
+        <Card bare tag="section" class="p-4 flex flex-col gap-2 text-sm">
           <h3 class="text-base font-semibold m-0">Usage de l'IA déclaré</h3>
           <span><strong>Conception :</strong> {{ trace.conceptionIa.libelle }}</span>
           <span><strong>Réalisation :</strong> {{ trace.realisationIa.libelle }}</span>
           <span v-if="trace.usageIaDetail" class="text-muted-color whitespace-pre-line">{{ trace.usageIaDetail }}</span>
-        </section>
+        </Card>
 
-        <section class="card p-4">
+        <Card bare tag="section" class="p-4">
           <CommentairesThread :trace-uuid="trace.uuid" :rattachements="trace.rattachements" />
-        </section>
+        </Card>
       </div>
 
       <!-- Tous les points à évaluer, sur la même page -->

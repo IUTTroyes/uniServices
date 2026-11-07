@@ -9,7 +9,10 @@ const ici = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   plugins: [vue()],
   resolve: {
-    alias: [{ find: /^.*\/requests\/traceService$/, replacement: path.resolve(ici, 'traceService.stub.js') }],
+    alias: [
+      { find: /^.*\/requests\/traceService$/, replacement: path.resolve(ici, 'traceService.stub.js') },
+      { find: '@helpers', replacement: path.resolve(ici, '../../../shared/helpers') },
+    ],
   },
   ssr: { noExternal: true },
   build: {

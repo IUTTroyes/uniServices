@@ -1,19 +1,15 @@
 <script setup>
+import { showSuccess } from '@helpers/toast';
 import { onMounted, reactive, ref } from 'vue';
-import { useToast } from 'primevue/usetoast';
-import { HeaderComponent, EmptyState } from '@components';
+import { HeaderComponent, EmptyState, Card, Alert, LoadingBar } from '@components';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
-import Message from 'primevue/message';
-import ProgressBar from 'primevue/progressbar';
 import ChampTags from '../components/portfolio/ChampTags.vue';
+import { useChargement } from '../composables/useChargement';
 import { cvService, messagesErreur } from '../requests/portfolioService';
 
-const toast = useToast();
 const cv = reactive({ poste: '', description: '', langues: [], softSkills: [], hardSkills: [], reseaux: [], experiences: [], formations: [] });
-const chargement = ref(true);
-const erreurChargement = ref(null);
 const enregistrement = ref(false);
 const erreurs = ref([]);
 const dirty = ref(false);
@@ -28,16 +24,7 @@ const verser = (d) => {
   dirty.value = false;
 };
 
-onMounted(async () => {
-  try {
-    const { data } = await cvService.lire();
-    verser(data);
-  } catch (e) {
-    erreurChargement.value = messagesErreur(e, 'Impossible de charger votre CV.')[0];
-  } finally {
-    chargement.value = false;
-  }
-});
+const { chargement, erreur: erreurChargement } = useChargement(() => cvService.lire(), { messageParDefaut: 'Impossible de charger votre CV.', apres: verser });
 
 const modifie = () => { dirty.value = true; };
 const ajouter = (liste, modele) => { cv[liste].push({ ...modele }); modifie(); };
@@ -56,7 +43,7 @@ const enregistrer = async () => {
   try {
     const { data } = await cvService.enregistrer(cv);
     verser(data);
-    toast.add({ severity: 'success', summary: 'CV enregistré', life: 3000 });
+    showSuccess(undefined, 'CV enregistré', 3000);
   } catch (e) {
     erreurs.value = messagesErreur(e);
   } finally {
@@ -82,15 +69,15 @@ const formationVide = { diplome: '', etablissement: '', dateDebut: '', dateFin: 
     </template>
   </HeaderComponent>
 
-  <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
+  <LoadingBar v-if="chargement" />
   <EmptyState v-else-if="erreurChargement" icon="pi pi-exclamation-triangle" color="rose" title="CV indisponible" :description="erreurChargement" />
 
   <div v-else class="flex flex-col gap-4">
-    <Message v-if="erreurs.length" severity="error" :closable="true" @close="erreurs = []">
+    <Alert icon-native v-if="erreurs.length" severity="error" :closable="true" @close="erreurs = []">
       <ul class="m-0 pl-4"><li v-for="e in erreurs" :key="e">{{ e }}</li></ul>
-    </Message>
+    </Alert>
 
-    <section class="card p-4 flex flex-col gap-3">
+    <Card bare tag="section" class="p-4 flex flex-col gap-3">
       <h3 class="text-base font-semibold m-0">Présentation</h3>
       <div class="flex flex-col gap-1">
         <label for="cv-poste" class="font-medium">Poste ou domaine recherché</label>
@@ -100,9 +87,9 @@ const formationVide = { diplome: '', etablissement: '', dateDebut: '', dateFin: 
         <label for="cv-desc" class="font-medium">Présentation</label>
         <Textarea id="cv-desc" v-model="cv.description" rows="4" auto-resize maxlength="3000" @input="modifie" />
       </div>
-    </section>
+    </Card>
 
-    <section class="card p-4 flex flex-col gap-3">
+    <Card bare tag="section" class="p-4 flex flex-col gap-3">
       <div class="flex items-center justify-between">
         <h3 class="text-base font-semibold m-0">Expériences</h3>
         <Button label="Ajouter" icon="pi pi-plus" size="small" outlined @click="ajouter('experiences', experienceVide)" />
@@ -122,9 +109,9 @@ const formationVide = { diplome: '', etablissement: '', dateDebut: '', dateFin: 
           <Button icon="pi pi-trash" size="small" text rounded severity="danger" aria-label="Supprimer l'expérience" @click="retirer('experiences', i)" />
         </div>
       </div>
-    </section>
+    </Card>
 
-    <section class="card p-4 flex flex-col gap-3">
+    <Card bare tag="section" class="p-4 flex flex-col gap-3">
       <div class="flex items-center justify-between">
         <h3 class="text-base font-semibold m-0">Formations</h3>
         <Button label="Ajouter" icon="pi pi-plus" size="small" outlined @click="ajouter('formations', formationVide)" />
@@ -142,9 +129,9 @@ const formationVide = { diplome: '', etablissement: '', dateDebut: '', dateFin: 
           <Button icon="pi pi-trash" size="small" text rounded severity="danger" aria-label="Supprimer la formation" @click="retirer('formations', i)" />
         </div>
       </div>
-    </section>
+    </Card>
 
-    <section class="card p-4 grid gap-4 md:grid-cols-2">
+    <Card bare tag="section" class="p-4 grid gap-4 md:grid-cols-2">
       <div class="flex flex-col gap-1">
         <label for="cv-hard" class="font-medium">Compétences techniques</label>
         <ChampTags id="cv-hard" v-model="cv.hardSkills" placeholder="PHP, Figma… (Entrée pour ajouter)" @update:model-value="modifie" />
@@ -153,9 +140,9 @@ const formationVide = { diplome: '', etablissement: '', dateDebut: '', dateFin: 
         <label for="cv-soft" class="font-medium">Savoir-être</label>
         <ChampTags id="cv-soft" v-model="cv.softSkills" placeholder="Autonomie, esprit d'équipe…" @update:model-value="modifie" />
       </div>
-    </section>
+    </Card>
 
-    <section class="card p-4 grid gap-4 md:grid-cols-2">
+    <Card bare tag="section" class="p-4 grid gap-4 md:grid-cols-2">
       <div class="flex flex-col gap-2">
         <div class="flex items-center justify-between">
           <h3 class="text-base font-semibold m-0">Langues</h3>
@@ -178,6 +165,6 @@ const formationVide = { diplome: '', etablissement: '', dateDebut: '', dateFin: 
           <Button icon="pi pi-times" size="small" text severity="danger" aria-label="Retirer le lien" @click="retirer('reseaux', i)" />
         </div>
       </div>
-    </section>
+    </Card>
   </div>
 </template>

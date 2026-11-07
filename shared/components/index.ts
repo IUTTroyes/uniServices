@@ -32,6 +32,7 @@ import Kpi from './Kpi.vue'
 import Card from './components/Card.vue'
 import EmptyState from './components/EmptyState.vue'
 import Alert from './components/Alert.vue'
+import LoadingBar from './components/LoadingBar.vue'
 import QuickActionCard from './components/QuickActionCard.vue'
 import ActionButtonVertical from './components/ActionButtonVertical.vue'
 import UserCard from "./components/User/UserCard.vue";
@@ -103,6 +104,7 @@ export {
   Card,
   EmptyState,
   Alert,
+  LoadingBar,
   QuickActionCard,
   ActionButtonVertical,
   ConfigOptionItem

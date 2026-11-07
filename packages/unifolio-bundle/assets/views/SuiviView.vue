@@ -1,46 +1,41 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { HeaderComponent, EmptyState } from '@components';
+import { HeaderComponent, EmptyState, Card, LoadingBar, Kpi } from '@components';
 import Button from 'primevue/button';
 import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import ToggleSwitch from 'primevue/toggleswitch';
-import ProgressBar from 'primevue/progressbar';
 import { suiviService, pourcent, teinteScore, ALERTES } from '../requests/suiviService';
 import { messageErreur } from '../requests/traceService';
+import { useChargement } from '../composables/useChargement';
 import { couleurCompetence, texteSurCompetence } from '../components/traces/options';
 
 const router = useRouter();
-const campagnes = ref([]);
 const choix = ref(null);
 const suivi = ref(null);
-const chargement = ref(true);
 const chargementMatrice = ref(false);
-const erreur = ref(null);
+const erreurMatrice = ref(null);
 const seulementAlertes = ref(false);
 
-onMounted(async () => {
-  try {
-    const { data } = await suiviService.campagnes();
+const { donnees: campagnes, chargement, erreur: erreurCampagnes } = useChargement(() => suiviService.campagnes(), {
+  initial: [],
+  messageParDefaut: 'Impossible de charger les campagnes.',
+  apres: (data) => {
     campagnes.value = data;
     choix.value = data[0]?.uuid ?? null;
-  } catch (e) {
-    erreur.value = messageErreur(e, 'Impossible de charger les campagnes.');
-  } finally {
-    chargement.value = false;
-  }
+  },
 });
 
 watch(choix, async (uuid) => {
   suivi.value = null;
   if (!uuid) return;
   chargementMatrice.value = true;
-  erreur.value = null;
+  erreurMatrice.value = null;
   try {
     suivi.value = (await suiviService.campagne(uuid)).data;
   } catch (e) {
-    erreur.value = messageErreur(e, 'Impossible de charger le suivi de cette campagne.');
+    erreurMatrice.value = messageErreur(e, 'Impossible de charger le suivi de cette campagne.');
   } finally {
     chargementMatrice.value = false;
   }
@@ -77,7 +72,8 @@ const ouvrir = (l) => router.push(`/unifolio/evaluations/etudiants/${choix.value
     </template>
   </HeaderComponent>
 
-  <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
+  <LoadingBar v-if="chargement" />
+  <EmptyState v-else-if="erreurCampagnes" icon="pi pi-exclamation-triangle" color="rose" title="Erreur" :description="erreurCampagnes" />
   <EmptyState v-else-if="!campagnes.length" icon="pi pi-users" color="emerald" title="Aucune campagne à suivre" description="Vous n'avez pas d'étudiant affecté. Un référent portfolio peut vous en affecter." />
 
   <template v-else>
@@ -87,21 +83,17 @@ const ouvrir = (l) => router.push(`/unifolio/evaluations/etudiants/${choix.value
       <label class="flex items-center gap-2 text-sm cursor-pointer ml-auto"><ToggleSwitch v-model="seulementAlertes" /> Uniquement les étudiants à surveiller</label>
     </div>
 
-    <ProgressBar v-if="chargementMatrice" mode="indeterminate" style="height: 4px" />
-    <EmptyState v-else-if="erreur" icon="pi pi-exclamation-triangle" color="rose" title="Erreur" :description="erreur" />
+    <LoadingBar v-if="chargementMatrice" />
+    <EmptyState v-else-if="erreurMatrice" icon="pi pi-exclamation-triangle" color="rose" title="Erreur" :description="erreurMatrice" />
 
     <template v-else-if="suivi">
       <p v-if="suivi.message && !suivi.disponible" class="text-muted-color">{{ suivi.message }}</p>
 
       <div class="grid gap-3 grid-cols-2 md:grid-cols-5">
-        <div v-for="k in kpis" :key="k.cle" class="card p-3 m-0 flex flex-col">
-          <span class="text-sm text-muted-color">{{ k.libelle }}</span>
-          <span class="text-2xl font-semibold">{{ k.valeur }}</span>
-          <span v-if="k.alerte" class="text-xs text-red-600">{{ k.alerte }}</span>
-        </div>
+        <Kpi v-for="k in kpis" :key="k.cle" compact :label="k.libelle" :value="k.valeur" :alerte="k.alerte ?? ''" />
       </div>
 
-      <div class="card p-0 overflow-x-auto">
+      <Card bare class="p-0 overflow-x-auto">
         <table class="w-full border-collapse text-sm">
           <caption class="sr-only">Couverture du référentiel par étudiant et par compétence</caption>
           <thead>
@@ -133,7 +125,7 @@ const ouvrir = (l) => router.push(`/unifolio/evaluations/etudiants/${choix.value
             <tr v-if="!lignes.length"><td :colspan="suivi.competences.length + 3" class="p-4 text-center text-muted-color">Aucun étudiant à afficher.</td></tr>
           </tbody>
         </table>
-      </div>
+      </Card>
       <p class="text-xs text-muted-color m-0">Chaque case : éléments couverts par une trace déposée, puis score d'évaluation moyen (toutes évaluations rendues). Cliquez sur un étudiant pour ouvrir son suivi détaillé.</p>
     </template>
   </template>

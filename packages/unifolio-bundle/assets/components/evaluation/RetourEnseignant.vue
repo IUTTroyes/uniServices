@@ -1,4 +1,5 @@
 <script setup>
+import { formatDateFr } from '@helpers/date';
 import { computed } from 'vue';
 import Tag from 'primevue/tag';
 import { libelleReponse } from './comparaison';
@@ -9,7 +10,7 @@ const props = defineProps({ retour: { type: Object, required: true } });
 
 const revision = computed(() => props.retour.statut.value === 'revision_demandee');
 const score = computed(() => pourcentage(props.retour.score));
-const date = computed(() => (props.retour.rendueLe ? new Date(props.retour.rendueLe).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null));
+const date = computed(() => formatDateFr(props.retour.rendueLe, 'longue'));
 </script>
 
 <template>

@@ -1,8 +1,9 @@
 <script setup>
+import { showDanger } from '@helpers/toast';
+import { formatDateFr } from '@helpers/date';
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { useToast } from 'primevue/usetoast';
-import { HeaderComponent, EmptyState } from '@components';
+import { HeaderComponent, EmptyState, Card, LoadingBar } from '@components';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
@@ -10,12 +11,10 @@ import Select from 'primevue/select';
 import DatePicker from 'primevue/datepicker';
 import ToggleSwitch from 'primevue/toggleswitch';
 import Tag from 'primevue/tag';
-import ProgressBar from 'primevue/progressbar';
 import campagneService from '../../requests/campagneService';
 import { messageErreur } from '../../requests/traceService';
 
 const router = useRouter();
-const toast = useToast();
 
 const campagnes = ref([]);
 const options = ref(null);
@@ -30,7 +29,7 @@ const charger = async () => {
     campagnes.value = liste;
     options.value = opt;
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Chargement impossible', detail: messageErreur(e), life: 6000 });
+    showDanger(messageErreur(e), 'Chargement impossible', 6000);
   } finally {
     chargement.value = false;
   }
@@ -65,13 +64,13 @@ const creer = async () => {
     dialogue.value = false;
     router.push(`/unifolio/admin/campagnes/${data.uuid}`);
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Création impossible', detail: messageErreur(e), life: 8000 });
+    showDanger(messageErreur(e), 'Création impossible', 8000);
   } finally {
     envoi.value = false;
   }
 };
 
-const date = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
+const date = (iso) => formatDateFr(iso, 'moyenne', '—');
 </script>
 
 <template>
@@ -88,17 +87,16 @@ const date = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'n
     </template>
   </HeaderComponent>
 
-  <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
+  <LoadingBar v-if="chargement" />
   <EmptyState v-else-if="campagnes.length === 0" icon="pi pi-calendar" color="emerald" title="Aucune campagne" description="Créez une campagne pour qu'une formation puisse faire évaluer ses traces." />
 
   <div v-else class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-    <button
-      v-for="c in campagnes"
-      :key="c.uuid"
-      type="button"
-      class="card p-4 m-0 text-left flex flex-col gap-3 hover:shadow-md transition-shadow cursor-pointer"
-      @click="router.push(`/unifolio/admin/campagnes/${c.uuid}`)"
-    >
+    <Card bare tag="button"
+ v-for="c in campagnes"
+ :key="c.uuid"
+ type="button"
+ class="p-4 m-0 text-left flex flex-col gap-3 hover:shadow-md transition-shadow cursor-pointer"
+ @click="router.push(`/unifolio/admin/campagnes/${c.uuid}`)">
       <div class="flex items-start justify-between gap-2">
         <span class="font-semibold">{{ c.libelle }}</span>
         <Tag :value="c.phase.libelle" :severity="c.phase.badge" />
@@ -116,7 +114,7 @@ const date = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'n
         <Tag :value="`${c.nbEvaluations} évaluation(s)`" severity="secondary" />
         <Tag v-if="c.enRetard" value="En retard" severity="danger" />
       </div>
-    </button>
+    </Card>
   </div>
 
   <Dialog v-model:visible="dialogue" header="Nouvelle campagne" modal :style="{ width: '40rem' }" :breakpoints="{ '640px': '95vw' }">

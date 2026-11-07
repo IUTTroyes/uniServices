@@ -1,25 +1,23 @@
 <script setup>
+import { showDanger, showSuccess, showWarn } from '@helpers/toast';
+import { formatDateFr } from '@helpers/date';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useToast } from 'primevue/usetoast';
-import { useConfirm } from 'primevue/useconfirm';
-import { HeaderComponent, EmptyState } from '@components';
+import { useConfirmation } from '@composables/useConfirmation';
+import { HeaderComponent, EmptyState, Card, Alert, LoadingBar } from '@components';
 import Button from 'primevue/button';
 import Tag from 'primevue/tag';
-import ProgressBar from 'primevue/progressbar';
 import MediaPreview from '../components/traces/MediaPreview.vue';
 import AutoEvaluationPanel from '../components/autoeval/AutoEvaluationPanel.vue';
 import RetourEnseignant from '../components/evaluation/RetourEnseignant.vue';
 import CommentairesThread from '../components/commentaires/CommentairesThread.vue';
-import Message from 'primevue/message';
 import { pourcentage } from '../requests/autoEvaluationService';
 import traceService, { messageErreur } from '../requests/traceService';
 import { couleurCompetence, texteSurCompetence } from '../components/traces/options';
 
 const route = useRoute();
 const router = useRouter();
-const toast = useToast();
-const confirm = useConfirm();
+const { confirmer } = useConfirmation();
 
 const trace = ref(null);
 const chargement = ref(true);
@@ -74,36 +72,36 @@ const action = async (fn, succes) => {
   try {
     const { data } = await fn();
     trace.value = data;
-    toast.add({ severity: 'success', summary: succes, life: 3000 });
+    showSuccess(undefined, succes, 3000);
   } catch (e) {
-    toast.add({ severity: 'warn', summary: 'Action impossible', detail: messageErreur(e), life: 7000 });
+    showWarn(messageErreur(e), 'Action impossible', 7000);
   }
 };
 
 const supprimer = () => {
-  confirm.require({
-    message: 'Supprimer définitivement cette trace et toutes ses preuves ?',
+  confirmer({
     header: 'Supprimer la trace',
+    message: 'Supprimer définitivement cette trace et toutes ses preuves ?',
     icon: 'pi pi-trash',
-    acceptProps: { label: 'Supprimer', severity: 'danger' },
-    rejectProps: { label: 'Annuler', severity: 'secondary', outlined: true },
+    libelle: 'Supprimer',
+    danger: true,
     accept: async () => {
       try {
         await traceService.supprimer(trace.value.uuid);
-        toast.add({ severity: 'success', summary: 'Trace supprimée', life: 3000 });
+        showSuccess(undefined, 'Trace supprimée', 3000);
         router.push('/unifolio/traces');
       } catch (e) {
-        toast.add({ severity: 'error', summary: 'Suppression impossible', detail: messageErreur(e), life: 6000 });
+        showDanger(messageErreur(e), 'Suppression impossible', 6000);
       }
     },
   });
 };
 
-const formatDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null);
+const formatDate = (iso) => formatDateFr(iso, 'longue');
 </script>
 
 <template>
-  <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
+  <LoadingBar v-if="chargement" />
   <EmptyState v-else-if="erreur" icon="pi pi-exclamation-triangle" color="rose" title="Trace indisponible" :description="erreur" />
 
   <template v-else-if="trace">
@@ -140,32 +138,32 @@ const formatDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { d
 
     <div class="grid gap-4 xl:grid-cols-3">
       <div class="xl:col-span-2 flex flex-col gap-4">
-        <Message v-if="revisionDemandee" severity="warn" :closable="false">
+        <Alert icon-native v-if="revisionDemandee" severity="warn" :closable="false">
           <div class="flex flex-col gap-1">
             <strong>{{ revisionDemandee.evaluateur.nom }} vous demande de réviser cette trace.</strong>
             <span class="whitespace-pre-line">{{ revisionDemandee.appreciation }}</span>
             <span class="text-sm">Modifiez la trace puis déposez-la à nouveau.</span>
           </div>
-        </Message>
+        </Alert>
 
-        <section v-if="trace.contexte" class="card p-4">
+        <Card bare tag="section" v-if="trace.contexte" class="p-4">
           <h3 class="text-base font-semibold mt-0">Contexte et démarche</h3>
           <p class="whitespace-pre-line m-0">{{ trace.contexte }}</p>
-        </section>
+        </Card>
 
-        <section class="card p-4 flex flex-col gap-6">
+        <Card bare tag="section" class="p-4 flex flex-col gap-6">
           <h3 class="text-base font-semibold m-0">Preuves</h3>
           <p v-if="trace.medias.length === 0" class="text-muted-color m-0">Aucune preuve.</p>
           <MediaPreview v-for="media in trace.medias" :key="media.id" :media="media" />
-        </section>
+        </Card>
 
-        <section v-if="trace.statut.value !== 'brouillon'" class="card p-4">
+        <Card bare tag="section" v-if="trace.statut.value !== 'brouillon'" class="p-4">
           <CommentairesThread :trace-uuid="trace.uuid" :rattachements="trace.rattachements" />
-        </section>
+        </Card>
       </div>
 
       <div class="flex flex-col gap-4">
-        <section class="card p-4 flex flex-col gap-3">
+        <Card bare tag="section" class="p-4 flex flex-col gap-3">
           <h3 class="text-base font-semibold m-0">Compétences démontrées</h3>
           <p v-if="trace.rattachements.length === 0" class="text-muted-color m-0 text-sm">Pas encore rattachée au référentiel.</p>
           <div
@@ -201,14 +199,14 @@ const formatDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { d
               <RetourEnseignant v-for="retour in r.retours" :key="retour.uuid" :retour="retour" />
             </div>
           </div>
-        </section>
+        </Card>
 
-        <section class="card p-4 flex flex-col gap-2 text-sm">
+        <Card bare tag="section" class="p-4 flex flex-col gap-2 text-sm">
           <h3 class="text-base font-semibold m-0">Usage de l'IA</h3>
           <span><strong>Conception :</strong> {{ trace.conceptionIa.libelle }}</span>
           <span><strong>Réalisation :</strong> {{ trace.realisationIa.libelle }}</span>
           <span v-if="trace.usageIaDetail" class="text-muted-color whitespace-pre-line">{{ trace.usageIaDetail }}</span>
-        </section>
+        </Card>
       </div>
     </div>
 

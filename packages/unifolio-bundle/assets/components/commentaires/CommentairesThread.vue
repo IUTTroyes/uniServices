@@ -1,6 +1,7 @@
 <script setup>
+import { showWarn } from '@helpers/toast';
+import { formatDateFr } from '@helpers/date';
 import { computed, onMounted, ref, watch } from 'vue';
-import { useToast } from 'primevue/usetoast';
 import Button from 'primevue/button';
 import Textarea from 'primevue/textarea';
 import Select from 'primevue/select';
@@ -15,7 +16,6 @@ const props = defineProps({
   rattachements: { type: Array, default: () => [] },
 });
 
-const toast = useToast();
 const commentaires = ref([]);
 const nouveau = ref('');
 const ancrage = ref(null);
@@ -29,7 +29,7 @@ const charger = async () => {
     const { data } = await commentaireService.lister(props.traceUuid);
     commentaires.value = data;
   } catch (e) {
-    toast.add({ severity: 'warn', summary: 'Commentaires indisponibles', detail: messageErreur(e), life: 5000 });
+    showWarn(messageErreur(e), 'Commentaires indisponibles', 5000);
   } finally {
     chargement.value = false;
   }
@@ -50,7 +50,7 @@ const envoyer = async (contenu, extra = {}) => {
     commentaires.value.push(data);
     return true;
   } catch (e) {
-    toast.add({ severity: 'warn', summary: 'Commentaire non envoyé', detail: messageErreur(e), life: 6000 });
+    showWarn(messageErreur(e), 'Commentaire non envoyé', 6000);
     return false;
   } finally {
     envoi.value = false;
@@ -70,7 +70,7 @@ const repondre = async (racine) => {
   }
 };
 
-const date = (iso) => new Date(iso).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const date = (iso) => formatDateFr(iso, 'jourMoisHeure', '');
 </script>
 
 <template>

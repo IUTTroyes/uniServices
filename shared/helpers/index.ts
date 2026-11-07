@@ -4,12 +4,14 @@
 
 // String & Date utilities
 import { formatAdresse } from './adresse.js'
-import { formatDateCourt, formatDateLong, jourDate, heuresMinutesDate, getISOWeekNumber, parseApiDate } from './date.js'
+import { formatDateCourt, formatDateLong, formatDateFr, STYLES_DATE, jourDate, heuresMinutesDate, getISOWeekNumber, parseApiDate } from './date.js'
 import { capitalize } from './string.js'
 
 // Color utilities
 import {
     adjustColor,
+    couleurCompetence,
+    texteSurCompetence,
     rgbToHsl,
     hslToRgb,
     colorNameToRgb,
@@ -41,6 +43,8 @@ export {
     capitalize,
     formatDateCourt,
     formatDateLong,
+    formatDateFr,
+    STYLES_DATE,
     jourDate,
     heuresMinutesDate,
     getISOWeekNumber,
@@ -54,6 +58,8 @@ export {
     hexToRgb,
     darkenColor,
     adjustColor,
+    couleurCompetence,
+    texteSurCompetence,
     colorNameToRgb
 }
 

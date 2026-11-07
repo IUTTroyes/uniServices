@@ -1,7 +1,7 @@
 <script setup>
+import { showDanger, showWarn } from '@helpers/toast';
 import { computed, ref, watch } from 'vue';
-import { useToast } from 'primevue/usetoast';
-import { useConfirm } from 'primevue/useconfirm';
+import { useConfirmation } from '@composables/useConfirmation';
 import { VueDraggableNext as draggable } from 'vue-draggable-next';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
@@ -25,8 +25,7 @@ const props = defineProps({
 });
 const emit = defineEmits(['change', 'premier-fichier']);
 
-const toast = useToast();
-const confirm = useConfirm();
+const { confirmer } = useConfirmation();
 
 const liste = ref([...props.medias]);
 watch(() => props.medias, (medias) => { liste.value = [...medias]; });
@@ -38,7 +37,7 @@ const nouvelleUrl = ref('');
 const saisie = ref(null); // { type: 'texte'|'code', contenu, langage }
 const occupe = computed(() => envois.value.some((e) => e.erreur === null && e.progression < 100));
 
-const erreur = (summary, e) => toast.add({ severity: 'error', summary, detail: e?.response ? messageErreur(e) : (e?.message ?? String(e)), life: 7000 });
+const erreur = (summary, e) => showDanger(e?.response ? messageErreur(e) : (e?.message ?? String(e)), summary, 7000);
 
 // ---------- Fichiers ----------
 
@@ -102,7 +101,7 @@ const retirerEnvoi = (id) => { envois.value = envois.value.filter((e) => e.id !=
 
 const ajouterUrl = async (url = nouvelleUrl.value.trim()) => {
   if (!estUrl(url)) {
-    toast.add({ severity: 'warn', summary: 'Adresse invalide', detail: 'Saisissez une adresse commençant par http:// ou https://', life: 4000 });
+    showWarn('Saisissez une adresse commençant par http:// ou https://', 'Adresse invalide', 4000);
     return;
   }
   try {
@@ -144,12 +143,12 @@ const modifier = async (media, champs, rafraichir = false) => {
 };
 
 const supprimer = (media) => {
-  confirm.require({
-    message: 'Supprimer définitivement cette preuve ?',
+  confirmer({
     header: 'Supprimer la preuve',
+    message: 'Supprimer définitivement cette preuve ?',
     icon: 'pi pi-trash',
-    acceptProps: { label: 'Supprimer', severity: 'danger' },
-    rejectProps: { label: 'Annuler', severity: 'secondary', outlined: true },
+    libelle: 'Supprimer',
+    danger: true,
     accept: async () => {
       try {
         await traceService.supprimerMedia(props.uuid, media.id);

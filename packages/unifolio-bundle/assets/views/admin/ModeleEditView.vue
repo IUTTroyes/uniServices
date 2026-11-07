@@ -1,32 +1,28 @@
 <script setup>
+import { showSuccess } from '@helpers/toast';
 import { computed, onBeforeUnmount, onMounted, provide, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useToast } from 'primevue/usetoast';
-import { useConfirm } from 'primevue/useconfirm';
+import { useConfirmation } from '@composables/useConfirmation';
 import { VueDraggableNext as draggable } from 'vue-draggable-next';
-import { HeaderComponent, EmptyState } from '@components';
+import { HeaderComponent, EmptyState, Card, Alert, LoadingBar } from '@components';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
 import ToggleSwitch from 'primevue/toggleswitch';
-import Message from 'primevue/message';
 import Tag from 'primevue/tag';
-import ProgressBar from 'primevue/progressbar';
 import BlocEditor from '../../blocs/BlocEditor.vue';
 import { copie, nouveauBloc } from '../../blocs/schema';
+import { useChargement } from '../../composables/useChargement';
 import { modeleService, messagesErreur } from '../../requests/portfolioService';
 
 const route = useRoute();
 const router = useRouter();
-const toast = useToast();
-const confirm = useConfirm();
+const { confirmer } = useConfirmation();
 
 const modele = ref(null);
 const pages = ref([]);
 const meta = reactive({ libelle: '', description: '', actif: true });
 const courante = ref(0);
-const chargement = ref(true);
-const erreurChargement = ref(null);
 const enregistrement = ref(false);
 const dirty = ref(false);
 const erreurs = ref([]);
@@ -47,17 +43,8 @@ const verser = (m) => {
 };
 
 const avantQuitter = (event) => { if (dirty.value) { event.preventDefault(); event.returnValue = ''; } };
-onMounted(async () => {
-  window.addEventListener('beforeunload', avantQuitter);
-  try {
-    const { data } = await modeleService.lire(route.params.uuid);
-    verser(data);
-  } catch (e) {
-    erreurChargement.value = messagesErreur(e, 'Modèle introuvable.')[0];
-  } finally {
-    chargement.value = false;
-  }
-});
+const { chargement, erreur: erreurChargement } = useChargement(() => modeleService.lire(route.params.uuid), { messageParDefaut: 'Modèle introuvable.', apres: verser });
+onMounted(() => window.addEventListener('beforeunload', avantQuitter));
 onBeforeUnmount(() => window.removeEventListener('beforeunload', avantQuitter));
 
 const modifie = () => { dirty.value = true; };
@@ -67,12 +54,12 @@ const ajouterPage = () => {
   aller(pages.value.length - 1);
   modifie();
 };
-const supprimerPage = (i) => confirm.require({
+const supprimerPage = (i) => confirmer({
   header: 'Supprimer la page',
   message: `Supprimer la page « ${pages.value[i].titre} » du modèle ?`,
   icon: 'pi pi-trash',
-  acceptProps: { label: 'Supprimer', severity: 'danger' },
-  rejectProps: { label: 'Annuler', severity: 'secondary', outlined: true },
+  libelle: 'Supprimer',
+  danger: true,
   accept: () => { pages.value.splice(i, 1); aller(Math.min(courante.value, pages.value.length - 1)); modifie(); },
 });
 
@@ -83,7 +70,7 @@ const enregistrer = async () => {
     await modeleService.modifier(modele.value.uuid, { libelle: meta.libelle, description: meta.description, actif: meta.actif });
     const { data } = await modeleService.definirStructure(modele.value.uuid, pages.value.map(({ titre, verrouillee, blocs, verrouilles }) => ({ titre, verrouillee, blocs, verrouilles })));
     verser(data);
-    toast.add({ severity: 'success', summary: 'Modèle enregistré', life: 3000 });
+    showSuccess(undefined, 'Modèle enregistré', 3000);
   } catch (e) {
     erreurs.value = messagesErreur(e);
   } finally {
@@ -95,7 +82,7 @@ const nbImposes = (p) => p.verrouilles.length + (p.verrouillee ? 1 : 0);
 </script>
 
 <template>
-  <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
+  <LoadingBar v-if="chargement" />
   <EmptyState v-else-if="erreurChargement" icon="pi pi-exclamation-triangle" color="rose" title="Modèle indisponible" :description="erreurChargement" />
 
   <template v-else-if="modele">
@@ -113,14 +100,14 @@ const nbImposes = (p) => p.verrouilles.length + (p.verrouillee ? 1 : 0);
       </template>
     </HeaderComponent>
 
-    <Message v-if="lectureSeule" severity="info" :closable="false">
+    <Alert icon-native v-if="lectureSeule" severity="info" :closable="false">
       Modèle en lecture seule. <Button label="Adapter pour mon département" icon="pi pi-copy" size="small" text @click="modeleService.dupliquer(modele.uuid, { portee: 'departement' }).then(({ data }) => router.push(`/unifolio/admin/modeles/${data.uuid}`))" />
-    </Message>
-    <Message v-if="erreurs.length" severity="error" :closable="true" @close="erreurs = []">
+    </Alert>
+    <Alert icon-native v-if="erreurs.length" severity="error" :closable="true" @close="erreurs = []">
       <ul class="m-0 pl-4"><li v-for="e in erreurs" :key="e">{{ e }}</li></ul>
-    </Message>
+    </Alert>
 
-    <section class="card p-4 grid gap-3 md:grid-cols-3">
+    <Card bare tag="section" class="p-4 grid gap-3 md:grid-cols-3">
       <div class="flex flex-col gap-1">
         <label for="mo-libelle" class="font-medium">Libellé</label>
         <InputText id="mo-libelle" v-model="meta.libelle" :disabled="lectureSeule" @input="modifie" />
@@ -130,16 +117,16 @@ const nbImposes = (p) => p.verrouilles.length + (p.verrouillee ? 1 : 0);
         <Textarea id="mo-desc" v-model="meta.description" rows="2" auto-resize :disabled="lectureSeule" @input="modifie" />
       </div>
       <label class="flex items-center gap-2 text-sm cursor-pointer"><ToggleSwitch v-model="meta.actif" :disabled="lectureSeule" @update:model-value="modifie" /> Modèle actif (proposé aux campagnes)</label>
-    </section>
+    </Card>
 
-    <Message severity="secondary" :closable="false">
+    <Alert icon-native severity="secondary" :closable="false">
       Les étudiants reçoivent une <strong>copie</strong> du modèle : le modifier n'affecte pas les portfolios déjà créés.
       Une <i class="pi pi-lock" /> <strong>page imposée</strong> ne peut être ni supprimée ni renommée ; un <i class="pi pi-lock" /> <strong>bloc imposé</strong> ne peut être ni supprimé ni changé de type (son contenu reste libre).
       Les traces, images et fichiers personnels ne peuvent pas figurer dans un modèle.
-    </Message>
+    </Alert>
 
     <div class="grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)] items-start">
-      <aside class="card p-3 flex flex-col gap-2 lg:sticky lg:top-2" aria-label="Pages du modèle">
+      <Card bare tag="aside" class="p-3 flex flex-col gap-2 lg:sticky lg:top-2" aria-label="Pages du modèle">
         <h3 class="text-sm font-semibold m-0">Pages</h3>
         <draggable :list="pages" handle=".page-poignee" :disabled="lectureSeule" class="flex flex-col gap-1" @end="modifie">
           <div v-for="(p, i) in pages" :key="p.cle" class="flex items-center gap-1 rounded-lg px-1" :class="i === courante ? 'bg-emerald-50 dark:bg-emerald-950/30' : ''">
@@ -150,16 +137,16 @@ const nbImposes = (p) => p.verrouilles.length + (p.verrouillee ? 1 : 0);
           </div>
         </draggable>
         <Button v-if="!lectureSeule && pages.length < 20" label="Ajouter une page" icon="pi pi-plus" size="small" outlined @click="ajouterPage" />
-      </aside>
+      </Card>
 
       <section v-if="page" class="flex flex-col gap-3 min-w-0">
-        <div class="card p-3 flex flex-wrap items-center gap-3">
+        <Card bare class="p-3 flex flex-wrap items-center gap-3">
           <InputText v-model="page.titre" maxlength="120" class="flex-1 min-w-48" aria-label="Titre de la page" :disabled="lectureSeule" @input="modifie" />
           <label class="flex items-center gap-2 text-sm cursor-pointer"><ToggleSwitch v-model="page.verrouillee" :disabled="lectureSeule" @update:model-value="modifie" /> Page imposée</label>
-        </div>
-        <div class="card p-3" @click="selection = null">
+        </Card>
+        <Card bare class="p-3" @click="selection = null">
           <BlocEditor :key="page.cle" :blocs="page.blocs" :verrouilles="page.verrouilles" mode-modele :lecture-seule="lectureSeule" @change="modifie" />
-        </div>
+        </Card>
       </section>
     </div>
   </template>

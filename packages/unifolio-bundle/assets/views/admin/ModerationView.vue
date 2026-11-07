@@ -1,15 +1,14 @@
 <script setup>
+import { showDanger, showSuccess } from '@helpers/toast';
+import { formatDateFr } from '@helpers/date';
 import { onMounted, ref } from 'vue';
-import { useToast } from 'primevue/usetoast';
-import { HeaderComponent, EmptyState } from '@components';
+import { HeaderComponent, EmptyState, Card, LoadingBar } from '@components';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import Textarea from 'primevue/textarea';
 import Tag from 'primevue/tag';
-import ProgressBar from 'primevue/progressbar';
 import { moderationService, messagesErreur } from '../../requests/portfolioService';
 
-const toast = useToast();
 const publications = ref([]);
 const chargement = ref(true);
 const cible = ref(null);
@@ -35,9 +34,9 @@ const moderer = async () => {
     await moderationService.moderer(cible.value.uuid, motif.value);
     cible.value = null;
     await charger();
-    toast.add({ severity: 'success', summary: 'Publication retirée', life: 3000 });
+    showSuccess(undefined, 'Publication retirée', 3000);
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Modération impossible', detail: messagesErreur(e).join(' '), life: 6000 });
+    showDanger(messagesErreur(e).join(' '), 'Modération impossible', 6000);
   } finally {
     envoi.value = false;
   }
@@ -47,13 +46,13 @@ const retablir = async (p) => {
   try {
     await moderationService.retablir(p.uuid);
     await charger();
-    toast.add({ severity: 'success', summary: 'Publication rétablie', life: 3000 });
+    showSuccess(undefined, 'Publication rétablie', 3000);
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Action impossible', detail: messagesErreur(e).join(' '), life: 6000 });
+    showDanger(messagesErreur(e).join(' '), 'Action impossible', 6000);
   }
 };
 
-const date = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
+const date = (iso) => formatDateFr(iso, 'moyenne', '');
 </script>
 
 <template>
@@ -66,12 +65,12 @@ const date = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'n
     color="emerald"
   />
 
-  <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
+  <LoadingBar v-if="chargement" />
   <EmptyState v-else-if="erreur" icon="pi pi-exclamation-triangle" color="rose" title="Erreur" :description="erreur" />
   <EmptyState v-else-if="publications.length === 0" icon="pi pi-eye" color="emerald" title="Rien à modérer" description="Aucun portfolio de votre périmètre n'est actuellement publié." />
 
   <div v-else class="flex flex-col gap-3">
-    <div v-for="p in publications" :key="p.uuid" class="card p-4 m-0 flex flex-wrap items-center gap-3" :class="{ 'opacity-70': p.moderee }">
+    <Card bare v-for="p in publications" :key="p.uuid" class="p-4 m-0 flex flex-wrap items-center gap-3" :class="{ 'opacity-70': p.moderee }">
       <div class="flex flex-col flex-1 min-w-56">
         <span class="font-semibold">{{ p.portfolio.titre }}</span>
         <span class="text-sm text-muted-color">{{ p.portfolio.etudiant }} · version {{ p.numero }} · {{ date(p.genereLe) }}</span>
@@ -82,7 +81,7 @@ const date = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'n
       <a v-if="p.url" :href="p.url" target="_blank" rel="noopener"><Button label="Voir" icon="pi pi-external-link" size="small" severity="secondary" outlined /></a>
       <Button v-if="!p.moderee" label="Retirer" icon="pi pi-ban" size="small" severity="danger" outlined @click="cible = p; motif = ''" />
       <Button v-else label="Rétablir" icon="pi pi-undo" size="small" severity="secondary" outlined @click="retablir(p)" />
-    </div>
+    </Card>
   </div>
 
   <Dialog :visible="!!cible" header="Retirer cette publication" modal :style="{ width: '32rem' }" :breakpoints="{ '640px': '95vw' }" @update:visible="cible = null">

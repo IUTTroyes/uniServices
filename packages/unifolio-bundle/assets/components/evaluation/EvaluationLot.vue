@@ -1,12 +1,11 @@
 <script setup>
+import { Card, Alert, LoadingBar } from '@components';
+import { showSuccess, showWarn } from '@helpers/toast';
 import { computed, reactive, ref, watch } from 'vue';
-import { useToast } from 'primevue/usetoast';
 import Button from 'primevue/button';
 import Textarea from 'primevue/textarea';
 import ToggleSwitch from 'primevue/toggleswitch';
-import Message from 'primevue/message';
 import Tag from 'primevue/tag';
-import ProgressBar from 'primevue/progressbar';
 import EvaluationBloc from './EvaluationBloc.vue';
 import { lotService } from '../../requests/evaluationService';
 import { messageErreur } from '../../requests/traceService';
@@ -25,7 +24,6 @@ const props = defineProps({
 });
 const emit = defineEmits(['change', 'charge']);
 
-const toast = useToast();
 
 const lot = ref(null);
 const saisies = reactive({});
@@ -123,13 +121,13 @@ const executer = async (fn, succes) => {
     emit('change');
     if (succes) {
       const message = typeof succes === 'function' ? succes(data) : succes;
-      toast.add({ severity: 'success', summary: message, life: 3500 });
+      showSuccess(undefined, message, 3500);
     }
     return true;
   } catch (e) {
     const liste = e?.response?.data?.erreurs;
     erreurs.value = Array.isArray(liste) && liste.length ? liste : [messageErreur(e, 'Action impossible.')];
-    toast.add({ severity: 'warn', summary: 'Action impossible', detail: erreurs.value.length > 1 ? `${erreurs.value.length} points à corriger` : erreurs.value[0], life: 7000 });
+    showWarn(erreurs.value.length > 1 ? `${erreurs.value.length} points à corriger` : erreurs.value[0], 'Action impossible', 7000);
     return false;
   } finally {
     occupe.value = false;
@@ -169,12 +167,12 @@ const traceARevoir = computed(() => lot.value?.traceStatut?.value === 'a_reviser
 
 <template>
   <section class="flex flex-col gap-4" aria-label="Évaluation">
-    <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
-    <Message v-else-if="erreurChargement" severity="warn" :closable="false">{{ erreurChargement }}</Message>
+    <LoadingBar v-if="chargement" />
+    <Alert icon-native v-else-if="erreurChargement" severity="warn" :closable="false">{{ erreurChargement }}</Alert>
 
     <template v-else-if="lot">
       <!-- Barre d'actions : reste visible pendant la saisie -->
-      <div class="card p-3 flex flex-col gap-3 sticky top-2 z-10 shadow-sm">
+      <Card bare class="p-3 flex flex-col gap-3 sticky top-2 z-10 shadow-sm">
         <div class="flex flex-wrap items-center gap-2 text-sm">
           <strong>{{ lot.items.length }} point(s)</strong>
           <Tag :value="`${nbRenseignes} renseigné(s)`" :severity="nbRenseignes ? 'info' : 'secondary'" />
@@ -184,17 +182,17 @@ const traceARevoir = computed(() => lot.value?.traceStatut?.value === 'a_reviser
           <Button :label="toutOuvert ? 'Tout replier' : 'Tout déplier'" :icon="toutOuvert ? 'pi pi-angle-double-up' : 'pi pi-angle-double-down'" text size="small" class="ml-auto" @click="basculerTout" />
         </div>
 
-        <Message v-if="!lot.peutEvaluer" severity="info" :closable="false">
+        <Alert icon-native v-if="!lot.peutEvaluer" severity="info" :closable="false">
           {{ lot.campagne ? `La campagne « ${lot.campagne.libelle} » n'accepte plus (ou pas encore) d'évaluations.` : 'Aucune campagne d\'évaluation n\'est définie pour cette année.' }}
-        </Message>
-        <Message v-if="lot.mode === 'trace' && traceARevoir" severity="warn" :closable="false">Une révision a été demandée à l'étudiant : en attente de son nouveau dépôt.</Message>
-        <Message v-if="lot.autoEvaluationRequise && lot.peutEvaluer" severity="secondary" :closable="false">Cette campagne exige l'auto-évaluation de l'étudiant avant l'évaluation.</Message>
+        </Alert>
+        <Alert icon-native v-if="lot.mode === 'trace' && traceARevoir" severity="warn" :closable="false">Une révision a été demandée à l'étudiant : en attente de son nouveau dépôt.</Alert>
+        <Alert icon-native v-if="lot.autoEvaluationRequise && lot.peutEvaluer" severity="secondary" :closable="false">Cette campagne exige l'auto-évaluation de l'étudiant avant l'évaluation.</Alert>
 
-        <Message v-if="erreurs.length" severity="error" :closable="true" @close="erreurs = []">
+        <Alert icon-native v-if="erreurs.length" severity="error" :closable="true" @close="erreurs = []">
           <ul class="m-0 pl-4 flex flex-col gap-1">
             <li v-for="e in erreurs" :key="e">{{ e }}</li>
           </ul>
-        </Message>
+        </Alert>
 
         <div v-if="lot.peutEvaluer" class="flex flex-wrap items-center gap-2">
           <label class="flex items-center gap-2 text-sm cursor-pointer mr-auto">
@@ -230,7 +228,7 @@ const traceARevoir = computed(() => lot.value?.traceStatut?.value === 'a_reviser
             <Button label="Envoyer la demande" icon="pi pi-send" severity="warn" size="small" :disabled="!motif.trim()" :loading="occupe" @click="envoyerRevision" />
           </div>
         </div>
-      </div>
+      </Card>
 
       <!-- Points à évaluer, regroupés par compétence -->
       <div v-for="g in groupes" :key="g.competence?.id ?? 0" class="flex flex-col gap-2">

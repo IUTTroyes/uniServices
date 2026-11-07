@@ -12,7 +12,7 @@ const route = { params: {}, query: {}, meta: {} };
 const router = { push: vi.fn(), replace: vi.fn() };
 vi.mock('vue-router', () => ({ useRoute: () => route, useRouter: () => router }));
 
-vi.mock('@components', () => ({
+vi.mock('@components', async () => ({
   HeaderComponent: defineComponent({
     props: ['titre', 'description', 'icon', 'showBack', 'backUrl', 'color'],
     setup: (p, { slots }) => () => h('header', [h('h1', p.titre), h('p', p.description), slots.actions?.()]),
@@ -22,10 +22,17 @@ vi.mock('@components', () => ({
     setup: (p) => () => h('div', { class: 'empty' }, [h('strong', p.title), h('span', p.description)]),
   }),
   registerWidgetComponent: vi.fn(),
+  // Composants partagés réels (rendu identique à la production) ; seuls les composants de page sont simplifiés.
+  Card: (await import('@components/components/Card.vue')).default,
+  Alert: (await import('@components/components/Alert.vue')).default,
+  LoadingBar: (await import('@components/components/LoadingBar.vue')).default,
+  Kpi: (await import('@components/Kpi.vue')).default,
 }));
 
 const api = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), put: vi.fn(), patch: vi.fn(), delete: vi.fn() }));
 vi.mock('@helpers/axios', () => ({ default: api }));
+// Les notifications partagées dépendent du toast initialisé par le shell : simulées ici.
+vi.mock('@helpers/toast', () => ({ showSuccess: vi.fn(), showDanger: vi.fn(), showWarn: vi.fn(), showInfo: vi.fn() }));
 vi.mock('vue-draggable-next', () => ({ VueDraggableNext: defineComponent({ setup: (_, { slots }) => () => h('div', slots.default?.()) }) }));
 
 import EvaluationsView from '../views/EvaluationsView.vue';
@@ -47,6 +54,8 @@ import CopieVitrineDialog from '../components/portfolio/CopieVitrineDialog.vue';
 import ApparenceDialog from '../components/portfolio/ApparenceDialog.vue';
 import ProgressionView from '../views/ProgressionView.vue';
 import SuiviView from '../views/SuiviView.vue';
+import GrilleEditView from '../views/admin/GrilleEditView.vue';
+import TraceEditView from '../views/TraceEditView.vue';
 import ModerationView from '../views/admin/ModerationView.vue';
 import CommentairesThread from '../components/commentaires/CommentairesThread.vue';
 
@@ -133,10 +142,22 @@ const monter = async (composant, props = {}) => {
   return { app, conteneur, avertissements, texte: () => document.body.textContent.replace(/\s+/g, ' ') };
 };
 
+// HTML « stable » : identifiants générés et classes de transition PrimeVue (selon le timing) retirés.
+const htmlStable = () => document.body.innerHTML
+  .replace(/pv_id_\d+/g, 'pv_id_N')
+  .replace(/ p-[a-z-]+-(?:enter|leave)-(?:from|to|active)/g, '')
+  .replace(/ (?:modelvalue|list)="[^"]*"/g, '') // attributs du simulacre de draggable (v-model ou :list)
+  .replace(/ autofocus=""/g, ''); // posé par le piège à focus des dialogues, selon le timing
+
 const demonter = (m) => {
-  m.app.unmount();
-  m.conteneur.remove();
-  document.body.innerHTML = '';
+  try {
+    // Filet de non-régression visuelle : le HTML rendu de chaque écran est figé dans un instantané.
+    expect(htmlStable()).toMatchSnapshot();
+  } finally {
+    m.app.unmount();
+    m.conteneur.remove();
+    document.body.innerHTML = '';
+  }
 };
 
 beforeEach(() => {
@@ -647,5 +668,79 @@ describe('rendu des écrans (aucun avertissement Vue)', () => {
     expect(m.avertissements).toEqual([]);
     expect(m.texte()).toContain('Aucune campagne à suivre');
     demonter(m);
+  });
+
+  // ---------- Édition d'une grille (filet avant découpage de la vue) ----------
+  const contenuGrille = (erreurs = []) => ({
+    echelons: [{ id: 1, libelle: 'Non acquis', valeur: 0, couleur: '#b91c1c', descripteur: 'Non démontré' }, { id: 2, libelle: 'Acquis', valeur: 2, couleur: '#16a34a', descripteur: null }],
+    criteres: [
+      { id: 10, libelle: 'Maîtrise', type: 'echelle', source: 'saisie', poids: 2, noteMax: null, obligatoire: true, visibleEtudiant: true, utiliseAutoEval: true, description: 'Niveau', aide: null },
+      { id: 11, libelle: 'Usage de l\'IA', type: 'echelle', source: 'declaration_ia', poids: 1, noteMax: null, obligatoire: false, visibleEtudiant: true, utiliseAutoEval: false, description: null, aide: null },
+      { id: 12, libelle: 'Note', type: 'note', source: 'saisie', poids: 1, noteMax: 20, obligatoire: false, visibleEtudiant: false, utiliseAutoEval: false, description: null, aide: 'Indicateurs' },
+      { id: 13, libelle: 'Appréciation', type: 'texte', source: 'saisie', poids: 0, noteMax: null, obligatoire: false, visibleEtudiant: true, utiliseAutoEval: false, description: null, aide: null },
+    ],
+    erreursPublication: erreurs,
+  });
+  const grilleDetail = (extra = {}) => ({
+    uuid: U(7), libelle: 'BUT — AC', description: 'Grille', portee: 'departement', libellePortee: 'MMI', granularite: { value: 'ac', libelle: 'Apprentissage critique' },
+    actif: true, modifiable: true, versionPubliee: 1, brouillon: 2, versions: [{ numero: 1, publieeLe: '2026-10-01T08:00:00+00:00' }, { numero: 2, publieeLe: null }],
+    contenuPublie: contenuGrille(), contenuBrouillon: contenuGrille(['Poids total nul.']), ...extra,
+  });
+
+  it('édition d\'une grille : brouillon modifiable', async () => {
+    route.params = { uuid: U(7) };
+    api.get.mockImplementation(routeur([[/\/admin\/grilles\/[^/]+$/, grilleDetail()]]));
+    const m = await monter(GrilleEditView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('Échelle');
+    expect(m.texte()).toContain('Critères');
+    expect(m.texte()).toContain('Version 2 (brouillon)');
+    demonter(m);
+  });
+
+  it('édition d\'une grille : grille nationale en lecture seule', async () => {
+    route.params = { uuid: U(7) };
+    api.get.mockImplementation(routeur([[/\/admin\/grilles\/[^/]+$/, grilleDetail({ portee: 'type_diplome', libellePortee: 'Toutes', modifiable: false, brouillon: null, contenuBrouillon: null })]]));
+    const m = await monter(GrilleEditView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('en lecture seule');
+    expect(m.texte()).toContain('Historique');
+    demonter(m);
+  });
+
+  // ---------- Édition d'une trace (filet avant découpage de la vue) ----------
+  const refTrace = () => [
+    ['/api/unifolio/scolarites', [{ id: 1, annee: 'MMI - DWeb-DI - 2', anneeUniversitaire: '2026-2027', active: true }]],
+    ['/api/unifolio/referentiel', { granularite: { value: 'ac' }, competences: [{ ...competence, niveaux: [{ id: 3, libelle: 'Niveau 1', ordre: 1, apprentissagesCritiques: [{ id: 479, code: 'AC21.01', libelle: 'Analyser' }] }] }] }],
+  ];
+
+  it('édition d\'une trace : brouillon modifiable avec erreurs de dépôt', async () => {
+    route.params = { uuid: 't1t1t1t1-0000-4000-8000-000000000001' };
+    api.get.mockImplementation(routeur([
+      ...refTrace(),
+      [/\/api\/unifolio\/traces\/[^/]+$/, traceDetail({ trace: { modifiable: true, statut: { value: 'brouillon', libelle: 'Brouillon', badge: 'secondary' }, erreursDepot: ['Déclarez l\'usage de l\'IA.'], conceptionIa: { value: 3, libelle: 'Non renseigné' } } })],
+    ]));
+    const m = await monter(TraceEditView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('Usage de l\'IA');
+    expect(m.texte()).toContain('Avant de déposer');
+    expect(m.texte()).toContain('Rattachement au référentiel');
+    demonter(m);
+  });
+
+  it('édition d\'une trace : trace en évaluation non modifiable, et nouvelle trace', async () => {
+    route.params = { uuid: 't1t1t1t1-0000-4000-8000-000000000001' };
+    api.get.mockImplementation(routeur([...refTrace(), [/\/api\/unifolio\/traces\/[^/]+$/, traceDetail()]]));
+    const m = await monter(TraceEditView);
+    expect(m.avertissements).toEqual([]);
+    expect(m.texte()).toContain('n\'est plus modifiable');
+    demonter(m);
+
+    route.params = {};
+    api.get.mockImplementation(routeur(refTrace()));
+    const n = await monter(TraceEditView);
+    expect(n.avertissements).toEqual([]);
+    expect(n.texte()).toContain('Nouvelle trace');
+    demonter(n);
   });
 });

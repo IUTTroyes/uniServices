@@ -1,4 +1,5 @@
 <script setup>
+import { formatDateFr } from '@helpers/date';
 import { computed } from 'vue';
 import { rendreMarkdown } from './markdown';
 import { resoudreSource, tracesFiltrees, pourcentage } from './donnees';
@@ -35,7 +36,7 @@ const tons = {
   neutre: 'bg-surface-100 border-surface-300',
 };
 const cv = computed(() => props.donnees?.cv ?? null);
-const mois = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' }) : '');
+const mois = (iso) => formatDateFr(iso, 'moisAnnee', '');
 const periode = (e) => [mois(e.dateDebut), e.dateFin ? mois(e.dateFin) : e.dateDebut ? 'aujourd\'hui' : ''].filter(Boolean).join(' – ');
 </script>
 

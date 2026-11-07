@@ -233,6 +233,17 @@ Variables possibles : `UNIFOLIO_V1_DATABASE_URL`, `UNIFOLIO_V1_FILES_DIR`. La co
 - **Vérifié sur une base v1 synthétique** (schéma déduit des entités v1 publiées, jeux de test couvrant chaque cas ci-dessus) : essai à blanc, migration, relance idempotente, purge, chemin « campagne héritée ». **Pas encore éprouvé sur une vraie copie de la v1** : lancer d'abord `--check` (il liste précisément toute différence de schéma) puis un essai à blanc, comme prévu par la recette du § 7.3.
 - *Non repris, à décider* : bannières, commentaires de portfolio, mise à jour d'un objet déjà migré, génération des publications.
 
+### 7.5 Convergence avec les composants partagés (passe d'harmonisation UI)
+
+Sans changement de rendu (vérifié par instantanés HTML de 40 écrans et boîtes de dialogue, identiques avant/après, hors ordre d'attributs) :
+
+- **Composants partagés utilisés** : `Card` (nouvelles props `bare` et `tag`), `Kpi` (variante `compact` + `alerte`), `Alert` (prop `iconNative` : garde l'icône PrimeVue d'origine), `LoadingBar` (nouveau : barre de chargement fine commune).
+- **Helpers partagés** : `formatDateFr` + styles de dates (`helpers/date`), `showSuccess/showWarn/showDanger` (`helpers/toast`), `couleurCompetence` (source unique dans `helpers/colors`, alignée sur le SCSS `c1…c6`).
+- **Nouveau composable partagé** `useConfirmation` (boîte de confirmation standard) ; composable du bundle `useChargement` (schéma chargement → erreur → contenu).
+- **Découpage** : `GrilleEchelles`, `GrilleCriteres`, `AffectationsPanel`, `TraceDescription`, `TraceDeclarationIa` (champs en `defineModel`).
+- **Volontairement conservés** : barre de chargement (pas de squelettes : rendu inchangé), pastilles de compétence (rendu différent de `ApcCompetenceBadge`), 4 tableaux sur mesure (matrice de suivi, comparaison, file d'évaluation, affectations : `CustomDataTable` ne couvre ni la sélection ni les cellules colorées), boutons d'action `Button*` (messages de confirmation propres à chaque écran, couverts par `useConfirmation`).
+- **Filet de non-régression** : `tests/vues.test.js` fige le HTML de chaque écran (identifiants et classes de transition PrimeVue normalisés). Toute évolution voulue du rendu se valide avec `vitest -u`, en relisant le diff.
+
 ---
 
 ## 4. Architecture technique

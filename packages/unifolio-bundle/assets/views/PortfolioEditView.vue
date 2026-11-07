@@ -1,16 +1,14 @@
 <script setup>
+import { showSuccess, showWarn } from '@helpers/toast';
 import { computed, onBeforeUnmount, onMounted, provide, reactive, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { useToast } from 'primevue/usetoast';
-import { useConfirm } from 'primevue/useconfirm';
+import { useConfirmation } from '@composables/useConfirmation';
 import { VueDraggableNext as draggable } from 'vue-draggable-next';
-import { HeaderComponent, EmptyState } from '@components';
+import { HeaderComponent, EmptyState, Card, Alert, LoadingBar } from '@components';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
-import Message from 'primevue/message';
 import Tag from 'primevue/tag';
-import ProgressBar from 'primevue/progressbar';
 import BlocEditor from '../blocs/BlocEditor.vue';
 import BlocRender from '../blocs/BlocRender.vue';
 import { copie, incomplets } from '../blocs/schema';
@@ -20,8 +18,7 @@ import CopieVitrineDialog from '../components/portfolio/CopieVitrineDialog.vue';
 import { portfolioService, messagesErreur } from '../requests/portfolioService';
 
 const route = useRoute();
-const toast = useToast();
-const confirm = useConfirm();
+const { confirmer } = useConfirmation();
 
 const portfolio = ref(null);
 const donnees = ref(null);
@@ -106,7 +103,7 @@ const enregistrer = async () => {
     blocs.splice(0, blocs.length, ...copie(data.blocs));
     version.value = data.version;
     dirty.value = false;
-    toast.add({ severity: 'success', summary: 'Page enregistrée', life: 2500 });
+    showSuccess(undefined, 'Page enregistrée', 2500);
     return true;
   } catch (e) {
     erreurs.value = messagesErreur(e);
@@ -122,12 +119,12 @@ const aller = (uuid) => {
     choisirPage(uuid);
     return;
   }
-  confirm.require({
+  confirmer({
     header: 'Modifications non enregistrées',
     message: 'Enregistrer cette page avant de la quitter ?',
     icon: 'pi pi-save',
-    acceptProps: { label: 'Enregistrer' },
-    rejectProps: { label: 'Ignorer les modifications', severity: 'secondary', outlined: true },
+    libelle: 'Enregistrer',
+    libelleRefus: 'Ignorer les modifications',
     accept: async () => { if (await enregistrer()) choisirPage(uuid); },
     reject: () => choisirPage(uuid),
   });
@@ -155,23 +152,23 @@ const validerDialogue = async () => {
       dialogue.ouvert = false;
     }
   } catch (e) {
-    toast.add({ severity: 'warn', summary: 'Action impossible', detail: messagesErreur(e).join(' '), life: 6000 });
+    showWarn(messagesErreur(e).join(' '), 'Action impossible', 6000);
   }
 };
 
-const supprimerPage = (p) => confirm.require({
+const supprimerPage = (p) => confirmer({
   header: 'Supprimer la page',
   message: `Supprimer la page « ${p.titre} » et tout son contenu ?`,
   icon: 'pi pi-trash',
-  acceptProps: { label: 'Supprimer', severity: 'danger' },
-  rejectProps: { label: 'Annuler', severity: 'secondary', outlined: true },
+  libelle: 'Supprimer',
+  danger: true,
   accept: async () => {
     try {
       await portfolioService.supprimerPage(portfolio.value.uuid, p.uuid);
       portfolio.value.pages = portfolio.value.pages.filter((x) => x.uuid !== p.uuid);
       if (pageUuid.value === p.uuid) choisirPage(portfolio.value.pages[0]?.uuid ?? null);
     } catch (e) {
-      toast.add({ severity: 'warn', summary: 'Suppression impossible', detail: messagesErreur(e).join(' '), life: 6000 });
+      showWarn(messagesErreur(e).join(' '), 'Suppression impossible', 6000);
     }
   },
 });
@@ -180,14 +177,14 @@ const reordonner = async () => {
   try {
     await portfolioService.ordonnerPages(portfolio.value.uuid, portfolio.value.pages.map((p) => p.uuid));
   } catch (e) {
-    toast.add({ severity: 'warn', summary: 'Ordre non enregistré', detail: messagesErreur(e).join(' '), life: 6000 });
+    showWarn(messagesErreur(e).join(' '), 'Ordre non enregistré', 6000);
     charger(true);
   }
 };
 </script>
 
 <template>
-  <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
+  <LoadingBar v-if="chargement" />
   <EmptyState v-else-if="erreurChargement" icon="pi pi-exclamation-triangle" color="rose" title="Portfolio indisponible" :description="erreurChargement" />
 
   <template v-else-if="portfolio">
@@ -209,11 +206,11 @@ const reordonner = async () => {
       </template>
     </HeaderComponent>
 
-    <Message v-if="lectureSeule" severity="info" :closable="false">La campagne de cette année est clôturée : votre portfolio est conservé en lecture seule.</Message>
+    <Alert icon-native v-if="lectureSeule" severity="info" :closable="false">La campagne de cette année est clôturée : votre portfolio est conservé en lecture seule.</Alert>
 
     <div class="grid gap-4 lg:grid-cols-[16rem_minmax(0,1fr)] items-start">
       <!-- Pages -->
-      <aside class="card p-3 flex flex-col gap-2 lg:sticky lg:top-2" aria-label="Pages du portfolio">
+      <Card bare tag="aside" class="p-3 flex flex-col gap-2 lg:sticky lg:top-2" aria-label="Pages du portfolio">
         <h3 class="text-sm font-semibold m-0">Pages</h3>
         <draggable :list="portfolio.pages" handle=".page-poignee" :disabled="lectureSeule" class="flex flex-col gap-1" @end="reordonner">
           <div
@@ -234,33 +231,33 @@ const reordonner = async () => {
           </div>
         </draggable>
         <Button v-if="!lectureSeule" label="Ajouter une page" icon="pi pi-plus" size="small" outlined @click="ouvrirDialogue('ajout')" />
-      </aside>
+      </Card>
 
       <!-- Page courante -->
       <section v-if="page" class="flex flex-col gap-3 min-w-0">
-        <div class="card p-3 flex flex-wrap items-center gap-2 sticky top-2 z-10 shadow-sm">
+        <Card bare class="p-3 flex flex-wrap items-center gap-2 sticky top-2 z-10 shadow-sm">
           <h2 class="m-0 text-lg font-semibold flex-1 min-w-40 truncate">{{ page.titre }}</h2>
           <Tag v-if="dirty" value="Modifications non enregistrées" severity="warn" icon="pi pi-pencil" />
           <Button :label="apercu ? 'Modifier' : 'Aperçu'" :icon="apercu ? 'pi pi-pencil' : 'pi pi-eye'" severity="secondary" outlined size="small" @click="apercu = !apercu; selection = null" />
           <Button v-if="!lectureSeule" label="Enregistrer" icon="pi pi-save" size="small" :disabled="!dirty" :loading="enregistrement" @click="enregistrer" />
-        </div>
+        </Card>
 
-        <Message v-if="erreurs.length" severity="error" :closable="true" @close="erreurs = []">
+        <Alert icon-native v-if="erreurs.length" severity="error" :closable="true" @close="erreurs = []">
           <ul class="m-0 pl-4 flex flex-col gap-1"><li v-for="e in erreurs" :key="e">{{ e }}</li></ul>
           <Button v-if="conflit" label="Recharger la page" icon="pi pi-refresh" size="small" severity="secondary" class="mt-2" @click="charger(true)" />
-        </Message>
-        <Message v-if="manques.length && !apercu" severity="warn" :closable="false">
+        </Alert>
+        <Alert icon-native v-if="manques.length && !apercu" severity="warn" :closable="false">
           <strong>{{ manques.length }} élément(s) à compléter</strong> (ils n'empêchent pas d'enregistrer, mais bloqueront la publication) :
           <ul class="m-0 mt-1 pl-4"><li v-for="m in manques.slice(0, 5)" :key="m">{{ m }}</li></ul>
-        </Message>
+        </Alert>
 
-        <article v-if="apercu" class="card p-6 flex flex-col gap-4" aria-label="Aperçu de la page">
+        <Card bare tag="article" v-if="apercu" class="p-6 flex flex-col gap-4" aria-label="Aperçu de la page">
           <BlocRender v-for="b in blocs" :key="b.id" :bloc="b" :donnees="donnees" />
           <p v-if="!blocs.length" class="m-0 text-muted-color">Page vide.</p>
-        </article>
-        <div v-else class="card p-3" @click="selection = null">
+        </Card>
+        <Card bare v-else class="p-3" @click="selection = null">
           <BlocEditor :blocs="blocs" :donnees="donnees" :verrouilles="page.verrouilles" :lecture-seule="lectureSeule" @change="dirty = true" />
-        </div>
+        </Card>
       </section>
     </div>
 

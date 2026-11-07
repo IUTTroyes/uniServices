@@ -1,10 +1,10 @@
 <script setup>
+import { Alert } from '@components';
+import { showSuccess } from '@helpers/toast';
 import { computed, reactive, ref, watch } from 'vue';
-import { useToast } from 'primevue/usetoast';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import SelectButton from 'primevue/selectbutton';
-import Message from 'primevue/message';
 import { portfolioService, messagesErreur } from '../../requests/portfolioService';
 import { COINS, ENTETES, LARGEURS, PALETTES, POLICES, THEME_DEFAUT, couleurLisible, texteSur } from './theme';
 
@@ -14,7 +14,6 @@ const props = defineProps({
 });
 const emit = defineEmits(['update:visible', 'change']);
 
-const toast = useToast();
 const form = reactive({ ...THEME_DEFAUT });
 const erreurs = ref([]);
 const envoi = ref(false);
@@ -47,7 +46,7 @@ const enregistrer = async () => {
   try {
     const { data } = await portfolioService.apparence(props.portfolio.uuid, { ...form });
     emit('change', data);
-    toast.add({ severity: 'success', summary: 'Apparence enregistrée', detail: 'Republiez le portfolio pour l\'appliquer à la version en ligne.', life: 5000 });
+    showSuccess('Republiez le portfolio pour l\'appliquer à la version en ligne.', 'Apparence enregistrée', 5000);
     emit('update:visible', false);
   } catch (e) {
     erreurs.value = messagesErreur(e);
@@ -89,9 +88,9 @@ const retirerLogo = async () => {
 <template>
   <Dialog :visible="visible" header="Apparence du portfolio" modal :style="{ width: '48rem' }" :breakpoints="{ '768px': '95vw' }" @update:visible="emit('update:visible', $event)">
     <div class="flex flex-col gap-5">
-      <Message v-if="erreurs.length" severity="error" :closable="true" @close="erreurs = []">
+      <Alert icon-native v-if="erreurs.length" severity="error" :closable="true" @close="erreurs = []">
         <ul class="m-0 pl-4"><li v-for="e in erreurs" :key="e">{{ e }}</li></ul>
-      </Message>
+      </Alert>
 
       <!-- Aperçu -->
       <div class="rounded-lg border border-surface-200 overflow-hidden" :style="styleApercu" aria-label="Aperçu de l'apparence" role="img">

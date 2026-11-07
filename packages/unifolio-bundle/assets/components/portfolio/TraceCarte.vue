@@ -1,4 +1,5 @@
 <script setup>
+import { formatDateFr } from '@helpers/date';
 import { computed } from 'vue';
 import { urlFichier } from '../../requests/traceService';
 import { couleurCompetence, texteSurCompetence, urlIntegrable } from '../traces/options';
@@ -10,7 +11,7 @@ const props = defineProps({
 });
 
 const vignette = computed(() => urlFichier(props.trace.vignette));
-const date = computed(() => (props.trace.dateRealisation ? new Date(props.trace.dateRealisation).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : null));
+const date = computed(() => formatDateFr(props.trace.dateRealisation, 'moisAnneeLong'));
 const integre = (m) => (m.type === 'embed' ? urlIntegrable(m.url) : null);
 </script>
 

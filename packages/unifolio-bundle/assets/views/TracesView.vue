@@ -1,12 +1,12 @@
 <script setup>
+import { formatDateFr } from '@helpers/date';
 import { onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { HeaderComponent, EmptyState } from '@components';
+import { HeaderComponent, EmptyState, Card, LoadingBar } from '@components';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
 import Select from 'primevue/select';
 import Tag from 'primevue/tag';
-import ProgressBar from 'primevue/progressbar';
 import traceService, { messageErreur, urlFichier } from '../requests/traceService';
 import { useTraceReferenceStore } from '../stores/traceReferenceStore';
 import { STATUTS, couleurCompetence, texteSurCompetence } from '../components/traces/options';
@@ -60,7 +60,7 @@ onMounted(async () => {
 });
 
 const libelleScolarite = (s) => [s.annee, s.anneeUniversitaire].filter(Boolean).join(' — ');
-const formatDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : null);
+const formatDate = (iso) => formatDateFr(iso);
 </script>
 
 <template>
@@ -77,7 +77,7 @@ const formatDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { d
     </template>
   </HeaderComponent>
 
-  <div class="card p-4 flex flex-col gap-4">
+  <Card bare class="p-4 flex flex-col gap-4">
     <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <InputText v-model="filtres.q" placeholder="Rechercher…" aria-label="Rechercher une trace" />
       <Select
@@ -101,7 +101,7 @@ const formatDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { d
       <Select v-model="filtres.statut" :options="STATUTS" option-label="label" option-value="value" placeholder="Tous les statuts" show-clear aria-label="Filtrer par statut" />
     </div>
 
-    <ProgressBar v-if="chargement" mode="indeterminate" style="height: 4px" />
+    <LoadingBar v-if="chargement" />
 
     <EmptyState v-else-if="erreur" icon="pi pi-exclamation-triangle" color="rose" title="Erreur" :description="erreur" />
 
@@ -149,5 +149,5 @@ const formatDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { d
         </div>
       </button>
     </div>
-  </div>
+  </Card>
 </template>
