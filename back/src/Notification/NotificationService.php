@@ -7,6 +7,7 @@ use App\Entity\Notification\PreferenceNotification;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use App\Enum\ModeNotificationEnum;
+use App\Service\Email\EmailRegistry;
 use App\Service\Email\EmailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -27,6 +28,7 @@ class NotificationService
         private readonly NotificationTypeRegistry $types,
         private readonly EmailService $emails,
         private readonly LoggerInterface $logger,
+        private readonly ?EmailRegistry $emailRegistry = null,
     ) {
     }
 
@@ -116,7 +118,9 @@ class NotificationService
         if ($to === null) {
             return false;
         }
-        $this->emails->send('notification.immediate', $to, [
+        // Chaque type a son e-mail paramétrable (même clé, cf. NotificationEmailDefinition), qui hérite du modèle générique.
+        $cle = $this->emailRegistry?->get($type->cle) instanceof NotificationEmailDefinition ? $type->cle : NotificationEmailDefinition::CLE_GENERIQUE;
+        $this->emails->send($cle, $to, [
             'destinataire_nom' => $destinataire->getDisplay(),
             'source' => $type->sourceLibelle,
             'titre' => $type->rubrique,

@@ -104,7 +104,7 @@ class StageEvaluationEntrepriseController extends AbstractController
                 'expediteur' => $user instanceof Personnel ? $user->getDisplay() : 'Le service des stages',
                 'url' => rtrim($this->urlFrontend, '/').'/app/stage-evaluation/'.$jeton,
                 'expire_le' => $evaluation->getExpireLe()->format('d/m/Y'),
-            ], replyTo: $user instanceof Personnel ? $user->getMailUniv() : null);
+            ], departement: $stage->getStagePeriode()?->getDepartement(), replyTo: $user instanceof Personnel ? $user->getMailUniv() : null);
         } catch (\Throwable $e) {
             $this->logger->error('Évaluation entreprise : e-mail non envoyé.', ['stage' => $stage->getId(), 'erreur' => $e->getMessage()]);
 

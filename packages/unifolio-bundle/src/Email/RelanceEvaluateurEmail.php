@@ -42,4 +42,10 @@ final class RelanceEvaluateurEmail extends AbstractEmailDefinition
             'urlPortal' => 'Lien vers la file d\'évaluation',
         ];
     }
+
+    /** Envoyé comme notification : réception réglée par le destinataire (préférences). */
+    public function getCategorie(): string
+    {
+        return self::CATEGORIE_NOTIFICATION;
+    }
 }

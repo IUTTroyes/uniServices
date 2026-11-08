@@ -43,4 +43,10 @@ final class EvaluationRendueEmail extends AbstractEmailDefinition
             'urlPortal' => 'Lien vers UniFolio',
         ];
     }
+
+    /** Envoyé comme notification : réception réglée par le destinataire (préférences). */
+    public function getCategorie(): string
+    {
+        return self::CATEGORIE_NOTIFICATION;
+    }
 }

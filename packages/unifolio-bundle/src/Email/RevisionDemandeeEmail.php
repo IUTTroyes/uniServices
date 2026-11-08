@@ -41,4 +41,10 @@ final class RevisionDemandeeEmail extends AbstractEmailDefinition
             'urlPortal' => 'Lien vers la trace',
         ];
     }
+
+    /** Envoyé comme notification : réception réglée par le destinataire (préférences). */
+    public function getCategorie(): string
+    {
+        return self::CATEGORIE_NOTIFICATION;
+    }
 }

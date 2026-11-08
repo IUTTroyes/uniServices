@@ -1,4 +1,5 @@
 export * from './etablissementService.js';
+export * from './emailTemplateService.js';
 export * from './addressService.js';
 
 export * from './structure_services/departementService.js';

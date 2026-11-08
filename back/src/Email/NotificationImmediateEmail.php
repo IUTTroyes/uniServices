@@ -41,4 +41,16 @@ final class NotificationImmediateEmail extends AbstractEmailDefinition
             'urlNotification' => 'Chemin de l\'élément concerné dans l\'application',
         ];
     }
+
+    /** Modèles communs à toutes les applications : regroupés avec le cœur dans l'éditeur. */
+    public function getBundle(): string
+    {
+        return 'Core';
+    }
+
+    /** Envoyé comme notification : réception réglée par le destinataire (préférences). */
+    public function getCategorie(): string
+    {
+        return self::CATEGORIE_NOTIFICATION;
+    }
 }

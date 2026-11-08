@@ -303,6 +303,20 @@ class Etablissement
             return $resolvedIntegrations;
         });
 
+        $resolver->setAllowedTypes('emails', 'array');
+        $resolver->setNormalizer('emails', function ($options, array $emails): array {
+            $emailsResolver = new OptionsResolver();
+            $emailsResolver->setDefaults(self::HABILLAGE_EMAILS_DEFAUT);
+            $emailsResolver->setAllowedTypes('couleur', 'string');
+            $emailsResolver->setAllowedTypes('expediteur_nom', ['null', 'string']);
+            $emailsResolver->setAllowedTypes('reply_to', ['null', 'string']);
+            $emailsResolver->setAllowedTypes('signature', 'string');
+            $emailsResolver->setAllowedTypes('mentions_legales', 'string');
+            $emailsResolver->setAllowedTypes('contact_rgpd', ['null', 'string']);
+
+            return $emailsResolver->resolve($emails);
+        });
+
         $resolver->setAllowedTypes('stage', 'array');
         $resolver->setNormalizer('stage', function ($options, array $stage): array {
             $stageResolver = new OptionsResolver();
@@ -334,7 +348,36 @@ class Etablissement
             'stage' => [
                 'gratification_minimale' => 4.35,
             ],
+            'emails' => self::HABILLAGE_EMAILS_DEFAUT,
         ];
+    }
+
+    /**
+     * Habillage des e-mails de l'établissement (écran « Habillage des e-mails ») : couleur, expéditeur, signature et
+     * mentions imposées dans le pied de page de tous les e-mails (non modifiables par l'éditeur des modèles).
+     */
+    public const HABILLAGE_EMAILS_DEFAUT = [
+        'couleur' => '#1a3a5c',
+        'expediteur_nom' => null,
+        'reply_to' => null,
+        'signature' => '',
+        'mentions_legales' => '',
+        'contact_rgpd' => null,
+    ];
+
+    /** @return array{couleur: string, expediteur_nom: ?string, reply_to: ?string, signature: string, mentions_legales: string, contact_rgpd: ?string} */
+    public function getHabillageEmails(): array
+    {
+        return $this->getSettings()['emails'];
+    }
+
+    /** @param array<string, mixed> $habillage */
+    public function setHabillageEmails(array $habillage): static
+    {
+        $settings = $this->getSettings();
+        $settings['emails'] = array_merge($settings['emails'], array_intersect_key($habillage, self::HABILLAGE_EMAILS_DEFAUT));
+
+        return $this->setSettings($settings);
     }
 
     #[Groups(['etablissement:read'])]

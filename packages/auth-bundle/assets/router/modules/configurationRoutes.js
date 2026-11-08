@@ -158,6 +158,24 @@ export default [
     },
   },
   {
+    path: 'emails/habillage',
+    component: () => import('../../views/configuration/emails/EmailHabillageView.vue'),
+    name: 'emails-habillage',
+    meta: {
+      permission: 'isSuperAdmin',
+      breadcrumb: [{ label: 'Portail', route: '/portail' }, {
+        label: 'Configuration',
+        route: '/configuration'
+      }, {
+        label: 'Modèles de mails',
+        route: '/auth/configuration/emails'
+      }, {
+        label: 'Habillage',
+        route: null
+      }]
+    },
+  },
+  {
     path: 'emails/:key/edit',
     component: EmailEditView,
     name: 'email-edit',

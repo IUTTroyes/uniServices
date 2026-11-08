@@ -159,6 +159,13 @@ Signature : `notifier(Etudiant|Personnel $destinataire, string $typeCle, string 
   son résumé, n'en forment qu'une (« ×2 », texte le plus récent). Choisissez donc un lien qui identifie *l'objet concerné*
   (la trace, la convention), pas la page d'accueil.
 
+## Personnaliser les e-mails des notifications
+
+Chaque type de notification est **paramétrable dans l'éditeur des e-mails** (`/auth/configuration/emails`) sans rien
+écrire : l'`EmailRegistry` lui crée un e-mail de même clé (`NotificationEmailDefinition`) qui reprend le modèle générique
+`notification.immediate` (lui-même personnalisable) tant qu'il n'est pas personnalisé. Variables disponibles :
+`destinataire_nom`, `source`, `titre`, `texte`, `urlNotification`. Voir `docs/EMAIL_SYSTEM.md`.
+
 ## Conserver un e-mail dédié
 
 Par défaut, le mode « tout de suite » envoie l'e-mail générique `notification.immediate`. Pour garder un gabarit riche (voir

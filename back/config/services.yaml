@@ -81,6 +81,7 @@ services:
       - "../src/Kernel.php"
       - "../src/Services/Dashboard/Provider/"
       - "../src/Notification/NotificationType.php"
+      - "../src/Notification/NotificationEmailDefinition.php"
 
   App\DataProvider\SingleRecordDataProvider:
     arguments:
@@ -127,3 +128,4 @@ services:
     arguments:
       $defaultFromEmail: '%email_from_address%'
       $defaultFromName: '%email_from_name%'
+      $urlFrontend: '%env(default::URL_FRONTEND)%'
