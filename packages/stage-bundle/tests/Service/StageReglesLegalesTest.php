@@ -3,8 +3,7 @@
 namespace StageBundle\Tests\Service;
 
 use App\Entity\Etablissement;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\EntityRepository;
+use App\Repository\EtablissementRepository;
 use PHPUnit\Framework\TestCase;
 use StageBundle\Entity\Stages\StageEtudiant;
 use StageBundle\Entity\Stages\StagePeriode;
@@ -14,12 +13,10 @@ class StageReglesLegalesTest extends TestCase
 {
     private function regles(): StageReglesLegales
     {
-        $repo = $this->createMock(EntityRepository::class);
-        $repo->method('findOneBy')->willReturn(new Etablissement()); // taux par défaut : 4,35 €/h
-        $em = $this->createMock(EntityManagerInterface::class);
-        $em->method('getRepository')->willReturn($repo);
+        $repo = $this->createMock(EtablissementRepository::class);
+        $repo->method('findPrincipal')->willReturn(new Etablissement()); // taux par défaut : 4,35 €/h
 
-        return new StageReglesLegales($em);
+        return new StageReglesLegales($repo);
     }
 
     private function stage(string $debut, string $fin, int $jours = 0): StageEtudiant

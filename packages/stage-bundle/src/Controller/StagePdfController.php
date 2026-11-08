@@ -7,6 +7,7 @@ use App\Service\Pdf\PdfExportOptions;
 use App\Service\Pdf\PdfExportService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
+use App\Repository\EtablissementRepository;
 use StageBundle\Adapter\StageConventionAdapter;
 use StageBundle\Entity\Stages\StageEtudiant;
 use StageBundle\Entity\Stages\StageAvenant;
@@ -29,6 +30,7 @@ class StagePdfController extends AbstractController
         private readonly PdfExportService $pdfExportService,
         private readonly StageNotifier $notifier,
         private readonly LoggerInterface $logger,
+        private readonly EtablissementRepository $etablissements,
     ) {
     }
 
@@ -42,8 +44,7 @@ class StagePdfController extends AbstractController
         $this->denyAccessUnlessGranted(StageVoter::STAGE_ETUDIANT_VIEW, $stage);
 
         // Get main establishment
-        $etab = $this->em->getRepository(Etablissement::class)->findOneBy(['isMain' => true])
-            ?? $this->em->getRepository(Etablissement::class)->findOneBy([]);
+        $etab = $this->etablissements->findPrincipal();
 
         $periode = $stage->getStagePeriode();
         $semestre = $periode?->getSemestreProgramme();
@@ -298,10 +299,7 @@ class StagePdfController extends AbstractController
         $periode = $stage->getStagePeriode();
 
         // Get main establishment
-        $etab = $this->em->getRepository(Etablissement::class)->findOneBy(['isMain' => true]);
-        if (!$etab) {
-            $etab = $this->em->getRepository(Etablissement::class)->findOneBy([]);
-        }
+        $etab = $this->etablissements->findPrincipal();
 
         // Safe format helper for dates
         $fmtDate = function(?\DateTimeInterface $d) {
@@ -437,8 +435,7 @@ class StagePdfController extends AbstractController
     /** @return array{string, string} noms (échappés) de l'établissement et de son université */
     private function nomsEtablissement(): array
     {
-        $etab = $this->em->getRepository(Etablissement::class)->findOneBy(['isMain' => true])
-            ?? $this->em->getRepository(Etablissement::class)->findOneBy([]);
+        $etab = $this->etablissements->findPrincipal();
 
         return [
             htmlspecialchars($etab?->getLibelle() ?? ''),

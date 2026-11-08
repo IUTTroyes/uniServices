@@ -7,7 +7,7 @@ import { useToast } from 'primevue/usetoast';
 import { FilterMatchMode } from '@primevue/core/api';
 import { useUsersStore, useAnneeUnivStore } from '@stores';
 import { getStageEtudiantsService, updateStageEtudiantService, getStagePeriodesService, rapportStageUrl } from '@/requests/stage_service';
-import { HeaderComponent, Card, Kpi } from '@components';
+import { HeaderComponent, Card, Kpi, EmptyState } from '@components';
 import {
   UserIcon,
   UsersIcon,
@@ -363,7 +363,6 @@ const getInitials = (name) => {
 
 <template>
   <div class="space-y-6">
-    <Toast />
 
 
     <!-- Top Header -->
@@ -527,10 +526,7 @@ const getInitials = (name) => {
               </Column>
 
               <template #empty>
-                <div class="py-12 text-center text-slate-400">
-                  <UsersIcon class="w-10 h-10 mx-auto mb-2 text-slate-300 dark:text-slate-600" />
-                  <p class="font-medium">Aucun étudiant en stage pour l'année universitaire {{ currentAnneeUnivLibelle }}.</p>
-                </div>
+                <EmptyState compact :icon="UsersIcon" title="Aucun étudiant en stage" :description="`Aucun stagiaire suivi pour l'année universitaire ${currentAnneeUnivLibelle}.`" />
               </template>
             </DataTable>
           </Card>
@@ -652,10 +648,7 @@ const getInitials = (name) => {
               </Column>
 
               <template #empty>
-                <div class="py-12 text-center text-slate-400">
-                  <ArchiveBoxIcon class="w-10 h-10 mx-auto mb-2 text-slate-300 dark:text-slate-600" />
-                  <p class="font-medium">Aucun stage archivé pour les années précédentes.</p>
-                </div>
+                <EmptyState compact :icon="ArchiveBoxIcon" title="Aucun stage archivé" description="Aucun stage suivi les années précédentes." />
               </template>
             </DataTable>
           </Card>
@@ -737,9 +730,7 @@ const getInitials = (name) => {
                 </p>
               </div>
 
-              <div v-if="selectedStudent.followups.length === 0" class="text-center py-6 text-slate-400">
-                Aucun entretien de suivi saisi pour le moment.
-              </div>
+              <EmptyState v-if="selectedStudent.followups.length === 0" compact icon="pi pi-comments" title="Aucun entretien de suivi" description="Ajoutez le compte rendu de votre premier échange avec le stagiaire." />
             </div>
           </div>
 

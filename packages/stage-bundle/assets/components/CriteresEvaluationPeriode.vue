@@ -5,7 +5,15 @@
  */
 import { onMounted, ref, watch } from 'vue';
 import { useToast } from 'primevue/usetoast';
-import api from '@helpers/axios';
+import Button from 'primevue/button';
+import { EmptyState, ListSkeleton } from '@components';
+import {
+  getCriteresEvaluationService,
+  createCritereEvaluationService,
+  updateCritereEvaluationService,
+  deleteCritereEvaluationService
+} from '@/requests/stage_service';
+import { useConfirmation } from '@/composables/useConfirmation';
 import { messageErreurApi } from '@/utils/erreurApi';
 
 const props = defineProps({
@@ -13,23 +21,21 @@ const props = defineProps({
   modifiable: { type: Boolean, default: true }
 });
 const toast = useToast();
+const { confirmer } = useConfirmation();
 
 const criteres = ref([]);
 const chargement = ref(false);
 const nouveau = ref({ libelle: '', description: '' });
 const edition = ref(null); // { id, libelle, description }
 
-const url = '/api/stage_evaluation_criteres';
-const jsonld = { headers: { 'Content-Type': 'application/ld+json' } };
-const patch = { headers: { 'Content-Type': 'application/merge-patch+json' } };
+const erreur = (error, defaut) => toast.add({ severity: 'error', summary: 'Erreur', detail: messageErreurApi(error, defaut), life: 4000 });
 
 const charger = async () => {
   chargement.value = true;
   try {
-    const { data } = await api.get(url, { params: { stagePeriode: props.periodeId, pagination: false } });
-    criteres.value = Array.isArray(data) ? data : (data.member || data['hydra:member'] || []);
+    criteres.value = await getCriteresEvaluationService(props.periodeId);
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Erreur', detail: messageErreurApi(error, 'Impossible de charger la grille.'), life: 4000 });
+    erreur(error, 'Impossible de charger la grille.');
   } finally {
     chargement.value = false;
   }
@@ -38,16 +44,15 @@ const charger = async () => {
 const ajouter = async () => {
   if (!nouveau.value.libelle.trim()) return;
   try {
-    await api.post(url, {
-      stagePeriode: `/api/stage_periodes/${props.periodeId}`,
+    await createCritereEvaluationService(props.periodeId, {
       libelle: nouveau.value.libelle.trim(),
       description: nouveau.value.description.trim() || null,
       ordre: criteres.value.length
-    }, jsonld);
+    });
     nouveau.value = { libelle: '', description: '' };
     await charger();
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Erreur', detail: messageErreurApi(error, 'Impossible d\'ajouter le critère.'), life: 4000 });
+    erreur(error, 'Impossible d\'ajouter le critère.');
   }
 };
 
@@ -55,21 +60,21 @@ const enregistrer = async () => {
   const c = edition.value;
   if (!c?.libelle.trim()) return;
   try {
-    await api.patch(`${url}/${c.id}`, { libelle: c.libelle.trim(), description: c.description?.trim() || null }, patch);
+    await updateCritereEvaluationService(c.id, { libelle: c.libelle.trim(), description: c.description?.trim() || null });
     edition.value = null;
     await charger();
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Erreur', detail: messageErreurApi(error, 'Impossible de modifier le critère.'), life: 4000 });
+    erreur(error, 'Impossible de modifier le critère.');
   }
 };
 
 const supprimer = async (c) => {
-  if (!confirm(`Supprimer le critère « ${c.libelle} » ?`)) return;
+  if (!await confirmer({ message: `Supprimer le critère « ${c.libelle} » ?`, titre: 'Supprimer le critère', libelle: 'Supprimer', danger: true })) return;
   try {
-    await api.delete(`${url}/${c.id}`);
+    await deleteCritereEvaluationService(c.id);
     await charger();
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Erreur', detail: messageErreurApi(error, 'Impossible de supprimer le critère.'), life: 4000 });
+    erreur(error, 'Impossible de supprimer le critère.');
   }
 };
 
@@ -80,10 +85,10 @@ const deplacer = async (index, sens) => {
   const liste = [...criteres.value];
   [liste[index], liste[cible]] = [liste[cible], liste[index]];
   try {
-    await Promise.all(liste.map((c, i) => (c.ordre !== i ? api.patch(`${url}/${c.id}`, { ordre: i }, patch) : null)));
+    await Promise.all(liste.map((c, i) => (c.ordre !== i ? updateCritereEvaluationService(c.id, { ordre: i }) : null)));
     await charger();
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Erreur', detail: messageErreurApi(error, 'Impossible de réordonner la grille.'), life: 4000 });
+    erreur(error, 'Impossible de réordonner la grille.');
   }
 };
 
@@ -92,48 +97,46 @@ watch(() => props.periodeId, charger);
 </script>
 
 <template>
-  <div class="space-y-3 text-xs">
-    <p class="text-slate-500 dark:text-slate-400">
+  <div class="space-y-3 text-sm">
+    <p class="q-hint">
       Critères notés par le tuteur en entreprise, de 1 (insuffisant) à 4 (très satisfaisant), dans le formulaire qui lui est envoyé par e-mail.
     </p>
 
-    <p v-if="chargement" class="text-slate-400">Chargement…</p>
-    <p v-else-if="criteres.length === 0" class="text-amber-700 dark:text-amber-300">
-      Aucun critère : l'évaluation par l'entreprise ne peut pas encore être envoyée pour cette période.
-    </p>
+    <ListSkeleton v-if="chargement" />
+    <EmptyState v-else-if="criteres.length === 0" compact color="amber" icon="pi pi-list-check" title="Aucun critère"
+      description="L'évaluation par l'entreprise ne pourra pas être envoyée tant que la grille est vide." />
 
     <ol v-else class="space-y-2">
-      <li v-for="(c, i) in criteres" :key="c.id" class="p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40">
-        <div v-if="edition?.id === c.id" class="space-y-2">
-          <input v-model="edition.libelle" maxlength="150" aria-label="Libellé du critère" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900" />
-          <textarea v-model="edition.description" rows="2" aria-label="Description du critère" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900"></textarea>
+      <li v-for="(c, i) in criteres" :key="c.id" class="q-section !p-3 !space-y-2">
+        <form v-if="edition?.id === c.id" class="space-y-2" @submit.prevent="enregistrer">
+          <input v-model="edition.libelle" maxlength="150" aria-label="Libellé du critère" class="q-input" />
+          <textarea v-model="edition.description" rows="2" aria-label="Description du critère" class="q-input"></textarea>
           <div class="flex gap-2 justify-end">
-            <button type="button" class="px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700" @click="edition = null">Annuler</button>
-            <button type="button" class="px-2 py-1 rounded-lg bg-violet-600 text-white font-bold" @click="enregistrer">Enregistrer</button>
+            <Button type="button" label="Annuler" severity="secondary" text size="small" @click="edition = null" />
+            <Button type="submit" label="Enregistrer" icon="pi pi-check" size="small" />
           </div>
-        </div>
+        </form>
         <div v-else class="flex items-start justify-between gap-2">
           <div class="min-w-0">
-            <span class="font-bold text-slate-800 dark:text-slate-200">{{ i + 1 }}. {{ c.libelle }}</span>
-            <p v-if="c.description" class="text-slate-500 dark:text-slate-400 mt-0.5 whitespace-pre-line">{{ c.description }}</p>
+            <span class="font-semibold text-slate-800 dark:text-slate-200">{{ i + 1 }}. {{ c.libelle }}</span>
+            <p v-if="c.description" class="q-hint whitespace-pre-line">{{ c.description }}</p>
           </div>
           <div v-if="modifiable" class="flex gap-1 shrink-0">
-            <button type="button" :disabled="i === 0" class="px-1.5 rounded border border-slate-200 dark:border-slate-700 disabled:opacity-30" title="Monter" aria-label="Monter" @click="deplacer(i, -1)">↑</button>
-            <button type="button" :disabled="i === criteres.length - 1" class="px-1.5 rounded border border-slate-200 dark:border-slate-700 disabled:opacity-30" title="Descendre" aria-label="Descendre" @click="deplacer(i, 1)">↓</button>
-            <button type="button" class="px-1.5 rounded border border-slate-200 dark:border-slate-700" @click="edition = { id: c.id, libelle: c.libelle, description: c.description || '' }">Modifier</button>
-            <button type="button" class="px-1.5 rounded border border-rose-200 text-rose-600" @click="supprimer(c)">Supprimer</button>
+            <Button icon="pi pi-arrow-up" text rounded size="small" severity="secondary" :disabled="i === 0" aria-label="Monter" v-tooltip.top="'Monter'" @click="deplacer(i, -1)" />
+            <Button icon="pi pi-arrow-down" text rounded size="small" severity="secondary" :disabled="i === criteres.length - 1" aria-label="Descendre" v-tooltip.top="'Descendre'" @click="deplacer(i, 1)" />
+            <Button icon="pi pi-pencil" text rounded size="small" severity="secondary" aria-label="Modifier" v-tooltip.top="'Modifier'" @click="edition = { id: c.id, libelle: c.libelle, description: c.description || '' }" />
+            <Button icon="pi pi-trash" text rounded size="small" severity="danger" aria-label="Supprimer" v-tooltip.top="'Supprimer'" @click="supprimer(c)" />
           </div>
         </div>
       </li>
     </ol>
 
-    <form v-if="modifiable" class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800" @submit.prevent="ajouter">
-      <input v-model="nouveau.libelle" maxlength="150" placeholder="Nouveau critère (ex. : autonomie, qualité du travail…)" aria-label="Libellé du nouveau critère"
-        class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900" />
-      <textarea v-model="nouveau.description" rows="2" placeholder="Précisions pour l'évaluateur (facultatif)" aria-label="Description du nouveau critère"
-        class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900"></textarea>
+    <form v-if="modifiable" class="space-y-2 pt-3 border-t border-slate-100 dark:border-slate-800" @submit.prevent="ajouter">
+      <label for="critere-nouveau" class="q-label">Nouveau critère</label>
+      <input id="critere-nouveau" v-model="nouveau.libelle" maxlength="150" placeholder="Ex. : autonomie, qualité du travail…" class="q-input" />
+      <textarea v-model="nouveau.description" rows="2" placeholder="Précisions pour l'évaluateur (facultatif)" aria-label="Description du nouveau critère" class="q-input"></textarea>
       <div class="flex justify-end">
-        <button type="submit" :disabled="!nouveau.libelle.trim()" class="px-3 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold disabled:opacity-50">Ajouter le critère</button>
+        <Button type="submit" label="Ajouter le critère" icon="pi pi-plus" size="small" :disabled="!nouveau.libelle.trim()" />
       </div>
     </form>
   </div>

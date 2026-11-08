@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use StageBundle\Security\StageVoter;
+use StageBundle\Util\Iri;
 
 /** Planification des soutenances : réservée au responsable des stages du département de la période. */
 class StageSoutenanceController extends AbstractController
@@ -27,20 +28,6 @@ class StageSoutenanceController extends AbstractController
         private readonly EntityManagerInterface $em,
         private readonly StageNotifier $notifier,
     ) {
-    }
-
-    /** Accepte un identifiant, une IRI (« /api/x/12 ») ou rien (null, chaîne vide). */
-    private function getIdFromIri(mixed $id): ?int
-    {
-        if ($id === null || $id === '' || is_bool($id) || is_array($id)) {
-            return null;
-        }
-        if (is_string($id) && str_contains($id, '/')) {
-            $parts = explode('/', $id);
-            $id = end($parts);
-        }
-
-        return is_numeric($id) && (int) $id > 0 ? (int) $id : null;
     }
 
     private function parseDate(mixed $valeur): ?\DateTime
@@ -64,12 +51,12 @@ class StageSoutenanceController extends AbstractController
     public function validateConflict(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true) ?? [];
-        $stageEtudiantId = $this->getIdFromIri($data['stageEtudiantId'] ?? null);
-        $enseignantJuryId = $this->getIdFromIri($data['enseignantJuryId'] ?? null);
+        $stageEtudiantId = Iri::id($data['stageEtudiantId'] ?? null);
+        $enseignantJuryId = Iri::id($data['enseignantJuryId'] ?? null);
         $dateStr = $data['dateSoutenance'] ?? null;
         $duree = (int)($data['duree'] ?? 30);
-        $soutenanceId = $this->getIdFromIri($data['soutenanceId'] ?? null);
-        $stagePeriodeId = $this->getIdFromIri($data['stagePeriodeId'] ?? null);
+        $soutenanceId = Iri::id($data['soutenanceId'] ?? null);
+        $stagePeriodeId = Iri::id($data['stagePeriodeId'] ?? null);
 
         if (!$dateStr || (!$stageEtudiantId && !$stagePeriodeId)) {
             return new JsonResponse(['error' => 'Paramètres requis manquants.'], Response::HTTP_BAD_REQUEST);
@@ -102,13 +89,13 @@ class StageSoutenanceController extends AbstractController
     public function save(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true) ?? [];
-        $soutenanceId = $this->getIdFromIri($data['id'] ?? null);
-        $stageEtudiantId = $this->getIdFromIri($data['stageEtudiantId'] ?? null);
-        $enseignantJuryId = $this->getIdFromIri($data['enseignantJuryId'] ?? null);
+        $soutenanceId = Iri::id($data['id'] ?? null);
+        $stageEtudiantId = Iri::id($data['stageEtudiantId'] ?? null);
+        $enseignantJuryId = Iri::id($data['enseignantJuryId'] ?? null);
         $dateStr = $data['dateSoutenance'] ?? null;
         $salle = $data['salle'] ?? '';
         $duree = (int)($data['duree'] ?? 30);
-        $stagePeriodeId = $this->getIdFromIri($data['stagePeriodeId'] ?? null);
+        $stagePeriodeId = Iri::id($data['stagePeriodeId'] ?? null);
 
         if (!$dateStr) {
             return new JsonResponse(['error' => 'Paramètres requis manquants (date).'], Response::HTTP_BAD_REQUEST);
@@ -197,7 +184,7 @@ class StageSoutenanceController extends AbstractController
     public function bulkGenerate(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true) ?? [];
-        $stagePeriodeId = $this->getIdFromIri($data['stagePeriodeId'] ?? null);
+        $stagePeriodeId = Iri::id($data['stagePeriodeId'] ?? null);
         $dateStr = $data['date'] ?? null; // YYYY-MM-DD
         $startTimeStr = $data['startTime'] ?? null; // HH:MM
         $endTimeStr = $data['endTime'] ?? null; // HH:MM

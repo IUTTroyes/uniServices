@@ -1,10 +1,12 @@
 <script setup>
-import { dateFr } from '@/utils/stage';
+import Tag from 'primevue/tag';
+import { useConfirmation } from '@/composables/useConfirmation';
+import { dateFr, tagStatut } from '@/utils/stage';
 import EvaluationEntreprisePanel from '@/components/EvaluationEntreprisePanel.vue';
 import { ref, computed } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import AutoComplete from 'primevue/autocomplete';
-import { Kpi, Card } from '@components';
+import { Kpi, Card, EmptyState } from '@components';
 import {
   ArrowDownTrayIcon,
   ChartBarIcon,
@@ -66,6 +68,7 @@ const props = defineProps({
 const emit = defineEmits(['update:selectedPeriodId', 'update-student']);
 
 const toast = useToast();
+const { confirmer } = useConfirmation();
 
 import { FilterMatchMode } from '@primevue/core/api';
 
@@ -390,8 +393,11 @@ const rejectRequest = () => {
   showReviewDialog.value = false;
 };
 
-const resetStudentSubmission = () => {
-  if (confirm(`Voulez-vous réinitialiser la saisie de ${selectedRequest.value.studentName} ? Toutes ses données saisies seront effacées, mais il pourra de nouveau saisir sa demande immédiatement.`)) {
+const resetStudentSubmission = async () => {
+  if (await confirmer({
+    message: `Réinitialiser la saisie de ${selectedRequest.value.studentName} ? Toutes ses données saisies seront effacées, mais il pourra de nouveau saisir sa demande immédiatement.`,
+    titre: 'Réinitialiser la saisie', libelle: 'Réinitialiser', danger: true
+  })) {
     emit('update-student', {
       id: selectedRequest.value.id,
       changes: {
@@ -445,8 +451,11 @@ const resetStudentSubmission = () => {
   }
 };
 
-const deleteStudentSubmission = () => {
-  if (confirm(`Voulez-vous supprimer définitivement la demande de convention de ${selectedRequest.value.studentName} ? Cela effacera ses données et bloquera son droit de saisie.`)) {
+const deleteStudentSubmission = async () => {
+  if (await confirmer({
+    message: `Supprimer définitivement la demande de convention de ${selectedRequest.value.studentName} ? Cela effacera ses données et bloquera son droit de saisie.`,
+    titre: 'Supprimer la demande', libelle: 'Supprimer', danger: true
+  })) {
     emit('update-student', {
       id: selectedRequest.value.id,
       changes: {
@@ -712,9 +721,7 @@ const finalizeSignature = (student) => {
                 <EyeIcon class="w-3.5 h-3.5" />
               </button>
             </div>
-            <div v-if="studentsToValidate.length === 0" class="text-center py-6 text-[10px] text-slate-450 italic">
-              Aucun dossier à valider
-            </div>
+            <EmptyState v-if="studentsToValidate.length === 0" compact title="Aucun dossier à valider" />
           </div>
         </div>
 
@@ -739,9 +746,7 @@ const finalizeSignature = (student) => {
                 <PrinterIcon class="w-3.5 h-3.5" />
               </button>
             </div>
-            <div v-if="studentsToPrint.length === 0" class="text-center py-6 text-[10px] text-slate-455 italic">
-              Aucune convention à imprimer
-            </div>
+            <EmptyState v-if="studentsToPrint.length === 0" compact title="Aucune convention à imprimer" />
           </div>
         </div>
 
@@ -771,9 +776,7 @@ const finalizeSignature = (student) => {
                 </button>
               </div>
             </div>
-            <div v-if="studentsSigning.length === 0" class="text-center py-6 text-[10px] text-slate-450 italic">
-              Aucune convention en cours
-            </div>
+            <EmptyState v-if="studentsSigning.length === 0" compact title="Aucune convention en cours" />
           </div>
         </div>
 
@@ -803,9 +806,7 @@ const finalizeSignature = (student) => {
                 </div>
               </div>
             </div>
-            <div v-if="studentsSigned.length === 0" class="text-center py-6 text-[10px] text-slate-450 italic">
-              Aucune convention finalisée
-            </div>
+            <EmptyState v-if="studentsSigned.length === 0" compact title="Aucune convention finalisée" />
           </div>
         </div>
       </div>
@@ -898,31 +899,8 @@ const finalizeSignature = (student) => {
         <!-- Column 3: Convention progress -->
         <Column header="Convention" field="conventionStatus" sortable :showFilterMenu="false" class="min-w-[120px]">
           <template #body="slotProps">
-            <span v-if="slotProps.data.conventionStatus === 'En attente'"
-              class="bg-amber-100 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded font-bold text-[9px] flex items-center gap-1 w-max animate-pulse">
-              <i class="pi pi-clock text-[8px]"></i>
-              <span>À valider</span>
-            </span>
-            <span v-else-if="slotProps.data.conventionStatus === 'Validée'"
-              class="bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 px-2 py-0.5 rounded font-bold text-[9px] flex items-center gap-1 w-max">
-              <i class="pi pi-print text-[8px]"></i>
-              <span>À imprimer</span>
-            </span>
-            <span v-else-if="slotProps.data.conventionStatus === 'En cours de signature'"
-              class="bg-indigo-100 dark:bg-indigo-950/40 text-indigo-800 dark:text-indigo-300 px-2 py-0.5 rounded font-bold text-[9px] flex items-center gap-1 w-max">
-              <i class="pi pi-pencil text-[8px]"></i>
-              <span>En signature</span>
-            </span>
-            <span v-else-if="slotProps.data.conventionStatus === 'Signée'"
-              class="bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded font-bold text-[9px] flex items-center gap-1 w-max">
-              <i class="pi pi-check-circle text-[8px]"></i>
-              <span>Signée</span>
-            </span>
-            <span v-else-if="slotProps.data.conventionStatus === 'Rejetée'"
-              class="bg-rose-100 dark:bg-rose-950/30 text-rose-800 dark:text-rose-400 px-2 py-0.5 rounded font-bold text-[9px] flex items-center gap-1 w-max">
-              <i class="pi pi-times-circle text-[8px]"></i>
-              <span>Refusée</span>
-            </span>
+            <Tag v-if="tagStatut(slotProps.data.conventionStatus)" :value="tagStatut(slotProps.data.conventionStatus).libelle"
+              :severity="tagStatut(slotProps.data.conventionStatus).severite" :icon="tagStatut(slotProps.data.conventionStatus).icone" />
             <div v-else>
               <!-- Toggle input authorization for student without stage -->
               <button

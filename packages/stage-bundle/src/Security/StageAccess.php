@@ -89,11 +89,11 @@ class StageAccess
             return false;
         }
         $periode = $stage->getStagePeriode();
-        if ($this->meme($periode->getResponsablePrincipal(), $user)) {
+        if (self::memePersonne($periode->getResponsablePrincipal(), $user)) {
             return true;
         }
         foreach ($periode->getCoResponsables() as $co) {
-            if ($this->meme($co, $user)) {
+            if (self::memePersonne($co, $user)) {
                 return true;
             }
         }
@@ -103,16 +103,24 @@ class StageAccess
 
     public function estTuteur(mixed $user, StageEtudiant $stage): bool
     {
-        return $user instanceof Personnel && $this->meme($stage->getTuteurUniversitaire(), $user);
+        return $user instanceof Personnel && self::memePersonne($stage->getTuteurUniversitaire(), $user);
     }
 
     public function estProprietaire(mixed $user, StageEtudiant $stage): bool
     {
-        return $user instanceof Etudiant && $this->meme($stage->getEtudiant(), $user);
+        return $user instanceof Etudiant && self::memePersonne($stage->getEtudiant(), $user);
     }
 
-    private function meme(Etudiant|Personnel|null $a, Etudiant|Personnel $b): bool
+    /**
+     * Même personne ? (même type de compte et même identifiant ; instanceof plutôt que ::class, une entité chargée
+     * paresseusement étant un proxy Doctrine).
+     */
+    public static function memePersonne(Etudiant|Personnel|null $a, Etudiant|Personnel|null $b): bool
     {
-        return $a !== null && ($a === $b || ($a->getId() !== null && $a->getId() === $b->getId()));
+        if ($a === null || $b === null || ($a instanceof Etudiant) !== ($b instanceof Etudiant)) {
+            return false;
+        }
+
+        return $a === $b || ($a->getId() !== null && $a->getId() === $b->getId());
     }
 }

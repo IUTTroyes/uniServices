@@ -1,4 +1,5 @@
 <script setup>
+import { useConfirmation } from '@/composables/useConfirmation';
 import { aUneDemande, dateFr, etatDepuisStatut, statutConvention } from '@/utils/stage';
 import { messageErreurApi } from '@/utils/erreurApi';
 import { ref, computed, onMounted, watch } from 'vue';
@@ -55,9 +56,10 @@ import {
   Cog6ToothIcon,
 } from '@heroicons/vue/24/outline';
 
-import { HeaderComponent, ActionButtonVertical, Kpi, SimpleSkeleton, Card } from '@components';
+import { HeaderComponent, ActionButtonVertical, Kpi, SimpleSkeleton, Card, EmptyState } from '@components';
 
 const toast = useToast();
+const { confirmer } = useConfirmation();
 const route = useRoute();
 const router = useRouter();
 
@@ -951,7 +953,7 @@ const savePeriod = async (formValue) => {
 };
 
 const confirmDeletePeriod = async (p) => {
-  if (confirm(`Êtes-vous sûr de vouloir supprimer la période "${p.name}" ?`)) {
+  if (await confirmer({ message: `Supprimer la période « ${p.name} » ?`, titre: 'Supprimer la période', libelle: 'Supprimer', danger: true })) {
     try {
       await deleteStagePeriodeService(p.id);
       allPeriods.value = allPeriods.value.filter(item => item.id !== p.id);
@@ -969,7 +971,6 @@ const confirmDeletePeriod = async (p) => {
 
 <template>
   <div class="space-y-6">
-    <Toast />
 
     <!-- 1. Header component for General Dashboard -->
     <HeaderComponent v-if="viewMode === 'dashboard'" :icon="ChartBarIcon" color="indigo"
@@ -1035,9 +1036,8 @@ const confirmDeletePeriod = async (p) => {
                 </button>
               </div>
             </div>
-            <div v-else class="text-center py-8 text-xs text-slate-400 italic">
-              Aucune demande de convention en attente d'instruction. Tout est à jour !
-            </div>
+            <EmptyState v-else compact color="emerald" icon="pi pi-check-circle" title="Tout est à jour"
+              description="Aucune demande de convention en attente d'instruction." />
           </div>
         </Card>
 

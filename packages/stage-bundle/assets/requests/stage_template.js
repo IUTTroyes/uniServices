@@ -47,7 +47,25 @@ const createStageTemplateService = async (data, showToast = false) => {
     }
 };
 
+const deleteStageTemplateService = async (id) => { await api.delete(`/api/stage_convention_templates/${id}`); };
+
+// ---------- Éditeur du modèle de convention (super administrateur) ----------
+
+/** Modèle livré avec l'application : { code, libelle, texte }. */
+const getModeleConventionDefautService = async () => (await api.get('/api/stage/modele-convention/defaut')).data;
+
+/** Balises « {objet.champ} » disponibles dans les modèles. */
+const getBalisesModeleConventionService = async () => (await api.get('/api/stage/modele-convention/balises')).data;
+
+/** Aperçu HTML du modèle rempli avec un vrai dossier : { html, dossier }. */
+const apercuModeleConventionService = async (texte, stageEtudiantId = null) =>
+    (await api.post('/api/stage/modele-convention/apercu', { texte, stageEtudiantId })).data;
+
 export {
+    deleteStageTemplateService,
+    getModeleConventionDefautService,
+    getBalisesModeleConventionService,
+    apercuModeleConventionService,
     getStageTemplatesService,
     updateStageTemplateService,
     createStageTemplateService

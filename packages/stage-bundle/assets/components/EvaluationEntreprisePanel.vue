@@ -5,32 +5,49 @@
  */
 import { computed, onMounted, ref, watch } from 'vue';
 import { useToast } from 'primevue/usetoast';
-import api from '@helpers/axios';
+import Button from 'primevue/button';
+import Tag from 'primevue/tag';
+import { SimpleSkeleton } from '@components';
+import { getEvaluationEntrepriseService, envoyerEvaluationEntrepriseService } from '@/requests/stage_service';
+import { useConfirmation } from '@/composables/useConfirmation';
 import { messageErreurApi } from '@/utils/erreurApi';
+import { dateFr } from '@/utils/stage';
 
 const props = defineProps({
   stageId: { type: [Number, String], required: true }
 });
 const toast = useToast();
+const { confirmer } = useConfirmation();
 
 const etat = ref(null);
 const chargement = ref(false);
 const envoi = ref(false);
 
-const dateFr = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR') : '');
-const libelleStatut = computed(() => ({
-  non_envoyee: 'Pas encore demandée',
-  envoyee: `Lien envoyé à ${etat.value?.envoyeA} le ${dateFr(etat.value?.envoyeLe)} (valable jusqu'au ${dateFr(etat.value?.expireLe)})`,
-  expiree: `Lien expiré le ${dateFr(etat.value?.expireLe)} sans réponse`,
-  soumise: `Évaluation rendue le ${dateFr(etat.value?.soumisLe)} par ${etat.value?.evaluateurNom}`
+/** Libellé et sévérité de Tag par statut de la demande. */
+const STATUTS = {
+  non_envoyee: { libelle: 'Non demandée', severite: 'secondary' },
+  envoyee: { libelle: 'En attente de réponse', severite: 'info' },
+  expiree: { libelle: 'Lien expiré', severite: 'warn' },
+  soumise: { libelle: 'Évaluation rendue', severite: 'success' }
+};
+const statut = computed(() => STATUTS[etat.value?.statut] || STATUTS.non_envoyee);
+const detail = computed(() => ({
+  envoyee: `Lien envoyé à ${etat.value?.envoyeA} le ${dateFr(etat.value?.envoyeLe)}, valable jusqu'au ${dateFr(etat.value?.expireLe)}.`,
+  expiree: `Aucune réponse avant le ${dateFr(etat.value?.expireLe)}.`,
+  soumise: `Rendue le ${dateFr(etat.value?.soumisLe)} par ${etat.value?.evaluateurNom}.`
 }[etat.value?.statut] || ''));
+const empechement = computed(() => {
+  if (!etat.value?.destinataire) return 'Aucune adresse e-mail pour le tuteur en entreprise.';
+  if (etat.value?.criteres === 0) return 'Aucun critère d\'évaluation défini pour la période.';
+  return '';
+});
 
 const charger = async () => {
   if (!props.stageId || String(props.stageId).startsWith('sans-stage')) return;
   chargement.value = true;
   try {
-    etat.value = (await api.get(`/api/stage_etudiants/${props.stageId}/evaluation-entreprise`)).data;
-  } catch (error) {
+    etat.value = await getEvaluationEntrepriseService(props.stageId);
+  } catch {
     etat.value = null;
   } finally {
     chargement.value = false;
@@ -38,11 +55,10 @@ const charger = async () => {
 };
 
 const envoyer = async () => {
-  const renvoi = etat.value?.statut === 'envoyee';
-  if (renvoi && !confirm('Renvoyer un nouveau lien ? Le lien précédent ne fonctionnera plus.')) return;
+  if (etat.value?.statut === 'envoyee' && !await confirmer({ message: 'Renvoyer un nouveau lien ? Le lien précédent ne fonctionnera plus.', libelle: 'Renvoyer' })) return;
   envoi.value = true;
   try {
-    etat.value = (await api.post(`/api/stage_etudiants/${props.stageId}/evaluation-entreprise/envoyer`)).data;
+    etat.value = await envoyerEvaluationEntrepriseService(props.stageId);
     toast.add({ severity: 'success', summary: 'Lien envoyé', detail: `Le formulaire a été envoyé à ${etat.value.envoyeA}.`, life: 4000 });
   } catch (error) {
     toast.add({ severity: 'error', summary: 'Envoi impossible', detail: messageErreurApi(error, 'Le lien n\'a pas pu être envoyé.'), life: 6000 });
@@ -56,19 +72,19 @@ watch(() => props.stageId, charger);
 </script>
 
 <template>
-  <div class="space-y-3 text-xs">
-    <p v-if="chargement" class="text-slate-400">Chargement…</p>
+  <div class="space-y-3 text-sm">
+    <SimpleSkeleton v-if="chargement" />
     <template v-else-if="etat">
-      <p class="text-slate-600 dark:text-slate-300">{{ libelleStatut }}</p>
+      <div class="flex flex-wrap items-center gap-2">
+        <Tag :value="statut.libelle" :severity="statut.severite" />
+        <span v-if="detail" class="text-slate-600 dark:text-slate-300">{{ detail }}</span>
+      </div>
 
       <div v-if="etat.statut !== 'soumise'" class="flex flex-wrap items-center gap-2">
-        <button type="button" :disabled="envoi || !etat.destinataire || etat.criteres === 0" @click="envoyer"
-          class="px-3 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed">
-          {{ envoi ? 'Envoi…' : (etat.statut === 'non_envoyee' ? 'Envoyer le formulaire au tuteur' : 'Renvoyer un lien') }}
-        </button>
-        <span v-if="!etat.destinataire" class="text-amber-700 dark:text-amber-300">Aucune adresse e-mail pour le tuteur en entreprise.</span>
-        <span v-else-if="etat.criteres === 0" class="text-amber-700 dark:text-amber-300">Aucun critère défini pour la période.</span>
-        <span v-else class="text-slate-400">Destinataire : {{ etat.destinataire }}</span>
+        <Button :label="etat.statut === 'non_envoyee' ? 'Envoyer le formulaire au tuteur' : 'Renvoyer un lien'" icon="pi pi-send" size="small"
+          :loading="envoi" :disabled="!!empechement" @click="envoyer" />
+        <span v-if="empechement" class="q-callout q-callout-warning !py-1.5">{{ empechement }}</span>
+        <span v-else class="q-hint !mt-0">Destinataire : {{ etat.destinataire }}</span>
       </div>
 
       <div v-else class="space-y-2">

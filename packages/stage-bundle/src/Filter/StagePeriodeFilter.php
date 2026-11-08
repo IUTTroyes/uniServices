@@ -8,12 +8,15 @@ use ApiPlatform\Metadata\BackwardCompatibleFilterDescriptionTrait;
 use ApiPlatform\Metadata\Operation;
 use App\Entity\Users\Personnel;
 use Doctrine\ORM\QueryBuilder;
+use StageBundle\Doctrine\JointuresStageTrait;
+use StageBundle\Util\Iri;
 use StageBundle\Security\StageAccess;
 use Symfony\Bundle\SecurityBundle\Security;
 
 class StagePeriodeFilter implements FilterInterface
 {
     use BackwardCompatibleFilterDescriptionTrait;
+    use JointuresStageTrait;
 
     public function __construct(
         private readonly Security $security,
@@ -45,11 +48,8 @@ class StagePeriodeFilter implements FilterInterface
         $alias = $queryBuilder->getRootAliases()[0];
 
         if ('departement' === $property) {
-            $deptId = is_string($value) && str_contains($value, '/') ? (int) basename($value) : (int) $value;
-            $spSem = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'semestreProgramme');
-            $spAnnee = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $spSem, 'annee');
-            $spPn = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $spAnnee, 'pn');
-            $spDiplome = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $spPn, 'diplome');
+            $deptId = (int) Iri::id($value);
+            $spDiplome = $this->jointureDiplome($queryBuilder, $queryNameGenerator, $alias);
             $queryBuilder
                 ->andWhere(sprintf('%s.departement = :stageDept', $spDiplome))
                 ->setParameter('stageDept', $deptId);
@@ -75,10 +75,7 @@ class StagePeriodeFilter implements FilterInterface
 
             $departements = $this->access->departementsGeres($user);
             if ($departements !== []) {
-                $spSem = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'semestreProgramme');
-                $spAnnee = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $spSem, 'annee');
-                $spPn = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $spAnnee, 'pn');
-                $spDiplome = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $spPn, 'diplome');
+                $spDiplome = $this->jointureDiplome($queryBuilder, $queryNameGenerator, $alias);
                 $deptParam = $queryNameGenerator->generateParameterName('stageDepartementsGeres');
                 $conditions[] = sprintf('IDENTITY(%s.departement) IN (:%s)', $spDiplome, $deptParam);
                 $queryBuilder->setParameter($deptParam, $departements);
@@ -87,23 +84,23 @@ class StagePeriodeFilter implements FilterInterface
         }
 
         if ('anneeUniversitaire' === $property) {
-            $univId = is_string($value) && str_contains($value, '/') ? (int) basename($value) : (int) $value;
-            $spAu = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'anneeUniversitaire');
+            $univId = (int) Iri::id($value);
+            $spAu = $this->jointure($queryBuilder, $queryNameGenerator, $alias, 'anneeUniversitaire');
             $queryBuilder
                 ->andWhere(sprintf('(%s.id = :stageAnneeUniv OR %s.annee = :stageAnneeUniv)', $spAu, $spAu))
                 ->setParameter('stageAnneeUniv', $univId);
         }
 
         if ('actif' === $property) {
-            $spAu = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'anneeUniversitaire');
+            $spAu = $this->jointure($queryBuilder, $queryNameGenerator, $alias, 'anneeUniversitaire');
             $queryBuilder
                 ->andWhere(sprintf('%s.actif = :stageAuActif', $spAu))
                 ->setParameter('stageAuActif', filter_var($value, FILTER_VALIDATE_BOOLEAN));
         }
 
         if ('annee' === $property || 'ordre' === $property || 'ordreAnnee' === $property) {
-            $spSem = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'semestreProgramme');
-            $spAnnee = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $spSem, 'annee');
+            $spSem = $this->jointure($queryBuilder, $queryNameGenerator, $alias, 'semestreProgramme');
+            $spAnnee = $this->jointure($queryBuilder, $queryNameGenerator, $spSem, 'annee');
             if (is_numeric($value)) {
                 $queryBuilder
                     ->andWhere(sprintf('%s.ordre = :stageAnneeOrdre', $spAnnee))
@@ -112,27 +109,10 @@ class StagePeriodeFilter implements FilterInterface
         }
 
         if ('semestre' === $property) {
-            $semId = is_string($value) && str_contains($value, '/') ? (int) basename($value) : (int) $value;
+            $semId = (int) Iri::id($value);
             $queryBuilder
                 ->andWhere(sprintf('%s.semestreProgramme = :stageSemestre', $alias))
                 ->setParameter('stageSemestre', $semId);
         }
     }
-
-    private function getOrCreateJoin(QueryBuilder $qb, QueryNameGeneratorInterface $queryNameGenerator, string $fromAlias, string $association): string
-    {
-        foreach ($qb->getDQLPart('join') as $joins) {
-            foreach ($joins as $join) {
-                if ($join->getJoin() === "$fromAlias.$association") {
-                    return $join->getAlias();
-                }
-            }
-        }
-
-        $newAlias = $queryNameGenerator->generateJoinAlias($association);
-        $qb->leftJoin("$fromAlias.$association", $newAlias);
-        return $newAlias;
-    }
-
-
 }

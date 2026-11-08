@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { dateFr, statutConvention, etatDepuisStatut, aUneDemande, nomContact, adresseLigne, idDepuisRelation, STATUT_PAR_ETAT } from '../utils/stage.js';
+import { dateFr, statutConvention, etatDepuisStatut, aUneDemande, nomContact, adresseLigne, idDepuisRelation, tagStatut, STATUT_PAR_ETAT } from '../utils/stage.js';
 import { messageErreurApi } from '../utils/erreurApi.js';
 
 describe('utils/stage', () => {
@@ -20,6 +20,13 @@ describe('utils/stage', () => {
     expect(statutConvention('ETAT_STAGE_AUTORISE')).toBe('Aucune');
     expect(etatDepuisStatut('Aucune', true)).toBe('ETAT_STAGE_AUTORISE');
     expect(etatDepuisStatut('Aucune', false)).toBe('ETAT_STAGE_INCOMPLET');
+  });
+
+  it('associe un Tag à chaque statut de convention', () => {
+    for (const statut of new Set(Object.values(STATUT_PAR_ETAT))) {
+      expect(tagStatut(statut)).toMatchObject({ severite: expect.any(String), libelle: expect.any(String) });
+    }
+    expect(tagStatut('Aucune')).toBeNull();
   });
 
   it('distingue une demande d\'une simple autorisation de saisie', () => {

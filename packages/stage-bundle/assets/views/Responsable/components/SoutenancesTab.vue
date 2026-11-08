@@ -1,8 +1,10 @@
 <script setup>
+import Button from 'primevue/button';
+import { getStagePeriodeService, updateStagePeriodeService, getStageSoutenancesService, saveStageSoutenanceService, checkConflitStageSoutenanceService, generateStageSoutenancesService, deleteStageSoutenanceService } from '@/requests/stage_service';
+import { useConfirmation } from '@/composables/useConfirmation';
 import { idDepuisRelation } from '@/utils/stage';
 import { computed, ref, onMounted, watch } from 'vue';
 import { useToast } from 'primevue/usetoast';
-import api from '@helpers/axios';
 
 const props = defineProps({
   periodStudents: {
@@ -24,6 +26,7 @@ const props = defineProps({
 });
 
 const toast = useToast();
+const { confirmer } = useConfirmation();
 const slots = ref([]);
 const isLoading = ref(false);
 
@@ -61,11 +64,11 @@ watch(() => props.selectedPeriodId, async (newVal) => {
 
 async function fetchPeriodDetails() {
   try {
-    const response = await api.get(`/api/stage_periodes/${props.selectedPeriodId}`);
-    if (response.data) {
-      defaultDuration.value = response.data.dureeSoutenance ?? 30;
+    const periode = await getStagePeriodeService(props.selectedPeriodId);
+    if (periode) {
+      defaultDuration.value = periode.dureeSoutenance ?? 30;
       bulkDuree.value = defaultDuration.value;
-      sessions.value = response.data.periodesSoutenance || [];
+      sessions.value = periode.periodesSoutenance || [];
     }
   } catch (error) {
     console.error('Erreur lors de la récupération de la période:', error);
@@ -75,11 +78,7 @@ async function fetchPeriodDetails() {
 async function updatePeriodDuration() {
   isUpdatingDuration.value = true;
   try {
-    await api.patch(`/api/stage_periodes/${props.selectedPeriodId}`, {
-      dureeSoutenance: defaultDuration.value
-    }, {
-      headers: { 'Content-Type': 'application/merge-patch+json' }
-    });
+    await updateStagePeriodeService(props.selectedPeriodId, { dureeSoutenance: defaultDuration.value });
     toast.add({
       severity: 'success',
       summary: 'Configuration enregistrée',
@@ -99,12 +98,7 @@ const idFromRelation = idDepuisRelation;
 async function fetchSlots() {
   isLoading.value = true;
   try {
-    const response = await api.get('/api/stage_soutenances', {
-      params: { stagePeriode: props.selectedPeriodId, pagination: false }
-    });
-
-    const data = response.data || [];
-    const rawList = Array.isArray(data) ? data : (data.member || data['hydra:member'] || []);
+    const rawList = await getStageSoutenancesService(props.selectedPeriodId);
     const list = rawList.filter(s => String(idFromRelation(s.stagePeriode)) === String(props.selectedPeriodId));
 
     // Sort chronologically
@@ -154,7 +148,7 @@ async function generateBulkSlots() {
 
   isGeneratingBulk.value = true;
   try {
-    const response = await api.post('/api/stage_soutenances/bulk-generate', {
+    const resultat = await generateStageSoutenancesService({
       stagePeriodeId: props.selectedPeriodId,
       date: bulkDate.value,
       startTime: bulkStartTime.value,
@@ -167,7 +161,7 @@ async function generateBulkSlots() {
     toast.add({
       severity: 'success',
       summary: 'Grille générée',
-      detail: `${response.data.slotsCreated} créneaux ont été ajoutés au planning.`,
+      detail: `${resultat.slotsCreated} créneaux ont été ajoutés au planning.`,
       life: 3000
     });
 
@@ -221,7 +215,7 @@ const getAvailableStudentsForSlot = (activeSlot) => {
 async function checkConflictForSlot(slot) {
   if (!slot.dateSoutenance) return;
   try {
-    const response = await api.post('/api/stage_soutenances/validate-conflict', {
+    const verification = await checkConflitStageSoutenanceService({
       stageEtudiantId: slot.stageEtudiantId,
       enseignantJuryId: slot.enseignantJuryId,
       dateSoutenance: slot.dateSoutenance,
@@ -230,7 +224,7 @@ async function checkConflictForSlot(slot) {
       stagePeriodeId: props.selectedPeriodId
     });
 
-    slotConflicts.value[slot.id] = response.data.messages || [];
+    slotConflicts.value[slot.id] = verification.messages || [];
   } catch (error) {
     console.error('Erreur lors de la vérification de conflit:', error);
   }
@@ -246,7 +240,7 @@ const onSlotFieldChange = (slot) => {
 async function saveSlot(slot) {
   slot.isSaving = true;
   try {
-    await api.post('/api/stage_soutenances/save', {
+    await saveStageSoutenanceService({
       id: slot.id,
       stagePeriodeId: props.selectedPeriodId,
       stageEtudiantId: slot.stageEtudiantId,
@@ -290,11 +284,11 @@ async function clearSlot(slot) {
 
 // Delete slot completely
 async function deleteSlot(id) {
-  if (!confirm('Voulez-vous supprimer définitivement ce créneau de la grille ?')) {
+  if (!await confirmer({ message: 'Supprimer définitivement ce créneau de la grille ?', titre: 'Supprimer le créneau', libelle: 'Supprimer', danger: true })) {
     return;
   }
   try {
-    await api.delete(`/api/stage_soutenances/${id}`);
+    await deleteStageSoutenanceService(id);
     toast.add({
       severity: 'info',
       summary: 'Créneau supprimé',
@@ -340,14 +334,7 @@ const getSoutenanceEnd = (startStr, durationMin) => {
             <span class="text-slate-500 font-semibold">min</span>
           </div>
         </div>
-        <button 
-          @click="updatePeriodDuration"
-          :disabled="isUpdatingDuration"
-          class="px-3 py-1.5 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl shadow-sm border-0 cursor-pointer flex items-center gap-1"
-        >
-          <i v-if="isUpdatingDuration" class="pi pi-spin pi-spinner text-[10px]"></i>
-          <span>Enregistrer</span>
-        </button>
+        <Button label="Enregistrer" icon="pi pi-check" size="small" :loading="isUpdatingDuration" @click="updatePeriodDuration" />
       </div>
     </div>
 
@@ -438,14 +425,7 @@ const getSoutenanceEnd = (startStr, durationMin) => {
       </div>
 
       <div class="flex justify-end pt-2 border-t border-slate-50 dark:border-slate-800">
-        <button 
-          @click="generateBulkSlots"
-          :disabled="isGeneratingBulk"
-          class="px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl border-0 shadow-sm cursor-pointer flex items-center gap-1.5"
-        >
-          <i v-if="isGeneratingBulk" class="pi pi-spin pi-spinner text-xs"></i>
-          <span>Générer la grille</span>
-        </button>
+        <Button label="Générer la grille" icon="pi pi-calendar-plus" :loading="isGeneratingBulk" @click="generateBulkSlots" />
       </div>
     </div>
 
@@ -594,15 +574,9 @@ const getSoutenanceEnd = (startStr, durationMin) => {
               <td class="p-4 text-right">
                 <div class="flex justify-end gap-1.5">
                   <!-- Save -->
-                  <button 
-                    @click="saveSlot(s)"
-                    :disabled="s.isSaving || (slotConflicts[s.id] && slotConflicts[s.id].length > 0)"
-                    class="p-2 rounded-xl text-white bg-emerald-600 hover:bg-emerald-700 border-0 cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                    title="Enregistrer les affectations"
-                  >
-                    <i v-if="s.isSaving" class="pi pi-spin pi-spinner"></i>
-                    <i v-else class="pi pi-save"></i>
-                  </button>
+                  <Button icon="pi pi-save" severity="success" rounded size="small" :loading="s.isSaving"
+                    :disabled="slotConflicts[s.id] && slotConflicts[s.id].length > 0"
+                    aria-label="Enregistrer les affectations" v-tooltip.top="'Enregistrer les affectations'" @click="saveSlot(s)" />
                   
                   <!-- Free Slot -->
                   <button 

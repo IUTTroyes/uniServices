@@ -2,8 +2,7 @@
 
 namespace StageBundle\Service;
 
-use App\Entity\Etablissement;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\EtablissementRepository;
 use StageBundle\Entity\Stages\StageEtudiant;
 
 /**
@@ -23,7 +22,7 @@ class StageReglesLegales
     public const JOURS_MAX = 132;
     public const HEURES_HEBDO_MAX = 48;
 
-    public function __construct(private readonly EntityManagerInterface $em)
+    public function __construct(private readonly EtablissementRepository $etablissements)
     {
     }
 
@@ -112,8 +111,7 @@ class StageReglesLegales
 
     private function tauxHoraireMinimal(): float
     {
-        $etab = $this->em->getRepository(Etablissement::class)->findOneBy(['isMain' => true])
-            ?? $this->em->getRepository(Etablissement::class)->findOneBy([]);
+        $etab = $this->etablissements->findPrincipal();
 
         return $etab?->getGratificationMinimale() ?? 4.35;
     }

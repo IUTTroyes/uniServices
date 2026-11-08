@@ -537,7 +537,6 @@ const openOfferModal = (offer) => {
 
 <template>
   <div class="mx-auto space-y-6 pb-12">
-    <Toast />
 
     <!-- Main Header Component from Shared Library -->
     <HeaderComponent

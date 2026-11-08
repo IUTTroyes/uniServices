@@ -26,6 +26,8 @@ use Symfony\Bundle\SecurityBundle\Security;
  */
 final class StageVisibiliteExtension implements QueryCollectionExtensionInterface
 {
+    use JointuresStageTrait;
+
     public function __construct(
         private readonly Security $security,
         private readonly StageAccess $access,
@@ -57,12 +59,11 @@ final class StageVisibiliteExtension implements QueryCollectionExtensionInterfac
         }
 
         $conditions = [];
-        $periode = $queryNameGenerator->generateJoinAlias('stagePeriodeVisibilite');
-        $queryBuilder->leftJoin(sprintf('%s.stagePeriode', $alias), $periode);
+        $periode = $this->jointure($queryBuilder, $queryNameGenerator, $alias, 'stagePeriode');
 
         $departements = $this->access->departementsGeres($user);
         if ($departements !== []) {
-            $departement = $this->joindreDepartement($queryBuilder, $queryNameGenerator, $periode);
+            $departement = sprintf('IDENTITY(%s.departement)', $this->jointureDiplome($queryBuilder, $queryNameGenerator, $periode));
             $param = $queryNameGenerator->generateParameterName('stageDepartements');
             $conditions[] = sprintf('%s IN (:%s)', $departement, $param);
             $queryBuilder->setParameter($param, $departements);
@@ -77,18 +78,5 @@ final class StageVisibiliteExtension implements QueryCollectionExtensionInterfac
         }
 
         $queryBuilder->andWhere($conditions === [] ? '1 = 0' : '('.implode(' OR ', $conditions).')');
-    }
-
-    /** période → semestre → année → PN → diplôme → département ; renvoie l'expression de l'identifiant du département */
-    private function joindreDepartement(QueryBuilder $qb, QueryNameGeneratorInterface $names, string $periode): string
-    {
-        $precedent = $periode;
-        foreach (['semestreProgramme', 'annee', 'pn', 'diplome'] as $association) {
-            $alias = $names->generateJoinAlias($association.'Visibilite');
-            $qb->leftJoin(sprintf('%s.%s', $precedent, $association), $alias);
-            $precedent = $alias;
-        }
-
-        return sprintf('IDENTITY(%s.departement)', $precedent);
     }
 }

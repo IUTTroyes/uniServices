@@ -4,13 +4,22 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createApp, defineComponent, h, nextTick } from 'vue';
 import PrimeVue from 'primevue/config';
 import ToastService from 'primevue/toastservice';
+import Tooltip from 'primevue/tooltip';
+import Skeleton from 'primevue/skeleton';
 
 const route = { params: { jeton: 'jeton-de-test-0123456789' }, query: {}, meta: {} };
 vi.mock('vue-router', () => ({ useRoute: () => route, useRouter: () => ({ push: vi.fn() }) }));
 
 vi.mock('@components', async () => ({
   Card: (await import('@components/components/Card.vue')).default,
+  EmptyState: (await import('@components/components/EmptyState.vue')).default,
+  ListSkeleton: (await import('@components/loader/ListSkeleton.vue')).default,
+  SimpleSkeleton: (await import('@components/loader/SimpleSkeleton.vue')).default,
+  HeaderComponent: defineComponent({ props: ['titre', 'description', 'icon', 'color', 'showBack', 'backUrl'], setup: (p) => () => h('header', [h('h1', p.titre), h('p', p.description)]) }),
 }));
+
+// Confirmation PrimeVue (ConfirmDialog global du shell) : acceptée d'office dans les tests.
+vi.mock('primevue/useconfirm', () => ({ useConfirm: () => ({ require: (options) => options.accept() }) }));
 
 const api = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() }));
 vi.mock('@helpers/axios', () => ({ default: api }));
@@ -35,7 +44,8 @@ const monter = async (composant, props = {}) => {
       onCree: () => { evenements.cree = true; },
     }),
   }));
-  app.use(PrimeVue).use(ToastService);
+  // Comme dans le shell : Skeleton et la directive tooltip sont enregistrés globalement.
+  app.use(PrimeVue).use(ToastService).directive('tooltip', Tooltip).component('Skeleton', Skeleton);
   app.config.warnHandler = (msg) => avertissements.push(msg);
   app.mount(el);
   montages.push({ app, el });
@@ -48,7 +58,6 @@ const bouton = (el, texte) => [...el.querySelectorAll('button')].find(b => b.tex
 beforeEach(() => {
   avertissements = [];
   Object.values(api).forEach(f => f.mockReset());
-  vi.spyOn(window, 'confirm').mockReturnValue(true);
 });
 afterEach(() => {
   montages.forEach(({ app, el }) => { app.unmount(); el.remove(); });
@@ -85,7 +94,7 @@ describe('RapportStage', () => {
     const { el, evenements } = await monter(RapportStage, { stage: { id: 7, reportUploaded: true, reportName: 'Mon rapport.pdf', reportDate: '01/06/2027' } });
 
     expect(el.querySelector('a[href="/api/stage_etudiants/7/rapport"]').textContent).toContain('Mon rapport.pdf');
-    el.querySelector('button[title="Retirer le rapport"]').click();
+    el.querySelector('button[aria-label="Retirer le rapport"]').click();
     await attendre();
     expect(api.delete).toHaveBeenCalledWith('/api/stage_etudiants/7/rapport');
     expect(evenements.change.reportUploaded).toBe(false);
@@ -98,6 +107,7 @@ describe('AvenantsEtudiant', () => {
     const { el } = await monter(AvenantsEtudiant, { stage: { id: 3, etatStage: 'ETAT_STAGE_CONVENTION_RECUE', avenants } });
     expect(el.textContent).toContain('Prolongation');
     expect(el.textContent).toContain('Validé le 03/05/2027');
+    expect(el.querySelector('.p-tag')).not.toBeNull();
     expect(bouton(el, 'Demander un avenant').disabled).toBe(false);
 
     const nonSigne = await monter(AvenantsEtudiant, { stage: { id: 4, etatStage: 'ETAT_STAGE_VALIDE', avenants: [] } });
@@ -152,6 +162,7 @@ describe('EvaluationEntrepriseView (page publique)', () => {
 
     expect(el.textContent).toContain('Alice MARTIN');
     const envoyer = bouton(el, 'Transmettre');
+    expect(el.querySelector('h1').textContent).toBe('Évaluation du stagiaire');
     expect(envoyer.disabled).toBe(true);
 
     el.querySelector('input[type=radio][value="3"]').click();

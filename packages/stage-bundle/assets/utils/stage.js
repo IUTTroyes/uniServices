@@ -23,6 +23,16 @@ export const STATUT_PAR_ETAT = {
 /** État de l'API → statut affiché (« Aucune » tant que l'étudiant n'a rien déposé). */
 export const statutConvention = (etat) => STATUT_PAR_ETAT[etat] || 'Aucune';
 
+/** Rendu <Tag> d'un statut de convention (libellé court, sévérité PrimeVue, icône) ; null pour « Aucune ». */
+export const TAG_STATUT = {
+  'En attente': { libelle: 'À valider', severite: 'warn', icone: 'pi pi-clock' },
+  'Validée': { libelle: 'À imprimer', severite: 'info', icone: 'pi pi-print' },
+  'En cours de signature': { libelle: 'En signature', severite: 'primary', icone: 'pi pi-pencil' },
+  'Signée': { libelle: 'Signée', severite: 'success', icone: 'pi pi-check-circle' },
+  'Rejetée': { libelle: 'Refusée', severite: 'danger', icone: 'pi pi-times-circle' }
+};
+export const tagStatut = (statut) => TAG_STATUT[statut] || null;
+
 /** Statut affiché → état de l'API ; « Aucune » dépend de l'ouverture de la saisie. */
 export const etatDepuisStatut = (statut, saisieAutorisee) => {
   switch (statut) {

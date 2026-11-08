@@ -10,6 +10,7 @@ use StageBundle\Entity\Stages\StageEtudiant;
 use StageBundle\Entity\Stages\StageSoutenance;
 use StageBundle\Enum\EtatStageEnum;
 use StageBundle\Enum\TypeNotificationEnum as Type;
+use StageBundle\Security\StageAccess;
 
 /**
  * Traduit les événements métier des stages en notifications (cloche + e-mail selon les préférences de chacun).
@@ -51,7 +52,7 @@ class StageNotifier
             }
         }
 
-        if ($etudiant !== null && $etat !== $etatAvant && !$this->estMeme($etudiant, $auteur)) {
+        if ($etudiant !== null && $etat !== $etatAvant && !StageAccess::memePersonne($etudiant, $auteur)) {
             $notif = match ($etat) {
                 EtatStageEnum::AUTORISE => [Type::SAISIE_OUVERTE, sprintf('Vous pouvez saisir votre demande de convention de stage (%s).', $periode)],
                 EtatStageEnum::VALIDE => [Type::CONVENTION_VALIDEE, sprintf('Votre demande de convention%s a été validée (%s).', $entreprise ? ' chez '.$entreprise : '', $periode)],
@@ -73,7 +74,7 @@ class StageNotifier
         }
 
         $tuteur = $stage->getTuteurUniversitaire();
-        if ($tuteur !== null && !$this->estMeme($tuteur, $tuteurAvant) && !$this->estMeme($tuteur, $auteur) && $etudiant !== null) {
+        if ($tuteur !== null && !StageAccess::memePersonne($tuteur, $tuteurAvant) && !StageAccess::memePersonne($tuteur, $auteur) && $etudiant !== null) {
             $this->notifications->notifier(
                 $tuteur,
                 Type::TUTEUR_AFFECTE->cle(),
@@ -98,7 +99,7 @@ class StageNotifier
     public function avenantValide(StageAvenant $avenant, Etudiant|Personnel|null $auteur): void
     {
         $etudiant = $avenant->getStageEtudiant()?->getEtudiant();
-        if ($etudiant === null || $this->estMeme($etudiant, $auteur)) {
+        if ($etudiant === null || StageAccess::memePersonne($etudiant, $auteur)) {
             return;
         }
         $this->notifications->notifier(
@@ -120,13 +121,13 @@ class StageNotifier
         }
         $quand = sprintf('le %s à %s%s', $date->format('d/m/Y'), $date->format('H:i'), $soutenance->getSalle() ? ' (salle '.$soutenance->getSalle().')' : '');
 
-        if (!$this->estMeme($etudiant, $auteur)) {
+        if (!StageAccess::memePersonne($etudiant, $auteur)) {
             $this->notifications->notifier($etudiant, Type::SOUTENANCE_PLANIFIEE->cle(), sprintf('Votre soutenance de stage est planifiée %s.', $quand), self::URL_ETUDIANT);
         }
 
         $jury = [];
         foreach ([$stage->getTuteurUniversitaire(), $soutenance->getEnseignantJury()] as $membre) {
-            if ($membre !== null && !$this->estMeme($membre, $auteur)) {
+            if ($membre !== null && !StageAccess::memePersonne($membre, $auteur)) {
                 $jury[$membre->getId() ?? spl_object_id($membre)] = $membre;
             }
         }
@@ -145,7 +146,7 @@ class StageNotifier
     {
         $tuteur = $stage->getTuteurUniversitaire();
         $etudiant = $stage->getEtudiant();
-        if ($tuteur === null || $etudiant === null || $this->estMeme($tuteur, $auteur)) {
+        if ($tuteur === null || $etudiant === null || StageAccess::memePersonne($tuteur, $auteur)) {
             return;
         }
         $this->notifications->notifier(
@@ -231,7 +232,7 @@ class StageNotifier
         }
         $liste = [];
         foreach ([$periode->getResponsablePrincipal(), ...$periode->getCoResponsables()->toArray()] as $p) {
-            if ($p instanceof Personnel && !$this->estMeme($p, $auteur)) {
+            if ($p instanceof Personnel && !StageAccess::memePersonne($p, $auteur)) {
                 $liste[$p->getId() ?? spl_object_id($p)] = $p;
             }
         }
@@ -245,15 +246,5 @@ class StageNotifier
         $id = $stage->getStagePeriode()?->getId();
 
         return $id !== null ? '/app/stage/responsable/periode/'.$id : '/app/stage/responsable';
-    }
-
-    private function estMeme(Etudiant|Personnel $a, Etudiant|Personnel|null $b): bool
-    {
-        // instanceof plutôt que ::class : une entité chargée paresseusement est un proxy Doctrine.
-        if ($b === null || ($a instanceof Etudiant) !== ($b instanceof Etudiant)) {
-            return false;
-        }
-
-        return $a === $b || ($a->getId() !== null && $a->getId() === $b->getId());
     }
 }

@@ -47,7 +47,8 @@ abstract class StageApiTestCase extends TestCase
         }
         $racine = \dirname(__DIR__, 4).'/back';
         $_SERVER['APP_ENV'] = $_ENV['APP_ENV'] = 'test';
-        $_SERVER['APP_DEBUG'] = $_ENV['APP_DEBUG'] = '0';
+        // Debug : le conteneur se reconstruit dès que le code change (pas de cache de test périmé).
+        $_SERVER['APP_DEBUG'] = $_ENV['APP_DEBUG'] = '1';
         (new Dotenv())->bootEnv($racine.'/.env');
         $_SERVER['MAILER_DSN'] = $_ENV['MAILER_DSN'] = 'null://null';
         // Rapports déposés pendant les tests : dossier temporaire, jamais var/stage/rapports.
@@ -55,7 +56,7 @@ abstract class StageApiTestCase extends TestCase
         $_SERVER['STAGE_RAPPORT_DIR'] = $_ENV['STAGE_RAPPORT_DIR'] = self::$dossierRapports;
 
         try {
-            $noyau = new Kernel('test', false);
+            $noyau = new Kernel('test', true);
             $noyau->boot();
             $noyau->getContainer()->get('doctrine')->getConnection()->executeQuery('SELECT 1 FROM stage_etudiant LIMIT 1');
             self::$noyau = $noyau;

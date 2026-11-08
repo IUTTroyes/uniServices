@@ -2,7 +2,7 @@
 
 namespace StageBundle\Controller;
 
-use App\Entity\Etablissement;
+use App\Repository\EtablissementRepository;
 use App\Entity\Users\Personnel;
 use App\Service\Email\EmailService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -36,6 +36,7 @@ class StageEvaluationEntrepriseController extends AbstractController
         private readonly EmailService $emails,
         private readonly StageNotifier $notifier,
         private readonly LoggerInterface $logger,
+        private readonly EtablissementRepository $etablissements,
         #[Autowire('%env(URL_FRONTEND)%')]
         private readonly string $urlFrontend,
     ) {
@@ -91,7 +92,7 @@ class StageEvaluationEntrepriseController extends AbstractController
         $jeton = $evaluation->emettreJeton($destinataire);
         $this->em->flush();
 
-        $etab = $this->em->getRepository(Etablissement::class)->findOneBy(['isMain' => true]);
+        $etab = $this->etablissements->findPrincipal();
         $user = $this->getUser();
         try {
             $this->emails->send('stage.evaluation_entreprise', $destinataire, [
