@@ -10,10 +10,16 @@ use StageBundle\Entity\Stages\StageEtudiant;
 use StageBundle\Enum\EtatStageEnum;
 use StageBundle\Security\StageAccess;
 use StageBundle\Service\Notification\StageNotifier;
+use StageBundle\Service\StageEntrepriseResolver;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
+use Symfony\Component\Validator\ConstraintViolation;
+use Symfony\Component\Validator\ConstraintViolationList;
+use ApiPlatform\Validator\Exception\ValidationException;
+use StageBundle\Service\StageReglesLegales;
 
 /**
  * Création / modification d'un dossier de stage :
@@ -25,11 +31,11 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
  */
 final class StageEtudiantProcessor implements ProcessorInterface
 {
-    /** Champs réservés au service des stages : un étudiant ne peut pas les écrire. */
-    private const INTERDITS_ETUDIANT = [
-        'tuteurUniversitaire', 'evaluationNote', 'evaluationCommentaire', 'suiviRencontres',
-        'dateValidation', 'dateConventionEnvoyee', 'dateConventionRecu', 'dateImprime', 'dateAutorise',
-    ];
+    /**
+     * Champs réservés au service des stages : un étudiant ne peut pas les écrire.
+     * (Les dates de traitement et le rapport ne sont écrits par aucun client : ils ne sont pas dans le groupe d'écriture.)
+     */
+    private const INTERDITS_ETUDIANT = ['tuteurUniversitaire', 'evaluationNote', 'evaluationCommentaire', 'suiviRencontres', 'motifRefus'];
     /** Seuls champs qu'un tuteur universitaire (sans autre responsabilité) peut écrire. */
     private const AUTORISES_TUTEUR = ['suiviRencontres', 'evaluationNote', 'evaluationCommentaire'];
     /** États dans lesquels l'étudiant ne peut plus toucher à son dossier : saisie fermée, convention signée. */
@@ -41,6 +47,8 @@ final class StageEtudiantProcessor implements ProcessorInterface
         private readonly Security $security,
         private readonly StageAccess $access,
         private readonly StageNotifier $notifier,
+        private readonly StageEntrepriseResolver $entreprises,
+        private readonly StageReglesLegales $regles,
     ) {
     }
 
@@ -59,11 +67,62 @@ final class StageEtudiantProcessor implements ProcessorInterface
         $etatAvant = $avant?->getEtatStage();
         $tuteurAvant = $avant?->getTuteurUniversitaire();
 
+        $this->controlerTransition($data, $etatAvant, $auteur);
+
+        $this->entreprises->resoudre($data, $avant?->getEntreprise(), $avant?->getTuteur());
+        $this->horodater($data, $etatAvant, $auteur);
+
         $resultat = $this->persist->process($data, $operation, $uriVariables, $context);
 
         $this->notifier->dossierEnregistre($data, $etatAvant, $tuteurAvant, $auteur);
 
         return $resultat;
+    }
+
+    private function controlerTransition(StageEtudiant $stage, ?EtatStageEnum $etatAvant, Etudiant|Personnel|null $auteur): void
+    {
+        $etat = $stage->getEtatStage();
+        if ($etatAvant !== null && !$etatAvant->peutPasserA($etat)) {
+            throw new UnprocessableEntityHttpException(sprintf('Un dossier « %s » ne peut pas passer à « %s ».', $etatAvant->getLibelle(), $etat->getLibelle()));
+        }
+        // Le motif ne vaut que pour un refus : il disparaît dès que le dossier change d'état.
+        if ($etat !== EtatStageEnum::REFUS && $etat !== $etatAvant) {
+            $stage->setMotifRefus(null);
+        }
+
+        // Règles légales : au dépôt (et à chaque nouvelle version de l'étudiant) et à la validation.
+        if (\in_array($etat, [EtatStageEnum::DEPOSE, EtatStageEnum::VALIDE], true) && ($etat !== $etatAvant || $auteur instanceof Etudiant)) {
+            $erreurs = $this->regles->verifier($stage);
+            if ($erreurs !== []) {
+                $violations = new ConstraintViolationList();
+                foreach ($erreurs as ['champ' => $champ, 'message' => $message]) {
+                    $violations->add(new ConstraintViolation($message, $message, [], $stage, $champ, null));
+                }
+                throw new ValidationException($violations);
+            }
+        }
+    }
+
+    /** Dates de traitement posées par le serveur au changement de statut (le client ne peut plus les écrire). */
+    private function horodater(StageEtudiant $stage, ?EtatStageEnum $etatAvant, Etudiant|Personnel|null $auteur): void
+    {
+        $etat = $stage->getEtatStage();
+        $maintenant = new \DateTime();
+        // Un nouveau dépôt de l'étudiant (même s'il était déjà « déposé ») met à jour la date de dépôt.
+        if ($etat === EtatStageEnum::DEPOSE && ($etat !== $etatAvant || $auteur instanceof Etudiant)) {
+            $stage->setDateDepotFormulaire($maintenant);
+        }
+        if ($etat === $etatAvant) {
+            return;
+        }
+        match ($etat) {
+            EtatStageEnum::AUTORISE => $stage->setDateAutorise($maintenant),
+            EtatStageEnum::VALIDE => $stage->setDateValidation($maintenant),
+            EtatStageEnum::CONVENTION_IMPRIMEE => $stage->setDateImprime($maintenant),
+            EtatStageEnum::CONVENTION_ENVOYEE => $stage->setDateConventionEnvoyee($maintenant)->setDateImprime($stage->getDateImprime() ?? $maintenant),
+            EtatStageEnum::CONVENTION_RECUE => $stage->setDateConventionRecu($maintenant),
+            default => null,
+        };
     }
 
     /** @param list<string> $cles champs présents dans la requête */

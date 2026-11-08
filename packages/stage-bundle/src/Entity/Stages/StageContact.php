@@ -23,23 +23,23 @@ class StageContact implements TimestampableInterface
     #[Groups(['stage_periode_gestion', 'stage_entreprise', 'stage_etudiant:read'])]
     private ?int $id = null;
 
-    #[Groups(['alternance_administration', 'stage_entreprise_administration', 'stage_periode_gestion', 'stage_entreprise', 'stage_etudiant:read', 'stage_etudiant:write'])]
+    #[Groups(['alternance_administration', 'stage_entreprise_administration', 'stage_periode_gestion', 'stage_entreprise', 'stage_etudiant:read', 'stage_etudiant:write', 'stage_avenant:write', 'stage_avenant:read'])]
     #[ORM\Column(type: Types::STRING, length: 50, nullable: true)]
     private ?string $nom = null;
 
-    #[Groups(['alternance_administration', 'stage_entreprise_administration', 'stage_periode_gestion', 'stage_entreprise', 'stage_etudiant:read', 'stage_etudiant:write'])]
+    #[Groups(['alternance_administration', 'stage_entreprise_administration', 'stage_periode_gestion', 'stage_entreprise', 'stage_etudiant:read', 'stage_etudiant:write', 'stage_avenant:write', 'stage_avenant:read'])]
     #[ORM\Column(type: Types::STRING, length: 50, nullable: true)]
     private ?string $prenom = null;
 
-    #[Groups(['alternance_administration', 'stage_entreprise_administration', 'stage_periode_gestion', 'stage_entreprise', 'stage_etudiant:read', 'stage_etudiant:write'])]
+    #[Groups(['alternance_administration', 'stage_entreprise_administration', 'stage_periode_gestion', 'stage_entreprise', 'stage_etudiant:read', 'stage_etudiant:write', 'stage_avenant:write', 'stage_avenant:read'])]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $fonction = null;
 
-    #[Groups(['alternance_administration', 'stage_entreprise_administration', 'stage_periode_gestion', 'stage_entreprise', 'stage_etudiant:read', 'stage_etudiant:write'])]
+    #[Groups(['alternance_administration', 'stage_entreprise_administration', 'stage_periode_gestion', 'stage_entreprise', 'stage_etudiant:read', 'stage_etudiant:write', 'stage_avenant:write', 'stage_avenant:read'])]
     #[ORM\Column(type: Types::STRING, length: 25, nullable: true)]
     private ?string $telephone = null;
 
-    #[Groups(['alternance_administration', 'stage_entreprise_administration', 'stage_periode_gestion', 'stage_entreprise', 'stage_etudiant:read', 'stage_etudiant:write'])]
+    #[Groups(['alternance_administration', 'stage_entreprise_administration', 'stage_periode_gestion', 'stage_entreprise', 'stage_etudiant:read', 'stage_etudiant:write', 'stage_avenant:write', 'stage_avenant:read'])]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $email = null;
 
@@ -47,7 +47,7 @@ class StageContact implements TimestampableInterface
     #[ORM\Column(type: Types::STRING, length: 25, nullable: true)]
     private ?string $portable = null;
 
-    #[Groups(['alternance_administration', 'stage_etudiant:read', 'stage_etudiant:write'])]
+    #[Groups(['alternance_administration', 'stage_etudiant:read', 'stage_etudiant:write', 'stage_avenant:write', 'stage_avenant:read'])]
     #[ORM\Column(type: Types::STRING, length: 3, nullable: true)]
     private ?string $civilite = null;
 
@@ -152,6 +152,28 @@ class StageContact implements TimestampableInterface
         }
 
         return $this;
+    }
+
+    /** Reprend toutes les informations de $source (mise à jour en place d'un contact existant). */
+    public function copierDepuis(self $source): self
+    {
+        $this->civilite = $source->getCivilite();
+        $this->nom = $source->getNom();
+        $this->prenom = $source->getPrenom();
+        $this->fonction = $source->getFonction();
+        $this->telephone = $source->getTelephone();
+        $this->portable = $source->getPortable();
+        $this->email = $source->getEmail();
+        $this->fax = $source->getFax();
+        $this->adresse = $source->getAdresse()?->toArray();
+
+        return $this;
+    }
+
+    /** Copie indépendante (nouvelle ligne), pour ne jamais partager un contact entre deux dossiers. */
+    public function dupliquer(): self
+    {
+        return (new self())->copierDepuis($this);
     }
 
     public function getDisplay(): string

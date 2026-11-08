@@ -342,17 +342,7 @@
                 lieu(x) indiqué(s).<br><br>
 
                 <u>LE MONTANT DE LA GRATIFICATION</u> est fixé
-                à {{ proposition
-                .gratificationMontant }}- € par {% if proposition
-                    .gratificationPeriode == 'M' %}mois / <s>jour</s> / <s>heure</s>
-                
-                    <s>mois</s> / <s>jour</s> / heure
-                
-                    <s>mois</s> / jour / <s>heure</s>
-                
-                    mois / jour / heure
-                 (rayer les
-                mentions inutiles) .<br><br>
+                à {stage.gratification} € par {stage.gratification_periode} .<br><br>
 
                 <strong>Article 5 bis –STAGES EN FRANCE Accès aux droits des salariés – Avantages</strong><br>
                 (Organisme de droit privé en France sauf en cas de règles particulières applicables dans certaines
@@ -625,8 +615,7 @@
                 référent) {tuteur.nom}<br>
                 4) <u>Modalités d’évaluation pédagogiques</u> : le stagiaire devra rendre <br>
                 {stage.documents_a_rendre}.<br>
-                <u>NOMBRE D’ECTS (le cas échéant)</u>: {{ proposition.stagePeriode.nbEcts == 0 ? 'Le stage ne donne
-                pas lieu à des ECTS mais une note comptant dans différentes UE' : proposition.stagePeriode.nbEcts }}
+                <u>NOMBRE D’ECTS (le cas échéant)</u>: {stage.ects}
                 .<br>
                 5) Le tuteur de l’organisme d’accueil ou tout membre de l’organisme d’accueil appelé à se rendre dans
                 l’établissement d’enseignement dans le cadre de la préparation, du déroulement et de la validation du
@@ -732,7 +721,7 @@
                 <p>Adresse
                    : {etudiant.adresse}</p>
 
-                <p>Tél. : {{ proposition.etudiant.tel1 }} / {{ proposition.etudiant.tel2|tel_format }}. Email
+                <p>Tél. : {etudiant.telephones}. Email
                    : {etudiant.email} </p>
                 <p><strong style="font-size: 14px">ETUDIANT EN</strong> (intitulé de la formation ou du cursus de
                                                                         l’enseignement supérieur suivi par le ou la

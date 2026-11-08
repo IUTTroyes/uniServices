@@ -39,6 +39,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
         'actif' => new QueryParameter(filter: StagePeriodeFilter::class),
         'annee' => new QueryParameter(filter: StagePeriodeFilter::class),
         'semestre' => new QueryParameter(filter: StagePeriodeFilter::class),
+        // geres=1 : seulement les périodes que l'utilisateur gère (cf. StagePeriodeFilter)
+        'geres' => new QueryParameter(filter: StagePeriodeFilter::class),
     ]
 )]
 class StagePeriode
@@ -120,7 +122,13 @@ class StagePeriode
     #[ORM\OneToMany(targetEntity: StageEtudiant::class, mappedBy: 'stagePeriode', orphanRemoval: true, cascade: ['remove'])]
     private Collection $stageEtudiants;
 
-    public function __construct() { $this->semestresSaisie = new ArrayCollection(); $this->coResponsables = new ArrayCollection(); $this->periodesInterruption = new ArrayCollection(); $this->periodesSoutenance = new ArrayCollection(); $this->stageEtudiants = new ArrayCollection(); }
+    /** @var Collection<int, StageEvaluationCritere> grille d'évaluation par le tuteur en entreprise */
+    #[ORM\OneToMany(targetEntity: StageEvaluationCritere::class, mappedBy: 'stagePeriode', cascade: ['remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['ordre' => 'ASC', 'id' => 'ASC'])]
+    #[Groups(['stage_periode:read'])]
+    private Collection $criteresEvaluation;
+
+    public function __construct() { $this->semestresSaisie = new ArrayCollection(); $this->coResponsables = new ArrayCollection(); $this->periodesInterruption = new ArrayCollection(); $this->periodesSoutenance = new ArrayCollection(); $this->stageEtudiants = new ArrayCollection(); $this->criteresEvaluation = new ArrayCollection(); }
     public function getId(): ?int { return $this->id; }
     public function getLibelle(): ?string { return $this->libelle; }
     public function setLibelle(string $v): static { $this->libelle = $v; return $this; }
@@ -173,6 +181,9 @@ class StagePeriode
     public function addPeriodeSoutenance(StagePeriodeSoutenance $v): static { if (!$this->periodesSoutenance->contains($v)) { $this->periodesSoutenance->add($v); $v->setStagePeriode($this); } return $this; }
     public function removePeriodeSoutenance(StagePeriodeSoutenance $v): static { if ($this->periodesSoutenance->removeElement($v) && $v->getStagePeriode() === $this) { $v->setStagePeriode(null); } return $this; }
     public function getStageEtudiants(): Collection { return $this->stageEtudiants; }
+    /** @return Collection<int, StageEvaluationCritere> */
+    public function getCriteresEvaluation(): Collection { return $this->criteresEvaluation; }
+    public function addCritereEvaluation(StageEvaluationCritere $c): static { if (!$this->criteresEvaluation->contains($c)) { $this->criteresEvaluation->add($c); $c->setStagePeriode($this); } return $this; }
     public function addStageEtudiant(StageEtudiant $v): static { if (!$this->stageEtudiants->contains($v)) { $this->stageEtudiants->add($v); $v->setStagePeriode($this); } return $this; }
     public function removeStageEtudiant(StageEtudiant $v): static { if ($this->stageEtudiants->removeElement($v) && $v->getStagePeriode() === $this) { $v->setStagePeriode(null); } return $this; }
 

@@ -1,3 +1,8 @@
+parameters:
+  # Rapports de stage déposés par les étudiants (hors webroot) ; STAGE_RAPPORT_DIR pour un volume persistant dédié.
+  stage.rapport_dir_defaut: '%kernel.project_dir%/var/stage/rapports'
+  stage.rapport_dir: '%env(default:stage.rapport_dir_defaut:STAGE_RAPPORT_DIR)%'
+
 services:
   _defaults:
     autowire: true

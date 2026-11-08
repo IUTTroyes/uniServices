@@ -1,6 +1,6 @@
 BACK_DIR=back
 
-.PHONY: start-back start-front start-all cli check check-back check-front phpstan lint-container doctrine-validate composer-validate test-back test-front build-front migrate
+.PHONY: test-db test-php start-back start-front start-all cli check check-back check-front phpstan lint-container doctrine-validate composer-validate test-back test-front build-front migrate
 
 start-back:
 	cd $(BACK_DIR) && symfony server:start
@@ -48,3 +48,14 @@ test-front:
 
 build-front:
 	pnpm --filter @uni-service/shell build
+
+# Tests PHP (unitaires + API du bundle stage) depuis la racine du dépôt.
+test-php:
+	vendor/bin/phpunit
+
+# Base de test (« <base>_test ») pour les tests d'API : à lancer une fois, puis après chaque changement de schéma.
+# Nécessite back/.env.test.local (DATABASE_URL et JWT_*), voir packages/stage-bundle/docs/tests.md.
+# (La base elle-même se crée une fois : CREATE DATABASE `<base>_test` ; doctrine:database:create ne gère pas le suffixe.)
+test-db:
+	cd $(BACK_DIR) && APP_ENV=test php bin/console doctrine:schema:drop --force --full-database
+	cd $(BACK_DIR) && APP_ENV=test php bin/console doctrine:schema:create

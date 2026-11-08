@@ -15,6 +15,7 @@ use StageBundle\State\StageAvenantProcessor;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: StageAvenantRepository::class)]
 #[ApiResource(
@@ -60,16 +61,19 @@ class StageAvenant implements TimestampableInterface
     #[Groups(['stage_avenant:read', 'stage_avenant:write'])]
     private ?StageEtudiant $stageEtudiant = null;
 
+    #[Assert\NotBlank(message: "Indiquez l'objet de l'avenant.")]
     #[ORM\Column(length: 150)]
     #[Groups(['stage_avenant:read', 'stage_avenant:write', 'stage_etudiant:read'])]
     private ?string $libelle = null;
 
+    #[Assert\NotBlank(message: "Décrivez la modification demandée.")]
     #[ORM\Column(type: Types::TEXT)]
     #[Groups(['stage_avenant:read', 'stage_avenant:write', 'stage_etudiant:read'])]
     private ?string $texte = null;
 
     #[ORM\Column(length: 25)]
     #[Groups(['stage_avenant:read', 'stage_avenant:write', 'stage_etudiant:read'])]
+    #[Assert\Choice(choices: ['DATES', 'HORAIRES', 'GRATIFICATION', 'TUTEUR', 'AUTRE'], message: 'Type de modification inconnu.')]
     private ?string $typeModification = 'AUTRE'; // DATES, HORAIRES, GRATIFICATION, TUTEUR, AUTRE
 
     #[ORM\Column(type: Types::BOOLEAN)]

@@ -6,11 +6,20 @@ use ApiPlatform\Doctrine\Orm\Filter\FilterInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\BackwardCompatibleFilterDescriptionTrait;
 use ApiPlatform\Metadata\Operation;
+use App\Entity\Users\Personnel;
 use Doctrine\ORM\QueryBuilder;
+use StageBundle\Security\StageAccess;
+use Symfony\Bundle\SecurityBundle\Security;
 
 class StagePeriodeFilter implements FilterInterface
 {
     use BackwardCompatibleFilterDescriptionTrait;
+
+    public function __construct(
+        private readonly Security $security,
+        private readonly StageAccess $access,
+    ) {
+    }
 
     public function apply(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
@@ -44,6 +53,37 @@ class StagePeriodeFilter implements FilterInterface
             $queryBuilder
                 ->andWhere(sprintf('%s.departement = :stageDept', $spDiplome))
                 ->setParameter('stageDept', $deptId);
+        }
+
+        // geres=1 : périodes que l'utilisateur gère (départements où il est responsable des stages, ou périodes dont
+        // il est responsable / co-responsable). Sans effet pour le super administrateur, qui gère tout.
+        if ('geres' === $property && filter_var($value, FILTER_VALIDATE_BOOLEAN)) {
+            $user = $this->security->getUser();
+            if ($this->access->estSuperAdmin($user)) {
+                return;
+            }
+            if (!$user instanceof Personnel) {
+                $queryBuilder->andWhere('1 = 0');
+
+                return;
+            }
+            $conditions = [];
+            $userParam = $queryNameGenerator->generateParameterName('stageGestionnaire');
+            $conditions[] = sprintf('%s.responsablePrincipal = :%s', $alias, $userParam);
+            $conditions[] = sprintf(':%s MEMBER OF %s.coResponsables', $userParam, $alias);
+            $queryBuilder->setParameter($userParam, $user);
+
+            $departements = $this->access->departementsGeres($user);
+            if ($departements !== []) {
+                $spSem = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'semestreProgramme');
+                $spAnnee = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $spSem, 'annee');
+                $spPn = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $spAnnee, 'pn');
+                $spDiplome = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $spPn, 'diplome');
+                $deptParam = $queryNameGenerator->generateParameterName('stageDepartementsGeres');
+                $conditions[] = sprintf('IDENTITY(%s.departement) IN (:%s)', $spDiplome, $deptParam);
+                $queryBuilder->setParameter($deptParam, $departements);
+            }
+            $queryBuilder->andWhere('('.implode(' OR ', $conditions).')');
         }
 
         if ('anneeUniversitaire' === $property) {

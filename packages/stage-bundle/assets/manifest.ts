@@ -28,6 +28,13 @@ export default {
   name: 'stages',
   primaryColor: 'teal',
   routes: [
+    // Formulaire d'évaluation du tuteur en entreprise : public (lien à usage unique reçu par e-mail, sans compte)
+    {
+      path: '/stage-evaluation/:jeton',
+      name: 'StageEvaluationEntreprise',
+      component: () => import('./views/Public/EvaluationEntrepriseView.vue'),
+      meta: { public: true, title: 'Évaluation du stagiaire' }
+    },
     {
       path: '/stage',
       component: LayoutComponent,

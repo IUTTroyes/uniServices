@@ -11,6 +11,8 @@ use StageBundle\Security\StageAccess;
 use StageBundle\Service\Notification\StageNotifier;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
+use StageBundle\Enum\EtatStageEnum;
 
 /**
  * Demande d'avenant : seul le service des stages peut créer un avenant déjà validé (la validation passe par
@@ -39,6 +41,10 @@ final class StageAvenantProcessor implements ProcessorInterface
         $auteur = $user instanceof Etudiant || $user instanceof Personnel ? $user : null;
         $gestion = $this->access->peutGerer($auteur, $data->getStageEtudiant());
         if (!$gestion) {
+            // Un avenant modifie une convention signée ; avant, l'étudiant corrige directement sa demande.
+            if ($data->getStageEtudiant()->getEtatStage() !== EtatStageEnum::CONVENTION_RECUE) {
+                throw new UnprocessableEntityHttpException('Un avenant ne peut être demandé que pour une convention signée. Avant la signature, modifiez directement votre demande.');
+            }
             $data->setValide(false);
             $data->setDateValidation(null);
         }

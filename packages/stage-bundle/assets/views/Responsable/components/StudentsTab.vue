@@ -1,4 +1,6 @@
 <script setup>
+import { dateFr } from '@/utils/stage';
+import EvaluationEntreprisePanel from '@/components/EvaluationEntreprisePanel.vue';
 import { ref, computed } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import AutoComplete from 'primevue/autocomplete';
@@ -274,14 +276,7 @@ const saveEdits = (silent = false) => {
     editForm.value.supervisorPhone = editForm.value.signatoryPhone;
   }
 
-  const formatDateFR = (isoStr) => {
-    if (!isoStr) return '';
-    const parts = isoStr.split('-');
-    if (parts.length === 3) {
-      return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
-    return isoStr;
-  };
+  const formatDateFR = dateFr;
   const datesFormatted = `${formatDateFR(editForm.value.startDate)} au ${formatDateFR(editForm.value.endDate)}`;
   const supervisorFormatted = `${editForm.value.supervisorCivilite}. ${editForm.value.supervisorPrenom} ${editForm.value.supervisorNom}`;
   const salaryFormatted = `${editForm.value.salaryAmount} €/h`;
@@ -379,7 +374,8 @@ const rejectRequest = () => {
   emit('update-student', {
     id: selectedRequest.value.id,
     changes: {
-      conventionStatus: 'Rejetée'
+      conventionStatus: 'Rejetée',
+      motifRefus: rejectReason.value.trim()
     }
   });
 
@@ -990,12 +986,12 @@ const finalizeSignature = (student) => {
         <!-- Column 5: Student Report uploaded -->
         <Column header="Rapport" field="reportUploaded" sortable :showFilterMenu="false" class="text-center min-w-[100px]">
           <template #body="slotProps">
-            <span v-if="slotProps.data.reportUploaded"
-              class="bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 px-2.5 py-0.5 rounded-full font-bold text-[9px] flex items-center gap-1 w-max mx-auto"
-              v-tooltip="slotProps.data.reportName">
-              <i class="pi pi-file text-[8px]"></i>
+            <a v-if="slotProps.data.reportUploaded" :href="`/api/stage_etudiants/${slotProps.data.id}/rapport`"
+              class="bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 px-2.5 py-0.5 rounded-full font-bold text-[9px] flex items-center gap-1 w-max mx-auto hover:underline"
+              v-tooltip="`Télécharger : ${slotProps.data.reportName}`">
+              <i class="pi pi-download text-[8px]"></i>
               <span>Reçu</span>
-            </span>
+            </a>
             <span v-else class="text-slate-400 text-[10px]">-</span>
           </template>
           <template #filter="{ filterModel, filterCallback }">
@@ -1360,6 +1356,13 @@ const finalizeSignature = (student) => {
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Évaluation par le tuteur en entreprise (convention en signature ou signée) -->
+      <div v-if="selectedRequest && ['En cours de signature', 'Signée'].includes(selectedRequest.conventionStatus)"
+        class="mt-4 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/60 space-y-2">
+        <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200">Évaluation par l'entreprise</h4>
+        <EvaluationEntreprisePanel :stage-id="selectedRequest.id" />
       </div>
 
       <!-- Footing buttons -->

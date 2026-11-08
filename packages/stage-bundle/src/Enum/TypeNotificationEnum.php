@@ -24,6 +24,12 @@ enum TypeNotificationEnum: string
     case AVENANT_DEMANDE = 'avenant_demande';
     case TUTEUR_AFFECTE = 'tuteur_affecte';
     case JURY_SOUTENANCE = 'jury_soutenance';
+    case RAPPORT_DEPOSE = 'rapport_depose';
+    case EVALUATION_ENTREPRISE_RECUE = 'evaluation_entreprise_recue';
+    // Relances périodiques (stage:relances)
+    case RELANCE_DEMANDES = 'relance_demandes';
+    case RELANCE_CONVENTION = 'relance_convention';
+    case RELANCE_RAPPORT = 'relance_rapport';
 
     /** Nom du package tel qu'il figure dans les packages activés (cf. UserPackageResolver). */
     public const SOURCE = 'stage';
@@ -47,6 +53,11 @@ enum TypeNotificationEnum: string
             self::AVENANT_DEMANDE => 'Un étudiant demande un avenant',
             self::TUTEUR_AFFECTE => 'On me confie le suivi d\'un stagiaire',
             self::JURY_SOUTENANCE => 'Je suis convoqué à une soutenance de stage',
+            self::RAPPORT_DEPOSE => 'Un étudiant que je suis dépose son rapport de stage',
+            self::EVALUATION_ENTREPRISE_RECUE => 'Le tuteur en entreprise d\'un étudiant que je suis rend son évaluation',
+            self::RELANCE_DEMANDES => 'Rappel des demandes de convention en attente',
+            self::RELANCE_CONVENTION => 'Rappel : ma convention n\'est pas revenue signée',
+            self::RELANCE_RAPPORT => 'Rappel : mon rapport de stage n\'est pas déposé',
         };
     }
 
@@ -64,6 +75,11 @@ enum TypeNotificationEnum: string
             self::AVENANT_DEMANDE => 'Une demande d\'avenant d\'une période dont vous êtes responsable attend votre validation.',
             self::TUTEUR_AFFECTE => 'Vous êtes désigné tuteur universitaire d\'un étudiant en stage.',
             self::JURY_SOUTENANCE => 'Vous êtes tuteur ou assesseur d\'une soutenance planifiée (ou modifiée).',
+            self::RAPPORT_DEPOSE => 'Le rapport de stage d\'un étudiant dont vous êtes tuteur universitaire est disponible.',
+            self::EVALUATION_ENTREPRISE_RECUE => 'L\'évaluation du stagiaire par son tuteur en entreprise est disponible.',
+            self::RELANCE_DEMANDES => 'Rappel hebdomadaire des demandes déposées depuis plusieurs jours et toujours pas traitées.',
+            self::RELANCE_CONVENTION => 'Rappel hebdomadaire tant que la convention envoyée pour signature n\'est pas revenue.',
+            self::RELANCE_RAPPORT => 'Rappel à l\'approche de la soutenance (ou après la fin du stage) si le rapport manque.',
         };
     }
 
@@ -77,13 +93,16 @@ enum TypeNotificationEnum: string
             self::DEMANDE_DEPOSEE => 'Demandes de convention à traiter',
             self::AVENANT_DEMANDE => 'Avenants à traiter',
             self::TUTEUR_AFFECTE => 'Suivi de stagiaires',
+            self::RAPPORT_DEPOSE => 'Rapports de stage déposés',
+            self::EVALUATION_ENTREPRISE_RECUE => 'Évaluations des entreprises',
+            self::RELANCE_DEMANDES, self::RELANCE_CONVENTION, self::RELANCE_RAPPORT => 'Rappels',
         };
     }
 
     public function getAudience(): string
     {
         return match ($this) {
-            self::DEMANDE_DEPOSEE, self::AVENANT_DEMANDE, self::TUTEUR_AFFECTE, self::JURY_SOUTENANCE => NotificationType::AUDIENCE_PERSONNEL,
+            self::DEMANDE_DEPOSEE, self::AVENANT_DEMANDE, self::TUTEUR_AFFECTE, self::JURY_SOUTENANCE, self::RAPPORT_DEPOSE, self::RELANCE_DEMANDES, self::EVALUATION_ENTREPRISE_RECUE => NotificationType::AUDIENCE_PERSONNEL,
             default => NotificationType::AUDIENCE_ETUDIANT,
         };
     }
@@ -91,7 +110,7 @@ enum TypeNotificationEnum: string
     public function getModeParDefaut(): ModeNotificationEnum
     {
         return match ($this) {
-            self::CONVENTION_SIGNEE, self::DEMANDE_DEPOSEE, self::AVENANT_DEMANDE, self::TUTEUR_AFFECTE => ModeNotificationEnum::RESUME,
+            self::CONVENTION_SIGNEE, self::DEMANDE_DEPOSEE, self::AVENANT_DEMANDE, self::TUTEUR_AFFECTE, self::RAPPORT_DEPOSE, self::EVALUATION_ENTREPRISE_RECUE => ModeNotificationEnum::RESUME,
             default => ModeNotificationEnum::IMMEDIAT,
         };
     }
@@ -106,6 +125,8 @@ enum TypeNotificationEnum: string
     {
         return match ($this) {
             self::CONVENTION_REFUSEE, self::CONVENTION_A_SIGNER => [ModeNotificationEnum::IMMEDIAT, ModeNotificationEnum::RESUME],
+            // Un rappel périodique n'a pas de sens dans un résumé.
+            self::RELANCE_DEMANDES, self::RELANCE_CONVENTION, self::RELANCE_RAPPORT => [ModeNotificationEnum::IMMEDIAT, ModeNotificationEnum::AUCUN],
             default => ModeNotificationEnum::cases(),
         };
     }

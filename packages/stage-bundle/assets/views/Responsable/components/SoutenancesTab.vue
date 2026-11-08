@@ -1,4 +1,5 @@
 <script setup>
+import { idDepuisRelation } from '@/utils/stage';
 import { computed, ref, onMounted, watch } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import api from '@helpers/axios';
@@ -93,15 +94,7 @@ async function updatePeriodDuration() {
 }
 
 // Une relation arrive en objet ({ id } / { '@id' }) ou en IRI (« /api/x/12 ») selon le format de réponse.
-const idFromRelation = (rel) => {
-  if (!rel) return null;
-  if (typeof rel === 'object') {
-    if (rel.id) return parseInt(rel.id, 10);
-    rel = rel['@id'];
-  }
-  const id = parseInt(String(rel ?? '').split('/').pop(), 10);
-  return Number.isNaN(id) ? null : id;
-};
+const idFromRelation = idDepuisRelation;
 
 async function fetchSlots() {
   isLoading.value = true;

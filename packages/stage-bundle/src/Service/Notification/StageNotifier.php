@@ -55,7 +55,12 @@ class StageNotifier
             $notif = match ($etat) {
                 EtatStageEnum::AUTORISE => [Type::SAISIE_OUVERTE, sprintf('Vous pouvez saisir votre demande de convention de stage (%s).', $periode)],
                 EtatStageEnum::VALIDE => [Type::CONVENTION_VALIDEE, sprintf('Votre demande de convention%s a été validée (%s).', $entreprise ? ' chez '.$entreprise : '', $periode)],
-                EtatStageEnum::REFUS => [Type::CONVENTION_REFUSEE, sprintf('Votre demande de convention%s a été refusée : consultez-la et corrigez-la (%s).', $entreprise ? ' chez '.$entreprise : '', $periode)],
+                EtatStageEnum::REFUS => [Type::CONVENTION_REFUSEE, sprintf(
+                    'Votre demande de convention%s a été refusée%s Corrigez-la puis redéposez-la (%s).',
+                    $entreprise ? ' chez '.$entreprise : '',
+                    $stage->getMotifRefus() ? ' : « '.mb_strimwidth($stage->getMotifRefus(), 0, 300, '…').' ».' : '.',
+                    $periode
+                )],
                 EtatStageEnum::CONVENTION_IMPRIMEE, EtatStageEnum::CONVENTION_ENVOYEE => \in_array($etatAvant, [EtatStageEnum::CONVENTION_IMPRIMEE, EtatStageEnum::CONVENTION_ENVOYEE], true)
                     ? null
                     : [Type::CONVENTION_A_SIGNER, sprintf('Votre convention de stage est éditée et envoyée pour signature (%s).', $periode)],
@@ -135,8 +140,90 @@ class StageNotifier
         }
     }
 
+    /** Rapport déposé (ou remplacé) : le tuteur universitaire est prévenu. */
+    public function rapportDepose(StageEtudiant $stage, Etudiant|Personnel|null $auteur): void
+    {
+        $tuteur = $stage->getTuteurUniversitaire();
+        $etudiant = $stage->getEtudiant();
+        if ($tuteur === null || $etudiant === null || $this->estMeme($tuteur, $auteur)) {
+            return;
+        }
+        $this->notifications->notifier(
+            $tuteur,
+            Type::RAPPORT_DEPOSE->cle(),
+            sprintf('%s a déposé son rapport de stage (%s).', $etudiant->getDisplay(), $stage->getStagePeriode()?->getLibelle() ?? 'stage'),
+            self::URL_TUTEUR
+        );
+    }
+
+    /** Évaluation rendue par le tuteur en entreprise : le tuteur universitaire et l'expéditeur de la demande sont prévenus. */
+    public function evaluationEntrepriseRecue(StageEtudiant $stage): void
+    {
+        $tuteur = $stage->getTuteurUniversitaire();
+        $etudiant = $stage->getEtudiant();
+        if ($tuteur === null || $etudiant === null) {
+            return;
+        }
+        $this->notifications->notifier(
+            $tuteur,
+            Type::EVALUATION_ENTREPRISE_RECUE->cle(),
+            sprintf('Le tuteur en entreprise de %s a rendu son évaluation du stage.', $etudiant->getDisplay()),
+            self::URL_TUTEUR
+        );
+    }
+
+    // ---------- Relances (stage:relances) ----------
+
+    /** @param list<StageEtudiant> $enAttente demandes d'une même période */
+    public function relanceDemandes(Personnel $responsable, array $enAttente, int $jours): void
+    {
+        $periode = $enAttente[0]->getStagePeriode();
+        $this->notifications->notifier(
+            $responsable,
+            Type::RELANCE_DEMANDES->cle(),
+            sprintf(
+                '%d demande(s) de convention attendent une validation depuis plus de %d jours (%s).',
+                \count($enAttente), $jours, $periode?->getLibelle() ?? 'période de stage'
+            ),
+            $this->urlPeriode($enAttente[0])
+        );
+    }
+
+    public function relanceConvention(StageEtudiant $stage): void
+    {
+        $etudiant = $stage->getEtudiant();
+        if ($etudiant === null) {
+            return;
+        }
+        $this->notifications->notifier(
+            $etudiant,
+            Type::RELANCE_CONVENTION->cle(),
+            sprintf(
+                'Votre convention de stage, envoyée pour signature le %s, n\'est pas encore revenue signée : relancez votre organisme d\'accueil (%s).',
+                $stage->getDateConventionEnvoyee()?->format('d/m/Y') ?? '?', $stage->getStagePeriode()?->getLibelle() ?? 'stage'
+            ),
+            self::URL_ETUDIANT
+        );
+    }
+
+    public function relanceRapport(StageEtudiant $stage, ?\DateTimeInterface $soutenance): void
+    {
+        $etudiant = $stage->getEtudiant();
+        if ($etudiant === null) {
+            return;
+        }
+        $this->notifications->notifier(
+            $etudiant,
+            Type::RELANCE_RAPPORT->cle(),
+            $soutenance !== null
+                ? sprintf('Votre soutenance a lieu le %s et votre rapport de stage n\'est pas encore déposé.', $soutenance->format('d/m/Y à H:i'))
+                : sprintf('Votre stage est terminé et votre rapport n\'est pas encore déposé (%s).', $stage->getStagePeriode()?->getLibelle() ?? 'stage'),
+            self::URL_ETUDIANT
+        );
+    }
+
     /** @return list<Personnel> responsables (principal + co-responsables) de la période, sans l'auteur, sans doublon */
-    private function responsables(StageEtudiant $stage, Etudiant|Personnel|null $auteur): array
+    public function responsables(StageEtudiant $stage, Etudiant|Personnel|null $auteur = null): array
     {
         $periode = $stage->getStagePeriode();
         if ($periode === null) {

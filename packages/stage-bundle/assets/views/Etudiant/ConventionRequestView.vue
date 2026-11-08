@@ -1,4 +1,5 @@
 <script setup>
+import { messageErreurApi } from '@/utils/erreurApi';
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
@@ -540,7 +541,6 @@ const submitRequest = async () => {
       gratificationPeriode:  'H',
       assuranceCompagnie:    form.value.insuranceCompany       || null,
       assuranceNumero:       form.value.insurancePolicyNumber  || null,
-      dateDepotFormulaire:   new Date().toISOString(),
       etatStage:             'ETAT_STAGE_DEPOSE',
       entreprise: {
         raisonSociale: form.value.companyName,
@@ -581,7 +581,7 @@ const submitRequest = async () => {
 
   } catch (error) {
     console.error('Erreur lors de la soumission:', error);
-    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de soumettre la demande. Veuillez vérifier vos saisies.', life: 5000 });
+    toast.add({ severity: 'error', summary: 'Demande non déposée', detail: messageErreurApi(error, 'Impossible de soumettre la demande. Veuillez vérifier vos saisies.'), life: 8000 });
   } finally {
     isSubmitting.value = false;
   }

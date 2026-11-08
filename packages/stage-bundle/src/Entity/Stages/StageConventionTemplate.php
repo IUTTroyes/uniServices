@@ -34,6 +34,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
 )]
 class StageConventionTemplate
 {
+    /** Code du modèle de convention (un seul modèle actif) ; sans modèle en base, le gabarit Twig intégré est utilisé. */
+    public const CODE_CONVENTION = 'default_convention';
+    public const CODE_AVENANT = 'default_avenant';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
