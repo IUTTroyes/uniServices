@@ -5,12 +5,8 @@ import Column from 'primevue/column';
 import Button from 'primevue/button';
 import Tag from 'primevue/tag';
 import Dialog from 'primevue/dialog';
-import { ref, onMounted, computed } from 'vue';
-import { HeaderComponent, Kpi, Card, ConfigOptionItem, GlobalLoader, ErrorState } from '@components';
-import { useUsersStore } from '@stores';
-import { getDepartementService, updateDepartementService, getPersonnelsService } from '@requests';
 import { useToast } from 'primevue/usetoast';
-import { HeaderComponent, Card, EmptyState, ListSkeleton, ErrorView } from '@components';
+import { HeaderComponent, Card, EmptyState, ListSkeleton, ErrorState } from '@components';
 import { useConfirmation } from '@composables/useConfirmation';
 import {
     getFinanceTauxTvaService,
@@ -114,7 +110,7 @@ onMounted(charger);
         />
 
         <ListSkeleton v-if="chargement" />
-        <ErrorView v-else-if="erreur" :message="erreur" />
+        <ErrorState v-else-if="erreur" :message="erreur" />
 
         <Card v-else title="Taux de TVA" subtitle="Seuls les taux actifs sont proposés ; le taux par défaut est présélectionné" icon="pi pi-percentage" color="emerald">
             <template #header-actions>

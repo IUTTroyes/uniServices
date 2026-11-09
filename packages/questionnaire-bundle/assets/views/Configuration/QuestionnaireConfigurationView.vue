@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { HeaderComponent, Kpi, Card, ConfigOptionItem, ListSkeleton, ErrorView } from '@components';
+import { HeaderComponent, Kpi, Card, ConfigOptionItem, ListSkeleton, ErrorState } from '@components';
 import { useUsersStore } from '@stores';
 import { getPersonnelsService } from '@requests';
 import { getReglagesService, updateReglagesService } from '@/requests/questionnaire_service';
@@ -80,7 +80,7 @@ onMounted(loadData);
     />
 
     <ListSkeleton v-if="isLoading" />
-    <ErrorView v-else-if="hasError" :message="errorMessage" />
+    <ErrorState v-else-if="hasError" :message="errorMessage" />
 
     <div v-else-if="reglages" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">

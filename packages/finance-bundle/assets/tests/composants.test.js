@@ -17,6 +17,7 @@ vi.mock('@components', async () => ({
     ActionButtonVertical: defineComponent({ props: ['label'], emits: ['click'], setup: (p, { emit }) => () => h('button', { onClick: () => emit('click') }, p.label) }),
     EmptyState: (await import('@components/components/EmptyState.vue')).default,
     ListSkeleton: (await import('@components/loader/ListSkeleton.vue')).default,
+    ErrorState: defineComponent({ props: ['message'], setup: (p) => () => h('div', { class: 'erreur' }, p.message) }),
     ErrorView: defineComponent({ props: ['message'], setup: (p) => () => h('div', { class: 'erreur' }, p.message) }),
     HeaderComponent: defineComponent({ props: ['titre', 'description', 'icon', 'color', 'showBack', 'backUrl'], setup: (p, { slots }) => () => h('header', [h('h1', p.titre), slots.actions?.()]) }),
 }));

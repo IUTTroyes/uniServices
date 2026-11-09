@@ -9,7 +9,7 @@ import Tab from 'primevue/tab';
 import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
 import { useToast } from 'primevue/usetoast';
-import { HeaderComponent, Card, ListSkeleton, ErrorView } from '@components';
+import { HeaderComponent, Card, ListSkeleton, ErrorState } from '@components';
 import { useConfirmation } from '@composables/useConfirmation';
 import { useUsersStore } from '@stores';
 import { getAllDepartementsService } from '@requests';
@@ -313,7 +313,7 @@ onMounted(async () => {
         </HeaderComponent>
 
         <ListSkeleton v-if="chargement && !commande" />
-        <ErrorView v-else-if="erreur" :message="erreur" />
+        <ErrorState v-else-if="erreur" :message="erreur" />
 
         <template v-else>
             <Message v-if="statut === 'REJETE'" severity="error" :closable="false">

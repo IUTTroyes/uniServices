@@ -10,6 +10,7 @@ import ApcCompetenceBadge from "./Apc/ApcCompetenceBadge.vue";
 import ApcAcBadge from "./Apc/ApcAcBadge.vue";
 import ApplicationBadge from "./components/Application/ApplicationBadge.vue";
 import ErrorState from './components/ErrorState.vue';
+const ErrorView = ErrorState;
 import PhotoUser from './components/PhotoUser.vue';
 import ProfilEtudiant from "./components/Etudiant/ProfilEtudiant/ProfilEtudiant.vue";
 import ScolariteEtudiant from "./components/Etudiant/ProfilEtudiant/ScolariteEtudiant.vue";
@@ -63,6 +64,7 @@ export {
   ApcCompetenceBadge,
   ApcAcBadge,
   ErrorState,
+  ErrorView,
   PhotoUser,
   SimpleSkeleton,
   ArticleSkeleton,
