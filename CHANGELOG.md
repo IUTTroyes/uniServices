@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.10.0](https://github.com/IUTTroyes/uniServices/compare/v0.9.0...v0.10.0) (2026-11-09)
+
+
+### ✨ Fonctionnalités
+
+* **intranet:** Add enseignement filter to absence queries and refactor absence components ([31d82e1](https://github.com/IUTTroyes/uniServices/commit/31d82e1b0fdd1cf31c86eec2a707f8dea66b5c9d))
+* **intranet:** Enhance router organization ([d352bde](https://github.com/IUTTroyes/uniServices/commit/d352bde4ccbc90410b430410cc646d4f714ad76a))
+* **intranet:** Enhance router organization ([a47f430](https://github.com/IUTTroyes/uniServices/commit/a47f4308786eb37fb97991d6e1f1a16e749c2719))
+* **intranet:** Update routing parameters and enhance pedagogical tabs ([e2f0c21](https://github.com/IUTTroyes/uniServices/commit/e2f0c21cd26841fcd444f06d0f7205a8760396a5))
+
 ## [0.9.0](https://github.com/IUTTroyes/uniServices/compare/v0.8.0...v0.9.0) (2026-11-05)
 
 
