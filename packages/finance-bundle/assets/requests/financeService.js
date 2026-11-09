@@ -118,6 +118,20 @@ export async function getFinanceSignedPdfBlobService(id) {
     return new Blob([data], { type: 'application/pdf' });
 }
 
+/**
+ * Export Excel (HtmlToSpreadsheet) des demandes `ids`, dans cet ordre : le serveur n'exporte que celles que l'on peut voir.
+ * Renvoie le Blob et le nom de fichier annoncé par le serveur.
+ */
+export async function exportFinanceBonsCommandeExcelService(ids) {
+    const response = await api.post('/api/finance_bon_commandes/export-excel', { ids }, { responseType: 'blob' });
+    const entete = response.headers?.['content-disposition'] || '';
+    const trouve = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(entete);
+    return {
+        blob: new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+        nom: trouve ? decodeURIComponent(trouve[1]) : 'demandes_achat.xlsx',
+    };
+}
+
 /** Télécharge un Blob sous le nom donné. */
 export function telechargerBlob(blob, nom) {
     const url = window.URL.createObjectURL(blob);

@@ -1,19 +1,17 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
 import Button from 'primevue/button';
 import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
-import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 import { DocumentTextIcon, BanknotesIcon, ClockIcon, ShoppingBagIcon, PlusIcon } from '@heroicons/vue/24/outline';
 import { HeaderComponent, Kpi, Card, EmptyState, ListSkeleton, ActionButtonVertical } from '@components';
+import CustomDataTable from '@components/components/CustomDataTable.vue';
 import { useUsersStore } from '@stores';
 import { hasPermission } from '@utils/permissions';
-import { getFinanceBonsCommandeService } from '@/requests/financeService';
+import { getFinanceBonsCommandeService, exportFinanceBonsCommandeExcelService, telechargerBlob } from '@/requests/financeService';
 import { formatDate, formatMontant, nomPersonne, nombre, estFinalisee, messageErreurApi } from '@/utils/finance';
 import {
     STATUS_WORKFLOW_MAP,
@@ -34,10 +32,9 @@ const departement = ref(null);
 const lignesOuvertes = ref({});
 const apercu = ref(false);
 const apercuId = ref(null);
-const filtres = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    statut: { value: null, matchMode: FilterMatchMode.EQUALS },
-});
+const tableau = ref(null);
+const exportEnCours = ref(false);
+const recherche = ref(null);
 
 const PERIMETRES = [
     { valeur: 'toutes', libelle: 'Toutes les demandes visibles' },
@@ -48,6 +45,8 @@ const PERIMETRES = [
 const peutCreer = computed(() => hasPermission('ROLE_FINANCE_DEMANDEUR'));
 const monId = computed(() => userStore.user?.id ?? null);
 const statutOptions = Object.entries(STATUS_WORKFLOW_MAP).map(([valeur, info]) => ({ valeur, libelle: info.label }));
+const libelleFournisseur = (d) => d.fournisseur?.nomFournisseur || d.fournisseurPropose || '';
+const libelleReference = (d) => [d.numeroBonCommande ? `BC ${d.numeroBonCommande}` : `Demande n° ${d.id}`, d.centreFinancier ? `CF ${d.centreFinancier}` : ''].join(' ').trim();
 
 /** Départements présents dans les demandes visibles (le serveur ne renvoie que celles que l'on peut voir). */
 const departements = computed(() => {
@@ -62,6 +61,28 @@ const visibles = computed(() => demandes.value.filter((d) => {
     if (perimetre.value === 'en_cours') return !STATUTS_TERMINES.includes(d.statut) && d.statut !== 'REJETE';
     return true;
 }));
+
+/** Lignes du tableau : champs « à plat » pour les filtres d'en-tête (les données d'origine restent disponibles). */
+const lignes = computed(() => visibles.value.map(d => ({
+    ...d,
+    reference: libelleReference(d),
+    fournisseurLibelle: libelleFournisseur(d),
+    demandeurNom: nomPersonne(d.demandeur),
+    departementLibelle: d.departement?.libelle || '',
+})));
+
+const colonnes = computed(() => [
+    { field: 'numeroBonCommande', key: 'reference', filterField: 'reference', header: 'Référence', sortable: true, filter: { type: 'text', placeholder: 'BC, n°, CF…' } },
+    { field: 'objetDemande', header: 'Objet', sortable: true, filter: { type: 'text', placeholder: 'Objet…' } },
+    { field: 'fournisseurLibelle', header: 'Fournisseur', sortable: true, filter: { type: 'text', placeholder: 'Fournisseur…' } },
+    ...(departements.value.length > 1 ? [{ field: 'departementLibelle', header: 'Département', sortable: true }] : []),
+    { field: 'demandeurNom', header: 'Demandeur', sortable: true, filter: { type: 'text', placeholder: 'Nom…' } },
+    { field: 'montantTtc', header: 'Montant TTC', sortable: true, bodyClass: 'text-right', headerClass: 'text-right' },
+    { field: 'statut', header: 'Statut', filter: { type: 'select', options: statutOptions, optionLabel: 'libelle', optionValue: 'valeur', placeholder: 'Tous' } },
+    { field: 'dateDemande', header: 'Demandée le', sortable: true },
+    { field: null, key: 'actions', header: 'Actions', bodyClass: 'text-center' },
+]);
+const champsRecherche = ['reference', 'objetDemande', 'prestation', 'fournisseurLibelle', 'demandeurNom'];
 
 const nombreAvec = (statuts) => visibles.value.filter(d => statuts.includes(d.statut)).length;
 const montantEngage = computed(() => visibles.value
@@ -85,6 +106,24 @@ const creer = () => router.push({ name: 'finance_demande_new' });
 function voirPdf(id) {
     apercuId.value = id;
     apercu.value = true;
+}
+
+/** Export xlsx du tableau tel qu'affiché : périmètre, recherche, filtres d'en-tête et tri appliqués. */
+async function exporter() {
+    const ids = (tableau.value?.lignesAffichees() ?? []).map(d => d.id);
+    if (!ids.length) {
+        toast.add({ severity: 'info', summary: 'Export', detail: 'Aucune demande à exporter.', life: 3000 });
+        return;
+    }
+    exportEnCours.value = true;
+    try {
+        const { blob, nom } = await exportFinanceBonsCommandeExcelService(ids);
+        telechargerBlob(blob, nom);
+    } catch (e) {
+        toast.add({ severity: 'error', summary: 'Export impossible', detail: messageErreurApi(e, 'Impossible de générer le fichier Excel.'), life: 5000 });
+    } finally {
+        exportEnCours.value = false;
+    }
 }
 
 onMounted(charger);
@@ -121,31 +160,30 @@ onMounted(charger);
                         <option :value="null">Tous les départements</option>
                         <option v-for="d in departements" :key="d.id" :value="d.id">{{ d.libelle }}</option>
                     </select>
-                    <select v-model="filtres.statut.value" aria-label="Statut" class="q-input q-input-sm">
-                        <option :value="null">Tous les statuts</option>
-                        <option v-for="s in statutOptions" :key="s.valeur" :value="s.valeur">{{ s.libelle }}</option>
-                    </select>
                     <IconField>
                         <InputIcon class="pi pi-search" />
-                        <InputText v-model="filtres.global.value" aria-label="Rechercher" placeholder="Rechercher…" />
+                        <InputText v-model="recherche" aria-label="Rechercher" placeholder="Rechercher…" />
                     </IconField>
+                    <Button icon="pi pi-file-excel" label="Exporter" severity="secondary" outlined size="small" aria-label="Exporter le tableau au format Excel" :loading="exportEnCours" :disabled="chargement" @click="exporter" />
                     <Button icon="pi pi-refresh" severity="secondary" text rounded aria-label="Actualiser" :loading="chargement" @click="charger" />
                 </div>
             </template>
 
             <ListSkeleton v-if="chargement" />
-            <DataTable
+            <CustomDataTable
                 v-else
-                v-model:filters="filtres"
+                ref="tableau"
                 v-model:expanded-rows="lignesOuvertes"
-                :value="visibles"
-                :global-filter-fields="['objetDemande', 'numeroBonCommande', 'fournisseur.nomFournisseur', 'fournisseurPropose', 'demandeur.nom', 'demandeur.prenom']"
-                data-key="id"
-                striped-rows
-                paginator
-                :rows="15"
+                v-model:global-filter="recherche"
+                :value="lignes"
+                :columns="colonnes"
+                :global-filter-fields="champsRecherche"
                 :rows-per-page-options="[15, 30, 50]"
-                class="ui-table-compact"
+                filter-display="row"
+                expandable
+                :show-header="false"
+                :show-footer="false"
+                table-class="ui-table-compact"
             >
                 <template #empty>
                     <EmptyState
@@ -159,59 +197,44 @@ onMounted(charger);
                     />
                 </template>
 
-                <Column expander style="width: 3rem" header-class="sr-only" />
-                <Column field="numeroBonCommande" header="Référence" sortable>
-                    <template #body="{ data }">
-                        <div class="flex flex-col">
-                            <span class="font-mono font-semibold">{{ data.numeroBonCommande ? `BC ${data.numeroBonCommande}` : `Demande n° ${data.id}` }}</span>
-                            <span v-if="data.centreFinancier" class="text-sm text-gray-500 dark:text-gray-400">CF {{ data.centreFinancier }}</span>
-                        </div>
-                    </template>
-                </Column>
-                <Column field="objetDemande" header="Objet" sortable>
-                    <template #body="{ data }">
-                        <div class="flex flex-col">
-                            <span class="font-semibold line-clamp-1" :title="data.objetDemande">{{ data.objetDemande || 'Sans objet' }}</span>
-                            <span class="text-sm text-gray-500 dark:text-gray-400">
-                                {{ data.prestation }}<template v-if="data.fournisseur || data.fournisseurPropose"> — {{ data.fournisseur?.nomFournisseur || data.fournisseurPropose }}</template>
-                            </span>
-                        </div>
-                    </template>
-                </Column>
-                <Column v-if="departements.length > 1" header="Département">
-                    <template #body="{ data }">{{ data.departement?.libelle || '—' }}</template>
-                </Column>
-                <Column header="Demandeur">
-                    <template #body="{ data }">{{ nomPersonne(data.demandeur) }}</template>
-                </Column>
-                <Column field="montantTtc" header="Montant TTC" sortable body-class="text-right" header-class="text-right">
-                    <template #body="{ data }">
-                        <div class="flex flex-col items-end">
-                            <span class="font-semibold">{{ formatMontant(data.montantTtc ?? data.montantHt) }}</span>
-                            <span v-if="data.montantHt" class="text-sm text-gray-500 dark:text-gray-400">{{ formatMontant(data.montantHt) }} HT</span>
-                        </div>
-                    </template>
-                </Column>
-                <Column field="statut" header="Statut">
-                    <template #body="{ data }">
-                        <StatutTag :statut="data.statut" :finalisee="estFinalisee(data)" />
-                    </template>
-                </Column>
-                <Column field="dateDemande" header="Demandée le" sortable>
-                    <template #body="{ data }">{{ formatDate(data.dateDemande) }}</template>
-                </Column>
-                <Column header="Actions" body-class="text-center">
-                    <template #body="{ data }">
-                        <div class="flex justify-center gap-1">
-                            <Button icon="pi pi-folder-open" severity="secondary" text rounded :aria-label="`Ouvrir la demande ${data.id}`" @click.stop="ouvrir(data.id)" />
-                            <Button icon="pi pi-file-pdf" severity="secondary" text rounded :aria-label="`Aperçu PDF de la demande ${data.id}`" @click.stop="voirPdf(data.id)" />
-                        </div>
-                    </template>
-                </Column>
+                <template #body-reference="{ data }">
+                    <div class="flex flex-col">
+                        <span class="font-mono font-semibold">{{ data.numeroBonCommande ? `BC ${data.numeroBonCommande}` : `Demande n° ${data.id}` }}</span>
+                        <span v-if="data.centreFinancier" class="text-sm text-gray-500 dark:text-gray-400">CF {{ data.centreFinancier }}</span>
+                    </div>
+                </template>
+                <template #body-objetDemande="{ data }">
+                    <div class="flex flex-col">
+                        <span class="font-semibold line-clamp-1" :title="data.objetDemande">{{ data.objetDemande || 'Sans objet' }}</span>
+                        <span v-if="data.prestation" class="text-sm text-gray-500 dark:text-gray-400">{{ data.prestation }}</span>
+                    </div>
+                </template>
+                <template #body-fournisseurLibelle="{ data }">
+                    <span v-if="data.fournisseur?.nomFournisseur">{{ data.fournisseur.nomFournisseur }}</span>
+                    <span v-else-if="data.fournisseurPropose" class="italic text-gray-600 dark:text-gray-300" :title="'Fournisseur proposé, non encore référencé'">{{ data.fournisseurPropose }} <span class="text-xs">(proposé)</span></span>
+                    <span v-else class="text-gray-400">—</span>
+                </template>
+                <template #body-departementLibelle="{ data }">{{ data.departementLibelle || '—' }}</template>
+                <template #body-montantTtc="{ data }">
+                    <div class="flex flex-col items-end">
+                        <span class="font-semibold">{{ formatMontant(data.montantTtc ?? data.montantHt) }}</span>
+                        <span v-if="data.montantHt" class="text-sm text-gray-500 dark:text-gray-400">{{ formatMontant(data.montantHt) }} HT</span>
+                    </div>
+                </template>
+                <template #body-statut="{ data }">
+                    <StatutTag :statut="data.statut" :finalisee="estFinalisee(data)" />
+                </template>
+                <template #body-dateDemande="{ data }">{{ formatDate(data.dateDemande) }}</template>
+                <template #body-actions="{ data }">
+                    <div class="flex justify-center gap-1">
+                        <Button icon="pi pi-folder-open" severity="secondary" text rounded :aria-label="`Ouvrir la demande ${data.id}`" @click.stop="ouvrir(data.id)" />
+                        <Button icon="pi pi-file-pdf" severity="secondary" text rounded :aria-label="`Aperçu PDF de la demande ${data.id}`" @click.stop="voirPdf(data.id)" />
+                    </div>
+                </template>
                 <template #expansion="{ data }">
                     <DetailLigneDemande :commande="data" @ouvrir="ouvrir(data.id)" @apercu="voirPdf(data.id)" />
                 </template>
-            </DataTable>
+            </CustomDataTable>
         </Card>
 
         <PdfApercuDialog v-model:visible="apercu" :commande-id="apercuId" :choix-etape="false" />

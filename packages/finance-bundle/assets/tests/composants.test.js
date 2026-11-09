@@ -222,6 +222,62 @@ describe('FinanceDashboardView', () => {
         expect(bouton(el, 'Ouvrir la demande')).toBeTruthy();
     });
 
+    it('affiche une colonne Fournisseur filtrable depuis l\'en-tête', async () => {
+        api.get.mockResolvedValue({ data: { member: [
+            commande({ id: 1, objetDemande: 'Papier', fournisseur: { id: 3, nomFournisseur: 'Bureau Vallée' } }),
+            commande({ id: 2, objetDemande: 'Câbles', fournisseur: null, fournisseurPropose: 'LDLC' }),
+        ], totalItems: 2 } });
+        const el = await monter(FinanceDashboardView);
+
+        const entetes = [...el.querySelectorAll('thead th')].map(th => th.textContent.trim());
+        expect(entetes).toContain('Fournisseur');
+        expect(el.textContent).toContain('Bureau Vallée');
+        expect(el.textContent).toContain('LDLC');
+
+        await saisir(el.querySelector('input[aria-label="Filtrer par Fournisseur"]'), 'ldlc');
+        expect(el.textContent).toContain('Câbles');
+        expect(el.textContent).not.toContain('Papier');
+    });
+
+    it('exporte en xlsx les lignes affichées, filtres d\'en-tête appliqués', async () => {
+        api.get.mockResolvedValue({ data: { member: [
+            commande({ id: 1, objetDemande: 'Papier', fournisseur: { id: 3, nomFournisseur: 'Bureau Vallée' } }),
+            commande({ id: 2, objetDemande: 'Câbles', fournisseur: null, fournisseurPropose: 'LDLC' }),
+            commande({ id: 3, objetDemande: 'Souris', fournisseur: null, fournisseurPropose: 'LDLC Pro' }),
+        ], totalItems: 3 } });
+        api.post.mockResolvedValue({ data: 'xlsx', headers: { 'content-disposition': 'attachment; filename="demandes_achat_20261109.xlsx"' } });
+        const creerUrl = vi.fn(() => 'blob:x');
+        globalThis.URL.createObjectURL = creerUrl;
+        globalThis.URL.revokeObjectURL = () => {};
+        const clic = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+        const el = await monter(FinanceDashboardView);
+
+        await saisir(el.querySelector('input[aria-label="Filtrer par Fournisseur"]'), 'ldlc');
+        bouton(el, 'Exporter').click();
+        await attendre();
+
+        expect(api.post).toHaveBeenCalledWith('/api/finance_bon_commandes/export-excel', { ids: [2, 3] }, { responseType: 'blob' });
+        expect(creerUrl).toHaveBeenCalled();
+        expect(clic).toHaveBeenCalled();
+        clic.mockRestore();
+        el.querySelector('.p-datatable-row-toggle-button').click();
+        await attendre();
+        expect(el.querySelectorAll('section[aria-label^="Étape"]')).toHaveLength(5);
+    });
+
+    it('filtre par objet depuis l\'en-tête sans perdre le déroulé', async () => {
+        api.get.mockResolvedValue({ data: { member: liste, totalItems: 2 } });
+        const el = await monter(FinanceDashboardView);
+
+        await saisir(el.querySelector('input[aria-label="Filtrer par Objet"]'), 'ordi');
+        expect(el.textContent).toContain('Ordinateurs');
+        expect(el.textContent).not.toContain('Vidéoprojecteur');
+
+        el.querySelector('.p-datatable-row-toggle-button').click();
+        await attendre();
+        expect(el.querySelectorAll('section[aria-label^="Étape"]')).toHaveLength(5);
+    });
+
     it('affiche un état vide sans demande', async () => {
         api.get.mockResolvedValue({ data: { member: [], totalItems: 0 } });
         const el = await monter(FinanceDashboardView);

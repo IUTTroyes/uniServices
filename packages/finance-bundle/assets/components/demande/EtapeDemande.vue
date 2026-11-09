@@ -5,6 +5,7 @@ import Tag from 'primevue/tag';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import { Card } from '@components';
+import { useUsersStore } from '@stores';
 import FournisseurChamp from '../FournisseurChamp.vue';
 import ActionsWorkflow from '../ActionsWorkflow.vue';
 
@@ -92,6 +93,12 @@ function validerRefus() {
     dialogueRefus.value = false;
 }
 
+const userStore = useUsersStore();
+const nomConnecte = computed(() => {
+    const nom = nomPersonne(userStore.user);
+    return nom !== '—' ? nom : (userStore.user?.display || '');
+});
+
 const etape = etapeParId(1);
 </script>
 
@@ -104,7 +111,7 @@ const etape = etapeParId(1);
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-1">
                     <span class="q-label">Demandeur</span>
-                    <span class="text-sm">{{ nouvelle ? 'Vous' : nomPersonne(commande?.demandeur) }}</span>
+                    <span class="text-sm">{{ nouvelle ? (nomConnecte ? `Vous (${nomConnecte})` : 'Vous') : nomPersonne(commande?.demandeur) }}</span>
                 </div>
                 <div class="flex flex-col gap-1">
                     <label for="demande-departement" class="q-label q-label-required">Département d'imputation</label>
