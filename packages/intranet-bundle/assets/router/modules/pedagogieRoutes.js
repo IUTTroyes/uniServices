@@ -1,26 +1,12 @@
 import PedagogieView from '@/views/PedagogieView.vue'
 import PlanCoursEditView from '@/views/PlanCours/Personnel/PlanCoursEditView.vue'
-import { hasPermission } from '@utils/permissions';
 
 export default [
   {
     path: 'pedagogie',
     component: PedagogieView,
-    beforeEnter: (to) => {
-      if (to.query.tab === 'enseignements' && !hasPermission('isEnseignant')) {
-        return {
-          path: '/intranet/pedagogie',
-          query: {
-            ...to.query,
-            tab: 'plans',
-          },
-        };
-      }
-
-      return true;
-    },
     meta: {
-      permission: 'isPersonnel',
+      permission: 'isEnseignant',
       breadcrumb: [
         { label: 'Dashboard', route: '/intranet' },
         { label: 'Pédagogie', route: null, icon: 'pi pi-book' }
@@ -36,7 +22,7 @@ export default [
     alias: 'plan-de-cours/edit/:id',
     component: PlanCoursEditView,
     meta: {
-      permission: 'isPersonnel',
+      permission: 'isEnseignant',
       breadcrumb: [
         { label: 'Dashboard', route: '/intranet' },
         { label: 'Pédagogie', route: '/intranet/pedagogie', icon: 'pi pi-book' },

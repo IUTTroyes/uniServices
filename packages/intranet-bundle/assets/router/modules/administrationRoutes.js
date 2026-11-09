@@ -1,5 +1,5 @@
 import previsionnelRoutes from './administration/previsionnelRoutes.js';
-import anneeAdministrationRoutes from './administration/anneeAdministrationRoutes.js';
+import anneeRoutes from './administration/anneeRoutes.js';
 
 export default [
   {
@@ -165,7 +165,7 @@ export default [
       ]
     },
     children: [
-      ...anneeAdministrationRoutes
+      ...anneeRoutes
     ]
   },
   {
