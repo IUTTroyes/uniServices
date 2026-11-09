@@ -5,7 +5,7 @@ import NotesASaisirSection from './EnseignantDashboardSection/NotesASaisirSectio
 import SuiviAssiduiteSection from './EnseignantDashboardSection/SuiviAssiduiteSection.vue';
 import ServicePrevisionnelSection from './EnseignantDashboardSection/ServicePrevisionnelSection.vue';
 
-const props = defineProps({ afficherSuivi: { type: Boolean, default: true } });
+const props = defineProps({ afficherSuivi: { type: Boolean, default: true }, anneeId: Number, semestreId: Number });
 
 const enseignements = ref([]);
 
@@ -49,7 +49,7 @@ const metrics = computed(() => [
 <template>
   <section :aria-labelledby="props.afficherSuivi ? 'teacher-dashboard' : undefined" class="flex flex-col gap-4">
     <h2 v-if="props.afficherSuivi" id="teacher-dashboard" class="m-0! text-xl! flex items-center gap-2"><i class="pi pi-user text-primary" aria-hidden="true" />Mon activité d’enseignant</h2>
-    <MesEnseignementsSection />
+    <MesEnseignementsSection :annee-id="props.anneeId" :semestre-id="props.semestreId" />
 
     <div v-if="props.afficherSuivi" class="grid grid-cols-1 xl:grid-cols-2 gap-4">
       <NotesASaisirSection :reminders="reminders" :enseignements="enseignements" />

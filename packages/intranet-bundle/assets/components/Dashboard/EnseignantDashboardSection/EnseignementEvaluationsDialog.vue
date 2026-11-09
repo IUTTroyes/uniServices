@@ -4,6 +4,7 @@ import {useEnseignementPage} from './useEnseignementPage';
 import {defineProps, defineEmits, ref, watch, computed} from 'vue';
 import { getEvaluationsService, updateEvaluationService } from '@requests';
 import { ListSkeleton } from '@components';
+import { calcEvaluationProgress } from '@/components/Evaluation/evaluationProgress';
 import EvaluationCard from "@/components/Evaluation/EvaluationCard.vue";
 import {useUsersStore} from '@stores';
 import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
@@ -111,13 +112,6 @@ const onEvaluationSaved = async () => {
   await getEvaluations();
 };
 
-const calcEvaluationProgress = (evaluation) => {
-  // Ne compter que les notes existantes et dont la propriété `note` n'est pas null
-  const notesExistantes = Array.isArray(evaluation?.notes) ? evaluation.notes.filter(n => n != null) : [];
-  evaluation.total = notesExistantes.length;
-  evaluation.entered = notesExistantes.filter(n => n.note !== null && n.note !== undefined).length;
-  evaluation.percent = evaluation.total > 0 ? Math.round((evaluation.entered / evaluation.total) * 100) : 0;
-};
 const {destination, accessible} = useEnseignementPage('evaluations', () => props.enseignement);
 </script>
 

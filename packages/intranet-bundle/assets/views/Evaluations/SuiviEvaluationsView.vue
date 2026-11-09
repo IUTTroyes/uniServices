@@ -1,4 +1,6 @@
 <script setup>
+import { hasPermission } from '@utils/permissions';
+import { calcEvaluationProgress } from '@/components/Evaluation/evaluationProgress';
 import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import {computed, onMounted, ref, watch} from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -35,6 +37,9 @@ const annees = ref([]);
 const annee = ref({});
 const semestres = ref([]);
 const semestre = ref({});
+const canViewAllEvaluations = computed(() =>
+  hasPermission('canViewNotes') || usersStore.isResponsableParcours(annee.value?.diplomeId)
+);
 const isLoadingAnnees = ref(true);
 const isLoadingSemestres = ref(true);
 
@@ -54,18 +59,7 @@ const expectedTotalsByType = ref({});
 
 onMounted(async () => {
   await getAnnees();
-  await getSemestres();
-  // Sélectionner le premier semestre de l'année par défaut
-  if (semestres.value.length > 0 && !semestre.value.id) {
-    semestre.value = semestres.value[0];
-  }
-});
-
-// watcher pour relancer getEnseignements quand semestre change
-watch(semestre, async (newSemestre, oldSemestre) => {
-  if (newSemestre?.id && newSemestre.id !== oldSemestre?.id) {
-    await getEnseignements();
-  }
+  if (!annee.value?.id) isLoadingSemestres.value = false;
 });
 
 // watcher pour relancer getSemestres quand annee change
@@ -81,7 +75,9 @@ watch(annee, async (newAnnee, oldAnnee) => {
         query: route.query,
       });
     }
+    semestre.value = {};
     await getSemestres();
+    if (annee.value?.id !== newAnnee.id) return;
     // si le semestre sélectionné n'est pas dans la nouvelle liste, on sélectionne le premier de la liste
     if (!semestres.value.some(s => s.id === semestre.value.id)) {
       semestre.value = semestres.value[0] || {};
@@ -113,7 +109,7 @@ const getAnnees = async () => {
   } finally {
     isLoadingAnnees.value = false;
     // Initialiser l'année depuis le query parameter si présent sinon prendre la première année
-    const anneeFromParams = Number.parseInt(String(route.params.anneeId), 10);
+    const anneeFromParams = Number.parseInt(String(props.integre ? anneeStore.annee?.id : route.params.anneeId), 10);
     if (!Number.isNaN(anneeFromParams)) {
       const anneeFound = annees.value.find(annee => annee.id === anneeFromParams);
       annee.value = anneeFound ?? annees.value[0]
@@ -123,73 +119,81 @@ const getAnnees = async () => {
   }
 };
 
+let currentSemesterLoad = 0;
 const getSemestres = async () => {
-  isLoadingSemestres.value = true;
+  const load = ++currentSemesterLoad;
+  const anneeId = annee.value?.id;
+  semestres.value = [];
+  isLoadingSemestres.value = Boolean(anneeId);
+  if (!anneeId) return;
   hasError.value = false;
   try {
-    const params = {
-      annee: annee.value.id,
-    };
-    semestres.value = await getSemestresService(params, '/mini');
+    const result = await getSemestresService({ annee: anneeId }, '/mini');
+    if (load === currentSemesterLoad) semestres.value = result;
   } catch (error) {
-    hasError.value = true;
+    if (load === currentSemesterLoad) hasError.value = true;
     console.error("Erreur lors de la récupération des semestres :", error);
   } finally {
-    isLoadingSemestres.value = false;
+    if (load === currentSemesterLoad) isLoadingSemestres.value = false;
   }
 };
 
+const evaluationScope = computed(() => ({
+  semestreId: semestre.value?.id,
+  anneeUniversitaire: selectedAnneeUniversitaireId.value,
+  personnel: canViewAllEvaluations.value ? null : usersStore.userId,
+  canViewAll: canViewAllEvaluations.value,
+}));
+
+let currentLoad = 0;
 const getEnseignements = async () => {
+  const load = ++currentLoad;
+  const { semestreId, anneeUniversitaire, personnel, canViewAll } = evaluationScope.value;
+  enseignements.value = [];
+  isLoadingEnseignements.value = false;
+  isLoadingEvaluations.value = false;
+  if (!semestreId || !anneeUniversitaire || (!canViewAll && !personnel)) return;
+
   isLoadingEnseignements.value = true;
+  isLoadingEvaluations.value = true;
+  hasError.value = false;
   try {
-    if (!semestre.value) {
-      enseignements.value = [];
-      return;
-    }
-    const params = {
-      semestre: semestre.value.id,
-    };
-    enseignements.value = await getEnseignementsService(params);
-    const evaluationsByEnseignement = await Promise.all(
-      enseignements.value.map(enseignement => getEvaluations(enseignement.id))
-    );
-    enseignements.value.forEach((enseignement, index) => {
-      enseignement.evaluations = evaluationsByEnseignement[index] || [];
-    });
-    // Preload expected totals per typeGroupe for the semestre based on loaded evaluations
-    await preloadExpectedTotalsForSemestre(semestre.value.id, enseignements.value);
-    // Calculer la progression pour chaque enseignement
-    for (const enseignement of enseignements.value) {
-      calcEnseignementProgress(enseignement);
-    }
+    // Le filtre personnel sélectionne les enseignements dispensés sur l'année universitaire.
+    const params = { semestre: semestreId, anneeUniversitaire };
+    if (!canViewAll) params.personnel = personnel;
+
+    const cours = await getEnseignementsService(params);
+    if (load !== currentLoad) return;
+    const result = await Promise.all(cours.map(async enseignement => {
+      const response = await getEvaluationsService({
+        enseignement: enseignement.id,
+        anneeUniversitaire,
+      });
+      const evaluations = Array.isArray(response) ? response : [];
+      evaluations.forEach(calcEvaluationProgress);
+      const item = { ...enseignement, evaluations };
+      calcEnseignementProgress(item);
+      return item;
+    }));
+    if (load !== currentLoad) return;
+    await preloadExpectedTotalsForSemestre(semestreId, result);
+    if (load === currentLoad) enseignements.value = result;
   } catch (error) {
-    hasError.value = true;
-    console.error('Error fetching enseignements:', error);
+    if (load === currentLoad) hasError.value = true;
+    console.error('Erreur lors du chargement des évaluations :', error);
   } finally {
-    isLoadingEnseignements.value = false;
+    if (load === currentLoad) {
+      isLoadingEnseignements.value = false;
+      isLoadingEvaluations.value = false;
+    }
   }
 };
 
-const getEvaluations = async (enseignement) => {
-  isLoadingEvaluations.value = true;
-  try {
-    const params = {
-      enseignement: enseignement,
-      anneeUniversitaire: selectedAnneeUniversitaireId.value
-    };
-    const evaluations = await getEvaluationsService(params);
-    // Calculer la progression pour chaque évaluation
-    for (const evaluation of evaluations) {
-      calcEvaluationProgress(evaluation);
-    }
-    return evaluations;
-  } catch (error) {
-    hasError.value = true;
-    console.error('Error fetching evaluations:', error);
-  } finally {
-    isLoadingEvaluations.value = false;
-  }
-};
+watch(evaluationScope, () => {
+  showDialog.value = false;
+  selectedEvaluation.value = null;
+  void getEnseignements();
+});
 
 // Compute expected totals for notes per typeGroupe in a semestre and cache them
 const makeTypeKey = (semestreId, typeGroupe) => `${semestreId || 'na'}::${typeGroupe || 'na'}`;
@@ -232,14 +236,6 @@ const preloadExpectedTotalsForSemestre = async (semestreId, enseignementsList) =
   }
   const promises = Array.from(types).map(t => getExpectedTotalForType(semestreId, t));
   await Promise.all(promises);
-};
-
-const calcEvaluationProgress = (evaluation) => {
-  // Ne compter que les notes existantes et dont la propriété `note` n'est pas null
-  const notesExistantes = Array.isArray(evaluation?.notes) ? evaluation.notes.filter(n => n != null) : [];
-  evaluation.total = notesExistantes.length;
-  evaluation.entered = notesExistantes.filter(n => n.note !== null && n.note !== undefined).length;
-  evaluation.percent = evaluation.total > 0 ? Math.round((evaluation.entered / evaluation.total) * 100) : 0;
 };
 
 const calcEnseignementProgress = (enseignement) => {
@@ -295,7 +291,7 @@ const dialogComponent = computed(() => {
 const openEvaluationDialog = (evaluationId, mode = 'edit', header) => {
   if (evaluationId) {
     selectedEvaluation.value = evaluationId;
-  }
+  }$
   dialogMode.value = mode;
   dialogHeader.value = `${header || (mode === 'saisie' ? 'Saisie des notes' : mode === 'init' ? 'Initialiser l\'évaluation' : 'Modifier l\'évaluation')}`;
   showDialog.value = true;
@@ -381,13 +377,14 @@ const onEvaluationSaved = async () => {
         <div class="flex flex-col gap-2">
         <Button
             :label="`Initialiser les évaluations — ${semestre?.libelle || 'Semestre non sélectionné'}`"
-            :disabled="isLoadingSemestres || !semestre?.id"
+            :disabled="isLoadingSemestres || isLoadingEnseignements || !enseignements.length"
             icon="pi pi-plus-circle" severity="primary" size="small"
             @click="openEvaluationDialog('', 'initAll', 'Initialisation des évaluations')"
         />
         </div>
       </div>
       <ListSkeleton v-if="isLoadingEnseignements" class="card-body"/>
+      <Message v-else-if="hasError" severity="error">Impossible de charger le suivi des évaluations.</Message>
       <div v-else class="card-body">
         <Accordion v-if="semestre && enseignements.length !== 0" value="0" class="mt-4">
           <AccordionPanel v-for="enseignement in enseignements" :value="enseignement.id" :key="enseignement.id">

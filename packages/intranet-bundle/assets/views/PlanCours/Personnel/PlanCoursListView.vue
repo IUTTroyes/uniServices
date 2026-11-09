@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { watch, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAnneeUnivStore, useUsersStore } from '@stores'
 import { HeaderComponent } from '@components'
@@ -8,7 +8,7 @@ import { showSuccess, showDanger } from '@helpers/toast'
 import PlanCoursShowDialog from '@/components/PlanCours/PlanCoursShowDialog.vue'
 import PlanCoursRecopieDialog from '@/components/PlanCours/PlanCoursRecopieDialog.vue'
 
-defineProps({ integre: { type: Boolean, default: false } })
+const props = defineProps({ integre: Boolean, semestreId: Number })
 
 const router = useRouter()
 const anneeUnivStore = useAnneeUnivStore()
@@ -36,13 +36,17 @@ const statusOptions = [
   { label: 'Non commencés', value: 'NONE' }
 ]
 
+let currentLoad = 0
 const loadData = async () => {
+  const load = ++currentLoad
+  const semestre = props.semestreId
+  modules.value = []
   isLoading.value = true
   try {
     await anneeUnivStore.getCurrentAnneeUniv()
     const activeAnneeId = anneeUnivStore.selectedAnneeUniv?.id || anneeUnivStore.anneeUniv?.id
 
-    const params = {}
+    const params = semestre == null ? {} : { semestre }
     if (activeAnneeId) {
       params.anneeUniversitaire = activeAnneeId
     }
@@ -51,20 +55,20 @@ const loadData = async () => {
     }
 
     const data = await getPlansCoursService(params, '/personnel')
+    if (load !== currentLoad) return
     anneeUniv.value = data.anneeUniversitaire
     personnel.value = data.personnel
     modules.value = data.modules || []
   } catch (error) {
+    if (load !== currentLoad) return
     console.error('Erreur lors du chargement des plans de cours:', error)
     showDanger('Erreur lors du chargement des plans de cours.')
   } finally {
-    isLoading.value = false
+    if (load === currentLoad) isLoading.value = false
   }
 }
 
-onMounted(async () => {
-  await loadData()
-})
+watch(() => props.semestreId, loadData, { immediate: true })
 
 const stats = computed(() => {
   const total = modules.value.length

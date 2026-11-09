@@ -35,8 +35,10 @@ const isLoadingAbsencesStats = ref(true);
 onMounted(async () => {
   await getAnnees();
   await getAnnee();
-  await getAbsences();
-  await getAbsencesStats();
+  if (!annee.value?.id) {
+    isLoadingAbsences.value = false;
+    isLoadingAbsencesStats.value = false;
+  }
 });
 
 const getAnnees = async () => {
@@ -65,7 +67,7 @@ const getAnnee = async () => {
   hasError.value = false;
   // Récupération de l'id de l'année via l'URL
   try {
-    const anneeId = Number.parseInt(String(route.params.anneeId), 10);
+    const anneeId = Number.parseInt(String(props.integre ? anneeStore.annee?.id : route.params.anneeId), 10);
     if (!Number.isNaN(anneeId)) {
       annee.value = annees.value.find((item) => item.id === anneeId) || annees.value[0] || {};
     } else {
@@ -81,7 +83,7 @@ const getAnnee = async () => {
 };
 
 watch(annee, async (newAnnee, oldAnnee) => {
-  if (newAnnee?.id === oldAnnee?.id) return;
+  if (!newAnnee?.id || newAnnee.id === oldAnnee?.id) return;
 
   if (!props.integre && newAnnee?.id && String(route.params.anneeId) !== String(newAnnee.id)) {
     await router.replace({
