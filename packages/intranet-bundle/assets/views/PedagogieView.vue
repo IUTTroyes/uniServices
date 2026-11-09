@@ -51,8 +51,8 @@ onMounted(() => {
 
 const tabs = computed(() => {
   return [
-    { title: 'Plans de cours', value: 'plans', icon: 'pi pi-book' },
     { title: 'Enseignements', value: 'enseignements', icon: 'pi pi-graduation-cap' },
+    { title: 'Plans de cours', value: 'plans', icon: 'pi pi-book' },
     { title: 'Absences', value: 'absences', icon: 'pi pi-calendar-times' },
     { title: 'Évaluations', value: 'evaluations', icon: 'pi pi-list-check' },
   ];
@@ -61,8 +61,8 @@ const tabs = computed(() => {
 const tabValues = computed(() => tabs.value.map(tab => tab.value));
 
 const activeTab = computed(() => {
-  const tab = String(route.query.tab || 'plans');
-  return tabValues.value.includes(tab) ? tab : 'plans';
+  const tab = String(route.query.tab || 'enseignements');
+  return tabValues.value.includes(tab) ? tab : 'enseignements';
 });
 
 const semestres = ref([]);
