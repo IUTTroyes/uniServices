@@ -1,21 +1,7 @@
-import previsionnelRoutes from './previsionnelRoutes.js';
-import stageAdministrationRoutes from './stageAdministrationRoutes.js';
-import anneeAdministrationRoutes from './anneeAdministrationRoutes.js';
+import previsionnelRoutes from './administration/previsionnelRoutes.js';
+import anneeAdministrationRoutes from './administration/anneeAdministrationRoutes.js';
 
 export default [
-  {
-    path: 'configuration',
-    name: 'intranet-configuration',
-    component: () => import('@/views/Administration/Configuration/IntranetConfigurationView.vue'),
-    meta: {
-      permission: 'isChefDepartement',
-      breadcrumb: [
-        { label: 'Dashboard', route: '/' },
-        { label: 'Administration', route: '/intranet/administration' },
-        { label: 'Configuration', route: null, icon: 'pi pi-sliders-h' }
-      ]
-    }
-  },
   {
     path: 'administration',
     component: () => import('@/views/Administration/AdministrationView.vue'),
@@ -153,7 +139,19 @@ export default [
       permission: 'canViewAdministration',
     },
     children: [
-      ...stageAdministrationRoutes
+      {
+        path: 'gestion-periodes',
+        component: () => import('@/views/Stages/GestionPeriodeView.vue'),
+        meta: {
+          breadcrumb: [{ label: 'Dashboard', route: '/' }, {
+            label: 'Administration',
+            route: '/intranet/administration',
+            icon: 'pi pi-wrench'
+          },
+          { label: 'Stages', route: null },
+          { label: 'Gestion des périodes', route: null }]
+        },
+      },
     ]
   },
   {

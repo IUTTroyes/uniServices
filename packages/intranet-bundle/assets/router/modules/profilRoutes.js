@@ -1,5 +1,3 @@
-import LayoutComponent from '@components/components/layout/AppLayout.vue';
-
 export default [
     {
         path: 'profil',

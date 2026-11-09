@@ -1,37 +1,55 @@
 <script setup>
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { HeaderComponent, PermissionGuard } from '@components';
-import { hasPermission } from '@utils/permissions';
+import { HeaderComponent } from '@components';
 import PlanCoursListView from './PlanCours/Personnel/PlanCoursListView.vue';
 import EnseignantDashboardSection from '../components/Dashboard/EnseignantDashboardSection.vue';
+import AbsenceListeView from './Absence/AbsenceListeView.vue';
 
 const route = useRoute();
 const router = useRouter();
-const peutVoirEnseignements = computed(() => hasPermission('isEnseignant'));
-const onglet = computed({
-  get: () => route.query.onglet === 'enseignements' && peutVoirEnseignements.value ? 'enseignements' : 'plans',
-  set: value => router.replace({ query: { ...route.query, onglet: value } }),
+
+const tabs = computed(() => {
+  return [
+    { title: 'Plans de cours', value: 'plans', icon: 'pi pi-book' },
+    { title: 'Enseignements', value: 'enseignements', icon: 'pi pi-graduation-cap' },
+  ];
 });
+
+const tabValues = computed(() => tabs.value.map(tab => tab.value));
+
+const activeTab = computed(() => {
+  const tab = String(route.query.tab || 'plans');
+  return tabValues.value.includes(tab) ? tab : 'plans';
+});
+
+const onTabChange = async (value) => {
+  await router.replace({
+    query: {
+      ...route.query,
+      tab: value,
+    },
+  });
+};
 </script>
 
 <template>
   <div class="flex flex-col gap-6">
     <HeaderComponent icon="pi pi-book" titre="Pédagogie"
                      description="Retrouvez vos plans de cours, vos enseignements et leur avancement." :show-back="false" />
-    <Tabs v-model:value="onglet">
+    <Tabs :value="activeTab" @update:value="onTabChange">
       <TabList aria-label="Espaces pédagogiques">
-        <Tab value="plans"><i class="pi pi-book mr-2" aria-hidden="true" />Plans de cours</Tab>
-        <Tab v-if="peutVoirEnseignements" value="enseignements"><i class="pi pi-graduation-cap mr-2" aria-hidden="true" />Enseignements</Tab>
+        <Tab v-for="tab in tabs" :key="tab.value" :value="tab.value">
+          <i :class="`${tab.icon} mr-2`" aria-hidden="true" />{{ tab.title }}
+        </Tab>
       </TabList>
       <TabPanels class="p-0! pt-6! bg-transparent!">
-        <TabPanel value="plans">
-          <PlanCoursListView v-if="onglet === 'plans'" integre />
-        </TabPanel>
-        <TabPanel v-if="peutVoirEnseignements" value="enseignements">
-          <PermissionGuard permission="isEnseignant">
-            <EnseignantDashboardSection v-if="onglet === 'enseignements'" :afficher-suivi="false" />
-          </PermissionGuard>
+        <TabPanel v-for="tab in tabs" :key="tab.value" :value="tab.value">
+          <PlanCoursListView v-if="tab.value === 'plans'" integre />
+          <template v-else>
+            <EnseignantDashboardSection :afficher-suivi="false" />
+            <AbsenceListeView />
+          </template>
         </TabPanel>
       </TabPanels>
     </Tabs>
