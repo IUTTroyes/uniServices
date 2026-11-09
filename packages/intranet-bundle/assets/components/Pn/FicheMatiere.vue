@@ -2,7 +2,7 @@
 import {ref, computed, onMounted} from 'vue';
 import { marked } from 'marked';
 import {getEnseignementService} from "@requests";
-import {ErrorView, ListSkeleton} from "@components";
+import {ErrorState, ListSkeleton} from "@components";
 import { useUsersStore } from "@stores";
 import { useRouter } from "vue-router";
 
@@ -114,7 +114,7 @@ onMounted(async () => {
 
 <template>
   <ListSkeleton v-if="isLoading" />
-  <ErrorView v-else-if="hasError"/>
+  <ErrorState v-else-if="hasError"/>
   <div v-else>
     <div class="px-8 flex flex-row items-center gap-4">
       <div class="text-xl font-semibold">Détails {{enseignementLocal.type}} - {{enseignementLocal.libelle}}</div>

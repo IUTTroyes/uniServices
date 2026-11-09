@@ -1,7 +1,7 @@
 <script setup>
 import {onMounted, ref} from 'vue';
 import { getEvaluationService, getPersonnelsService, updateEvaluationService } from '@requests';
-import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ListSkeleton } from "@components";
+import { ValidatedInput, validationRules, ErrorState, PermissionGuard, ListSkeleton } from "@components";
 import { useUsersStore } from "@stores";
 
 const emit = defineEmits(['saved', 'close']);

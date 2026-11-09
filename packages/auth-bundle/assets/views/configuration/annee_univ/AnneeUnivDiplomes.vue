@@ -1,7 +1,7 @@
 <script setup>
 import {computed, onMounted, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
-import {Access, ErrorView, ListSkeleton, PermissionGuard} from "@components";
+import {Access, ErrorState, ListSkeleton, PermissionGuard} from "@components";
 import {getAnneeUniversitaireService, getPns, deletePnService} from "@requests";
 import ButtonInfo from "@components/components/Buttons/ButtonInfo.vue";
 import ButtonDelete from "../../../../../../shared/components/components/Buttons/ButtonDelete.vue";
@@ -121,7 +121,7 @@ const editAnneeUniv = (anneeUniv) => {
       </div>
     </div>
 
-    <ErrorView v-if="hasError"/>
+    <ErrorState v-if="hasError"/>
     <ListSkeleton v-else-if="isLoading" :count="5" />
     <template v-else>
       <PermissionGuard permission="isSuperAdmin" :showFallback="true">

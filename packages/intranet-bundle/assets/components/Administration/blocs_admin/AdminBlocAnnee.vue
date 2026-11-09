@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, computed, watch } from "vue";
 import Tag from "primevue/tag";
-import { ErrorView, ListSkeleton } from "@components";
+import { ErrorState, ListSkeleton } from "@components";
 import { useUsersStore, useSemestreStore, useAnneeStore, useAnneeUnivStore } from "@stores";
 
 const userStore = useUsersStore();
@@ -146,7 +146,7 @@ const selectAnnee = (annee) => {
         </div>
       </template>
       <ListSkeleton v-if="isLoading" class="mt-4"/>
-      <ErrorView v-else-if="hasError" />
+      <ErrorState v-else-if="hasError" />
       <Message v-else-if="anneesGrouped.fi.length < 1 && anneesGrouped.fc.length < 1" severity="error" icon="pi pi-times-circle" class="m-6">
         Aucune année disponible.
       </Message>

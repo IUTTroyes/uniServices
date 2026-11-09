@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useAnneeUnivStore, useUsersStore } from '@stores'
-import { ErrorView, SimpleSkeleton, ListSkeleton, PermissionGuard, HeaderComponent } from '@components'
+import { ErrorState, SimpleSkeleton, ListSkeleton, PermissionGuard, HeaderComponent } from '@components'
 import { getDiplomesService, deleteAnneeService, deletePnService, deleteDiplomeService, deleteSemestreService, deleteUeService, deleteEnseignementUeService } from '@requests'
 import { synchronisationProgrameOreofService } from '@/service/oreofService.ts'
 import FicheRessource from '../../components/Pn/FicheRessource.vue'
@@ -182,7 +182,7 @@ const deleteObject = async (objectType, id) => {
       titre="Programmes pédagogiques Nationaux"
       description="Gestion de la maquette pédagogique"
   />
-  <ErrorView v-if="hasError"/>
+  <ErrorState v-if="hasError"/>
   <div v-else class="card h-full">
     <div class="card-header">
 

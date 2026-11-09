@@ -1,7 +1,7 @@
 <script setup>
 import ContexteSelection from '../Structure/ContexteSelection.vue';
 import {computed, onMounted, ref, watch} from "vue";
-import {ErrorView, ListSkeleton, PermissionGuard, SimpleSkeleton, ValidatedInput} from "@components";
+import {ErrorState, ListSkeleton, PermissionGuard, SimpleSkeleton, ValidatedInput} from "@components";
 import {useUsersStore} from "@stores";
 import {
   exportService,
@@ -541,7 +541,7 @@ const exportDataHeures = async () => {
 </script>
 
 <template>
-  <ErrorView v-if="hasError"></ErrorView>
+  <ErrorState v-if="hasError"></ErrorState>
   <div v-else class="bg-neutral-100 dark:bg-neutral-800 bg-opacity-20 rounded-lg p-6 mb-6 w-full ">
     <div class="text-lg font-bold mb-4">Filtres</div>
     <div>

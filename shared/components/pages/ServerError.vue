@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { ErrorView } from '@components';
+import { ErrorState } from '@components';
 
 const debugMessage = computed(() => {
   try {
@@ -14,7 +14,7 @@ const debugMessage = computed(() => {
 <template>
   <div class="flex flex-col items-center justify-center w-full h-screen px-4">
     <div class="w-full max-w-4xl">
-      <ErrorView :debug-message="debugMessage" />
+      <ErrorState :debug-message="debugMessage" />
     </div>
   </div>
 </template>

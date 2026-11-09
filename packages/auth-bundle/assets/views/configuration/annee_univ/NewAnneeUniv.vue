@@ -1,7 +1,7 @@
 <script setup>
 import {ref, onMounted, computed} from "vue";
 import { useRouter } from "vue-router";
-import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ListSkeleton, Access } from "@components";
+import { ValidatedInput, validationRules, ErrorState, PermissionGuard, ListSkeleton, Access } from "@components";
 import {useAnneeUnivStore} from "@stores";
 import {createAnneeUniversitaireService, getDiplomesService} from "@requests";
 
@@ -158,7 +158,7 @@ const goBack = () => {
       </div>
     </div>
 
-    <ErrorView v-if="hasError"/>
+    <ErrorState v-if="hasError"/>
     <template v-else>
       <PermissionGuard permission="isSuperAdmin" :showFallback="true">
         <Message v-if="currentAnneeUniv" severity="info" class="mb-4 flex items-center flex-col justify-center text-center">

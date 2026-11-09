@@ -7,7 +7,7 @@ import {
   updateTypeHrsService,
   deleteTypeHrsService
 } from '@requests';
-import { ErrorView, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
+import { ErrorState, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
 import { useToast } from 'primevue/usetoast';
 
 const router = useRouter();
@@ -211,7 +211,7 @@ const deleteItem = async (item) => {
   </HeaderComponent>
 
   <Card>
-    <ErrorView v-if="hasError" />
+    <ErrorState v-if="hasError" />
     <ListSkeleton v-else-if="isLoading" :count="5" />
     <template v-else>
       <div class="mb-4 flex justify-between items-center">

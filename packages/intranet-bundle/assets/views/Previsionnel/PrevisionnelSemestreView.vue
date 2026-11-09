@@ -1,7 +1,7 @@
 <script setup>
 import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import { computed, onMounted, ref, watch } from 'vue';
-import { SimpleSkeleton, ErrorView, ListSkeleton, ButtonDelete } from "@components";
+import { SimpleSkeleton, ErrorState, ListSkeleton, ButtonDelete } from "@components";
 import { useAnneeStore, useEnseignementsStore, useUsersStore } from "@stores";
 import {
   createPreviService,
@@ -581,7 +581,7 @@ const footerColsForm = computed(() => {
     </div>
   </ContexteSelection>
 
-  <ErrorView v-if="hasError" />
+  <ErrorState v-if="hasError" />
   <div v-else class="px-4 flex flex-col">
     <div class="flex justify-between gap-10">
 

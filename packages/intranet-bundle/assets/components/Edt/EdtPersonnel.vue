@@ -9,7 +9,7 @@ import {getEdtEventsService, getSemaineUniversitaireService} from "@requests";
 import {adjustColor, darkenColor} from "@helpers/colors.js";
 import {getISOWeekNumber} from "@helpers/date";
 import {useUsersStore} from "@stores";
-import {PhotoUser, ErrorView} from "@components";
+import {PhotoUser, ErrorState} from "@components";
 import {
   applyOverlapMetadata,
   calculateHoursByType,
@@ -175,7 +175,7 @@ const heuresParType = computed(() => {
     <Button v-else @click="liste = false">Masquer la liste</Button>
   </div>
 
-  <ErrorView v-if="hasError" message="Une erreur est survenue lors du chargement de l'emploi du temps. Veuillez réessayer plus tard." />
+  <ErrorState v-if="hasError" message="Une erreur est survenue lors du chargement de l'emploi du temps. Veuillez réessayer plus tard." />
   <vue-cal
       v-else
       ref="vuecalRef"

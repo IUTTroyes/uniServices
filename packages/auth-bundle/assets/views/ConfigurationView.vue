@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import {ErrorView} from "@components";
+import {ErrorState} from "@components";
 import { hasPermission } from "@utils/permissions";
 
 const isSuperAdmin = computed(() => hasPermission('SUPER_ADMIN'));

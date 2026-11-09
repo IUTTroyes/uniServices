@@ -6,7 +6,7 @@ import {
   updateDepartementService,
   deleteDepartementService
 } from "@requests";
-import { ErrorView, ListSkeleton, ButtonDelete, ButtonEdit, ButtonSave, HeaderComponent, Card } from "@components";
+import { ErrorState, ListSkeleton, ButtonDelete, ButtonEdit, ButtonSave, HeaderComponent, Card } from "@components";
 import { useToast } from "primevue/usetoast";
 
 const toast = useToast();
@@ -218,7 +218,7 @@ const deleteDepartement = async (dept) => {
   </HeaderComponent>
 
   <Card>
-    <ErrorView v-if="hasError" />
+    <ErrorState v-if="hasError" />
     <ListSkeleton v-else-if="isLoadingDepartement" :count="5" />
     <template v-else>
       <div class="mb-4 flex justify-between items-center">

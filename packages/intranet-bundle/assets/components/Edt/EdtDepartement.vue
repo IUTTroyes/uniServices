@@ -4,7 +4,7 @@ import {VueCal} from 'vue-cal'
 import 'vue-cal/style'
 import {computed, nextTick, onMounted, ref, watch} from 'vue';
 import {useUsersStore} from '@stores';
-import {PhotoUser, SimpleSkeleton, ListSkeleton, ErrorView} from '@components';
+import {PhotoUser, SimpleSkeleton, ListSkeleton, ErrorState} from '@components';
 import {getISOWeekNumber} from "@helpers/date";
 import EdtEvent from "./EdtEvent.vue";
 import {
@@ -389,7 +389,7 @@ const heuresParType = computed(() => {
       </div>
     </div>
   </Dialog>
-  <ErrorView v-if="hasError"></ErrorView>
+  <ErrorState v-if="hasError"></ErrorState>
   <div v-else class="bg-neutral-100 dark:bg-neutral-800 rounded-lg p-6 mb-6 w-full ">
     <div class="text-lg font-bold mb-4">
       Filtres
@@ -466,7 +466,7 @@ const heuresParType = computed(() => {
   </div>
 
   <ListSkeleton v-if="isLoadingEvents"/>
-  <ErrorView v-else-if="hasError" message="Une erreur est survenue lors du chargement de l'emploi du temps. Veuillez réessayer plus tard."/>
+  <ErrorState v-else-if="hasError" message="Une erreur est survenue lors du chargement de l'emploi du temps. Veuillez réessayer plus tard."/>
   <vue-cal
       v-else
       ref="vuecalRef"

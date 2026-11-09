@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { createTypeDiplomeService } from '@requests';
-import { ErrorView, HeaderComponent, Card } from '@components';
+import { ErrorState, HeaderComponent, Card } from '@components';
 import { useToast } from 'primevue/usetoast';
 
 const router = useRouter();
@@ -79,7 +79,7 @@ const save = async () => {
   />
 
   <Card title="Informations du type de diplôme" icon="pi pi-plus" color="emerald">
-    <ErrorView v-if="hasError" />
+    <ErrorState v-if="hasError" />
     <div v-else class="max-w-2xl">
       <form @submit.prevent="save" class="flex flex-col gap-6">
         <div class="flex flex-col gap-2">

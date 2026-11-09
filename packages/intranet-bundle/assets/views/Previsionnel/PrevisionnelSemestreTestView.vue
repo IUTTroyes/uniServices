@@ -2,7 +2,7 @@
 import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import {onMounted, ref, watch} from 'vue';
 import {useAnneeUnivStore, useEnseignementsStore, useSemestreStore, useUsersStore} from "@stores";
-import {SimpleSkeleton, ListSkeleton, ErrorView} from "@components";
+import {SimpleSkeleton, ListSkeleton, ErrorState} from "@components";
 import {getPersonnelsService, getSemestrePreviTestService} from "@requests";
 
 // const tableau = ref([
@@ -178,7 +178,7 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
     </div>
   </ContexteSelection>
 
-  <ErrorView v-if="hasError" />
+  <ErrorState v-if="hasError" />
 
   <SimpleSkeleton v-if="isLoadingPrevisionnel" width="50%" />
   <Message v-else severity="info" class="w-fit my-6 mx-auto" icon="pi pi-info-circle">

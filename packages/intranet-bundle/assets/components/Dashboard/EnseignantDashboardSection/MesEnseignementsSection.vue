@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
-import { ListSkeleton } from '@components';
+import { EmptyState, ErrorState, ListSkeleton } from '@components';
 import EnseignementAvancementDialog from './EnseignementAvancementDialog.vue';
 import EnseignementEvaluationsDialog from './EnseignementEvaluationsDialog.vue';
 import EnseignementAbsencesDialog from './EnseignementAbsencesDialog.vue';
@@ -27,6 +27,7 @@ const avancementVisible = ref(false);
 const enseignementAvancement = ref(null);
 const enseignements = ref([]);
 const isLoadingEnseignements = ref(false);
+const hasError = ref(false);
 const selectedDiplome = ref(null);
 const selectedType = ref('tous');
 
@@ -98,6 +99,7 @@ watch([() => props.semestreId, () => usersStore.userId], async ([semestre, perso
   let current = true;
   onCleanup(() => { current = false; });
   enseignements.value = [];
+  hasError.value = false;
   selectedTeaching.value = null;
   enseignementAvancement.value = null;
   isLoadingEnseignements.value = personnel != null;
@@ -114,9 +116,12 @@ watch([() => props.semestreId, () => usersStore.userId], async ([semestre, perso
       params.departement = usersStore.departementDefaut?.id ?? null;
     }
     const result = await getEnseignementsService(params, '/dashboard');
-    if (current) enseignements.value = result;
+    if (current) enseignements.value = result ?? [];
   } catch (error) {
-    if (current) console.error('Erreur lors de la récupération des enseignements :', error);
+    if (current) {
+      hasError.value = true;
+      console.error('Erreur lors de la récupération des enseignements :', error);
+    }
   } finally {
     if (current) isLoadingEnseignements.value = false;
   }
@@ -180,7 +185,13 @@ function openTeaching(teaching, shortcut) {
         </TabPanel>
       </TabPanels>
     </Tabs>
-    <p v-else class="m-0! text-sm text-muted-color">Aucun enseignement disponible pour ce contexte.</p>
+    <ErrorState v-else-if="hasError" compact message="Impossible de charger les enseignements." />
+    <EmptyState
+        v-else-if="usersStore.userId != null"
+        title="Aucun enseignement disponible pour ce contexte."
+        icon="pi pi-book"
+        compact
+    />
 
     <EnseignementEvaluationsDialog
         v-model:visible="dialogsVisible.evaluations"

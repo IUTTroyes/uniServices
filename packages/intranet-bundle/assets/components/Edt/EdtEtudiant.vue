@@ -8,7 +8,7 @@ import {getEdtEventsService, getEtudiantScolaritesService, getSemaineUniversitai
 import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
 import {getISOWeekNumber} from "@helpers/date";
 import {useUsersStore} from "@stores";
-import {PhotoUser, ErrorView} from "@components";
+import {PhotoUser, ErrorState} from "@components";
 
 // Importer le store des utilisateurs
 const usersStore = useUsersStore();
@@ -227,7 +227,7 @@ function getBadgeSeverity(type) {
     </div>
   </Dialog>
 
-  <ErrorView v-if="hasError" message="Une erreur est survenue lors du chargement de l'emploi du temps. Veuillez réessayer plus tard." />
+  <ErrorState v-if="hasError" message="Une erreur est survenue lors du chargement de l'emploi du temps. Veuillez réessayer plus tard." />
   <vue-cal
       v-else
       ref="vuecalRef"

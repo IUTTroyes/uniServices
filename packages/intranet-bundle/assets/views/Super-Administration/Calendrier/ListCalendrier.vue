@@ -9,7 +9,7 @@ import {
   deleteCalendrierService,
   getAnneesUniversitairesService
 } from '@requests';
-import { ErrorView, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
+import { ErrorState, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
 import { useAnneeUnivStore } from '@stores';
 import { useToast } from 'primevue/usetoast';
 
@@ -260,7 +260,7 @@ const deleteItem = async (item) => {
   </HeaderComponent>
 
   <Card>
-    <ErrorView v-if="hasError" />
+    <ErrorState v-if="hasError" />
     <ListSkeleton v-else-if="isLoading" :count="5" />
     <template v-else>
       <div class="mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

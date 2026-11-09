@@ -6,7 +6,7 @@ import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
 import api from '@helpers/axios';
 import {
-  ErrorView,
+  ErrorState,
   ListSkeleton,
   SimpleSkeleton,
   HeaderComponent
@@ -235,7 +235,7 @@ const handleCreateReferentiel = async () => {
       description="Gestion et consultation des référentiels de compétences et apprentissages critiques du B.U.T."
     />
 
-    <ErrorView v-if="hasError" />
+    <ErrorState v-if="hasError" />
 
     <div v-else class="card mt-4 p-5 sm:p-6 bg-surface-0 dark:bg-surface-900 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm">
       <!-- Barre d'outils supérieure : Sélecteur de département & Actions -->

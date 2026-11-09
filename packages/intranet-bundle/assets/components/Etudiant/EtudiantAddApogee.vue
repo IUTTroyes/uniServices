@@ -1,7 +1,7 @@
 <script setup>
 import {onMounted, ref, watch} from 'vue';
 import { getAnneesService, getAnneeSemestresService, getAnneesUniversitairesService, createEtudiantService } from "@requests";
-import {ErrorView, ListSkeleton} from "@components";
+import {ErrorState, ListSkeleton} from "@components";
 import { useUsersStore } from "@stores";
 import { useToast } from "primevue/usetoast";
 
@@ -173,7 +173,7 @@ onMounted(async() => {
 </script>
 
 <template>
-  <ErrorView v-if="hasError" class="m-4"/>
+  <ErrorState v-if="hasError" class="m-4"/>
   <div v-else class="flex flex-col gap-4">
     <div class="text-2xl font-bold text-center">Que voulez-vous faire ?</div>
     <SelectButton :options="features" v-model="selectedFeature" class="w-full justify-center" optionLabel="libelle" optionValue="id"/>

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { HeaderComponent, Kpi, Card, ConfigOptionItem, GlobalLoader, ErrorView } from '@components';
+import { HeaderComponent, Kpi, Card, ConfigOptionItem, GlobalLoader, ErrorState } from '@components';
 import { useUsersStore } from '@stores';
 import { getDepartementService, updateDepartementService, getPersonnelsService } from '@requests';
 import { useToast } from 'primevue/usetoast';
@@ -108,7 +108,7 @@ onMounted(() => {
     />
 
     <GlobalLoader v-if="isLoading" />
-    <ErrorView v-else-if="hasError" :message="errorMessage" />
+    <ErrorState v-else-if="hasError" :message="errorMessage" />
 
     <div v-else class="space-y-6">
       <!-- Cartes KPI supérieures -->

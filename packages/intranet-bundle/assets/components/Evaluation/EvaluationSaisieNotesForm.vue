@@ -1,6 +1,6 @@
 <script setup>
 import {onMounted, ref, watch, computed} from 'vue';
-import {ErrorView, ListSkeleton, ValidatedInput, validationRules} from "@components";
+import {ErrorState, ListSkeleton, ValidatedInput, validationRules} from "@components";
 import {
   createEtudiantNoteService,
   updateEtudiantNoteService,
@@ -302,7 +302,7 @@ const onRowsChange = async rows => {
 </script>
 
 <template>
-  <ErrorView v-if="hasError"></ErrorView>
+  <ErrorState v-if="hasError"></ErrorState>
   <div v-else>
     <ListSkeleton v-if="isLoadingGroupes" class="flex items-center gap-4 w-1/2"></ListSkeleton>
     <Tabs v-else :value="selectedGroupe.id" scrollable>
