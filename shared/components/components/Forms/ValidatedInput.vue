@@ -312,7 +312,7 @@ const isRequired = computed(() => {
           :disabled="disabled"
         />
 
-        <div v-else-if="type === 'radio'" class="flex flex-col gap-2">
+        <div v-else-if="type === 'radio'">
           <div
               v-for="option in options"
               :key="option.value"
@@ -323,7 +323,7 @@ const isRequired = computed(() => {
                 :name="name"
                 :modelValue="modelValue"
                 :value="option.value"
-                :class="{ 'p-invalid': showError }"
+                :class="[inputClass, { 'p-invalid': showError }]"
                 @update:modelValue="updateModelValue"
                 @change="e => onBlurModelValue(e, handleBlur)"
             />

@@ -36,18 +36,15 @@ class DiplomeFilter implements FilterInterface
         $alias = $queryBuilder->getRootAliases()[0];
 
         if ('departement' === $property) {
-            $queryBuilder
-                ->andWhere(sprintf('%s.departement = :departement', $alias))
-                ->setParameter('departement', $value)
-            ;
-        }
-        elseif ('anneeUniversitaire' === $property) {
-            $queryBuilder
-                ->join(sprintf('%s.pns', $alias), 'pn')
-                ->join('pn.anneeUniversitaire', 'anneeUniv')
-                ->andWhere('anneeUniv.id = :anneeUniversitaire')
-                ->setParameter('anneeUniversitaire', $value)
-            ;
+            $parameter = $queryNameGenerator->generateParameterName('departement');
+            $queryBuilder->andWhere(sprintf('%s.departement = :%s', $alias, $parameter))->setParameter($parameter, $value);
+        } elseif ('anneeUniversitaire' === $property) {
+            $pn = $queryNameGenerator->generateJoinAlias('pn');
+            $parameter = $queryNameGenerator->generateParameterName('anneeUniversitaire');
+            $queryBuilder->distinct()
+                ->join(sprintf('%s.pns', $alias), $pn)
+                ->andWhere(sprintf('%s.anneeUniversitaire = :%s', $pn, $parameter))
+                ->setParameter($parameter, $value);
         }
     }
 }

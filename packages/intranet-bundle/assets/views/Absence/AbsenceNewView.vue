@@ -1,6 +1,7 @@
 <script setup>
+import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import { onMounted, ref, watch, computed } from "vue";
-import {SimpleSkeleton, ValidatedInput, ListSkeleton, HeaderComponent, UserCard, EdtEventRow, Kpi} from "@components";
+import { EmptyState, SimpleSkeleton, ValidatedInput, ListSkeleton, HeaderComponent, UserCard, EdtEventRow, Kpi} from "@components";
 import {useAnneeStore, useSemestreStore, useUsersStore} from "@stores";
 import {getAnneeService, getSemestresService, getGroupesService, getEtudiantScolariteSemestresService, getEdtEventsService, createEtudiantAbsenceService, getEtudiantAbsencesService} from "@requests";
 import {useRoute, useRouter} from "vue-router";
@@ -572,6 +573,31 @@ const confirmAbsencesCreation = async () => {
 </script>
 
 <template>
+  <ContexteSelection titre="Semestre de travail" :valeur="[annee?.libelle, semestre?.libelle].filter(Boolean).join(' · ')">
+    <div class="flex flex-col gap-2"><label for="contexte-annee" class="text-sm font-semibold text-muted-color">Année de formation</label>
+      <Select :loading="isLoadingAnnee" :disabled="isLoadingAnnee" input-id="contexte-annee"
+            v-model="annee" class="w-full sm:w-60"
+            option-label="libelle"
+            :options="annees"
+        >
+          <template #value>
+            {{ annee?.libelle || "Changer d'année" }}
+          </template>
+        </Select>
+    </div>
+    <div class="flex flex-col gap-2"><label for="contexte-semestre" class="text-sm font-semibold text-muted-color">Semestre</label>
+      <Select :loading="isLoadingSemestres" :disabled="isLoadingSemestres" input-id="contexte-semestre"
+            v-model="semestre" class="w-full sm:w-60"
+            option-label="libelle"
+            :options="semestres"
+        >
+          <template #value>
+            {{ semestre?.libelle || "Changer de semestre" }}
+          </template>
+        </Select>
+    </div>
+  </ContexteSelection>
+
   <HeaderComponent
       icon="pi pi-calendar"
       titre="Absences"
@@ -595,30 +621,6 @@ const confirmAbsencesCreation = async () => {
         </div>
       </div>
 
-      <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10" />
-      <div v-else class="flex gap-4">
-        <Select
-            v-model="annee"
-            class="w-60"
-            option-label="libelle"
-            :options="annees"
-        >
-          <template #value>
-            {{ annee?.libelle || "Changer d'année" }}
-          </template>
-        </Select>
-
-        <Select
-            v-model="semestre"
-            class="w-60"
-            option-label="libelle"
-            :options="semestres"
-        >
-          <template #value>
-            {{ semestre?.libelle || "Changer de semestre" }}
-          </template>
-        </Select>
-      </div>
     </header>
 
     <div class="card-body">
@@ -701,17 +703,13 @@ const confirmAbsencesCreation = async () => {
                 :rowsPerPageOptions="[12, 24, 48]"
             />
           </div>
-          <Message v-else severity="warn" class="mb-4 w-fit" icon="pi pi-info-circle">
-            Aucun étudiant trouvé.
-          </Message>
+          <EmptyState v-else class="mb-4 w-fit" compact title="Aucun étudiant trouvé." />
         </div>
 
         <div class="flex flex-col justify-between xl:col-span-1">
           <div>
             <h3 class="m-0 mb-3">Cours du jour</h3>
-            <Message v-if="edtEvents.length === 0" severity="warn" class="mb-4 w-fit" icon="pi pi-info-circle">
-              Aucun cours trouvé pour cette date et ce groupe.
-            </Message>
+            <EmptyState v-if="edtEvents.length === 0" class="mb-4 w-fit" compact title="Aucun cours trouvé pour cette date et ce groupe." />
             <ListSkeleton v-if="isLoadingEvents" class="!w-full mt-4" />
             <div v-else-if="edtEvents.length > 0" class="flex flex-col gap-2">
               <EdtEventRow
@@ -808,9 +806,7 @@ const confirmAbsencesCreation = async () => {
           Vérification des absences existantes en cours...
         </Message>
 
-        <Message v-if="absencesSummary.length === 0" severity="warn" class="mt-4" icon="pi pi-info-circle">
-          Aucune absence à créer. Ajoutez des lignes ou fermez la fenêtre.
-        </Message>
+        <EmptyState v-if="absencesSummary.length === 0" class="mt-4" compact title="Aucune absence à créer. Ajoutez des lignes ou fermez la fenêtre." />
 
         <template #footer>
           <div class="flex justify-end gap-2 w-full">

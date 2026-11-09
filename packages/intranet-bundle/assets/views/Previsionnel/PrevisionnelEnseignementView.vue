@@ -1,4 +1,5 @@
 <script setup>
+import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import { ref, computed, onMounted, watch } from 'vue';
 import { useSemestreStore, useAnneeUnivStore, useUsersStore, useEnseignementsStore } from '@stores';
 import { SimpleSkeleton, ListSkeleton } from '@components';
@@ -197,20 +198,29 @@ const footerCols = computed(() => [
 </script>
 
 <template>
-  <div class="px-4 flex flex-col">
-    <div class="flex justify-between gap-10">
-      <div class="flex gap-6 w-1/2">
-        <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/2" />
-        <IftaLabel v-else class="w-1/2">
-          <Select
+  <ContexteSelection titre="Semestre de travail" :valeur="[selectedSemestre?.libelle, selectedAnneeUniv?.libelle].filter(Boolean).join(' · ')">
+    <div class="flex flex-col gap-2"><label for="contexte-selectedSemestre" class="text-sm font-semibold text-muted-color">Semestre</label>
+      <Select :loading="isLoadingSemestres" :disabled="isLoadingSemestres" input-id="contexte-selectedSemestre"
               v-model="selectedSemestre"
               :options="semestresList"
               optionLabel="libelle"
-              placeholder="Sélectionner un semestre"
-              class="w-full"
+              placeholder="Sélectionner un semestre" class="w-full sm:w-60"
           />
-          <label for="semestre">Semestre</label>
-        </IftaLabel>
+    </div>
+    <div class="flex flex-col gap-2"><label for="contexte-selectedAnneeUniv" class="text-sm font-semibold text-muted-color">Année universitaire</label>
+      <Select :loading="isLoadingAnneesUniv" :disabled="isLoadingAnneesUniv" input-id="contexte-selectedAnneeUniv"
+              v-model="selectedAnneeUniv"
+              :options="anneesUnivList"
+              optionLabel="libelle"
+              placeholder="Sélectionner une année universitaire" class="w-full sm:w-60"
+          />
+    </div>
+  </ContexteSelection>
+
+  <div class="px-4 flex flex-col">
+    <div class="flex justify-between gap-10">
+      <div class="flex gap-6 w-1/2">
+
         <SimpleSkeleton v-if="isLoadingEnseignements" class="w-1/2" />
         <IftaLabel v-else class="w-1/2">
           <Select
@@ -222,17 +232,7 @@ const footerCols = computed(() => [
           />
           <label for="semestre">Matière</label>
         </IftaLabel>
-        <SimpleSkeleton v-if="isLoadingAnneesUniv" class="w-1/2" />
-        <IftaLabel v-else class="w-1/2">
-          <Select
-              v-model="selectedAnneeUniv"
-              :options="anneesUnivList"
-              optionLabel="libelle"
-              placeholder="Sélectionner une année universitaire"
-              class="w-full"
-          />
-          <label for="anneeUniversitaire">Année universitaire</label>
-        </IftaLabel>
+
       </div>
       <Button v-if="!isEditing" label="Saisir le prévisionnel" icon="pi pi-plus" @click="isEditing = !isEditing" />
       <Button v-else label="Afficher le prévisionnel" icon="pi pi-eye" @click="isEditing = !isEditing" />

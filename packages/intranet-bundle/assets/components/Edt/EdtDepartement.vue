@@ -1,9 +1,10 @@
 <script setup>
+import ContexteSelection from '../Structure/ContexteSelection.vue';
 import {VueCal} from 'vue-cal'
 import 'vue-cal/style'
 import {computed, nextTick, onMounted, ref, watch} from 'vue';
 import {useUsersStore} from '@stores';
-import {PhotoUser, SimpleSkeleton, ListSkeleton, ErrorView} from '@components';
+import {PhotoUser, SimpleSkeleton, ListSkeleton, ErrorState} from '@components';
 import {getISOWeekNumber} from "@helpers/date";
 import EdtEvent from "./EdtEvent.vue";
 import {
@@ -388,7 +389,7 @@ const heuresParType = computed(() => {
       </div>
     </div>
   </Dialog>
-  <ErrorView v-if="hasError"></ErrorView>
+  <ErrorState v-if="hasError"></ErrorState>
   <div v-else class="bg-neutral-100 dark:bg-neutral-800 rounded-lg p-6 mb-6 w-full ">
     <div class="text-lg font-bold mb-4">
       Filtres
@@ -407,17 +408,15 @@ const heuresParType = computed(() => {
       <SimpleSkeleton class="w-1/2"/>
       <SimpleSkeleton class="w-1/2"/>
     </div>
-    <div v-else class="mt-8 flex items-center gap-4 w-full">
+    <ContexteSelection v-else titre="Contexte de travail" :valeur="[selectedAnnee?.libelle, selectedSemestre?.libelle].filter(Boolean).join(' · ')">
       <SimpleSkeleton v-if="isLoadingAnnees" class="w-1/2"/>
       <Select v-else-if="selectedDiplome" v-model="selectedAnnee" :options="annees" option-label="libelle" placeholder="Sélectionner une année" class="w-1/2"/>
       <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/2"/>
       <Select v-else-if="selectedAnnee" v-model="selectedSemestre" :options="semestres" option-label="libelle" placeholder="Sélectionner un semestre" class="w-1/2"/>
-    </div>
+    </ContexteSelection>
     <div class="flex justify-center items-center gap-4 mb-4">
       <SimpleSkeleton v-if="isLoadingEnseignants" class="w-1/3"/>
-      <Message v-else-if="hasErrorEnseignants" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
-        Erreur lors du chargement des enseignants.
-      </Message>
+      <ErrorState v-else-if="hasErrorEnseignants" class="w-full my-6" compact :show-navigation="false" message="Erreur lors du chargement des enseignants." />
       <Select
           v-else
           v-model="selectedEnseignant"
@@ -429,9 +428,7 @@ const heuresParType = computed(() => {
           filter
       ></Select>
       <SimpleSkeleton v-if="isLoadingSalles" class="w-1/3"/>
-      <Message v-else-if="hasErrorSalles" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
-        Erreur lors du chargement des salles.
-      </Message>
+      <ErrorState v-else-if="hasErrorSalles" class="w-full my-6" compact :show-navigation="false" message="Erreur lors du chargement des salles." />
       <Select
           v-else
           v-model="selectedSalle"
@@ -443,9 +440,7 @@ const heuresParType = computed(() => {
           filter
       ></Select>
       <SimpleSkeleton v-if="isLoadingEnseignements" class="w-1/3"/>
-      <Message v-else-if="hasErrorEnseignements" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
-        Erreur lors du chargement des enseignements.
-      </Message>
+      <ErrorState v-else-if="hasErrorEnseignements" class="w-full my-6" compact :show-navigation="false" message="Erreur lors du chargement des enseignements." />
       <Select
           v-else
           v-model="selectedEnseignement"
@@ -465,7 +460,7 @@ const heuresParType = computed(() => {
   </div>
 
   <ListSkeleton v-if="isLoadingEvents"/>
-  <ErrorView v-else-if="hasError" message="Une erreur est survenue lors du chargement de l'emploi du temps. Veuillez réessayer plus tard."/>
+  <ErrorState v-else-if="hasError" message="Une erreur est survenue lors du chargement de l'emploi du temps. Veuillez réessayer plus tard."/>
   <vue-cal
       v-else
       ref="vuecalRef"

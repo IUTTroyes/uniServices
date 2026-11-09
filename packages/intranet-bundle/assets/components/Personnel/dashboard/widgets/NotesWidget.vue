@@ -1,4 +1,5 @@
 <script setup>
+import { EmptyState } from '@components';
 defineProps({
     data: {
         type: Object,
@@ -15,7 +16,7 @@ defineProps({
             <ProgressBar :value="doc.completion"/>
             <div class="text-muted-color text-sm flex justify-end">Date limite : {{ doc.date }}</div>
         </div>
-        <div v-if="data.items?.length === 0" class="text-center py-4 text-muted-color">Aucune note à saisir.</div>
+        <EmptyState v-if="data.items?.length === 0" compact title="Aucune note à saisir." />
         <Button label="Voir toutes les notes" class="w-full" severity="secondary" size="small" />
     </div>
 </template>

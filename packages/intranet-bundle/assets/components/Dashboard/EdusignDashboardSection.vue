@@ -1,4 +1,5 @@
 <script setup>
+import { EmptyState } from '@components';
 import { computed, ref } from 'vue';
 import IndicateursDashboard from './IndicateursDashboard.vue';
 
@@ -57,7 +58,9 @@ function moveWeek(offset) { const date = new Date(weekStart.value); date.setDate
       <Column field="teaching" header="Enseignement" />
       <Column field="teacher" header="Enseignant" />
       <Column field="group" header="Groupe" />
-      <template #empty>{{ weekEvents.length ? 'Toutes les séances de cette semaine sont liées à Edusign.' : 'Aucune séance de démonstration pour cette semaine.' }}</template>
+      <template #empty>
+        <EmptyState compact :title="weekEvents.length ? 'Toutes les séances de cette semaine sont liées à Edusign.' : 'Aucune séance de démonstration pour cette semaine.'" />
+      </template>
     </DataTable>
   </section>
 </template>

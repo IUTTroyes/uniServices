@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { watch, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAnneeUnivStore, useUsersStore } from '@stores'
 import { HeaderComponent } from '@components'
@@ -7,6 +7,8 @@ import { getPlansCoursService, createPlanCoursService, getPlanCoursService } fro
 import { showSuccess, showDanger } from '@helpers/toast'
 import PlanCoursShowDialog from '@/components/PlanCours/PlanCoursShowDialog.vue'
 import PlanCoursRecopieDialog from '@/components/PlanCours/PlanCoursRecopieDialog.vue'
+
+const props = defineProps({ integre: Boolean, semestreId: Number })
 
 const router = useRouter()
 const anneeUnivStore = useAnneeUnivStore()
@@ -34,13 +36,17 @@ const statusOptions = [
   { label: 'Non commencés', value: 'NONE' }
 ]
 
+let currentLoad = 0
 const loadData = async () => {
+  const load = ++currentLoad
+  const semestre = props.semestreId
+  modules.value = []
   isLoading.value = true
   try {
     await anneeUnivStore.getCurrentAnneeUniv()
     const activeAnneeId = anneeUnivStore.selectedAnneeUniv?.id || anneeUnivStore.anneeUniv?.id
 
-    const params = {}
+    const params = semestre == null ? {} : { semestre }
     if (activeAnneeId) {
       params.anneeUniversitaire = activeAnneeId
     }
@@ -49,20 +55,20 @@ const loadData = async () => {
     }
 
     const data = await getPlansCoursService(params, '/personnel')
+    if (load !== currentLoad) return
     anneeUniv.value = data.anneeUniversitaire
     personnel.value = data.personnel
     modules.value = data.modules || []
   } catch (error) {
+    if (load !== currentLoad) return
     console.error('Erreur lors du chargement des plans de cours:', error)
     showDanger('Erreur lors du chargement des plans de cours.')
   } finally {
-    isLoading.value = false
+    if (load === currentLoad) isLoading.value = false
   }
 }
 
-onMounted(async () => {
-  await loadData()
-})
+watch(() => props.semestreId, loadData, { immediate: true })
 
 const stats = computed(() => {
   const total = modules.value.length
@@ -116,7 +122,7 @@ const openRecopieDialog = (item) => {
 
 const handleEditOrCreate = async (item) => {
   if (item.planCours?.id) {
-    router.push(`/intranet/plan-de-cours/edit/${item.planCours.id}`)
+    router.push(`/intranet/pedagogie/plans-de-cours/edit/${item.planCours.id}`)
   } else {
     // Initialiser le plan de cours pour ce module
     try {
@@ -127,7 +133,7 @@ const handleEditOrCreate = async (item) => {
         anneeUniversitaireId: activeAnneeId,
       }, '/init_module')
       showSuccess('Plan de cours initialisé.')
-      router.push(`/intranet/plan-de-cours/edit/${res.id}`)
+      router.push(`/intranet/pedagogie/plans-de-cours/edit/${res.id}`)
     } catch (error) {
       showDanger('Erreur lors de la création du plan de cours.')
       isLoading.value = false
@@ -155,6 +161,7 @@ const getEtatLabel = (etat) => {
 <template>
   <div>
     <HeaderComponent
+      v-if="!integre"
       icon="pi pi-book"
       titre="Plans de cours"
       :description="`Gestion et rédaction de vos plans de cours pour l'année universitaire ${anneeUniv?.libelle || ''}`"
@@ -317,7 +324,7 @@ const getEtatLabel = (etat) => {
       v-model:visible="showDialogVisible"
       :planCours="selectedPlanCoursDetail"
       :enseignement="selectedEnseignementDetail"
-      @edit="(id) => router.push(`/intranet/plan-de-cours/edit/${id}`)"
+      @edit="(id) => router.push(`/intranet/pedagogie/plans-de-cours/edit/${id}`)"
     />
 
     <PlanCoursRecopieDialog

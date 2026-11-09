@@ -302,27 +302,27 @@ class PostVoter extends Voter
 
     private function canEditEvaluation(mixed $subject, Personnel|Etudiant $user): bool
     {
-        if (!$user instanceof Personnel) {
+        if (!$user instanceof Personnel || !$subject instanceof ScolEvaluation) {
             return false;
         }
 
-        // Rôles avec accès complet
-        if ($this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN',
-            'ROLE_CHEF_DEPT',
-            'ROLE_RESP_PARCOURS',
-            'ROLE_NOTES_MANAGER'
-        ], $subject)) {
+        if ($subject->getPersonnelAutorise()->contains($user)
+            || in_array($user->getId(), $subject->getIntervenantIdsPourInitialisation(), true)) {
             return true;
         }
 
-        // Personnel autorisé sur cette évaluation
-        if ($subject instanceof ScolEvaluation) {
-            return $subject->getPersonnelAutorise()->contains($user);
-        }
+        $departmentId = $subject->getDepartementId();
+        $activeDepartmentId = $this->effectivePermissionService
+            ->getActiveDepartementPersonnel($user)?->getDepartement()?->getId();
 
-        return false;
+        return $departmentId !== null && $departmentId === $activeDepartmentId
+            && $this->hasAnyRole($user, [
+                'ROLE_DIRECTION',
+                'ROLE_CHEF_DEPARTEMENT',
+                'ROLE_CHEF_DEPT',
+                'ROLE_RESP_PARCOURS',
+                'ROLE_NOTES_MANAGER',
+            ], $subject);
     }
 
     private function canDeleteEvaluation(mixed $subject, Personnel|Etudiant $user): bool

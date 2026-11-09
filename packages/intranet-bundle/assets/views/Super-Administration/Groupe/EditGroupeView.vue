@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { ErrorView, HeaderComponent, Card } from "@components";
+import { ErrorState, HeaderComponent, Card } from "@components";
 
 const router = useRouter();
 const hasError = ref(false);
@@ -18,7 +18,7 @@ const hasError = ref(false);
   />
 
   <Card title="Paramètres du groupe" icon="pi pi-pencil" color="blue">
-    <ErrorView v-if="hasError" />
+    <ErrorState v-if="hasError" />
     <template v-else>
       <div class="p-4 text-muted-color">
         Édition des détails du groupe en cours de configuration.

@@ -1,6 +1,7 @@
 <script setup>
+import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
-import {HeaderComponent, Kpi, EdtEventRow, ValidatedInput, validationRules, SimpleSkeleton, ButtonInfo, ButtonDelete} from '@components';
+import { EmptyState, HeaderComponent, Kpi, EdtEventRow, ValidatedInput, validationRules, SimpleSkeleton, ButtonInfo, ButtonDelete} from '@components';
 import {useAnneeStore, useUsersStore} from '@stores';
 import {getAbsenceJustificatifsService, getAnneeService, updateAbsenceJustificatifService, deleteAbsenceJustificatifService} from '@requests';
 import {useRoute, useRouter} from 'vue-router';
@@ -275,6 +276,12 @@ const showValidate = item => {
 </script>
 
 <template>
+  <ContexteSelection titre="Année de travail" :valeur="[annee?.libelle].filter(Boolean).join(' · ')">
+    <div class="flex flex-col gap-2"><label for="contexte-annee" class="text-sm font-semibold text-muted-color">Année de formation</label>
+      <Select :loading="isLoadingAnnees" :disabled="isLoadingAnnees" input-id="contexte-annee" class="w-full sm:w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
+    </div>
+  </ContexteSelection>
+
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <Kpi
       v-for="stat in stats"
@@ -300,12 +307,7 @@ const showValidate = item => {
           </h2>
         </div>
       </div>
-      <SimpleSkeleton v-if="isLoadingAnnees || isLoadingAnnee" class="!w-60 !h-10"></SimpleSkeleton>
-      <div v-else class="flex flex-col gap-2">
-        <div class="flex gap-4 justify-end">
-          <Select class="w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
-        </div>
-      </div>
+
     </div>
     <div class="card-body">
       <Message severity="info" :closable="false" icon="pi pi-info-circle" class="mb-2">
@@ -441,9 +443,7 @@ const showValidate = item => {
       </a>
       <div v-else class="text-500">Aucun fichier joint</div>
     </div>
-  </div><Message v-if="!detailsAbsences.length" severity="warn" :closable="false" icon="pi pi-exclamation-triangle">
-  Aucun cours manqué sur cette période.
-</Message>
+  </div><EmptyState v-if="!detailsAbsences.length" compact title="Aucun cours manqué sur cette période." />
   <DataTable v-else :value="detailsAbsences" striped-rows>
     <Column header="Cours manqués sur cette période">
       <template #body="slotProps">

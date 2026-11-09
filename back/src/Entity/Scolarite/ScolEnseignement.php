@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Edt\EdtEvent;
+use App\Entity\Structure\StructureDiplome;
 use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use App\Entity\Traits\ApogeeTrait;
 use App\Entity\Traits\OldIdTrait;
@@ -174,7 +175,7 @@ class ScolEnseignement
      * @var Collection<int, Previsionnel>
      */
     #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'enseignement', cascade: ['remove'], orphanRemoval: true)]
-    #[Groups(['enseignement:detail', 'edt_event:read:agenda', 'enseignement:dashboard'])]
+    #[Groups(['enseignement:detail', 'edt_event:read:agenda'])]
     private Collection $previsionnels;
 
     public function __construct()
@@ -632,12 +633,28 @@ class ScolEnseignement
     }
 
     #[Groups(['enseignement:dashboard'])]
-    public function getDiplome(): ?string
+    public function getDiplome(): ?StructureDiplome
     {
         $enseignementUe = $this->enseignementUes->first();
         if ($enseignementUe) {
-            return $enseignementUe->getUe()->getSemestre()->getDiplome()->getSigle();
+            return $enseignementUe->getUe()->getSemestre()->getDiplome();
         }
         return null;
     }
+
+    #[Groups(['enseignement:dashboard'])]
+    public function getSemestre()
+    {
+        $enseignementUe = $this->enseignementUes->first();
+        if ($enseignementUe) {
+            return $enseignementUe->getUe()->getSemestre();
+        }
+        return null;
+    }
+    #[Groups(['enseignement:dashboard'])]
+    public function getAnneeId(): ?int
+    {
+        return $this->getSemestre()?->getAnnee()?->getId();
+    }
+
 }

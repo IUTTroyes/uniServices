@@ -1,7 +1,7 @@
 <script setup>
 import {ref, onMounted, computed} from "vue";
 import { useRouter } from "vue-router";
-import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ListSkeleton, Access } from "@components";
+import { ValidatedInput, validationRules, ErrorState, PermissionGuard, ListSkeleton, Access } from "@components";
 import {useAnneeUnivStore} from "@stores";
 import {createAnneeUniversitaireService, getDiplomesService} from "@requests";
 
@@ -108,10 +108,10 @@ const createAnneeUniv = async () => {
       annee: anneeUniv.value.annee,
       commentaire: anneeUniv.value.commentaire,
       actif: anneeUniv.value.actif,
-      diplomes: selectedDiplomes.value.map(id => `/api/structure_diplomes/${id}`)
+      diplomeIds: selectedDiplomes.value
     };
     // Appeler le service pour créer l'année universitaire
-    await createAnneeUniversitaireService(data, true)
+    await createAnneeUniversitaireService(data, '', true)
     console.log("Année universitaire créée:", anneeUniv.value);
   } catch (error) {
     console.error("Erreur lors de la création de l'année universitaire:", error);
@@ -158,7 +158,7 @@ const goBack = () => {
       </div>
     </div>
 
-    <ErrorView v-if="hasError"/>
+    <ErrorState v-if="hasError"/>
     <template v-else>
       <PermissionGuard permission="isSuperAdmin" :showFallback="true">
         <Message v-if="currentAnneeUniv" severity="info" class="mb-4 flex items-center flex-col justify-center text-center">

@@ -140,6 +140,7 @@ export default [
     name: 'liste-evaluations',
     component: () => import('@/views/Administration/AnneeActions/EvaluationsView.vue'),
     meta: {
+      permission: 'canViewAdministration',
       breadcrumb: () => {
         const anneeStore = useAnneeStore();
         const selectedAnnee = anneeStore.annee;

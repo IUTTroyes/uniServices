@@ -1,6 +1,7 @@
 <script setup>
+import ContexteSelection from '../Structure/ContexteSelection.vue';
 import {computed, onMounted, ref, watch} from "vue";
-import {ErrorView, ListSkeleton, PermissionGuard, SimpleSkeleton, ValidatedInput} from "@components";
+import { EmptyState, ErrorState, ListSkeleton, PermissionGuard, SimpleSkeleton, ValidatedInput} from "@components";
 import {useUsersStore} from "@stores";
 import {
   exportService,
@@ -54,7 +55,6 @@ const features = [
   { id: 'enseignement', libelle: 'Par enseignement' },
 ];
 const selectedFeature = ref(features[0].id);
-
 
 onMounted( async() => {
   isLoadingEventsData.value = true;
@@ -308,7 +308,6 @@ const getStatsPreviData = async () => {
   }
 };
 
-
 // Préparer les données pour le chart
 const chartDataTypes = computed(() => {
   const rep = eventsData.value?.repartitionTypes || null;
@@ -542,7 +541,7 @@ const exportDataHeures = async () => {
 </script>
 
 <template>
-  <ErrorView v-if="hasError"></ErrorView>
+  <ErrorState v-if="hasError"></ErrorState>
   <div v-else class="bg-neutral-100 dark:bg-neutral-800 bg-opacity-20 rounded-lg p-6 mb-6 w-full ">
     <div class="text-lg font-bold mb-4">Filtres</div>
     <div>
@@ -563,7 +562,7 @@ const exportDataHeures = async () => {
         <SimpleSkeleton class="w-1/2"/>
         <SimpleSkeleton class="w-1/2"/>
       </div>
-      <div v-else class="mt-8 flex items-center gap-4 w-full">
+      <ContexteSelection v-else titre="Contexte de travail" :valeur="[selectedAnnee?.libelle, selectedSemestre?.libelle].filter(Boolean).join(' · ')">
         <ValidatedInput
             v-model="selectedAnneeId"
             :options="annees.map(annee => ({...annee, label: annee.libelle, value: annee.id}))"
@@ -586,7 +585,7 @@ const exportDataHeures = async () => {
             :show-clear="true"
             :disabled="!selectedAnnee || isLoadingSemestres"
         />
-      </div>
+      </ContexteSelection>
     </div>
     <Divider></Divider>
     <div class="flex items-end flex-wrap gap-4 mb-6 h-full">
@@ -707,7 +706,7 @@ const exportDataHeures = async () => {
             </div>
             <Button label="Exporter en xlsx" icon="pi pi-file" severity="secondary" class="w-full" @click="exportDataHeures()" />
           </div>
-          <div v-else class="text-neutral-500">Aucune donnée à afficher pour les filtres sélectionnés.</div>
+          <EmptyState v-else compact title="Aucune donnée à afficher pour les filtres sélectionnés." />
         </div>
       </div>
       <div class="border border-neutral-300 dark:border-neutral-700 rounded-lg p-6 w-full flex flex-col">
@@ -725,9 +724,7 @@ const exportDataHeures = async () => {
           </DataTable>
         </div>
         <div v-else class="h-full flex items-center">
-          <Message severity="warn" class="mb-4 w-fit mx-auto" icon="pi pi-info-circle">
-            Aucune donnée disponible.
-          </Message>
+          <EmptyState class="mb-4 w-fit mx-auto" compact title="Aucune donnée disponible." />
         </div>
       </div>
     </div>
@@ -751,7 +748,7 @@ const exportDataHeures = async () => {
           </Column>
         </DataTable>
       </div>
-      <div v-else class="text-neutral-500">Aucune répartition disponible.</div>
+      <EmptyState v-else compact title="Aucune répartition disponible." />
     </div>
     <Divider/>
     <ListSkeleton v-if="isLoadingStatsPreviData" class="w-full"/>
@@ -793,9 +790,7 @@ const exportDataHeures = async () => {
       </div>
       <PermissionGuard :permission="'canViewPersonnelDetails'">
         <div v-if="displayedComparatifRows">
-          <Message v-if="displayedComparatifRows.length < 1" severity="warn" class="mb-4 w-fit mx-auto" icon="pi pi-info-circle">
-            Aucune donnée de comparatif prévisionnel disponible pour les filtres sélectionnés.
-          </Message>
+          <EmptyState v-if="displayedComparatifRows.length < 1" class="mb-4 w-fit mx-auto" compact title="Aucune donnée de comparatif prévisionnel disponible pour les filtres sélectionnés." />
           <div class="flex flex-col gap-4 w-full items-center justify-center" v-else>
             <SelectButton
                 :options="features"

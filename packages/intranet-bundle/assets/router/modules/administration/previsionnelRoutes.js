@@ -1,10 +1,11 @@
 export default [
   {
     path: '',
-    redirect: 'semestre',
+    redirect: { name: 'previsionnel-semestre' },
   },
   {
     path: 'semestre',
+    name: 'previsionnel-semestre',
     component: () => import("@/views/Previsionnel/PrevisionnelSemestreView.vue"),
   },
   {

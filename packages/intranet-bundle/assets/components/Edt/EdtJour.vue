@@ -5,7 +5,7 @@ import {getEdtEventsService, getEtudiantScolaritesService, getSemaineUniversitai
 import {useUsersStore} from "@stores";
 import {getISOWeekNumber} from "@helpers/date.js";
 import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
-import {PhotoUser, ErrorView} from "@components";
+import {PhotoUser, ErrorState} from "@components";
 
 const usersStore = useUsersStore();
 const user = usersStore.user;
@@ -264,7 +264,7 @@ function getBadgeSeverity(type) {
     </div>
   </Dialog>
 
-  <ErrorView v-if="hasError" message="Une erreur est survenue lors de la récupération des événements de l'emploi du temps." />
+  <ErrorState v-if="hasError" message="Une erreur est survenue lors de la récupération des événements de l'emploi du temps." />
   <div v-else class="flex flex-row justify-between gap-4">
     <div v-for="(event, index) in sortedEvents" :key="index" class="w-full">
       <EdtEvent :event="event" type="jour" @click="openDialog(event)" />

@@ -1,6 +1,6 @@
 <script setup>
 import {computed, onMounted, ref, watch} from 'vue';
-import {ErrorView, ListSkeleton, SimpleSkeleton} from "@components";
+import {ErrorState, ListSkeleton, SimpleSkeleton} from "@components";
 import {useToast} from "primevue/usetoast";
 import {useUsersStore, useDiplomeStore} from "@stores";
 import {
@@ -794,7 +794,7 @@ const deleteHrs = async (hrsId) => {
 </script>
 
 <template>
-  <ErrorView v-if="hasError" />
+  <ErrorState v-if="hasError" />
   <div v-else class="px-4 flex flex-col">
     <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
     <div v-else>

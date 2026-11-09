@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { HeaderComponent, SimpleSkeleton, Kpi } from '@components';
@@ -164,6 +165,17 @@ watch(anneeId, async () => {
 </script>
 
 <template>
+  <ContexteSelection titre="Semestre de travail" :valeur="[selectedSemestre?.libelle].filter(Boolean).join(' · ')">
+    <div class="flex flex-col gap-2"><label for="contexte-selectedSemestre" class="text-sm font-semibold text-muted-color">Semestre</label>
+      <Select :loading="isLoadingSemestres" :disabled="isLoadingSemestres" input-id="contexte-selectedSemestre"
+            v-model="selectedSemestre"
+            :options="semestres"
+            option-label="libelle"
+            placeholder="Choisir un semestre" class="w-full sm:w-60"
+          />
+    </div>
+  </ContexteSelection>
+
   <div class="flex flex-col gap-6">
     <!-- Header principal -->
     <HeaderComponent
@@ -175,18 +187,6 @@ watch(anneeId, async () => {
     <!-- Bandeau de configuration & sélection du semestre -->
     <div class="card p-4 rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-0 dark:bg-surface-900 shadow-xs flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-4 flex-wrap">
-        <div class="flex items-center gap-2">
-          <label class="text-sm font-semibold text-surface-700 dark:text-surface-300">Semestre :</label>
-          <SimpleSkeleton v-if="isLoadingSemestres" class="w-48 h-9" />
-          <Select
-            v-else
-            v-model="selectedSemestre"
-            :options="semestres"
-            option-label="libelle"
-            placeholder="Choisir un semestre"
-            class="w-56"
-          />
-        </div>
 
         <!-- Badge du mode détecté (APC vs Classique) -->
         <div v-if="commissionData" class="flex items-center gap-2">

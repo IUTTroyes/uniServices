@@ -3,7 +3,7 @@ import { onMounted, ref, toRaw } from 'vue';
 import { ValidatedInput, validationRules, ListSkeleton } from '@components';
 import { useUsersStore } from '@stores/user_stores/userStore.js';
 import { getPersonnelsService, updateEvaluationService } from '@requests';
-import {ErrorView} from "@components";
+import {ErrorState} from "@components";
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import {useToast} from "primevue/usetoast";
@@ -185,7 +185,7 @@ const submitEval = async () => {
 </script>
 
 <template>
-  <ErrorView v-if="hasError" />
+  <ErrorState v-if="hasError" />
   <div v-else>
     <ListSkeleton v-if="isLoadingEvaluations" />
     <div v-else class="pt-4">

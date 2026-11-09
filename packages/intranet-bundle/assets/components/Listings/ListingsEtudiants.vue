@@ -342,7 +342,7 @@ const trombiMenuItems = computed(() => {
 <template>
   <div class="listings-etudiants-container flex flex-col gap-4">
     <!-- BARRE DE SÉLECTION DU SEMESTRE -->
-    <div class="flex flex-wrap items-center justify-between gap-3 p-3 bg-neutral-50 dark:bg-neutral-800/60 rounded-xl border border-neutral-200/70 dark:border-neutral-700/60">
+    <ContexteSelection  titre="Contexte de travail" :valeur="selectedSemestre?.libelle">
       <div class="flex items-center gap-2">
         <i class="pi pi-calendar text-violet-600 dark:text-violet-400 text-lg"></i>
         <label for="select-semestre-listing" class="text-xs font-semibold text-neutral-700 dark:text-neutral-200 uppercase tracking-wide">
@@ -364,7 +364,7 @@ const trombiMenuItems = computed(() => {
         <Tag v-if="selectedSemestre" :value="`Semestre ${selectedSemestre.libelle}`" severity="info" />
         <Tag v-if="groupes.length > 0" :value="`${groupes.length} groupe(s)`" severity="secondary" />
       </div>
-    </div>
+    </ContexteSelection>
 
     <!-- ÉTAT DE CHARGEMENT -->
     <div v-if="isLoadingGroupes" class="grid grid-cols-2 sm:grid-cols-4 gap-2 py-4">

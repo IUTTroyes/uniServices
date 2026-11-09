@@ -5,7 +5,7 @@ import {
   createEtudiantService,
   getAnneesUniversitairesService
 } from "@requests";
-import {ErrorView, ListSkeleton} from "@components";
+import {ErrorState, ListSkeleton} from "@components";
 import { useUsersStore } from "@stores";
 import { useToast } from "primevue/usetoast";
 import { exportCsv } from "@helpers/downloadCsv";
@@ -212,7 +212,7 @@ const downloadCsv = () => {
 </script>
 
 <template>
-  <ErrorView v-if="hasError" class="m-4"/>
+  <ErrorState v-if="hasError" class="m-4"/>
   <div v-else class="mt-8">
     <header class="card-header mb-6">
       <p class="top-card-header">En une seule étape</p>

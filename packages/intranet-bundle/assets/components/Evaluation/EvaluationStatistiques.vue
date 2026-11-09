@@ -1,6 +1,6 @@
 <script setup>
 import {computed, onMounted, ref, watch} from 'vue';
-import {ErrorView, ListSkeleton, SimpleSkeleton} from "@components";
+import {ErrorState, ListSkeleton, SimpleSkeleton} from "@components";
 import {
   getEvaluationService,
   updateEvaluationService,
@@ -209,7 +209,7 @@ const onChildSaved = async () => {
 </script>
 
 <template>
-  <ErrorView v-if="hasError"></ErrorView>
+  <ErrorState v-if="hasError"></ErrorState>
   <div v-else>
     <SimpleSkeleton v-if="isLoading" :width="'100%'" :height="'400px'"/>
     <div v-else>

@@ -90,7 +90,7 @@ class StructureSemestre implements TimestampableInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:detail', 'semestre:light', 'maquette:detail', 'scolarite:read', 'enseignement:read', 'annee:read', 'stage_periode:read', 'scolarite:user'])]
+    #[Groups(['semestre:detail', 'semestre:light', 'maquette:detail', 'scolarite:read', 'enseignement:read', 'annee:read', 'stage_periode:read', 'scolarite:user', 'enseignement:dashboard'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]

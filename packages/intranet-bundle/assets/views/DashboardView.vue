@@ -22,10 +22,10 @@ const actions = [
   },
   {
     "id": "cours",
-    "label": "Plans de cours",
-    "description": "Préparer et retrouver vos supports pédagogiques.",
+    "label": "Pédagogie",
+    "description": "Retrouver vos plans de cours et le suivi de vos enseignements.",
     "icon": "pi pi-book",
-    "to": "/intranet/plan-de-cours",
+    "to": "/intranet/pedagogie",
     "permission": "isEnseignant",
     "application": null
   },

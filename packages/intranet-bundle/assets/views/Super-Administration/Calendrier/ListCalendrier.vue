@@ -1,4 +1,5 @@
 <script setup>
+import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import {
@@ -8,7 +9,7 @@ import {
   deleteCalendrierService,
   getAnneesUniversitairesService
 } from '@requests';
-import { ErrorView, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
+import { EmptyState, ErrorState, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
 import { useAnneeUnivStore } from '@stores';
 import { useToast } from 'primevue/usetoast';
 
@@ -227,6 +228,19 @@ const deleteItem = async (item) => {
 </script>
 
 <template>
+  <ContexteSelection titre="Année de travail" :valeur="[anneesUniv.find(item => item.id === selectedAnneeUniv)?.libelle].filter(Boolean).join(' · ')">
+    <div class="flex flex-col gap-2"><label for="contexte-selectedAnneeUniv" class="text-sm font-semibold text-muted-color">Année universitaire</label>
+      <Select input-id="contexte-selectedAnneeUniv"
+            v-model="selectedAnneeUniv"
+            :options="anneesUniv"
+            optionLabel="libelle"
+            optionValue="id"
+            placeholder="Filtrer par année universitaire" class="w-full sm:w-60"
+            showClear
+          />
+    </div>
+  </ContexteSelection>
+
   <HeaderComponent
     icon="pi pi-calendar"
     color="purple"
@@ -246,20 +260,12 @@ const deleteItem = async (item) => {
   </HeaderComponent>
 
   <Card>
-    <ErrorView v-if="hasError" />
+    <ErrorState v-if="hasError" />
     <ListSkeleton v-else-if="isLoading" :count="5" />
     <template v-else>
       <div class="mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <Select
-            v-model="selectedAnneeUniv"
-            :options="anneesUniv"
-            optionLabel="libelle"
-            optionValue="id"
-            placeholder="Filtrer par année universitaire"
-            class="w-full md:w-64"
-            showClear
-          />
+
           <IconField iconPosition="left" class="w-full md:w-72">
             <InputIcon class="pi pi-search" />
             <InputText v-model="searchQuery" placeholder="Rechercher une semaine..." class="w-full" />
@@ -277,10 +283,7 @@ const deleteItem = async (item) => {
         responsiveLayout="scroll"
       >
         <template #empty>
-          <div class="text-center py-8 text-muted-color">
-            <i class="pi pi-calendar-times text-3xl mb-2 block"></i>
-            <span>Aucune semaine trouvée dans le calendrier.</span>
-          </div>
+          <EmptyState compact title="Aucune semaine trouvée dans le calendrier." icon="pi pi-calendar-times" />
         </template>
 
         <Column field="id" header="ID" :sortable="true" style="width: 80px;" />

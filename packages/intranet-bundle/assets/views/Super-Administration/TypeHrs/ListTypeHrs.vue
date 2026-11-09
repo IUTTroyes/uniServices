@@ -7,7 +7,7 @@ import {
   updateTypeHrsService,
   deleteTypeHrsService
 } from '@requests';
-import { ErrorView, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
+import { EmptyState, ErrorState, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
 import { useToast } from 'primevue/usetoast';
 
 const router = useRouter();
@@ -211,7 +211,7 @@ const deleteItem = async (item) => {
   </HeaderComponent>
 
   <Card>
-    <ErrorView v-if="hasError" />
+    <ErrorState v-if="hasError" />
     <ListSkeleton v-else-if="isLoading" :count="5" />
     <template v-else>
       <div class="mb-4 flex justify-between items-center">
@@ -231,10 +231,7 @@ const deleteItem = async (item) => {
         responsiveLayout="scroll"
       >
         <template #empty>
-          <div class="text-center py-8 text-muted-color">
-            <i class="pi pi-clock text-3xl mb-2 block"></i>
-            <span>Aucun type d'heures trouvé.</span>
-          </div>
+          <EmptyState compact title="Aucun type d'heures trouvé." icon="pi pi-clock" />
         </template>
 
         <Column field="id" header="ID" :sortable="true" style="width: 80px;" />

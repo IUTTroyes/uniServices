@@ -287,6 +287,10 @@ SQL;
 
         $this->flushAndClear($context);
 
+        $automaticEvaluations = $this->createMissingEvaluations($context);
+        $created += $automaticEvaluations;
+        $messages[] = sprintf('Évaluations automatiquement créées pour les enseignements sans évaluation : %d.', $automaticEvaluations);
+
         if (array_sum($diagnostics) > 0) {
             $messages[] = sprintf(
                 'Résumé évaluations non migrées: types non supportés=%d, années universitaires=%d, semestres=%d, enseignements=%d.',
@@ -305,6 +309,45 @@ SQL;
         }
 
         return new MigrationResult($created, $updated, $skipped, $failed, $messages);
+    }
+
+    /** Complète uniquement les contextes enseignement/semestre/année sans aucune évaluation. */
+    private function createMissingEvaluations(MigrationContext $context): int
+    {
+        // DISTINCT évite les doublons lorsqu'un enseignement appartient à plusieurs UE du même semestre.
+        $query = $this->entityManager->createQueryBuilder()
+            ->select('DISTINCT ens.id AS enseignementId', 'ens.nbNotes AS nbNotes', 'sem.id AS semestreId', 'au.id AS anneeId')
+            ->from(ScolEnseignement::class, 'ens')
+            ->innerJoin('ens.enseignementUes', 'ensUe')
+            ->innerJoin('ensUe.ue', 'ue')
+            ->innerJoin('ue.semestre', 'sem')
+            ->innerJoin('sem.annee', 'an')
+            ->innerJoin('an.pn', 'pn')
+            ->innerJoin('pn.anneeUniversitaire', 'au')
+            ->andWhere('ens.nbNotes > 0')
+            ->andWhere('NOT EXISTS (SELECT existing.id FROM '.ScolEvaluation::class.' existing WHERE existing.enseignement = ens AND existing.semestre = sem AND existing.anneeUniversitaire = au)')
+            ->orderBy('ens.id', 'ASC')
+            ->addOrderBy('sem.id', 'ASC')
+            ->addOrderBy('au.id', 'ASC')
+            ->getQuery();
+
+        $created = 0;
+        foreach ($query->toIterable([], \Doctrine\ORM\AbstractQuery::HYDRATE_SCALAR) as $row) {
+            for ($number = 1; $number <= (int) $row['nbNotes']; ++$number) {
+                // Reprendre les références à chaque tour : flushBatch peut détacher les entités.
+                $evaluation = (new ScolEvaluation())
+                    ->setAnneeUniversitaire($this->entityManager->getReference(StructureAnneeUniversitaire::class, (int) $row['anneeId']))
+                    ->setSemestre($this->entityManager->getReference(StructureSemestre::class, (int) $row['semestreId']))
+                    ->setEnseignement($this->entityManager->getReference(ScolEnseignement::class, (int) $row['enseignementId']))
+                    ->setLibelle('Évaluation '.$number)
+                    ->setTypeGroupe(null)
+                    ->setEtat(EtatEvaluationEnum::ETAT_NON_INITIALISEE);
+                $this->entityManager->persist($evaluation);
+                $this->flushBatch($context, ++$created);
+            }
+        }
+        $this->flushAndClear($context);
+        return $created;
     }
 
     private function findSnapshotSemestre(int $oldId, StructureAnneeUniversitaire $anneeUniversitaire): ?StructureSemestre

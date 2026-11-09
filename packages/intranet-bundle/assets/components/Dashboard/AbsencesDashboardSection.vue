@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { PermissionGuard } from '@components';
+import { EmptyState, PermissionGuard } from '@components';
 import IndicateursDashboard from './IndicateursDashboard.vue';
 
 // Historique fictif : la date de référence permet un aperçu cohérent et reproductible.
@@ -40,7 +40,9 @@ const severity = status => ({ 'Justifiée': 'success', 'En attente': 'warn', 'No
           <Column field="time" header="Horaire" />
           <Column field="teaching" header="Enseignement" />
           <Column header="Justification"><template #body="{ data }"><Tag :value="data.status" :severity="severity(data.status)" /></template></Column>
-          <template #empty>Aucune absence signalée pour cette journée.</template>
+          <template #empty>
+            <EmptyState compact title="Aucune absence signalée pour cette journée." />
+          </template>
         </DataTable>
       </div>
     </PermissionGuard>

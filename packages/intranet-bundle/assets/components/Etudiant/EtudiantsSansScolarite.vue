@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue';
-import { HeaderComponent, ProfilEtudiant } from '@components';
+import { ErrorState, HeaderComponent, ProfilEtudiant } from '@components';
 import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue';
 import { useToast } from 'primevue/usetoast';
 import {
@@ -269,9 +269,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <Message v-if="hasError" severity="error" class="mb-4">
-    Une erreur est survenue lors du chargement des données.
-  </Message>
+  <ErrorState v-if="hasError" class="mb-4" compact :show-navigation="false" message="Une erreur est survenue lors du chargement des données." />
   <div v-else class="mt-8">
     <header class="card-header mb-6">
       <p class="top-card-header">Parcours guidé</p>

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ListSkeleton, Access } from "@components";
+import { ValidatedInput, validationRules, ErrorState, PermissionGuard, ListSkeleton, Access } from "@components";
 import { getAnneeUniversitaireService, updateAnneeUniversitaireService, getDiplomesService } from "@requests";
 import {useAnneeUnivStore} from "@stores";
 
@@ -60,14 +60,12 @@ const getAnneeUniv = async () => {
 
 const getDiplomes = async () => {
   try {
-    diplomes.value = await getDiplomesService({}, '/pn-light');
-
-    //marquer les diplomes déjà associés (qui ont un pn dont l'année universitaire = anneeUniv
-    selectedDiplomes.value = diplomes.value
-      .filter(diplome =>
-        diplome.pns && diplome.pns.some(pn => pn.anneeUniversitaire?.id === parseInt(anneeUnivId.value))
-      )
-      .map(diplome => diplome.id);
+    const [tousLesDiplomes, diplomesDeLAnnee] = await Promise.all([
+      getDiplomesService({ pagination: false }, '/pn-light'),
+      getDiplomesService({ anneeUniversitaire: anneeUnivId.value, pagination: false }, '/mini'),
+    ]);
+    diplomes.value = tousLesDiplomes;
+    selectedDiplomes.value = diplomesDeLAnnee.map(diplome => diplome.id);
   } catch (error) {
     console.error("Erreur lors de la récupération des diplômes:", error);
     hasError.value = true;
@@ -130,18 +128,15 @@ const handleValidation = (field, result) => {
 
 const updateAnneeUniv = async () => {
   try {
-    // transformer les diplomes sélectionnés en IRI
-    const selectedDiplomesIri = selectedDiplomes.value.map(id => `/api/structure_diplomes/${id}`);
-
     const data = {
       libelle: anneeUniv.value.libelle,
       annee: anneeUniv.value.annee,
       commentaire: anneeUniv.value.commentaire,
       actif: anneeUniv.value.actif,
-      diplomes: selectedDiplomesIri,
+      diplomeIds: selectedDiplomes.value,
     };
 
-    await updateAnneeUniversitaireService(anneeUnivId.value, data, true);
+    await updateAnneeUniversitaireService(anneeUnivId.value, data, '', true);
 
     // Si l'année est devenue active, rafraîchir le store
     if (anneeUniv.value.actif) {
@@ -176,7 +171,7 @@ const goBack = () => {
       </div>
     </div>
 
-    <ErrorView v-if="hasError"/>
+    <ErrorState v-if="hasError"/>
     <ListSkeleton v-else-if="isLoading" :count="5" />
     <template v-else>
       <PermissionGuard permission="isSuperAdmin" :showFallback="true">

@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.10.0](https://github.com/IUTTroyes/uniServices/compare/v0.9.0...v0.10.0) (2026-11-09)
+
+
+### ✨ Fonctionnalités
+
+* **intranet:** Add enseignement filter to absence queries and refactor absence components ([31d82e1](https://github.com/IUTTroyes/uniServices/commit/31d82e1b0fdd1cf31c86eec2a707f8dea66b5c9d))
+* **intranet:** Enhance router organization ([d352bde](https://github.com/IUTTroyes/uniServices/commit/d352bde4ccbc90410b430410cc646d4f714ad76a))
+* **intranet:** Enhance router organization ([a47f430](https://github.com/IUTTroyes/uniServices/commit/a47f4308786eb37fb97991d6e1f1a16e749c2719))
+* **intranet:** Update routing parameters and enhance pedagogical tabs ([e2f0c21](https://github.com/IUTTroyes/uniServices/commit/e2f0c21cd26841fcd444f06d0f7205a8760396a5))
+
+## [0.9.0](https://github.com/IUTTroyes/uniServices/compare/v0.8.0...v0.9.0) (2026-11-05)
+
+
+### ✨ Fonctionnalités
+
+* **intranet:** Création de l'entrée "Pédagogie" ([284c920](https://github.com/IUTTroyes/uniServices/commit/284c9204a89fc59ececc3e77d2dacd08bcce0160))
+* **intranet:** Dashboard Enseignements ([0258d37](https://github.com/IUTTroyes/uniServices/commit/0258d37831d2c212a20b20f9ce3c30bcc044156a))
+* **intranet:** Evaluations ([d58b908](https://github.com/IUTTroyes/uniServices/commit/d58b90811384d722bedee0898a2319ba59d9e8d5))
+* **intranet:** Refactor EnseignantDashboardSection and add new dialog components ([a1af793](https://github.com/IUTTroyes/uniServices/commit/a1af79380ef70c323aaa90633476df773f4120e2))
+* **intranet:** Refactor EnseignantDashboardSection and enhance evaluation dialogs ([a18183c](https://github.com/IUTTroyes/uniServices/commit/a18183c8409c288bbe2a859317c3c0df179c5ee8))
+* **intranet:** Système de suivi de l'avancement d'un enseignement. ([c46cebc](https://github.com/IUTTroyes/uniServices/commit/c46cebceddc6862ddf1099dee5299733d4b62142))
+* **messagerie:** widget ([1d31012](https://github.com/IUTTroyes/uniServices/commit/1d31012d93861b7550d3c2f087e076d466d699e1))
+
+
+### 🐛 Corrections
+
+* **intranet:** Ajout d'un bandeau pour spécifier le contexte (semestre et/ou année de travail) ([264bac7](https://github.com/IUTTroyes/uniServices/commit/264bac7b9283c12392e04e38368b87d1e8ec6a7c))
+* **intranet:** Dashboard Enseignant ([ae705e0](https://github.com/IUTTroyes/uniServices/commit/ae705e047357e3fdbac4db7535b66ca3365b441e))
+* **intranet:** Migration des évaluations ([18e307e](https://github.com/IUTTroyes/uniServices/commit/18e307e3d402d1eae34f589047fe9bda2c30e89d))
+* **intranet:** suppression bloc stage dans administration ([c973bdd](https://github.com/IUTTroyes/uniServices/commit/c973bdd55e270b755bf94e30c2a861cf165bb618))
+* Suppression dépréciation relation directe Diplome-&gt;AnneeUniv ([5277b83](https://github.com/IUTTroyes/uniServices/commit/5277b83bd439d298f90fa051fbcf1130a9bccb81))
+* Suppression dépréciation relation directe Diplome-&gt;AnneeUniv ([63611a5](https://github.com/IUTTroyes/uniServices/commit/63611a5c19830982612c946c63aaab05f839f05b))
+* Suppression indicateurs semestres ([4a94eda](https://github.com/IUTTroyes/uniServices/commit/4a94eda9f8a492a62059c921814937ad5fe41d5b))
+
 ## [0.8.0](https://github.com/IUTTroyes/uniServices/compare/v0.7.0...v0.8.0) (2026-10-29)
 
 

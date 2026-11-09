@@ -9,7 +9,7 @@ import CardSkeleton from "./loader/CardSkeleton.vue";
 import ApcCompetenceBadge from "./Apc/ApcCompetenceBadge.vue";
 import ApcAcBadge from "./Apc/ApcAcBadge.vue";
 import ApplicationBadge from "./components/Application/ApplicationBadge.vue";
-import ErrorView from './components/ErrorView.vue';
+import ErrorState from './components/ErrorState.vue';
 import PhotoUser from './components/PhotoUser.vue';
 import ProfilEtudiant from "./components/Etudiant/ProfilEtudiant/ProfilEtudiant.vue";
 import ScolariteEtudiant from "./components/Etudiant/ProfilEtudiant/ScolariteEtudiant.vue";
@@ -62,7 +62,7 @@ export {
   CardSkeleton,
   ApcCompetenceBadge,
   ApcAcBadge,
-  ErrorView,
+  ErrorState,
   PhotoUser,
   SimpleSkeleton,
   ArticleSkeleton,

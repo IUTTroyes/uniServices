@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
-import { HeaderComponent, Kpi, ErrorView, GlobalLoader } from '@components';
+import { HeaderComponent, Kpi, ErrorState, GlobalLoader } from '@components';
 import { useUsersStore, useAnneeUnivStore } from '@stores';
 import {
   getDepartementService,
@@ -153,7 +153,7 @@ const onSemestreUpdated = ({ semestreId, key, value }) => {
 
     <GlobalLoader v-if="isLoading" />
 
-    <ErrorView
+    <ErrorState
       v-else-if="hasError"
       :message="errorMessage"
       @retry="loadConfigurationData"

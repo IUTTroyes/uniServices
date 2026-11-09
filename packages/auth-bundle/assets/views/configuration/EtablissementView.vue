@@ -1,7 +1,7 @@
 <script setup>
 import {onMounted, ref} from "vue";
 import {useEtablissementStore} from "@stores";
-import { ValidatedInput, validationRules, ErrorView, ListSkeleton } from "@components";
+import { ValidatedInput, validationRules, ErrorState, ListSkeleton } from "@components";
 import {updateEtablissementService, uploadEtablissementLogoService} from "@requests"
 
 const etablissementStore = useEtablissementStore()
@@ -118,7 +118,7 @@ const handleValidation = (field, result) => {
     <em>Gestion des données d'identification de l'établissement (la composante, ex. l'IUT) et de son université de rattachement</em>
     <Divider/>
 
-    <ErrorView v-if="hasError"/>
+    <ErrorState v-if="hasError"/>
     <template v-else>
       <ListSkeleton v-if="isLoadingEtablissement"/>
       <div v-else>

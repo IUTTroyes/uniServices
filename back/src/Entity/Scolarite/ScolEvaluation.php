@@ -17,6 +17,7 @@ use App\Enum\TypeEvaluationEnum;
 use App\Enum\TypeGroupeEnum;
 use App\Filter\EvaluationFilter;
 use App\Repository\ScolEvaluationRepository;
+use App\Security\DiplomeScope;
 use App\State\Processor\Evaluation\ScolEvaluationInitProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -38,7 +39,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/init/scol_evaluations/{id}',
             normalizationContext: ['groups' => ['evaluation:mini', 'evaluation:init']],
         ),
-        new Patch(normalizationContext: ['groups' => ['evaluation:write']], securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object)", processor: ScolEvaluationInitProcessor::class),
+        new Patch(normalizationContext: ['groups' => ['evaluation:write']], security: "is_granted('CAN_EDIT_EVAL', object)", processor: ScolEvaluationInitProcessor::class),
     ],
     parameters: [
         'enseignement' => new QueryParameter(filter: EvaluationFilter::class),
@@ -272,6 +273,38 @@ class ScolEvaluation
         $this->anneeUniversitaire = $anneeUniversitaire;
 
         return $this;
+    }
+
+    #[Groups(['evaluation:detail', 'evaluation:init'])]
+    public function getDiplomeId(): ?int
+    {
+        return DiplomeScope::fromSubject($this)?->getId();
+    }
+
+    #[Groups(['evaluation:detail', 'evaluation:init'])]
+    public function getDepartementId(): ?int
+    {
+        return DiplomeScope::fromSubject($this)?->getDepartement()?->getId();
+    }
+
+    /** @return list<int> */
+    #[Groups(['evaluation:detail', 'evaluation:init'])]
+    public function getIntervenantIdsPourInitialisation(): array
+    {
+        $anneeId = $this->getAnneeUniversitaire()?->getId();
+        if ($this->getEtat() !== EtatEvaluationEnum::ETAT_NON_INITIALISEE || $anneeId === null) {
+            return [];
+        }
+
+        $ids = [];
+        foreach ($this->getEnseignement()?->getPrevisionnels() ?? [] as $previsionnel) {
+            $personnelId = $previsionnel->getPersonnel()?->getId();
+            if ($personnelId !== null && $previsionnel->getAnneeUniversitaire()?->getId() === $anneeId) {
+                $ids[$personnelId] = $personnelId;
+            }
+        }
+
+        return array_values($ids);
     }
 
     public function getSemestre(): ?StructureSemestre

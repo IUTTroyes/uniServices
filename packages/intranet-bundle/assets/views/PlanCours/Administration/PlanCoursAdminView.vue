@@ -1,8 +1,9 @@
 <script setup>
+import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import { onMounted, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAnneeUnivStore, useUsersStore } from '@stores'
-import { HeaderComponent } from '@components'
+import { EmptyState, HeaderComponent } from '@components'
 import { getDiplomesService, getPlansCoursService, getPlanCoursService, createPlanCoursService } from '@requests'
 import { showSuccess, showDanger } from '@helpers/toast'
 import PlanCoursShowDialog from '@/components/PlanCours/PlanCoursShowDialog.vue'
@@ -156,7 +157,7 @@ const openShowDialog = async (item) => {
 
 const openEditOrCreate = async (item) => {
   if (item.planCours?.id) {
-    router.push(`/intranet/plan-de-cours/edit/${item.planCours.id}`)
+    router.push(`/intranet/pedagogie/plans-de-cours/edit/${item.planCours.id}`)
   } else {
     try {
       isLoadingTable.value = true
@@ -165,7 +166,7 @@ const openEditOrCreate = async (item) => {
         enseignementId: item.enseignement.id,
         anneeUniversitaireId: activeAnneeId,
       }, '/init_module')
-      router.push(`/intranet/plan-de-cours/edit/${res.id}`)
+      router.push(`/intranet/pedagogie/plans-de-cours/edit/${res.id}`)
     } catch (e) {
       showDanger('Erreur lors de l\'initialisation du plan de cours.')
       isLoadingTable.value = false
@@ -183,6 +184,18 @@ const getBadgeSeverity = (etat) => {
 </script>
 
 <template>
+  <ContexteSelection titre="Semestre de travail" :valeur="[semestreOptions.find(item => item.value === selectedSemestre)?.label].filter(Boolean).join(' · ')">
+    <div class="flex flex-col gap-2"><label for="contexte-selectedSemestre" class="text-sm font-semibold text-muted-color">Semestre</label>
+      <Select input-id="contexte-selectedSemestre"
+            v-model="selectedSemestre"
+            :options="semestreOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Semestre" class="w-full sm:w-60"
+          />
+    </div>
+  </ContexteSelection>
+
   <div>
     <HeaderComponent
       icon="pi pi-file"
@@ -211,14 +224,6 @@ const getBadgeSeverity = (etat) => {
         </div>
 
         <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <Select
-            v-model="selectedSemestre"
-            :options="semestreOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Semestre"
-            class="w-full sm:w-44"
-          />
 
           <Select
             v-model="selectedEtat"
@@ -373,9 +378,7 @@ const getBadgeSeverity = (etat) => {
           </Column>
 
           <template #empty>
-            <div class="p-8 text-center text-muted-color">
-              Aucun enseignement pour ce diplôme et ces filtres.
-            </div>
+            <EmptyState compact title="Aucun enseignement pour ce diplôme et ces filtres." />
           </template>
         </DataTable>
       </div>
@@ -386,7 +389,7 @@ const getBadgeSeverity = (etat) => {
       v-model:visible="showDialogVisible"
       :planCours="selectedPlanCoursDetail"
       :enseignement="selectedEnseignementDetail"
-      @edit="(id) => router.push(`/intranet/plan-de-cours/edit/${id}`)"
+      @edit="(id) => router.push(`/intranet/pedagogie/plans-de-cours/edit/${id}`)"
     />
   </div>
 </template>

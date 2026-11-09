@@ -2,7 +2,7 @@
 import {ref, onMounted, computed} from "vue";
 import { useRouter } from "vue-router";
 import { useAnneeUnivStore } from "@stores";
-import {ErrorView, ListSkeleton, ButtonInfo, ButtonEdit, ButtonDelete, ButtonSave} from "@components";
+import {ErrorState, ListSkeleton, ButtonInfo, ButtonEdit, ButtonDelete, ButtonSave} from "@components";
 import {deleteAnneeUniversitaireService} from "@requests";
 
 const router = useRouter();
@@ -89,7 +89,7 @@ const editAnneeUniv = (anneeUniv) => {
       <Button severity="primary" label="Créer une année universitaire" icon="pi pi-plus" @click="router.push({ name: 'annee-universitaire-new' })"/>
     </div>
 
-    <ErrorView v-if="hasError"/>
+    <ErrorState v-if="hasError"/>
     <ListSkeleton v-else-if="isLoadingAnneesUniv" :count="5" />
     <template v-else>
       <Message v-if="!currentAnneeUniv" severity="error" class="mb-4 flex items-center justify-center">

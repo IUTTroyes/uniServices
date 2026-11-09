@@ -1,8 +1,8 @@
 <script setup>
 import {computed, onMounted, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
-import {Access, ErrorView, ListSkeleton, PermissionGuard} from "@components";
-import {getAnneeUniversitaireService, getPns, deletePnService, deleteDiplomeFromAnneeUnivService} from "@requests";
+import { EmptyState, Access, ErrorState, ListSkeleton, PermissionGuard} from "@components";
+import {getAnneeUniversitaireService, getPns, deletePnService} from "@requests";
 import ButtonInfo from "@components/components/Buttons/ButtonInfo.vue";
 import ButtonDelete from "../../../../../../shared/components/components/Buttons/ButtonDelete.vue";
 
@@ -121,7 +121,7 @@ const editAnneeUniv = (anneeUniv) => {
       </div>
     </div>
 
-    <ErrorView v-if="hasError"/>
+    <ErrorState v-if="hasError"/>
     <ListSkeleton v-else-if="isLoading" :count="5" />
     <template v-else>
       <PermissionGuard permission="isSuperAdmin" :showFallback="true">
@@ -130,9 +130,7 @@ const editAnneeUniv = (anneeUniv) => {
           <span class="text-muted-color">Année : {{ anneeUniv.annee }}</span>
         </div>
 
-        <Message v-if="pns.length === 0" severity="info" class="mb-4">
-          Aucun diplôme n'est associé à cette année universitaire.
-        </Message>
+        <EmptyState v-if="pns.length === 0" class="mb-4" compact title="Aucun diplôme n'est associé à cette année universitaire." />
 
         <template v-else>
           <Tabs v-model:value="activeTabIndex">

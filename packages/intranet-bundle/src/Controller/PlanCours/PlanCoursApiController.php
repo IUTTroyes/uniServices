@@ -180,6 +180,7 @@ class PlanCoursApiController extends AbstractController
         $user = $this->getUser();
         $personnelId = $request->query->get('personnel') ?: ($user instanceof Personnel ? $user->getId() : null);
         $anneeUniversitaireId = $request->query->get('anneeUniversitaire');
+        $semestreId = $request->query->getInt('semestre');
 
         if (!$personnelId) {
             return new JsonResponse(['message' => 'Personnel non spécifié.'], Response::HTTP_BAD_REQUEST);
@@ -215,6 +216,19 @@ class PlanCoursApiController extends AbstractController
                 continue;
             }
 
+            $semestre = null;
+            foreach ($ens->getEnseignementUes() as $enseignementUe) {
+                $candidat = $enseignementUe->getUe()?->getSemestre();
+                if (!$semestreId || $candidat?->getId() === $semestreId) {
+                    $semestre = $candidat;
+                    break;
+                }
+            }
+
+            if ($semestreId && !$semestre) {
+                continue;
+            }
+
             if (!isset($enseignementsMap[$ens->getId()])) {
                 // Trouver le plan de cours existant
                 $planCours = $this->entityManager->getRepository(PlanCours::class)->findOneBy([
@@ -222,18 +236,12 @@ class PlanCoursApiController extends AbstractController
                     'anneeUniversitaire' => $anneeUniversitaire,
                 ]);
 
-                // Trouver le semestre via enseignementUes
-                $semestre = null;
-                $ue = $ens->getEnseignementUes()->first();
-                if ($ue && $ue->getUe()) {
-                    $semestre = $ue->getUe()->getSemestre();
-                }
-
                 $etat = $planCours ? $planCours->getEtatPlanCours()->value : PlanCoursEnum::NONE->value;
                 $badge = $planCours ? $planCours->getEtatPlanCours()->getBadge() : PlanCoursEnum::NONE->getBadge();
                 $libelleEtat = $planCours ? $planCours->getEtatPlanCours()->getLibelle() : PlanCoursEnum::NONE->getLibelle();
 
                 $enseignementsMap[$ens->getId()] = [
+                    'anneeId' => $semestre?->getAnnee()?->getId(),
                     'enseignement' => [
                         'id' => $ens->getId(),
                         'codeEnseignement' => $ens->getCodeEnseignement(),

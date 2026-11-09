@@ -6,7 +6,7 @@ import {
   updateDepartementService,
   deleteDepartementService
 } from "@requests";
-import { ErrorView, ListSkeleton, ButtonDelete, ButtonEdit, ButtonSave, HeaderComponent, Card } from "@components";
+import { EmptyState, ErrorState, ListSkeleton, ButtonDelete, ButtonEdit, ButtonSave, HeaderComponent, Card } from "@components";
 import { useToast } from "primevue/usetoast";
 
 const toast = useToast();
@@ -218,7 +218,7 @@ const deleteDepartement = async (dept) => {
   </HeaderComponent>
 
   <Card>
-    <ErrorView v-if="hasError" />
+    <ErrorState v-if="hasError" />
     <ListSkeleton v-else-if="isLoadingDepartement" :count="5" />
     <template v-else>
       <div class="mb-4 flex justify-between items-center">
@@ -238,10 +238,7 @@ const deleteDepartement = async (dept) => {
         responsiveLayout="scroll"
       >
         <template #empty>
-          <div class="text-center py-8 text-muted-color">
-            <i class="pi pi-building text-3xl mb-2 block"></i>
-            <span>Aucun département trouvé.</span>
-          </div>
+          <EmptyState compact title="Aucun département trouvé." icon="pi pi-building" />
         </template>
 
         <Column field="id" header="ID" :sortable="true" style="width: 80px;" />
