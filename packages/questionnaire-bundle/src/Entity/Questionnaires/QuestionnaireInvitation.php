@@ -12,23 +12,22 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
-use ApiPlatform\Metadata\QueryParameter;
+use ApiPlatform\Metadata\ApiFilter;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Attribute\SerializedName;
 
 #[ORM\Entity(repositoryClass: QuestionnaireInvitationRepository::class)]
 #[ORM\Index(name: 'idx_invitation_token', columns: ['token'])]
 #[ORM\Index(name: 'idx_invitation_questionnaire', columns: ['questionnaire_id'])]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['invitation:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['invitation:read']]),
+        new Get(normalizationContext: ['groups' => ['invitation:read']], security: "is_granted('QUESTIONNAIRE_VIEW', object)"),
+        // Liste restreinte par QuestionnaireVisibiliteExtension.
+        new GetCollection(normalizationContext: ['groups' => ['invitation:read']], security: "is_granted('IS_PERSONNEL')"),
     ],
     normalizationContext: ['groups' => ['invitation:read']],
-    parameters: [
-        'questionnaire' => new QueryParameter(filter: SearchFilter::class),
-        'questionnaire.uuid' => new QueryParameter(filter: SearchFilter::class),
-    ]
 )]
+#[ApiFilter(SearchFilter::class, properties: ['questionnaire' => 'exact', 'questionnaire.uuid' => 'exact', 'status' => 'exact'])]
 class QuestionnaireInvitation implements TimestampableInterface
 {
     #[ORM\Id]
@@ -41,8 +40,8 @@ class QuestionnaireInvitation implements TimestampableInterface
     #[Groups(['invitation:read'])]
     private ?Questionnaire $questionnaire = null;
 
+    /** Clé d'accès du répondant : jamais exposée par l'API de gestion. */
     #[ORM\Column(length: 64, unique: true)]
-    #[Groups(['invitation:read'])]
     private string $token;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -88,7 +87,6 @@ class QuestionnaireInvitation implements TimestampableInterface
      * @var Collection<int, QuestionnaireAnswer>
      */
     #[ORM\OneToMany(targetEntity: QuestionnaireAnswer::class, mappedBy: 'invitation')]
-    #[Groups(['invitation:read'])]
     private Collection $questionnaireReponses;
 
     public function __construct(
@@ -187,6 +185,23 @@ class QuestionnaireInvitation implements TimestampableInterface
     }
 
     /**
+     * Réponses exposées à l'équipe qui gère le questionnaire : aucune si le questionnaire est anonyme
+     * (seuls le statut et les relances restent visibles ; les réponses ne se lisent qu'en statistiques agrégées).
+     *
+     * @return list<QuestionnaireAnswer>
+     */
+    #[Groups(['invitation:read'])]
+    #[SerializedName('questionnaireReponses')]
+    public function getReponsesVisibles(): array
+    {
+        if ($this->questionnaire === null || $this->questionnaire->estAnonyme()) {
+            return [];
+        }
+
+        return array_values($this->questionnaireReponses->toArray());
+    }
+
+    /**
      * @return Collection<int, QuestionnaireAnswer>
      */
     public function getQuestionnaireReponses(): Collection
@@ -225,6 +240,17 @@ class QuestionnaireInvitation implements TimestampableInterface
     {
         $this->email = $email;
         return $this;
+    }
+
+    /**
+     * Purge : l'invitation ne désigne plus personne (adresse, historique des relances) et son lien ne fonctionne plus ;
+     * seuls le statut et les dates restent pour les taux de participation.
+     */
+    public function anonymiser(): void
+    {
+        $this->email = null;
+        $this->token = bin2hex(random_bytes(32));
+        $this->remindersHistory = [];
     }
 
     public function markStarted(): void

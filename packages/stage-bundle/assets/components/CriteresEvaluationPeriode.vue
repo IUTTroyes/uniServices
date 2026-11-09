@@ -13,7 +13,7 @@ import {
   updateCritereEvaluationService,
   deleteCritereEvaluationService
 } from '@/requests/stage_service';
-import { useConfirmation } from '@/composables/useConfirmation';
+import { useConfirmation } from '@composables/useConfirmation';
 import { messageErreurApi } from '@/utils/erreurApi';
 
 const props = defineProps({

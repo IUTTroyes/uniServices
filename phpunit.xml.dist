@@ -4,10 +4,15 @@
          bootstrap="tests/bootstrap.php"
          colors="true"
          cacheDirectory=".phpunit.cache">
+    <php>
+        <!-- Les tests d'API de plusieurs packages démarrent chacun un noyau Symfony en mode debug. -->
+        <ini name="memory_limit" value="512M"/>
+    </php>
     <testsuites>
         <testsuite name="Core">
             <directory>tests/Notification</directory>
             <directory>tests/Email</directory>
+            <directory>tests/Security</directory>
         </testsuite>
         <testsuite name="MessageBundle">
             <directory>packages/message-bundle/tests</directory>
@@ -17,6 +22,12 @@
         </testsuite>
         <testsuite name="StageBundle">
             <directory>packages/stage-bundle/tests</directory>
+        </testsuite>
+        <testsuite name="QuestionnaireBundle">
+            <directory>packages/questionnaire-bundle/tests</directory>
+        </testsuite>
+        <testsuite name="FinanceBundle">
+            <directory>packages/finance-bundle/tests</directory>
         </testsuite>
     </testsuites>
 </phpunit>

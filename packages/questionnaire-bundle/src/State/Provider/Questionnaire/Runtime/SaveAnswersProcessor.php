@@ -4,63 +4,65 @@ namespace QuestionnaireBundle\State\Provider\Questionnaire\Runtime;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireAnswer;
-use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireInvitation;
-use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireQuestion;
-use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireSectionInstance;
 use Doctrine\ORM\EntityManagerInterface;
 use QuestionnaireBundle\ApiDto\Questionnaire\Runtime\SaveAnswersInput;
 use QuestionnaireBundle\ApiDto\Questionnaire\Runtime\SaveAnswersOutput;
+use QuestionnaireBundle\Domain\Questionnaire\Runtime\InvitationRuntime;
+use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireAnswer;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
+/**
+ * Enregistrement (brouillon) des réponses d'une section publiée, par le jeton de l'invitation.
+ * Seules les questions de CETTE section sont acceptées ; questionnaire ouvert et invitation non soumise.
+ *
+ * @implements ProcessorInterface<SaveAnswersInput, SaveAnswersOutput>
+ */
 final class SaveAnswersProcessor implements ProcessorInterface
 {
-    public function __construct(private EntityManagerInterface $em) {}
+    /** Taille maximale d'une réponse sérialisée (texte libre compris). */
+    private const TAILLE_MAX = 20000;
+
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly InvitationRuntime $runtime,
+    ) {
+    }
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): SaveAnswersOutput
     {
         /** @var SaveAnswersInput $data */
-        $token = (string) $uriVariables['token'];
+        $invitation = $this->runtime->invitation($uriVariables['token'] ?? '');
+        $this->runtime->verifierModifiable($invitation);
+        $section = $this->runtime->section($invitation, $data->publishedSectionInstanceId);
 
-        $inv = $this->em->getRepository(QuestionnaireInvitation::class)->findOneBy(['token' => $token]);
-        if (!$inv) { throw new \RuntimeException('Invitation not found'); }
-        if ($inv->isSubmitted()) { throw new \RuntimeException('Already submitted'); }
-
-        $psi = $this->em->getRepository(QuestionnaireSectionInstance::class)->find($data->publishedSectionInstanceId);
-        if (!$psi || $psi->getQuestionnaire()->getId() !== $inv->getQuestionnaire()->getId()) {
-            throw new \RuntimeException('Invalid section');
+        $questions = [];
+        foreach ($section->getSection()?->getQuestions() ?? [] as $question) {
+            $questions[$question->getId()] = $question;
         }
 
-        $questionIds = array_map(fn($a) => (int) ((array) $a)['questionId'], $data->answers);
-        $questions = $this->em->getRepository(QuestionnaireQuestion::class)->findBy(['id' => $questionIds]);
-        $qById = [];
-        foreach ($questions as $q) { $qById[$q->getId()] = $q; }
+        $existantes = [];
+        foreach ($this->em->getRepository(QuestionnaireAnswer::class)->findBy(['invitation' => $invitation, 'section' => $section]) as $reponse) {
+            $existantes[$reponse->getQuestion()?->getId()] = $reponse;
+        }
 
-        $existing = $this->em->getRepository(QuestionnaireAnswer::class)->findBy([
-            'invitation' => $inv,
-            'section' => $psi,
-        ]);
-        $aByQid = [];
-        foreach ($existing as $a) { $aByQid[$a->getQuestion()->getId()] = $a; }
-
-        foreach ($data->answers as $incoming) {
-            $incomingArr = (array) $incoming;
-            $qid = (int) ($incomingArr['questionId'] ?? 0);
-            if (!isset($qById[$qid])) { continue; }
-
-            $incomingVal = $incomingArr['value'] ?? null;
-            if (isset($aByQid[$qid])) {
-                $aByQid[$qid]->setValue($incomingVal);
+        foreach ($data->answers as $entree) {
+            $id = (int) ($entree['questionId'] ?? 0);
+            if (!isset($questions[$id])) {
+                throw new UnprocessableEntityHttpException(sprintf('La question %d n\'appartient pas à cette section.', $id));
+            }
+            $valeur = $entree['value'] ?? null;
+            if (\strlen((string) json_encode($valeur)) > self::TAILLE_MAX) {
+                throw new UnprocessableEntityHttpException('Réponse trop longue.');
+            }
+            if (isset($existantes[$id])) {
+                $existantes[$id]->setValue($valeur);
             } else {
-                $ans = new QuestionnaireAnswer($inv, $psi, $qById[$qid], $incomingVal);
-                $this->em->persist($ans);
+                $existantes[$id] = new QuestionnaireAnswer($invitation, $section, $questions[$id], $valeur);
+                $this->em->persist($existantes[$id]);
             }
         }
 
-        // Mark startedAt on first answer save
-        if ($inv->getStartedAt() === null) {
-            $inv->setStartedAt(new \DateTimeImmutable());
-        }
-
+        $invitation->markStarted();
         $this->em->flush();
 
         return new SaveAnswersOutput(true, new \DateTimeImmutable());

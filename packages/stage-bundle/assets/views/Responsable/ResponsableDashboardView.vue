@@ -1,5 +1,5 @@
 <script setup>
-import { useConfirmation } from '@/composables/useConfirmation';
+import { useConfirmation } from '@composables/useConfirmation';
 import { aUneDemande, dateFr, etatDepuisStatut, statutConvention } from '@/utils/stage';
 import { messageErreurApi } from '@/utils/erreurApi';
 import { ref, computed, onMounted, watch } from 'vue';

@@ -1,326 +1,6 @@
-<template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-    <div class="max-w-2xl mx-auto px-4">
-      <!-- Survey Header -->
-      <div v-if="survey" class="text-center mb-8">
-        <div class="flex items-center justify-center gap-2 mb-4">
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-            {{ survey.title }}
-          </h1>
-          <span
-            v-if="survey.departement"
-            class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border shadow-2xs"
-            :style="{
-              backgroundColor: survey.departement.couleur ? `${survey.departement.couleur}15` : '#f0fdf4',
-              color: survey.departement.couleur || '#16a34a',
-              borderColor: survey.departement.couleur ? `${survey.departement.couleur}40` : '#bbf7d0'
-            }"
-          >
-            <span
-              class="w-1.5 h-1.5 rounded-full shrink-0"
-              :style="{ backgroundColor: survey.departement.couleur || '#16a34a' }"
-            ></span>
-            <span>{{ survey.departement.libelle || `Dpt ${survey.departement.id}` }}</span>
-          </span>
-        </div>
-        <p v-if="survey.description" class="text-lg text-gray-600 dark:text-gray-400 mb-6">
-          {{ survey.description }}
-        </p>
-
-        <!-- Estimated Response Time -->
-        <div v-if="survey.estimatedTime" class="flex items-center justify-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-6">
-          <ClockIcon class="w-4 h-4 text-gray-400" />
-          <span>Temps de réponse estimé : {{ formatEstimatedTime(survey.estimatedTime) }}</span>
-        </div>
-
-        <!-- Progress Bar -->
-        <div v-if="survey.settings.showProgress && !isCompleted" class="mb-8">
-          <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-            <span>Progression</span>
-            <span>{{ progress }}%</span>
-          </div>
-          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-            <div
-              class="bg-gradient-to-r from-primary-500 to-primary-600 h-3 rounded-full transition-all duration-500"
-              :style="{ width: `${progress}%` }"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Loading State -->
-      <div v-if="loading" class="text-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-        <p class="text-gray-600 dark:text-gray-400">Chargement du questionnaire...</p>
-      </div>
-
-      <!-- Survey Not Found -->
-      <div v-else-if="!survey" class="text-center py-12">
-        <ExclamationTriangleIcon class="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Questionnaire introuvable
-        </h2>
-        <p class="text-gray-600 dark:text-gray-400">
-          Le lien que vous avez suivi n'est pas valide ou le questionnaire n'est plus disponible.
-        </p>
-      </div>
-
-      <!-- Survey Completed -->
-      <div v-else-if="isCompleted" class="text-center py-12">
-        <CheckCircleIcon class="w-16 h-16 text-green-500 mx-auto mb-4" />
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-          Merci pour votre participation !
-        </h2>
-        <div v-if="survey.settings.thankYouMessage" class="mb-6">
-          <p class="text-gray-600 dark:text-gray-400 whitespace-pre-line">
-            {{ survey.settings.thankYouMessage }}
-          </p>
-        </div>
-        <div class="flex items-center justify-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-          <div class="flex items-center space-x-1">
-            <ClockIcon class="w-4 h-4" />
-            <span>Temps passé: {{ formatDuration(timeSpent) }}</span>
-          </div>
-          <div class="flex items-center space-x-1">
-            <CheckIcon class="w-4 h-4" />
-            <span>Réponses enregistrées</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Survey Form -->
-      <div v-else-if="currentSection">
-        <form @submit.prevent="handleNext" class="space-y-8">
-          <!-- Section Header -->
-          <div class="text-center mb-8">
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
-              {{ currentSection.title }}
-            </h2>
-            <p v-if="currentSection.description" class="text-gray-600 dark:text-gray-400">
-              {{ currentSection.description }}
-            </p>
-          </div>
-
-          <!-- Questions -->
-          <div class="space-y-6">
-            <div
-              v-for="(question, questionIndex) in visibleQuestions"
-              :key="question.id"
-              class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-2xs space-y-3"
-            >
-              <div>
-                <h3 class="text-base font-bold text-slate-900 dark:text-white">
-                  {{ getSectionQuestionNumber(questionIndex) }}. {{ question.title }}
-                  <span v-if="question.required" class="text-red-500 ml-1">*</span>
-                </h3>
-                <p v-if="question.description" class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  {{ question.description }}
-                </p>
-              </div>
-
-              <!-- Question Input -->
-              <div class="space-y-2">
-                <!-- Single Choice -->
-                <div v-if="question.type === 'single_choice'" class="space-y-2">
-                  <label
-                    v-for="option in question.options"
-                    :key="option.id"
-                    :class="['q-choice', answers[question.id] === option.text && 'q-choice-active']"
-                  >
-                    <input
-                      type="radio"
-                      :name="`question_${question.id}`"
-                      :value="option.text"
-                      :checked="answers[question.id] === option.text"
-                      class="q-check mt-0.5"
-                      @change="setAnswer(question.id, option.text)"
-                    />
-                    <span class="flex-1 text-xs font-medium text-slate-800 dark:text-slate-200">
-                      {{ option.text }}
-                    </span>
-                  </label>
-                </div>
-
-                <!-- Multiple Choice -->
-                <div v-else-if="question.type === 'multiple_choice'" class="space-y-2">
-                  <label
-                    v-for="option in question.options"
-                    :key="option.id"
-                    :class="['q-choice', (answers[question.id] as string[] || []).includes(option.text) && 'q-choice-active']"
-                  >
-                    <input
-                      type="checkbox"
-                      :checked="(answers[question.id] as string[] || []).includes(option.text)"
-                      class="q-check mt-0.5"
-                      @change="toggleMultipleChoice(question.id, option.text)"
-                    />
-                    <span class="flex-1 text-xs font-medium text-slate-800 dark:text-slate-200">
-                      {{ option.text }}
-                    </span>
-                  </label>
-                </div>
-
-                <!-- Text Short -->
-                <div v-else-if="question.type === 'text_short'">
-                  <input
-                    type="text"
-                    :value="answers[question.id] || ''"
-                    @input="setAnswer(question.id, ($event.target as HTMLInputElement).value)"
-                    class="q-input"
-                    placeholder="Votre réponse..."
-                    :maxlength="question.validation?.maxLength"
-                  />
-                  <div
-                    v-if="question.validation?.maxLength"
-                    class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 text-right"
-                  >
-                    {{ (answers[question.id] as string || '').length }} / {{ question.validation.maxLength }}
-                  </div>
-                </div>
-
-                <!-- Text Long -->
-                <div v-else-if="question.type === 'text_long'">
-                  <textarea
-                    :value="answers[question.id] || ''"
-                    @input="setAnswer(question.id, ($event.target as HTMLTextAreaElement).value)"
-                    class="q-input"
-                    rows="4"
-                    placeholder="Votre réponse..."
-                    :maxlength="question.validation?.maxLength"
-                  />
-                  <div
-                    v-if="question.validation?.maxLength"
-                    class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 text-right"
-                  >
-                    {{ (answers[question.id] as string || '').length }} / {{ question.validation.maxLength }}
-                  </div>
-                </div>
-
-                <!-- Scale -->
-                <div v-else-if="question.type === 'scale'" class="space-y-2">
-                  <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                    <span>{{ question.validation?.min || 1 }}</span>
-                    <span>{{ question.validation?.max || 10 }}</span>
-                  </div>
-                  <div class="flex flex-wrap gap-2 justify-center">
-                    <button
-                      v-for="n in ((question.validation?.max || 10) - (question.validation?.min || 1) + 1)"
-                      :key="n"
-                      type="button"
-                      @click="setAnswer(question.id, (question.validation?.min || 1) + n - 1)"
-                      :class="[
-                        'w-9 h-9 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center',
-                        answers[question.id] === (question.validation?.min || 1) + n - 1
-                          ? 'bg-primary-600 text-white border-primary-600 shadow-sm'
-                          : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-primary-400'
-                      ]"
-                    >
-                      {{ (question.validation?.min || 1) + n - 1 }}
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Matrix (simplified) -->
-                <div v-else-if="question.type === 'matrix'" class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700/80">
-                  <table class="w-full text-xs">
-                    <thead class="bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 font-semibold">
-                      <tr>
-                        <th class="p-2.5 text-left font-semibold"></th>
-                        <th
-                          v-for="col in ['Pas du tout', 'Peu', 'Moyennement', 'Beaucoup', 'Énormément']"
-                          :key="col"
-                          class="p-2.5 text-center font-semibold"
-                        >
-                          {{ col }}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200 dark:divide-slate-700/80 bg-white dark:bg-slate-800">
-                      <tr
-                        v-for="row in ['Critère 1', 'Critère 2']"
-                        :key="row"
-                      >
-                        <td class="p-2.5 font-medium text-slate-800 dark:text-slate-200">{{ row }}</td>
-                        <td v-for="(col) in ['Pas du tout', 'Peu', 'Moyennement', 'Beaucoup', 'Énormément']" :key="col" class="p-2.5 text-center">
-                          <input
-                            type="radio"
-                            :name="`matrix_${question.id}_${row}`"
-                            :value="col"
-                            @change="setMatrixAnswer(question.id, row, col)"
-                            class="q-check !w-3.5 !h-3.5 mx-auto"
-                          />
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                <!-- Ranking -->
-                <div v-else-if="question.type === 'ranking'">
-                  <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">
-                    Glissez les éléments pour les classer par ordre de préférence
-                  </p>
-                  <draggable
-                    v-model="rankingItems[question.id]"
-                    @end="updateRanking(question.id)"
-                    class="space-y-2"
-                  >
-                    <div
-                      v-for="(item, index) in rankingItems[question.id] || []"
-                      :key="item"
-                      class="flex items-center gap-3 p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-2xs cursor-move hover:shadow-md transition-all"
-                    >
-                      <div class="flex items-center justify-center w-6 h-6 bg-primary-100 dark:bg-primary-950/60 text-primary-700 dark:text-primary-300 rounded-lg text-xs font-bold">
-                        {{ index + 1 }}
-                      </div>
-                      <span class="text-xs font-medium text-slate-800 dark:text-slate-200">{{ item }}</span>
-                      <div class="ml-auto text-slate-400">
-                        <Bars3Icon class="w-4 h-4" />
-                      </div>
-                    </div>
-                  </draggable>
-                </div>
-              </div>
-
-              <!-- Validation Error -->
-              <div v-if="errors[question.id]" class="q-error">
-                {{ errors[question.id] }}
-              </div>
-            </div>
-          </div>
-
-          <!-- Navigation -->
-          <div class="flex items-center justify-between pt-8 mt-8 border-t border-gray-200 dark:border-gray-700">
-            <Button
-              v-if="survey.settings.allowBack && currentSectionIndex > 0"
-              type="button"
-              @click="goToPrevious"
-              severity="secondary"
-              outlined
-              class="flex items-center gap-2"
-            >
-              <ChevronLeftIcon class="w-4 h-4" />
-              <span>Précédent</span>
-            </Button>
-            <div v-else></div>
-
-            <Button
-              type="submit"
-              :severity="isLastSection ? 'success' : 'primary'"
-              class="flex items-center gap-2"
-            >
-              <span>{{ isLastSection ? 'Terminer' : 'Suivant' }}</span>
-              <ChevronRightIcon v-if="!isLastSection" class="w-4 h-4" />
-              <CheckIcon v-else class="w-4 h-4" />
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
+import { HeaderComponent, ListSkeleton } from '@components';
+import { showDanger } from '@helpers/toast.js';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import {
@@ -338,11 +18,11 @@ import { useResponseStore } from '@/stores/responses';
 import type { Survey, Question } from '@/types/survey';
 import { formatDuration } from '@/utils/date';
 import { 
-  getInvitationByToken, 
-  getInvitationSection, 
-  saveInvitationAnswers, 
-  submitInvitation 
-} from '@/requests/questionnaire_services/questionnaireService';
+  getInvitationService, 
+  getInvitationSectionService, 
+  saveInvitationAnswersService, 
+  submitInvitationService 
+} from '@/requests/questionnaire_service';
 
 const route = useRoute();
 const surveyStore = useSurveyStore();
@@ -356,6 +36,14 @@ const errors = ref<Record<string, string>>({});
 const rankingItems = ref<Record<string, string[]>>({});
 const startTime = ref<Date | null>(null);
 const isCompleted = ref(false);
+/** Le serveur autorise encore l'enregistrement (questionnaire ouvert ; modification permise après envoi). */
+const modifiable = ref(false);
+
+async function modifierMesReponses() {
+  isCompleted.value = false;
+  currentSectionIndex.value = 0;
+  await loadSectionQuestions(0);
+}
 
 const survey = ref<Survey | null>(null);
 
@@ -688,7 +376,7 @@ async function loadSectionQuestions(index: number) {
   
   loading.value = true;
   try {
-    const secDetails = await getInvitationSection(token, sec.id);
+    const secDetails = await getInvitationSectionService(token, sec.id);
     const questionsList = Array.isArray(secDetails.questions) ? secDetails.questions : (secDetails.questions?.member || secDetails.questions || []);
     sec.questions = questionsList.map((q: any) => ({
       id: q.questionId,
@@ -763,12 +451,13 @@ async function saveCurrentSectionProgress() {
   }));
 
   try {
-    await saveInvitationAnswers(token, {
+    await saveInvitationAnswersService(token, {
       publishedSectionInstanceId: sec.id,
       answers: answersList
     });
-  } catch (e) {
-    console.error('Failed to save answers:', e);
+  } catch (e: any) {
+    // Questionnaire fermé, réponses déjà envoyées… : le serveur explique le refus.
+    showDanger(e?.response?.data?.detail || 'Vos réponses n\'ont pas pu être enregistrées.');
   }
 }
 
@@ -776,10 +465,13 @@ async function completeSurvey() {
   if (!survey.value) return;
 
   try {
-    await submitInvitation(token);
+    await submitInvitationService(token);
     isCompleted.value = true;
-  } catch (e) {
-    console.error('Failed to submit survey:', e);
+    // Le serveur dit si les réponses restent modifiables (réglage du questionnaire).
+    modifiable.value = !!(await getInvitationService(token).catch(() => null))?.modifiable;
+  } catch (e: any) {
+    // Réponses obligatoires manquantes, questionnaire fermé… : le serveur explique le refus.
+    showDanger(e?.response?.data?.detail || 'Vos réponses n\'ont pas pu être envoyées.');
   }
 }
 
@@ -814,26 +506,19 @@ function formatEstimatedTime(seconds: number): string {
 onMounted(async () => {
   loading.value = true;
   try {
-    const inv = await getInvitationByToken(token);
-    console.log(token)
-    console.log(inv)
+    const inv = await getInvitationService(token);
     if (inv) {
-      if (inv.invitationStatus === 'submitted') {
-        isCompleted.value = true;
-        loading.value = false;
-        return;
-      }
-      
+      modifiable.value = !!inv.modifiable;
       survey.value = {
         id: token,
         title: inv.questionnaireTitle,
-        description: '',
-        estimatedTime: 300,
+        description: inv.description || '',
+        estimatedTime: inv.estimatedTime || 0,
         settings: {
           showProgress: true,
           allowBack: true,
           autoSave: true,
-          thankYouMessage: 'Merci pour votre participation !'
+          thankYouMessage: inv.endText || 'Merci pour votre participation !'
         },
         sections: (inv.sections || []).map((s: any) => ({
           id: s.publishedSectionInstanceId,
@@ -844,7 +529,12 @@ onMounted(async () => {
       };
 
       currentSectionIndex.value = 0;
-      await loadSectionQuestions(0);
+      if (inv.invitationStatus === 'submitted') {
+        // Réponses déjà envoyées : écran de remerciement (avec « Modifier mes réponses » si c'est autorisé).
+        isCompleted.value = true;
+      } else {
+        await loadSectionQuestions(0);
+      }
     }
   } catch (error) {
     console.error('Failed to load survey invitation:', error);
@@ -861,3 +551,302 @@ onUnmounted(async () => {
   }
 });
 </script>
+<template>
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+    <div class="max-w-2xl mx-auto px-4">
+      <!-- Survey Header -->
+      <div v-if="survey" class="text-center mb-8">
+        <HeaderComponent :titre="survey.title" :description="survey.description || 'Merci de prendre quelques minutes pour répondre.'" icon="pi pi-check-square" color="green" :show-back="false" />
+
+        <!-- Estimated Response Time -->
+        <div v-if="survey.estimatedTime" class="flex items-center justify-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-6">
+          <ClockIcon class="w-4 h-4 text-gray-400" />
+          <span>Temps de réponse estimé : {{ formatEstimatedTime(survey.estimatedTime) }}</span>
+        </div>
+
+        <!-- Progress Bar -->
+        <div v-if="survey.settings.showProgress && !isCompleted" class="mb-8">
+          <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+            <span>Progression</span>
+            <span>{{ progress }}%</span>
+          </div>
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+            <div
+              class="bg-gradient-to-r from-primary-500 to-primary-600 h-3 rounded-full transition-all duration-500"
+              :style="{ width: `${progress}%` }"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <ListSkeleton v-if="loading" />
+
+      <!-- Survey Not Found -->
+      <div v-else-if="!survey" class="text-center py-12">
+        <ExclamationTriangleIcon class="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          Questionnaire introuvable
+        </h2>
+        <p class="text-gray-600 dark:text-gray-400">
+          Le lien que vous avez suivi n'est pas valide ou le questionnaire n'est plus disponible.
+        </p>
+      </div>
+
+      <!-- Survey Completed -->
+      <div v-else-if="isCompleted" class="text-center py-12">
+        <CheckCircleIcon class="w-16 h-16 text-green-500 mx-auto mb-4" />
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          Merci pour votre participation !
+        </h2>
+        <div v-if="survey.settings.thankYouMessage" class="mb-6">
+          <p class="text-gray-600 dark:text-gray-400 whitespace-pre-line">
+            {{ survey.settings.thankYouMessage }}
+          </p>
+        </div>
+        <div class="flex items-center justify-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+          <div class="flex items-center space-x-1">
+            <ClockIcon class="w-4 h-4" />
+            <span>Temps passé: {{ formatDuration(timeSpent) }}</span>
+          </div>
+          <div class="flex items-center space-x-1">
+            <CheckIcon class="w-4 h-4" />
+            <span>Réponses enregistrées</span>
+          </div>
+        </div>
+        <div v-if="modifiable" class="mt-6">
+          <Button icon="pi pi-pencil" label="Modifier mes réponses" severity="secondary" outlined @click="modifierMesReponses" />
+        </div>
+      </div>
+
+      <!-- Survey Form -->
+      <div v-else-if="currentSection">
+        <form @submit.prevent="handleNext" class="space-y-8">
+          <!-- Section Header -->
+          <div class="text-center mb-8">
+            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+              {{ currentSection.title }}
+            </h2>
+            <p v-if="currentSection.description" class="text-gray-600 dark:text-gray-400">
+              {{ currentSection.description }}
+            </p>
+          </div>
+
+          <!-- Questions -->
+          <div class="space-y-6">
+            <div
+              v-for="(question, questionIndex) in visibleQuestions"
+              :key="question.id"
+              class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-2xs space-y-3"
+            >
+              <div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">
+                  {{ getSectionQuestionNumber(questionIndex) }}. {{ question.title }}
+                  <span v-if="question.required" class="text-red-500 ml-1">*</span>
+                </h3>
+                <p v-if="question.description" class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                  {{ question.description }}
+                </p>
+              </div>
+
+              <!-- Question Input -->
+              <div class="space-y-2">
+                <!-- Single Choice -->
+                <div v-if="question.type === 'single_choice'" class="space-y-2">
+                  <label
+                    v-for="option in question.options"
+                    :key="option.id"
+                    :class="['q-choice', answers[question.id] === option.text && 'q-choice-active']"
+                  >
+                    <input
+                      type="radio"
+                      :name="`question_${question.id}`"
+                      :value="option.text"
+                      :checked="answers[question.id] === option.text"
+                      class="q-check mt-0.5"
+                      @change="setAnswer(question.id, option.text)"
+                    />
+                    <span class="flex-1 text-sm font-medium text-slate-800 dark:text-slate-200">
+                      {{ option.text }}
+                    </span>
+                  </label>
+                </div>
+
+                <!-- Multiple Choice -->
+                <div v-else-if="question.type === 'multiple_choice'" class="space-y-2">
+                  <label
+                    v-for="option in question.options"
+                    :key="option.id"
+                    :class="['q-choice', (answers[question.id] as string[] || []).includes(option.text) && 'q-choice-active']"
+                  >
+                    <input
+                      type="checkbox"
+                      :checked="(answers[question.id] as string[] || []).includes(option.text)"
+                      class="q-check mt-0.5"
+                      @change="toggleMultipleChoice(question.id, option.text)"
+                    />
+                    <span class="flex-1 text-sm font-medium text-slate-800 dark:text-slate-200">
+                      {{ option.text }}
+                    </span>
+                  </label>
+                </div>
+
+                <!-- Text Short -->
+                <div v-else-if="question.type === 'text_short'">
+                  <input
+                    type="text"
+                    :value="answers[question.id] || ''"
+                    @input="setAnswer(question.id, ($event.target as HTMLInputElement).value)"
+                    class="q-input"
+                    placeholder="Votre réponse..."
+                    :maxlength="question.validation?.maxLength"
+                  />
+                  <div
+                    v-if="question.validation?.maxLength"
+                    class="text-sm text-slate-500 dark:text-slate-400 mt-1 text-right"
+                  >
+                    {{ (answers[question.id] as string || '').length }} / {{ question.validation.maxLength }}
+                  </div>
+                </div>
+
+                <!-- Text Long -->
+                <div v-else-if="question.type === 'text_long'">
+                  <textarea
+                    :value="answers[question.id] || ''"
+                    @input="setAnswer(question.id, ($event.target as HTMLTextAreaElement).value)"
+                    class="q-input"
+                    rows="4"
+                    placeholder="Votre réponse..."
+                    :maxlength="question.validation?.maxLength"
+                  />
+                  <div
+                    v-if="question.validation?.maxLength"
+                    class="text-sm text-slate-500 dark:text-slate-400 mt-1 text-right"
+                  >
+                    {{ (answers[question.id] as string || '').length }} / {{ question.validation.maxLength }}
+                  </div>
+                </div>
+
+                <!-- Scale -->
+                <div v-else-if="question.type === 'scale'" class="space-y-2">
+                  <div class="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
+                    <span>{{ question.validation?.min || 1 }}</span>
+                    <span>{{ question.validation?.max || 10 }}</span>
+                  </div>
+                  <div class="flex flex-wrap gap-2 justify-center">
+                    <button
+                      v-for="n in ((question.validation?.max || 10) - (question.validation?.min || 1) + 1)"
+                      :key="n"
+                      type="button"
+                      @click="setAnswer(question.id, (question.validation?.min || 1) + n - 1)"
+                      :class="[
+                        'w-9 h-9 rounded-xl border text-sm font-bold transition-all cursor-pointer flex items-center justify-center',
+                        answers[question.id] === (question.validation?.min || 1) + n - 1
+                          ? 'bg-primary-600 text-white border-primary-600 shadow-sm'
+                          : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-primary-400'
+                      ]"
+                    >
+                      {{ (question.validation?.min || 1) + n - 1 }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Matrix (simplified) -->
+                <div v-else-if="question.type === 'matrix'" class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700/80">
+                  <table class="w-full text-sm">
+                    <thead class="bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 font-semibold">
+                      <tr>
+                        <th class="p-2.5 text-left font-semibold"></th>
+                        <th
+                          v-for="col in ['Pas du tout', 'Peu', 'Moyennement', 'Beaucoup', 'Énormément']"
+                          :key="col"
+                          class="p-2.5 text-center font-semibold"
+                        >
+                          {{ col }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-700/80 bg-white dark:bg-slate-800">
+                      <tr
+                        v-for="row in ['Critère 1', 'Critère 2']"
+                        :key="row"
+                      >
+                        <td class="p-2.5 font-medium text-slate-800 dark:text-slate-200">{{ row }}</td>
+                        <td v-for="(col) in ['Pas du tout', 'Peu', 'Moyennement', 'Beaucoup', 'Énormément']" :key="col" class="p-2.5 text-center">
+                          <input
+                            type="radio"
+                            :name="`matrix_${question.id}_${row}`"
+                            :value="col"
+                            @change="setMatrixAnswer(question.id, row, col)"
+                            class="q-check !w-3.5 !h-3.5 mx-auto"
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Ranking -->
+                <div v-else-if="question.type === 'ranking'">
+                  <p class="text-sm text-slate-500 dark:text-slate-400 mb-2">
+                    Glissez les éléments pour les classer par ordre de préférence
+                  </p>
+                  <draggable
+                    v-model="rankingItems[question.id]"
+                    @end="updateRanking(question.id)"
+                    class="space-y-2"
+                  >
+                    <div
+                      v-for="(item, index) in rankingItems[question.id] || []"
+                      :key="item"
+                      class="flex items-center gap-3 p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-2xs cursor-move hover:shadow-md transition-all"
+                    >
+                      <div class="flex items-center justify-center w-6 h-6 bg-primary-100 dark:bg-primary-950/60 text-primary-700 dark:text-primary-300 rounded-lg text-sm font-bold">
+                        {{ index + 1 }}
+                      </div>
+                      <span class="text-sm font-medium text-slate-800 dark:text-slate-200">{{ item }}</span>
+                      <div class="ml-auto text-slate-400">
+                        <Bars3Icon class="w-4 h-4" />
+                      </div>
+                    </div>
+                  </draggable>
+                </div>
+              </div>
+
+              <!-- Validation Error -->
+              <div v-if="errors[question.id]" class="q-error">
+                {{ errors[question.id] }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation -->
+          <div class="flex items-center justify-between pt-8 mt-8 border-t border-gray-200 dark:border-gray-700">
+            <Button
+              v-if="survey.settings.allowBack && currentSectionIndex > 0"
+              type="button"
+              @click="goToPrevious"
+              severity="secondary"
+              outlined
+              class="flex items-center gap-2"
+            >
+              <ChevronLeftIcon class="w-4 h-4" />
+              <span>Précédent</span>
+            </Button>
+            <div v-else></div>
+
+            <Button
+              type="submit"
+              :severity="isLastSection ? 'success' : 'primary'"
+              class="flex items-center gap-2"
+            >
+              <span>{{ isLastSection ? 'Terminer' : 'Suivant' }}</span>
+              <ChevronRightIcon v-if="!isLastSection" class="w-4 h-4" />
+              <CheckIcon v-else class="w-4 h-4" />
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</template>

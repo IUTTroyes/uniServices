@@ -208,7 +208,9 @@ php bin/console app:notifications:resume --frequence=quotidien [--dry-run]
 
 `--dry-run` compte ce qui serait envoyé sans rien envoyer ni modifier. À lancer **une fois par environnement** après
 déploiement. Un package qui a ses propres tâches périodiques fournit sa propre commande d'installation
-(exemple : `unifolio:taches:installer` pour la relance des évaluateurs).
+(exemple : `unifolio:taches:installer` pour la relance des évaluateurs) : une classe `#[AsCommand]` qui étend
+`App\Scheduler\AbstractInstallerTachesCommand` et ne décrit que ses tâches (`taches()` : nom → commande, arguments,
+cron, description) ; création sans doublon et option `--inactives` sont fournies.
 
 ## API HTTP
 
@@ -277,3 +279,11 @@ Stages est le deuxième consommateur (détail : `packages/stage-bundle/docs/noti
 - Appels regroupés dans `StageNotifier`, déclenché par le processeur API Platform des dossiers
   (`State/StageEtudiantProcessor`, à partir du statut avant / après), celui des avenants et les contrôleurs
   (validation d'avenant, planification des soutenances).
+
+Questionnaires est le troisième consommateur (détail : `packages/questionnaire-bundle/docs/README.md`) :
+
+- Types : `packages/questionnaire-bundle/src/Enum/TypeNotificationEnum.php` + `Services/Notification/QuestionnaireNotificationTypes.php`
+  (invitation et relance par public, bilan de clôture, synthèse partagée), avec e-mails dédiés de même clé qui héritent
+  des modèles de base (`getParentKey()`).
+- Appels regroupés dans `QuestionnaireNotifier` ; une adresse sans compte reçoit un e-mail direct (transactionnel).
+- Tâches propres : `questionnaire:taches:installer` (relances, clôture et bilans).

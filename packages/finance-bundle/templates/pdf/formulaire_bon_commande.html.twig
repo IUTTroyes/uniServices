@@ -125,10 +125,10 @@
 
     <div class="header">
         <div style="font-weight: bold; font-size: 13pt; color: #1e3a8a;">
-            <span style="color:#f59e0b;">iUT</span> Troyes
+            {{ etablissement.libelle|default('') }}
         </div>
         <div style="text-align: right; font-size: 8pt; text-transform: uppercase; font-weight: bold;">
-            Université de Reims<br><span style="font-size: 7pt; font-weight: normal;">Champagne-Ardenne</span>
+            {{ etablissement.universite|default('') }}
         </div>
     </div>
 

@@ -1,0 +1,16 @@
+{% extends 'emails/layout.html.twig' %}
+
+{% block preheader %}Vos résultats du questionnaire « {{ questionnaire_titre }} » sont disponibles.{% endblock %}
+
+{% block body %}
+    <h1>Vos résultats sont disponibles</h1>
+
+    <p>Bonjour{% if destinataire_nom %} {{ destinataire_nom }}{% endif %},</p>
+
+    <p>Les résultats du questionnaire <strong>{{ questionnaire_titre }}</strong> qui vous concernent sont publiés
+        ({{ nb_sections }} section(s) : {{ sections }}).{% if anonyme %} Les réponses sont anonymes.{% endif %}</p>
+
+    <p><a href="{{ lien }}" class="btn">Consulter mes résultats</a></p>
+
+    <p>Vous pouvez y ajouter un commentaire ou un plan d'action, lus par l'équipe qui pilote le questionnaire.</p>
+{% endblock %}

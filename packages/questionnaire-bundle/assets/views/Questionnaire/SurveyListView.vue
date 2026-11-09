@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { showDanger, showSuccess } from '@helpers/toast.js';
+import { useEtablissement } from '@/composables/useEtablissement';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { FilterMatchMode } from '@primevue/core/api';
@@ -15,22 +17,20 @@ import {
   EyeIcon,
   CalendarIcon
 } from '@heroicons/vue/24/outline';
-import { getAllQuestionnaires } from '@/requests/questionnaire_services/questionnaireService.js';
+import { getQuestionnairesService, exportExcelService, enregistrerModeleService } from '@/requests/questionnaire_service';
+import { useConfirmation } from '@composables/useConfirmation';
 import { useSurveyStore } from '@/stores/survey';
-import { useResponseStore } from '@/stores/responses';
-import { useUIStore } from '@/stores/ui';
 import SurveyPreviewModal from '@/components/Questionnaire/SurveyPreviewModal.vue';
 import DuplicateSurveyModal from '@/components/Questionnaire/DuplicateSurveyModal.vue';
 import { formatDate } from '@/utils/date';
-import { HeaderComponent, Kpi, Card, EmptyState } from '@components';
+import { Card, EmptyState, HeaderComponent, Kpi, ListSkeleton } from '@components';
 import ActionButtonVertical from '@components/components/ActionButtonVertical.vue';
 import { getAllDepartementsService } from '@requests';
 import { useUsersStore } from '@stores';
+const { libelleGlobal } = useEtablissement();
 
 const router = useRouter();
 const surveyStore = useSurveyStore();
-const responseStore = useResponseStore();
-const uiStore = useUIStore();
 const userStore = useUsersStore();
 
 const showDuplicateModal = ref(false);
@@ -51,15 +51,11 @@ async function confirmDuplicateSurvey(payload: { newTitle: string }) {
     );
     showDuplicateModal.value = false;
     selectedSurveyToDuplicate.value = null;
-    uiStore.addNotification(
-      'success',
-      'Questionnaire dupliqué',
-      `"${duplicate?.title || payload.newTitle}" et l'ensemble de ses règles ont été dupliqués avec succès.`
-    );
+    showSuccess(`"${duplicate?.title || payload.newTitle}" et l'ensemble de ses règles ont été dupliqués avec succès.`, 'Questionnaire dupliqué');
     await fetchQuestionnaires();
   } catch (error) {
     console.error('Failed to duplicate survey:', error);
-    uiStore.addNotification('danger', 'Erreur', 'Une erreur est survenue lors de la duplication.');
+    showDanger('Une erreur est survenue lors de la duplication.', 'Erreur');
   }
 }
 
@@ -81,7 +77,7 @@ const departements = ref<any[]>([]);
 
 const departementFilterOptions = computed(() => [
   { label: 'Tous les départements', value: 'all' },
-  { label: 'IUT (Global)', value: 'global' },
+  { label: libelleGlobal.value, value: 'global' },
   ...departements.value.map(d => ({
     label: d.libelle || `Département ${d.id}`,
     value: d.id
@@ -101,7 +97,8 @@ const filters = ref({
 const fetchQuestionnaires = async () => {
   loading.value = true;
   try {
-    const apiParams: Record<string, any> = {};
+    // Les modèles ont leur propre page (bibliothèque).
+    const apiParams: Record<string, any> = { estModele: false };
 
     const searchTitle = filters.value.titre?.value || filters.value.global?.value;
     if (searchTitle && String(searchTitle).trim()) {
@@ -122,7 +119,7 @@ const fetchQuestionnaires = async () => {
       }
     }
 
-    const data = await getAllQuestionnaires(page.value + 1, apiParams);
+    const data = await getQuestionnairesService(page.value + 1, apiParams);
     nbQuestionnaires.value = data['totalItems'];
     questionnaires.value = data['member'];
   } catch (error) {
@@ -146,7 +143,6 @@ onMounted(async () => {
     }
   }
   await fetchQuestionnaires();
-  responseStore.loadFromLocalStorage();
 });
 
 async function onPageChange(event: any) {
@@ -187,27 +183,46 @@ const countByStatus = (status: string) => {
   return questionnaires.value.filter((q: any) => q.status === status).length;
 };
 
+/** Participation réelle, fournie par l'API (totalInvited / totalResponses du questionnaire). */
 const getSurveyStats = (surveyUuid: string) => {
-  const responsesCount = responseStore.completedResponses(surveyUuid).length;
-  const analytics = responseStore.getSurveyAnalytics(surveyUuid);
-  // Realistic mock defaults if no response is recorded yet
-  const invited = analytics.totalInvited || 120;
-  const responded = analytics.totalResponses || (surveyUuid.length > 10 ? Math.floor(Math.random() * 40) + 60 : 0);
-  const rate = (invited > 0 ? Math.round((responded / invited) * 100) : 0);
-  console.log(responded, invited, rate, 'test')
+  const survey = questionnaires.value.find((q: any) => q.uuid === surveyUuid);
+  const invited = Number(survey?.totalInvited ?? 0);
+  const responded = Number(survey?.totalResponses ?? 0);
   return {
-    responded: Math.min(invited, responded),
+    responded,
     invited,
-    rate: Math.min(100, rate)
+    rate: invited > 0 ? Math.round((responded / invited) * 100) : 0,
   };
 };
 
-const exportSurvey = (survey: any) => {
-  uiStore.addNotification(
-    'success',
-    'Export lancé',
-    `L'export du questionnaire "${survey.titre}" a été généré.`
-  );
+/** Copie réutilisable dans la bibliothèque de modèles (même département). */
+const { confirmer } = useConfirmation();
+const enregistrerCommeModele = async (survey: any) => {
+  const ok = await confirmer({
+    titre: 'Enregistrer comme modèle',
+    message: `Une copie de « ${survey.title} » (sections et questions) rejoindra la bibliothèque de modèles du département.`,
+    libelle: 'Enregistrer',
+  });
+  if (ok) {
+    try {
+      await enregistrerModeleService(survey.uuid, { title: survey.title });
+    } catch (e) {
+      // apiCall a affiché l'erreur.
+    }
+  }
+};
+
+/** Export Excel des résultats (questionnaires publiés ou clôturés). */
+const exportEnCours = ref<string | null>(null);
+const exportSurvey = async (survey: any) => {
+  exportEnCours.value = survey.uuid;
+  try {
+    await exportExcelService(survey.uuid);
+  } catch (e) {
+    showDanger(`Les résultats de « ${survey.title} » n'ont pas pu être exportés.`, 'Export impossible');
+  } finally {
+    exportEnCours.value = null;
+  }
 };
 </script>
 
@@ -253,9 +268,7 @@ const exportSurvey = (survey: any) => {
         </template>
 
         <template #loading>
-          <div class="text-center py-8 text-gray-600 dark:text-gray-400">
-            Chargement des données... Veuillez patienter.
-          </div>
+          <ListSkeleton />
         </template>
 
         <!-- Titre -->
@@ -263,7 +276,7 @@ const exportSurvey = (survey: any) => {
           <template #body="{ data }">
             <span class="font-bold text-gray-900 dark:text-white block">{{ data.title }}</span>
             <span v-if="data.description"
-              class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1 max-w-xs">{{ data.description
+              class="text-sm text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1 max-w-xs">{{ data.description
               }}</span>
           </template>
           <template #filter="{ filterModel, filterCallback }">
@@ -298,7 +311,7 @@ const exportSurvey = (survey: any) => {
           <template #body="{ data }">
             <span
               v-if="data.departement"
-              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold shadow-2xs border"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-semibold shadow-2xs border"
               :style="{
                 backgroundColor: data.departement.couleur ? `${data.departement.couleur}15` : '#f0fdf4',
                 color: data.departement.couleur || '#16a34a',
@@ -313,10 +326,10 @@ const exportSurvey = (survey: any) => {
             </span>
             <span
               v-else
-              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs"
             >
               <span class="w-2 h-2 rounded-full bg-slate-400 shrink-0"></span>
-              <span>IUT (Global)</span>
+              <span>{{ libelleGlobal }}</span>
             </span>
           </template>
           <template #filter="{ filterModel, filterCallback }">
@@ -329,13 +342,13 @@ const exportSurvey = (survey: any) => {
               placeholder="Tous"
               style="min-width: 11rem"
               :showClear="true"
-              class="border border-gray-300 dark:border-gray-700 text-xs"
+              class="border border-gray-300 dark:border-gray-700 text-sm"
             >
               <template #value="slotProps">
-                <span v-if="slotProps.value" class="text-xs font-semibold">
-                  {{ slotProps.value === 'global' ? 'IUT (Global)' : (departements.find(d => d.id === slotProps.value)?.libelle || slotProps.value) }}
+                <span v-if="slotProps.value" class="text-sm font-semibold">
+                  {{ slotProps.value === 'global' ? libelleGlobal : (departements.find(d => d.id === slotProps.value)?.libelle || slotProps.value) }}
                 </span>
-                <span v-else class="text-gray-500 text-xs">Tous</span>
+                <span v-else class="text-gray-500 text-sm">Tous</span>
               </template>
             </Select>
           </template>
@@ -355,7 +368,7 @@ const exportSurvey = (survey: any) => {
         <Column header="Participation" style="min-width: 14rem">
           <template #body="{ data }">
             <div v-if="data.status === 'published' || data.published" class="space-y-1">
-              <div class="flex justify-between text-xs font-semibold">
+              <div class="flex justify-between text-sm font-semibold">
                 <span class="text-gray-500 dark:text-gray-400">
                   {{ getSurveyStats(data.uuid).responded }} / {{ getSurveyStats(data.uuid).invited }}
                 </span>
@@ -367,7 +380,7 @@ const exportSurvey = (survey: any) => {
                   :style="{ width: `${getSurveyStats(data.uuid).rate}%` }"></div>
               </div>
             </div>
-            <span v-else class="text-xs text-gray-500 dark:text-gray-400 italic">
+            <span v-else class="text-sm text-gray-500 dark:text-gray-400 italic">
               Non publié (Brouillon)
             </span>
           </template>
@@ -380,11 +393,12 @@ const exportSurvey = (survey: any) => {
             <div class="flex flex-wrap items-center justify-end gap-1">
               <Button v-tooltip="'Aperçu rapide'" aria-label="Aperçu rapide" icon="pi pi-eye" severity="secondary" text size="small" @click="viewQuestionnaire(data)" />
               <Button v-tooltip="'Dupliquer le questionnaire'" aria-label="Dupliquer le questionnaire" icon="pi pi-copy" severity="secondary" text size="small" @click="openDuplicateModal(data)" />
+              <Button v-tooltip="'Enregistrer comme modèle'" aria-label="Enregistrer comme modèle" icon="pi pi-bookmark" severity="secondary" text size="small" @click="enregistrerCommeModele(data)" />
               <Button as="router-link" :to="{ name: 'questionnaire_builder', params: { id: data.uuid } }" v-tooltip="'Modifier'" aria-label="Modifier le questionnaire" icon="pi pi-pencil" severity="secondary" text size="small" />
               <template v-if="data.status === 'published' || data.published">
                 <Button as="router-link" :to="{ name: 'questionnaire_responses', params: { id: data.uuid } }" v-tooltip="'Voir les réponses'" aria-label="Voir les réponses" icon="pi pi-comments" severity="secondary" text size="small" />
                 <Button as="router-link" :to="{ name: 'questionnaire_analytics', params: { id: data.uuid } }" v-tooltip="'Statistiques et analyses'" aria-label="Statistiques et analyses" icon="pi pi-chart-bar" severity="secondary" text size="small" />
-                <Button v-tooltip="'Exporter'" aria-label="Exporter le questionnaire" icon="pi pi-download" severity="secondary" text size="small" @click="exportSurvey(data)" />
+                <Button v-tooltip="'Exporter les résultats (Excel)'" aria-label="Exporter les résultats" icon="pi pi-download" severity="secondary" text size="small" :disabled="data.status === 'draft'" :loading="exportEnCours === data.uuid" @click="exportSurvey(data)" />
               </template>
             </div>
           </template>

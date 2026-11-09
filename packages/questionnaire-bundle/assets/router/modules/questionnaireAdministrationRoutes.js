@@ -73,6 +73,42 @@ export default [
     }
   },
   {
+    path: 'qualite/enquetes/modeles',
+    name: 'questionnaire_modeles',
+    component: () => import('@/views/Questionnaire/ModelesView.vue'),
+    meta: { breadcrumb: [{ label: 'Dashboard', route: '/' }, { label: 'Modèles', route: null }] }
+  },
+  {
+    path: 'qualite/enquetes/comparaison/:id',
+    name: 'questionnaire_comparaison',
+    component: () => import('@/views/Questionnaire/ComparaisonView.vue'),
+    meta: { breadcrumb: [{ label: 'Dashboard', route: '/' }, { label: 'Modèles', route: '/questionnaire/qualite/enquetes/modeles' }, { label: 'Comparaison', route: null }] }
+  },
+  {
+    path: 'qualite/enquetes/diffusion/:id',
+    name: 'questionnaire_diffusion',
+    component: () => import('@/views/Questionnaire/DiffusionView.vue'),
+    meta: {
+      breadcrumb: [
+        { label: 'Dashboard', route: '/' },
+        { label: 'Liste des questionnaires', route: '/questionnaire/qualite/enquetes/liste' },
+        { label: 'Diffusion des résultats', route: null }
+      ]
+    }
+  },
+  {
+    // Restitution web des résultats (destinataires : leurs sections ; équipe : toutes)
+    path: 'qualite/enquetes/resultats/:id',
+    name: 'questionnaire_mes_resultats',
+    component: () => import('@/views/Questionnaire/MesResultatsView.vue'),
+    meta: {
+      breadcrumb: [
+        { label: 'Dashboard', route: '/' },
+        { label: 'Mes résultats', route: null }
+      ]
+    }
+  },
+  {
     path: 'qualite/enquetes/take/:token',
     name: 'questionnaire_take-survey',
     component: SurveyTakeView,
@@ -88,7 +124,7 @@ export default [
     name: 'questionnaire_configuration',
     component: () => import('@/views/Configuration/QuestionnaireConfigurationView.vue'),
     meta: {
-      permission: 'isChefDepartement',
+      permission: ['ROLE_QUESTIONNAIRE_MANAGER', 'isQualite', 'SUPER_ADMIN'],
       breadcrumb: [
         { label: 'Dashboard', route: '/questionnaire' },
         { label: 'Configuration', route: null, icon: 'pi pi-sliders-h' }

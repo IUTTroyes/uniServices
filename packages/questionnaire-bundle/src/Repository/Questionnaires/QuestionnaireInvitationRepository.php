@@ -8,6 +8,7 @@ use Doctrine\Persistence\ManagerRegistry;
 
 use QuestionnaireBundle\Entity\Questionnaires\Questionnaire;
 use QuestionnaireBundle\Enum\QuestInvitationStatusEnum;
+use QuestionnaireBundle\Enum\QuestStatutEnum;
 
 class QuestionnaireInvitationRepository extends ServiceEntityRepository
 {
@@ -56,5 +57,31 @@ class QuestionnaireInvitationRepository extends ServiceEntityRepository
             'pending' => max(0, $total - $submitted),
             'rate' => $rate,
         ];
+    }
+
+    /**
+     * Invitations adressées à l'une de ces adresses, pour des questionnaires publiés ou clôturés (plus récentes d'abord).
+     *
+     * @param list<string> $adresses
+     * @return list<QuestionnaireInvitation>
+     */
+    public function findPourAdresses(array $adresses, ?int $limite = null): array
+    {
+        if ($adresses === []) {
+            return [];
+        }
+        $qb = $this->createQueryBuilder('i')
+            ->addSelect('q')
+            ->join('i.questionnaire', 'q')
+            ->where('i.email IN (:adresses)')
+            ->andWhere('q.status IN (:statuts)')
+            ->setParameter('adresses', $adresses)
+            ->setParameter('statuts', [QuestStatutEnum::PUBLISHED, QuestStatutEnum::CLOSED])
+            ->orderBy('i.createdAt', 'DESC');
+        if ($limite !== null) {
+            $qb->setMaxResults($limite);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 }

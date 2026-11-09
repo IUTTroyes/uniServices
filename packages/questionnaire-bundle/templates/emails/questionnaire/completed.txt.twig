@@ -1,17 +1,13 @@
-Bilan de clôture de votre questionnaire
+{% extends 'emails/layout.txt.twig' %}
 
-Bonjour{% if authorName %} {{ authorName }}{% endif %},
+{% block body %}
+Bonjour{% if destinataire_nom %} {{ destinataire_nom }}{% endif %},
 
-Votre questionnaire "{{ questionnaire.title }}" est désormais terminé.
+Le questionnaire « {{ questionnaire_titre }} » est clôturé.
 
-Statistiques de participation :
-- Taux de participation : {{ stats.rate }} %
-- Réponses complétées : {{ stats.submitted }} / {{ stats.total }}
-{% if stats.isFullyCompleted %}
-- Statut : 100% des participants ont répondu !
-{% elseif stats.isDateExpired and questionnaire.closingDate %}
-- Statut : Date limite atteinte ({{ questionnaire.closingDate|date('d/m/Y à H:i') }}).
-{% endif %}
+Réponses envoyées : {{ reponses }} / {{ invites }} ({{ taux }} %).
+{% if complet %}Tous les participants ont répondu.{% elseif date_atteinte and date_cloture %}La date limite ({{ date_cloture }}) est atteinte.{% endif %}
 
-Consulter les résultats et statistiques :
-{{ analyticsUrl }}
+
+Consulter les résultats : {{ lien }}
+{% endblock %}

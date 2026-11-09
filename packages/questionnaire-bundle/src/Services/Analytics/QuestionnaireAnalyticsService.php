@@ -17,8 +17,20 @@ class QuestionnaireAnalyticsService
 {
     public function __construct(private readonly EntityManagerInterface $em) {}
 
-    public function getAnalytics(Questionnaire $q): QuestionnaireAnalyticsDto
+    /**
+     * Statistiques agrégées. $sections limite le détail à ces sections publiées (destinataire des résultats) ; le seuil
+     * d'anonymat s'applique au questionnaire entier et à chaque section (une matière peut n'avoir que 3 réponses).
+     *
+     * @param list<int>|null $sections
+     */
+    public function getAnalytics(Questionnaire $q, ?array $sections = null): QuestionnaireAnalyticsDto
     {
+        // Réponses purgées : on restitue les statistiques archivées au moment de la purge.
+        if ($q->getResultatsArchives() !== null) {
+            return QuestionnaireAnalyticsDto::depuisArchive($q->getResultatsArchives(), $sections, $q->getPurgeLe()?->format(\DateTimeInterface::ATOM));
+        }
+
+        $seuil = $q->seuilResultats();
         $invitations = $q->getInvitations();
         $totalInvited = count($invitations);
         $totalResponses = 0;
@@ -33,9 +45,7 @@ class QuestionnaireAnalyticsService
 
         foreach ($invitations as $inv) {
             $status = $inv->getStatus() ? $inv->getStatus()->value : 'pending';
-            if (isset($statusCounts[$status])) {
-                $statusCounts[$status]++;
-            }
+            $statusCounts[$status]++;
 
             if ($status === 'submitted') {
                 $totalResponses++;
@@ -60,21 +70,26 @@ class QuestionnaireAnalyticsService
         $completionRate = $totalInvited > 0 ? ($totalResponses / $totalInvited) * 100 : 0.0;
         $averageTimeSpent = $durationCount > 0 ? $totalDuration / $durationCount : 0.0;
 
-        // Fetch all answers for the questionnaire in a single query
+        // Réponses envoyées uniquement : un brouillon de réponse (questionnaire commencé, non soumis) ne compte pas.
         $answers = $this->em->getRepository(QuestionnaireAnswer::class)->createQueryBuilder('a')
             ->join('a.section', 's')
+            ->join('a.invitation', 'i')
             ->where('s.questionnaire = :questionnaire')
+            ->andWhere('i.status = :soumise')
             ->setParameter('questionnaire', $q)
+            ->setParameter('soumise', QuestInvitationStatusEnum::SUBMITTED)
             ->getQuery()
             ->getResult();
 
         // Group answers by Section Instance and Question
         $answersMap = []; // [sectionInstanceId][questionId][] = value
+        $repondants = []; // [sectionInstanceId][invitationId] = true
         foreach ($answers as $ans) {
             if ($ans->getSection() === null || $ans->getQuestion() === null) {
                 continue;
             }
             $secId = $ans->getSection()->getId();
+            $repondants[$secId][$ans->getInvitation()?->getId()] = true;
             $qId = $ans->getQuestion()->getId();
             $val = $ans->getValue();
 
@@ -93,9 +108,11 @@ class QuestionnaireAnalyticsService
 
         foreach ($sectionInstances as $instance) {
             $sectionTemplate = $instance->getSection();
-            if ($sectionTemplate === null) {
+            if ($sectionTemplate === null || ($sections !== null && !\in_array($instance->getId(), $sections, true))) {
                 continue;
             }
+            $nbRepondants = \count($repondants[$instance->getId()] ?? []);
+            $masquee = $nbRepondants < $seuil;
 
             $questionsStats = [];
             foreach ($sectionTemplate->getQuestions() as $question) {
@@ -292,10 +309,17 @@ class QuestionnaireAnalyticsService
                 sectionTitle: $instance->getTitleSnapshot() ?? '',
                 sectionType: $sectionTemplate->getTypeSection() ? $sectionTemplate->getTypeSection()->value : 'normal',
                 repeatItemType: $instance->getRepeatSectionItemType(),
-                repeatItemId: $instance->getRepeatSectionItemId() ? (string)$instance->getRepeatSectionItemId() : null,
-                questions: $questionsStats
+                repeatItemId: $instance->getRepeatSectionItemId(),
+                questions: $masquee ? [] : $questionsStats,
+                reponses: $nbRepondants,
+                masquee: $masquee,
+                enseignement: $instance->getEnseignement()?->getLibelle(),
+                intervenant: $instance->getPersonnelCible()?->getDisplay(),
             );
         }
+
+        // Seuil d'anonymat : sous ce nombre de réponses, le détail permettrait d'identifier les répondants.
+        $seuilAtteint = $totalResponses >= $seuil;
 
         return new QuestionnaireAnalyticsDto(
             surveyId: $q->getUuidString(),
@@ -305,7 +329,13 @@ class QuestionnaireAnalyticsService
             averageTimeSpent: round($averageTimeSpent),
             responsesByDate: $responsesByDate,
             statusCounts: $statusCounts,
-            sections: $sectionsAnalytics
+            sections: $seuilAtteint ? $sectionsAnalytics : [],
+            seuilMinReponses: $seuil,
+            seuilAtteint: $seuilAtteint,
+            title: (string) $q->getTitle(),
+            openingDate: $q->getOpeningDate()?->format(\DateTimeInterface::ATOM),
+            publishedAt: $q->getPublishedAt()?->format(\DateTimeInterface::ATOM),
+            status: $q->getStatus()?->value,
         );
     }
 }

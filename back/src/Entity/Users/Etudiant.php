@@ -83,7 +83,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, Tim
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['etudiant:detail', 'etudiant:light', 'etudiant:write'])]
-    private ?string $mailPerso;
+    private ?string $mailPerso = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $password = null;

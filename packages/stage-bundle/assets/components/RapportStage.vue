@@ -11,7 +11,7 @@ import ProgressBar from 'primevue/progressbar';
 import Tag from 'primevue/tag';
 import { Card } from '@components';
 import { deposerRapportStageService, retirerRapportStageService, rapportStageUrl } from '@/requests/stage_service';
-import { useConfirmation } from '@/composables/useConfirmation';
+import { useConfirmation } from '@composables/useConfirmation';
 import { messageErreurApi } from '@/utils/erreurApi';
 
 const props = defineProps({

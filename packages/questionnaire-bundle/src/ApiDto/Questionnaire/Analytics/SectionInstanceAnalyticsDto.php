@@ -21,6 +21,16 @@ final class SectionInstanceAnalyticsDto
         #[Groups(['questionnaire:read'])]
         public ?string $repeatItemId,
         #[Groups(['questionnaire:read'])]
-        public array $questions
+        public array $questions,
+        /** Répondants (réponses envoyées) ayant répondu à cette section. */
+        #[Groups(['questionnaire:read'])]
+        public int $reponses = 0,
+        /** Questionnaire anonyme : section sous le seuil de réponses, détail masqué. */
+        #[Groups(['questionnaire:read'])]
+        public bool $masquee = false,
+        #[Groups(['questionnaire:read'])]
+        public ?string $enseignement = null,
+        #[Groups(['questionnaire:read'])]
+        public ?string $intervenant = null,
     ) {}
 }

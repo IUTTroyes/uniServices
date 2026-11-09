@@ -73,7 +73,7 @@
     {% for section in analytics.sections %}
         {% for question in section.questions %}
             {% set stats = question.stats %}
-            {% set sectionLabel = section.sectionTitle ~ (section.repeatItemId ? ' (' ~ section.repeatItemType ~ ' #' ~ section.repeatItemId ~ ')' : '') %}
+            {% set sectionLabel = section.sectionTitle ~ (section.intervenant ? ' — ' ~ section.intervenant : '') ~ (section.masquee ? ' (masquée : seuil d’anonymat)' : '') %}
             {% if question.questionType in ['single_choice', 'multiple_choice'] %}
                 {% for choice in stats.choices|default([]) %}
                     <tr>

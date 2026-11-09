@@ -1,3 +1,39 @@
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { BoltIcon, DocumentDuplicateIcon, QueueListIcon } from '@heroicons/vue/24/outline';
+import type { Section } from '@/types/survey';
+import { DialogHeader, FormField, ToggleCard } from '../Form';
+
+interface Props {
+  section: Section;
+}
+
+interface Emits {
+  close: [];
+  confirm: [payload: { newTitle: string; duplicateQuestions: boolean; adaptConditionalRules: boolean }];
+}
+
+const props = defineProps<Props>();
+const emit = defineEmits<Emits>();
+
+const newTitle = ref(`${props.section.title} (copie)`);
+const duplicateQuestions = ref(true);
+const adaptConditionalRules = ref(true);
+
+const hasConditionalRules = computed(() => {
+  if (!props.section.questions) return false;
+  return props.section.questions.some(q => q.conditionalRules && q.conditionalRules.length > 0);
+});
+
+function confirmDuplicate() {
+  if (!newTitle.value.trim()) return;
+  emit('confirm', {
+    newTitle: newTitle.value.trim(),
+    duplicateQuestions: duplicateQuestions.value,
+    adaptConditionalRules: adaptConditionalRules.value
+  });
+}
+</script>
 <template>
   <Dialog
     :visible="true"
@@ -52,40 +88,3 @@
     </div>
   </Dialog>
 </template>
-
-<script setup lang="ts">
-import { ref, computed } from 'vue';
-import { BoltIcon, DocumentDuplicateIcon, QueueListIcon } from '@heroicons/vue/24/outline';
-import type { Section } from '@/types/survey';
-import { DialogHeader, FormField, ToggleCard } from '../Form';
-
-interface Props {
-  section: Section;
-}
-
-interface Emits {
-  close: [];
-  confirm: [payload: { newTitle: string; duplicateQuestions: boolean; adaptConditionalRules: boolean }];
-}
-
-const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
-
-const newTitle = ref(`${props.section.title} (copie)`);
-const duplicateQuestions = ref(true);
-const adaptConditionalRules = ref(true);
-
-const hasConditionalRules = computed(() => {
-  if (!props.section.questions) return false;
-  return props.section.questions.some(q => q.conditionalRules && q.conditionalRules.length > 0);
-});
-
-function confirmDuplicate() {
-  if (!newTitle.value.trim()) return;
-  emit('confirm', {
-    newTitle: newTitle.value.trim(),
-    duplicateQuestions: duplicateQuestions.value,
-    adaptConditionalRules: adaptConditionalRules.value
-  });
-}
-</script>

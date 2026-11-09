@@ -4,62 +4,49 @@ namespace QuestionnaireBundle\State\Provider\Questionnaire\Runtime;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use QuestionnaireBundle\Domain\Questionnaire\Mapping\QuestionRuntimeMapper;
-use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireAnswer;
-use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireInvitation;
-use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireSectionInstance;
 use Doctrine\ORM\EntityManagerInterface;
 use QuestionnaireBundle\ApiDto\Questionnaire\Runtime\SectionRuntimeDto;
+use QuestionnaireBundle\Domain\Questionnaire\Mapping\QuestionRuntimeMapper;
+use QuestionnaireBundle\Domain\Questionnaire\Runtime\InvitationRuntime;
+use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireAnswer;
 
+/**
+ * Une section publiée avec les réponses déjà enregistrées, pour le répondant (par le jeton de l'invitation).
+ *
+ * @implements ProviderInterface<SectionRuntimeDto>
+ */
 final class InvitationSectionProvider implements ProviderInterface
 {
     public function __construct(
-        private EntityManagerInterface $em,
-        private QuestionRuntimeMapper $mapper
-    ) {}
+        private readonly EntityManagerInterface $em,
+        private readonly QuestionRuntimeMapper $mapper,
+        private readonly InvitationRuntime $runtime,
+    ) {
+    }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): SectionRuntimeDto
     {
-        $token = (string) $uriVariables['token'];
-        $id = (int) $uriVariables['id'];
+        $invitation = $this->runtime->invitation($uriVariables['token'] ?? '');
+        $section = $this->runtime->section($invitation, $uriVariables['id'] ?? null);
 
-        $inv = $this->em->getRepository(QuestionnaireInvitation::class)->findOneBy(['token' => $token]);
-        if (!$inv) { throw new \RuntimeException('Invitation not found'); }
-
-        $psi = $this->em->getRepository(QuestionnaireSectionInstance::class)->find($id);
-        if (!$psi || $psi->getQuestionnaire()->getId() !== $inv->getQuestionnaire()->getId()) {
-            throw new \RuntimeException('Section not found');
+        $reponses = [];
+        foreach ($this->em->getRepository(QuestionnaireAnswer::class)->findBy(['invitation' => $invitation, 'section' => $section]) as $reponse) {
+            $reponses[$reponse->getQuestion()?->getId()] = $reponse->getValue();
         }
 
-        // Charger answers existantes pour cette section
-        $answers = $this->em->getRepository(QuestionnaireAnswer::class)->findBy([
-            'invitation' => $inv,
-            'section' => $psi,
-        ]);
-
-        $answersByQid = [];
-        foreach ($answers as $a) {
-            $answersByQid[$a->getQuestion()->getId()] = $a->getValue();
-        }
-
-        $allQuestions = [];
-        foreach ($inv->getQuestionnaire()->getSections() as $st) {
-            foreach ($st->getQuestions() as $sqt) {
-                $allQuestions[] = $sqt;
-            }
-        }
+        $toutes = $this->runtime->toutesLesQuestions($invitation);
         $questions = [];
-        foreach ($psi->getSection()->getQuestions() as $qt) {
-            $questions[] = $this->mapper->map($qt, $answersByQid[$qt->getId()] ?? null, $allQuestions);
+        foreach ($section->getSection()?->getQuestions() ?? [] as $question) {
+            $questions[] = $this->mapper->map($question, $reponses[$question->getId()] ?? null, $toutes);
         }
 
         return new SectionRuntimeDto(
-            questionnaireTitle: $inv->getQuestionnaire()->getTitle(),
-            publishedSectionInstanceId: $psi->getId(),
-            title: $psi->getTitleSnapshot(),
-            repeatItemType: $psi->getRepeatSectionItemType(),
-            repeatItemId: $psi->getRepeatSectionItemId(),
-            questions: $questions
+            questionnaireTitle: (string) $invitation->getQuestionnaire()->getTitle(),
+            publishedSectionInstanceId: (int) $section->getId(),
+            title: (string) $section->getTitleSnapshot(),
+            repeatItemType: $section->getRepeatSectionItemType(),
+            repeatItemId: $section->getRepeatSectionItemId(),
+            questions: $questions,
         );
     }
 }

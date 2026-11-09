@@ -6,7 +6,9 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use QuestionnaireBundle\Domain\Questionnaire\Mapping\QuestionRuntimeMapper;
 use QuestionnaireBundle\Entity\Questionnaires\Questionnaire;
-use Doctrine\ORM\EntityManagerInterface;
+use QuestionnaireBundle\Security\QuestionnaireResolver;
+use QuestionnaireBundle\Security\QuestionnaireVoter;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use QuestionnaireBundle\ApiDto\Questionnaire\Preview\PreviewSectionDto;
 use QuestionnaireBundle\Enum\QuestTypeRepeatEnum;
 use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireSection;
@@ -14,19 +16,14 @@ use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireSection;
 final readonly class PreviewSectionProvider implements ProviderInterface
 {
     public function __construct(
-        private EntityManagerInterface $em,
+        private readonly QuestionnaireResolver $questionnaires,
         private QuestionRuntimeMapper  $mapper
     ) {}
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): PreviewSectionDto
     {
-        $qid = (string) $uriVariables['questionnaireUuid'];
+        $q = $this->questionnaires->charger($uriVariables['questionnaireUuid'] ?? '', QuestionnaireVoter::VIEW);
         $key = (string) $uriVariables['key'];
-
-        $q = $this->em->getRepository(Questionnaire::class)->findOneBy(['uuid' => $qid]);
-        if (!$q) {
-            throw new \RuntimeException('Questionnaire not found');
-        }
 
         // key format: tpl:12|matiere:45
         [$tplId, $repeatType, $repeatId] = $this->parseKey($key);
@@ -36,7 +33,7 @@ final readonly class PreviewSectionProvider implements ProviderInterface
             if ((int)$st->getId() === $tplId) { $sectionTemplate = $st; break; }
         }
         if (!$sectionTemplate) {
-            throw new \RuntimeException('Section template not found');
+            throw new NotFoundHttpException('Section introuvable.');
         }
 
         $allQuestions = [];
@@ -66,9 +63,11 @@ final readonly class PreviewSectionProvider implements ProviderInterface
     {
         // "tpl:12|matiere:45"
         $parts = explode('|', $key);
-        if (count($parts) !== 2) { throw new \RuntimeException('Invalid key'); }
+        if (count($parts) !== 2 || !str_starts_with($parts[0], 'tpl:') || !str_contains($parts[1], ':')) {
+            throw new NotFoundHttpException('Section introuvable.');
+        }
 
-        $tpl = (int) str_replace('tpl:', '', $parts[0]);
+        $tpl = (int) substr($parts[0], 4);
         [$t, $id] = explode(':', $parts[1], 2);
 
         return [$tpl, QuestTypeRepeatEnum::tryFrom($t), $id];
@@ -77,7 +76,7 @@ final readonly class PreviewSectionProvider implements ProviderInterface
     private function buildTitleSnapshot(QuestionnaireSection $section, ?QuestTypeRepeatEnum $repeatType, string $repeatId): string
     {
         if ($repeatType === null) {
-            return $section->getTitle();
+            return (string) $section->getTitle();
         }
         $opts = $section->getOpt();
         $elements = $opts['elements'] ?? [];

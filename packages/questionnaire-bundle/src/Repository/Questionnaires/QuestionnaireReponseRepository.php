@@ -12,29 +12,4 @@ class QuestionnaireReponseRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, QuestionnaireAnswer::class);
     }
-
-    //    /**
-    //     * @return QuestionnaireReponse[] Returns an array of QuestionnaireReponse objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('q')
-    //            ->andWhere('q.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('q.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?QuestionnaireReponse
-    //    {
-    //        return $this->createQueryBuilder('q')
-    //            ->andWhere('q.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
 }

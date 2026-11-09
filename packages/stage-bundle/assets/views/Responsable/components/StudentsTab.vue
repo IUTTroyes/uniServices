@@ -1,6 +1,6 @@
 <script setup>
 import Tag from 'primevue/tag';
-import { useConfirmation } from '@/composables/useConfirmation';
+import { useConfirmation } from '@composables/useConfirmation';
 import { dateFr, tagStatut } from '@/utils/stage';
 import EvaluationEntreprisePanel from '@/components/EvaluationEntreprisePanel.vue';
 import { ref, computed } from 'vue';

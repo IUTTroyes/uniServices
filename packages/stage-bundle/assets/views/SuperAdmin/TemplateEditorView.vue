@@ -18,7 +18,7 @@ import {
   getBalisesModeleConventionService,
   apercuModeleConventionService
 } from '@/requests/stage_service';
-import { useConfirmation } from '@/composables/useConfirmation';
+import { useConfirmation } from '@composables/useConfirmation';
 import { messageErreurApi } from '@/utils/erreurApi';
 
 const CODE = 'default_convention';

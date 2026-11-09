@@ -9,7 +9,7 @@ import Button from 'primevue/button';
 import Tag from 'primevue/tag';
 import { SimpleSkeleton } from '@components';
 import { getEvaluationEntrepriseService, envoyerEvaluationEntrepriseService } from '@/requests/stage_service';
-import { useConfirmation } from '@/composables/useConfirmation';
+import { useConfirmation } from '@composables/useConfirmation';
 import { messageErreurApi } from '@/utils/erreurApi';
 import { dateFr } from '@/utils/stage';
 

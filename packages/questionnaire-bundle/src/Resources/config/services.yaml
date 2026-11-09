@@ -20,9 +20,3 @@ services:
       - '../../DependencyInjection/'
       - '../../QuestionnaireBundle.php'
 
-  QuestionnaireBundle\Domain\Questionnaire\Repeat\RepeatItemsProviderRegistry:
-    arguments:
-      $providers: !tagged_iterator app.repeat_items_provider
-
-#  QuestionnaireBundle\Infrastructure\Questionnaire\Repeat\MatiereRepeatItemsProvider:
-#    tags: [ 'app.repeat_items_provider' ]

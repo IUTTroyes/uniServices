@@ -1,327 +1,5 @@
-<template>
-  <Dialog
-    :style="{ width: '92vw', maxWidth: '780px' }"
-    :visible="true"
-    :modal="true"
-    :closable="true"
-    :draggable="false"
-    @update:visible="$emit('close')"
-  >
-    <template #header>
-      <DialogHeader
-        :icon="PaperAirplaneIcon"
-        title="Confirmation de publication"
-        subtitle="Passez en revue les détails avant de lancer la diffusion"
-      />
-    </template>
-
-    <div class="q-form">
-      <p class="text-sm text-slate-600 dark:text-slate-400">
-        Vous êtes sur le point de publier le questionnaire
-        <span class="font-semibold text-slate-900 dark:text-white">"{{ survey?.title }}"</span>.
-      </p>
-
-      <!-- Dates Section -->
-      <FormSection
-        :icon="CalendarDaysIcon"
-        tone="blue"
-        title="Dates de diffusion"
-        subtitle="Ajustez les dates d'ouverture et de fermeture du questionnaire"
-      >
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            label="Date et heure d'ouverture"
-            for="publish-opening-date"
-            hint="Laissez vide pour ouverture immédiate à la publication"
-          >
-            <input
-              id="publish-opening-date"
-              v-model="openingDate"
-              type="datetime-local"
-              class="q-input"
-            />
-          </FormField>
-          <FormField
-            label="Date et heure de fermeture"
-            for="publish-closing-date"
-            hint="Laissez vide pour aucune date limite de fermeture"
-            :error="dateError"
-          >
-            <input
-              id="publish-closing-date"
-              v-model="closingDate"
-              type="datetime-local"
-              class="q-input"
-              :class="{ '!border-red-500': dateError }"
-            />
-          </FormField>
-        </div>
-
-        <div v-if="dateError" class="text-xs text-red-600 dark:text-red-400 mt-1 flex items-center gap-1.5">
-          <ExclamationTriangleIcon class="w-4 h-4 shrink-0" />
-          <span>{{ dateError }}</span>
-        </div>
-
-        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-          Ces dates sont éditables ici et mettent à jour la configuration globale du questionnaire.
-        </p>
-      </FormSection>
-
-      <!-- KPIs / Statistics Section -->
-      <FormSection :icon="ChartPieIcon" tone="purple" title="Aperçu de la structure">
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 text-center">
-          <div
-            v-for="kpi in kpis"
-            :key="kpi.label"
-            class="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80"
-          >
-            <span :class="['block font-bold text-primary-600 dark:text-primary-400', kpi.small ? 'text-lg mt-0.5' : 'text-2xl']">
-              {{ kpi.value }}
-            </span>
-            <span class="text-[11px] font-medium text-slate-700 dark:text-slate-300 block">
-              {{ kpi.label }}
-            </span>
-            <span v-if="kpi.detail" class="block text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
-              {{ kpi.detail }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Alerte informative si sections dynamiques -->
-        <div
-          v-if="configurableSectionsCount > 0"
-          class="mt-2.5 text-xs text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 p-2.5 rounded-lg border border-purple-200 dark:border-purple-800/60 flex items-center gap-2"
-        >
-          <InformationCircleIcon class="w-4 h-4 shrink-0 text-purple-600 dark:text-purple-400" />
-          <span>
-            Ce questionnaire comporte <strong>{{ configurableSectionsCount }} section{{ configurableSectionsCount > 1 ? 's' : '' }} dynamique{{ configurableSectionsCount > 1 ? 's' : '' }}</strong> répétant les questions pour <strong>{{ totalDynamicElements }} élément{{ totalDynamicElements > 1 ? 's' : '' }}</strong> (chaque élément génère une section distincte pour les participants).
-          </span>
-        </div>
-
-        <!-- Alerte si questionnaire sans questions -->
-        <div
-          v-if="uniqueQuestionsCount === 0"
-          class="mt-2.5 text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-lg border border-amber-200 dark:border-amber-800/60 flex items-center gap-2"
-        >
-          <ExclamationTriangleIcon class="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
-          <span>
-            Le questionnaire ne comporte actuellement aucune question. Veuillez ajouter des questions avant de le publier.
-          </span>
-        </div>
-      </FormSection>
-
-      <!-- Recipients Section -->
-      <FormSection :icon="UsersIcon" tone="emerald" title="Destinataires / Participants">
-        <div class="q-tabs">
-          <button
-            v-for="mode in modes"
-            :key="mode.id"
-            type="button"
-            :class="['q-tab', activeMode === mode.id && 'q-tab-active']"
-            @click="selectMode(mode.id)"
-          >
-            {{ mode.label }}
-          </button>
-        </div>
-
-        <!-- 1. MANUAL MODE -->
-        <div v-if="activeMode === 'manual'" class="space-y-2.5">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <label for="publish-emails" class="q-label !mb-0">
-              Adresses email (une par ligne, ou séparées par des virgules)
-            </label>
-            <div class="flex items-center gap-2">
-              <button
-                v-if="existingParticipants.length > 0 && !hasImported"
-                type="button"
-                class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline border-0 bg-transparent cursor-pointer"
-                @click="importExistingParticipants"
-              >
-                Importer existants ({{ existingParticipants.length }})
-              </button>
-
-              <label class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-950/60 hover:bg-primary-100 dark:hover:bg-primary-900/60 border border-primary-200 dark:border-primary-800/80 cursor-pointer transition-colors shadow-2xs">
-                <ArrowUpTrayIcon class="w-3.5 h-3.5 shrink-0" />
-                <span>Importer CSV / XLSX</span>
-                <input
-                  type="file"
-                  accept=".csv,.xlsx,.xls,.tsv,.txt"
-                  class="hidden"
-                  @change="handleFileUpload"
-                />
-              </label>
-            </div>
-          </div>
-
-          <textarea
-            id="publish-emails"
-            v-model="rawEmails"
-            rows="5"
-            class="q-input"
-            placeholder="invite1@example.com&#10;invite2@example.com&#10;ou importez un fichier CSV / Excel..."
-          />
-
-          <!-- Success/Error banner for import -->
-          <div
-            v-if="importMessage"
-            :class="[
-              'text-xs p-2.5 rounded-lg border flex items-center justify-between gap-2 transition-all',
-              importMessage.type === 'success'
-                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60'
-                : 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800/60'
-            ]"
-          >
-            <div class="flex items-center gap-2">
-              <CheckCircleIcon v-if="importMessage.type === 'success'" class="w-4 h-4 shrink-0" />
-              <ExclamationTriangleIcon v-else class="w-4 h-4 shrink-0" />
-              <span>{{ importMessage.text }}</span>
-            </div>
-            <button
-              type="button"
-              class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 border-0 bg-transparent cursor-pointer p-0.5"
-              @click="importMessage = null"
-            >
-              <i class="pi pi-times text-xs"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- 2. PERSONNEL MODE -->
-        <div v-else-if="activeMode === 'personnels'" class="space-y-3">
-          <div v-if="surveyDept" class="text-xs text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-950/40 p-2.5 rounded-lg border border-primary-200 dark:border-primary-800/60 flex items-center gap-2">
-            <BuildingOfficeIcon class="w-4 h-4 shrink-0 text-primary-600 dark:text-primary-400" />
-            <span>Personnels filtrés pour le département <strong>{{ surveyDept.libelle || surveyDept.id }}</strong></span>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormField label="Type de personnel" for="publish-pers-type">
-              <select id="publish-pers-type" v-model="personnelFilterType" class="q-input">
-                <option value="all">Tous les personnels</option>
-                <option value="permanent">Permanents</option>
-                <option value="vacataire">Vacataires</option>
-              </select>
-            </FormField>
-            <FormField label="Par statut précis" for="publish-pers-statut">
-              <select id="publish-pers-statut" v-model="personnelFilterStatut" class="q-input">
-                <option value="">Tous les statuts</option>
-                <option v-for="st in statuses" :key="st" :value="st">{{ st }}</option>
-              </select>
-            </FormField>
-          </div>
-          <p v-if="isLoadingData" class="q-hint">Chargement des personnels...</p>
-          <p v-else class="text-xs text-slate-700 dark:text-slate-300">
-            <strong>{{ filteredPersonnels.length }}</strong> personnels sélectionnés.
-          </p>
-        </div>
-
-        <!-- 3. STUDENT MODE -->
-        <div v-else-if="activeMode === 'etudiants'" class="space-y-3">
-          <div v-if="surveyDept" class="text-xs text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-950/40 p-2.5 rounded-lg border border-primary-200 dark:border-primary-800/60 flex items-center gap-2">
-            <BuildingOfficeIcon class="w-4 h-4 shrink-0 text-primary-600 dark:text-primary-400" />
-            <span>Semestres préselectionnés pour le département <strong>{{ surveyDept.libelle || surveyDept.id }}</strong></span>
-          </div>
-
-          <div>
-            <div class="flex items-center justify-between gap-2 mb-2">
-              <label class="q-label !mb-0">Semestres cibles</label>
-              <div v-if="semesters.length > 0" class="flex items-center gap-3 text-xs">
-                <button type="button" class="font-semibold text-primary-600 dark:text-primary-400 hover:underline border-0 bg-transparent cursor-pointer" @click="selectAllTargetSemestres">
-                  Tout sélectionner
-                </button>
-                <span class="text-slate-300 dark:text-slate-600">|</span>
-                <button type="button" class="text-slate-500 dark:text-slate-400 hover:underline border-0 bg-transparent cursor-pointer" @click="clearTargetSemestres">
-                  Effacer
-                </button>
-              </div>
-            </div>
-
-            <div v-if="semesters.length === 0 && isLoadingData" class="q-hint">
-              Chargement des semestres...
-            </div>
-            <div v-else-if="semesters.length > 0" class="flex flex-wrap items-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800">
-              <label
-                v-for="sem in semesters"
-                :key="sem.id"
-                :class="[
-                  'px-3 py-1.5 rounded-lg border text-xs font-medium cursor-pointer transition-all flex items-center gap-2 select-none',
-                  selectedSemestres.includes(sem.id)
-                    ? 'bg-primary-50 dark:bg-primary-950/60 border-primary-300 dark:border-primary-700 text-primary-700 dark:text-primary-300 font-semibold'
-                    : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300'
-                ]"
-              >
-                <input
-                  type="checkbox"
-                  :value="sem.id"
-                  v-model="selectedSemestres"
-                  @change="loadSemesterStudents"
-                  class="q-check !w-3.5 !h-3.5"
-                />
-                <span>{{ sem.libelle }}</span>
-              </label>
-            </div>
-            <p v-else class="text-xs text-slate-500 py-4 text-center border border-dashed border-slate-300 dark:border-slate-700 rounded-xl">
-              Aucun semestre trouvé.
-            </p>
-          </div>
-
-          <p v-if="isLoadingData" class="q-hint">Chargement des étudiants...</p>
-          <p v-else-if="selectedSemestres.length > 0" class="text-xs text-slate-700 dark:text-slate-300">
-            <strong>{{ filteredStudents.length }}</strong> étudiants sélectionnés ({{ selectedSemestres.length }} semestre{{ selectedSemestres.length > 1 ? 's' : '' }}).
-          </p>
-        </div>
-
-        <!-- Email Count Indicators -->
-        <div class="flex flex-wrap items-center gap-4 text-xs pt-3 border-t border-slate-200 dark:border-slate-700/80">
-          <span class="flex items-center text-slate-600 dark:text-slate-400">
-            Total détectés : <strong class="ms-1">{{ totalRecipientsCount }}</strong>
-          </span>
-          <span v-if="validEmails.length > 0" class="flex items-center text-emerald-600 dark:text-emerald-400">
-            <CheckCircleIcon class="w-4 h-4 me-1" />
-            Valides : <strong class="ms-1">{{ validEmails.length }}</strong>
-          </span>
-          <span v-if="activeMode === 'manual' && invalidEmails.length > 0" class="flex items-center text-red-600 dark:text-red-400">
-            <ExclamationTriangleIcon class="w-4 h-4 me-1" />
-            Invalides (ignorés) : <strong class="ms-1">{{ invalidEmails.length }}</strong>
-          </span>
-        </div>
-      </FormSection>
-
-      <!-- Warning Alert -->
-      <div class="q-callout q-callout-warning">
-        <ExclamationTriangleIcon class="w-4 h-4 shrink-0 mt-0.5" />
-        <div>
-          <p class="font-semibold">Attention</p>
-          <p class="mt-0.5 opacity-90">
-            La publication figera définitivement la structure du questionnaire (sections et questions). Vous ne pourrez plus y apporter de modifications structurelles.
-          </p>
-        </div>
-      </div>
-
-      <!-- Confirmation -->
-      <ToggleCard
-        v-model="isConfirmed"
-        control="checkbox"
-        tone="emerald"
-        :icon="CheckBadgeIcon"
-        title="Je confirme vouloir publier ce questionnaire"
-        description="et lancer sa diffusion aux destinataires."
-      />
-
-      <div class="q-actions">
-        <Button severity="secondary" outlined type="button" label="Annuler" @click="$emit('close')" />
-        <Button
-          type="button"
-          icon="pi pi-send"
-          label="Confirmer et Publier"
-          :disabled="!isConfirmed || !!dateError || uniqueQuestionsCount === 0"
-          @click="submitPublish"
-        />
-      </div>
-    </div>
-  </Dialog>
-</template>
-
 <script setup lang="ts">
+import { EmptyState, ListSkeleton, SimpleSkeleton } from '@components';
 import { ref, computed, watch, onMounted } from 'vue';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
@@ -342,11 +20,11 @@ import type { Survey, Section } from '@types';
 import { useSurveyStore } from '@/stores/survey';
 import { useResponseStore } from '@/stores/responses';
 import { 
-  getMiniSemestres, 
-  getAllStatuses, 
-  getAllPersonnels, 
-  getStudentSemestres 
-} from '@/requests/questionnaire_services/questionnaireService';
+  getMiniSemestresService, 
+  getStatutsService, 
+  getPersonnelsDepartementService, 
+  getEtudiantsSemestreService 
+} from '@/requests/questionnaire_service';
 import { getDepartementSemestresService } from '@requests';
 import { DialogHeader, FormField, FormSection, ToggleCard } from '../Form';
 import { calculateEstimatedTime, formatEstimatedTime } from '@/utils/survey';
@@ -650,8 +328,8 @@ async function selectMode(mode: string) {
     try {
       const deptId = surveyDeptId.value;
       const [resPers, resStats] = await Promise.all([
-        getAllPersonnels(deptId),
-        getAllStatuses()
+        getPersonnelsDepartementService(deptId),
+        getStatutsService()
       ]);
       personnels.value = resPers?.member || resPers || [];
       statuses.value = resStats || [];
@@ -667,7 +345,7 @@ async function selectMode(mode: string) {
       if (surveyDeptId.value) {
         resSem = await getDepartementSemestresService(surveyDeptId.value, true);
       } else {
-        resSem = await getMiniSemestres();
+        resSem = await getMiniSemestresService();
       }
       semesters.value = resSem?.member || resSem || [];
 
@@ -699,7 +377,7 @@ async function loadSemesterStudents() {
   isLoadingData.value = true;
   try {
     const responses = await Promise.all(
-      selectedSemestres.value.map(semId => getStudentSemestres(semId))
+      selectedSemestres.value.map(semId => getEtudiantsSemestreService(semId))
     );
     const all = responses.flatMap(res => res?.member || res || []);
     const map = new Map();
@@ -808,3 +486,321 @@ onMounted(async () => {
   }
 });
 </script>
+<template>
+  <Dialog
+    :style="{ width: '92vw', maxWidth: '780px' }"
+    :visible="true"
+    :modal="true"
+    :closable="true"
+    :draggable="false"
+    @update:visible="$emit('close')"
+  >
+    <template #header>
+      <DialogHeader
+        :icon="PaperAirplaneIcon"
+        title="Confirmation de publication"
+        subtitle="Passez en revue les détails avant de lancer la diffusion"
+      />
+    </template>
+
+    <div class="q-form">
+      <p class="text-sm text-slate-600 dark:text-slate-400">
+        Vous êtes sur le point de publier le questionnaire
+        <span class="font-semibold text-slate-900 dark:text-white">"{{ survey?.title }}"</span>.
+      </p>
+
+      <!-- Dates Section -->
+      <FormSection
+        :icon="CalendarDaysIcon"
+        tone="blue"
+        title="Dates de diffusion"
+        subtitle="Ajustez les dates d'ouverture et de fermeture du questionnaire"
+      >
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField
+            label="Date et heure d'ouverture"
+            for="publish-opening-date"
+            hint="Laissez vide pour ouverture immédiate à la publication"
+          >
+            <input
+              id="publish-opening-date"
+              v-model="openingDate"
+              type="datetime-local"
+              class="q-input"
+            />
+          </FormField>
+          <FormField
+            label="Date et heure de fermeture"
+            for="publish-closing-date"
+            hint="Laissez vide pour aucune date limite de fermeture"
+            :error="dateError"
+          >
+            <input
+              id="publish-closing-date"
+              v-model="closingDate"
+              type="datetime-local"
+              class="q-input"
+              :class="{ '!border-red-500': dateError }"
+            />
+          </FormField>
+        </div>
+
+        <div v-if="dateError" class="text-sm text-red-600 dark:text-red-400 mt-1 flex items-center gap-1.5">
+          <ExclamationTriangleIcon class="w-4 h-4 shrink-0" />
+          <span>{{ dateError }}</span>
+        </div>
+
+        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          Ces dates sont éditables ici et mettent à jour la configuration globale du questionnaire.
+        </p>
+      </FormSection>
+
+      <!-- KPIs / Statistics Section -->
+      <FormSection :icon="ChartPieIcon" tone="purple" title="Aperçu de la structure">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 text-center">
+          <div
+            v-for="kpi in kpis"
+            :key="kpi.label"
+            class="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80"
+          >
+            <span :class="['block font-bold text-primary-600 dark:text-primary-400', kpi.small ? 'text-lg mt-0.5' : 'text-2xl']">
+              {{ kpi.value }}
+            </span>
+            <span class="text-sm font-medium text-slate-700 dark:text-slate-300 block">
+              {{ kpi.label }}
+            </span>
+            <span v-if="kpi.detail" class="block text-sm text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+              {{ kpi.detail }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Alerte informative si sections dynamiques -->
+        <div
+          v-if="configurableSectionsCount > 0"
+          class="mt-2.5 text-sm text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 p-2.5 rounded-lg border border-purple-200 dark:border-purple-800/60 flex items-center gap-2"
+        >
+          <InformationCircleIcon class="w-4 h-4 shrink-0 text-purple-600 dark:text-purple-400" />
+          <span>
+            Ce questionnaire comporte <strong>{{ configurableSectionsCount }} section{{ configurableSectionsCount > 1 ? 's' : '' }} dynamique{{ configurableSectionsCount > 1 ? 's' : '' }}</strong> répétant les questions pour <strong>{{ totalDynamicElements }} élément{{ totalDynamicElements > 1 ? 's' : '' }}</strong> (chaque élément génère une section distincte pour les participants).
+          </span>
+        </div>
+
+        <!-- Alerte si questionnaire sans questions -->
+        <div
+          v-if="uniqueQuestionsCount === 0"
+          class="mt-2.5 text-sm text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-lg border border-amber-200 dark:border-amber-800/60 flex items-center gap-2"
+        >
+          <ExclamationTriangleIcon class="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <span>
+            Le questionnaire ne comporte actuellement aucune question. Veuillez ajouter des questions avant de le publier.
+          </span>
+        </div>
+      </FormSection>
+
+      <!-- Recipients Section -->
+      <FormSection :icon="UsersIcon" tone="emerald" title="Destinataires / Participants">
+        <div class="q-tabs">
+          <button
+            v-for="mode in modes"
+            :key="mode.id"
+            type="button"
+            :class="['q-tab', activeMode === mode.id && 'q-tab-active']"
+            @click="selectMode(mode.id)"
+          >
+            {{ mode.label }}
+          </button>
+        </div>
+
+        <!-- 1. MANUAL MODE -->
+        <div v-if="activeMode === 'manual'" class="space-y-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <label for="publish-emails" class="q-label !mb-0">
+              Adresses email (une par ligne, ou séparées par des virgules)
+            </label>
+            <div class="flex items-center gap-2">
+              <button
+                v-if="existingParticipants.length > 0 && !hasImported"
+                type="button"
+                class="text-sm font-semibold text-primary-600 dark:text-primary-400 hover:underline border-0 bg-transparent cursor-pointer"
+                @click="importExistingParticipants"
+              >
+                Importer existants ({{ existingParticipants.length }})
+              </button>
+
+              <label class="inline-flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium rounded-lg text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-950/60 hover:bg-primary-100 dark:hover:bg-primary-900/60 border border-primary-200 dark:border-primary-800/80 cursor-pointer transition-colors shadow-2xs">
+                <ArrowUpTrayIcon class="w-3.5 h-3.5 shrink-0" />
+                <span>Importer CSV / XLSX</span>
+                <input
+                  type="file"
+                  accept=".csv,.xlsx,.xls,.tsv,.txt"
+                  class="hidden"
+                  @change="handleFileUpload"
+                />
+              </label>
+            </div>
+          </div>
+
+          <textarea
+            id="publish-emails"
+            v-model="rawEmails"
+            rows="5"
+            class="q-input"
+            placeholder="invite1@example.com&#10;invite2@example.com&#10;ou importez un fichier CSV / Excel..."
+          />
+
+          <!-- Success/Error banner for import -->
+          <div
+            v-if="importMessage"
+            :class="[
+              'text-sm p-2.5 rounded-lg border flex items-center justify-between gap-2 transition-all',
+              importMessage.type === 'success'
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60'
+                : 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800/60'
+            ]"
+          >
+            <div class="flex items-center gap-2">
+              <CheckCircleIcon v-if="importMessage.type === 'success'" class="w-4 h-4 shrink-0" />
+              <ExclamationTriangleIcon v-else class="w-4 h-4 shrink-0" />
+              <span>{{ importMessage.text }}</span>
+            </div>
+            <button
+              type="button"
+              class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 border-0 bg-transparent cursor-pointer p-0.5"
+              @click="importMessage = null"
+            >
+              <i class="pi pi-times text-sm"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. PERSONNEL MODE -->
+        <div v-else-if="activeMode === 'personnels'" class="space-y-3">
+          <div v-if="surveyDept" class="text-sm text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-950/40 p-2.5 rounded-lg border border-primary-200 dark:border-primary-800/60 flex items-center gap-2">
+            <BuildingOfficeIcon class="w-4 h-4 shrink-0 text-primary-600 dark:text-primary-400" />
+            <span>Personnels filtrés pour le département <strong>{{ surveyDept.libelle || surveyDept.id }}</strong></span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField label="Type de personnel" for="publish-pers-type">
+              <select id="publish-pers-type" v-model="personnelFilterType" class="q-input">
+                <option value="all">Tous les personnels</option>
+                <option value="permanent">Permanents</option>
+                <option value="vacataire">Vacataires</option>
+              </select>
+            </FormField>
+            <FormField label="Par statut précis" for="publish-pers-statut">
+              <select id="publish-pers-statut" v-model="personnelFilterStatut" class="q-input">
+                <option value="">Tous les statuts</option>
+                <option v-for="st in statuses" :key="st" :value="st">{{ st }}</option>
+              </select>
+            </FormField>
+          </div>
+          <SimpleSkeleton v-if="isLoadingData" width="220px" />
+          <p v-else class="text-sm text-slate-700 dark:text-slate-300">
+            <strong>{{ filteredPersonnels.length }}</strong> personnels sélectionnés.
+          </p>
+        </div>
+
+        <!-- 3. STUDENT MODE -->
+        <div v-else-if="activeMode === 'etudiants'" class="space-y-3">
+          <div v-if="surveyDept" class="text-sm text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-950/40 p-2.5 rounded-lg border border-primary-200 dark:border-primary-800/60 flex items-center gap-2">
+            <BuildingOfficeIcon class="w-4 h-4 shrink-0 text-primary-600 dark:text-primary-400" />
+            <span>Semestres préselectionnés pour le département <strong>{{ surveyDept.libelle || surveyDept.id }}</strong></span>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <p class="q-label !mb-0">Semestres cibles</p>
+              <div v-if="semesters.length > 0" class="flex items-center gap-3 text-sm">
+                <button type="button" class="font-semibold text-primary-600 dark:text-primary-400 hover:underline border-0 bg-transparent cursor-pointer" @click="selectAllTargetSemestres">
+                  Tout sélectionner
+                </button>
+                <span class="text-slate-300 dark:text-slate-600">|</span>
+                <button type="button" class="text-slate-500 dark:text-slate-400 hover:underline border-0 bg-transparent cursor-pointer" @click="clearTargetSemestres">
+                  Effacer
+                </button>
+              </div>
+            </div>
+
+            <ListSkeleton v-if="semesters.length === 0 && isLoadingData" />
+            <div v-else-if="semesters.length > 0" class="flex flex-wrap items-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800">
+              <label
+                v-for="sem in semesters"
+                :key="sem.id"
+                :class="[
+                  'px-3 py-1.5 rounded-lg border text-sm font-medium cursor-pointer transition-all flex items-center gap-2 select-none',
+                  selectedSemestres.includes(sem.id)
+                    ? 'bg-primary-50 dark:bg-primary-950/60 border-primary-300 dark:border-primary-700 text-primary-700 dark:text-primary-300 font-semibold'
+                    : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                ]"
+              >
+                <input
+                  type="checkbox"
+                  :value="sem.id"
+                  v-model="selectedSemestres"
+                  @change="loadSemesterStudents"
+                  class="q-check !w-3.5 !h-3.5"
+                />
+                <span>{{ sem.libelle }}</span>
+              </label>
+            </div>
+            <EmptyState v-else compact icon="pi pi-calendar" title="Aucun semestre trouvé" description="Aucun semestre n'est rattaché au département du questionnaire." />
+          </div>
+
+          <SimpleSkeleton v-if="isLoadingData" width="220px" />
+          <p v-else-if="selectedSemestres.length > 0" class="text-sm text-slate-700 dark:text-slate-300">
+            <strong>{{ filteredStudents.length }}</strong> étudiants sélectionnés ({{ selectedSemestres.length }} semestre{{ selectedSemestres.length > 1 ? 's' : '' }}).
+          </p>
+        </div>
+
+        <!-- Email Count Indicators -->
+        <div class="flex flex-wrap items-center gap-4 text-sm pt-3 border-t border-slate-200 dark:border-slate-700/80">
+          <span class="flex items-center text-slate-600 dark:text-slate-400">
+            Total détectés : <strong class="ms-1">{{ totalRecipientsCount }}</strong>
+          </span>
+          <span v-if="validEmails.length > 0" class="flex items-center text-emerald-600 dark:text-emerald-400">
+            <CheckCircleIcon class="w-4 h-4 me-1" />
+            Valides : <strong class="ms-1">{{ validEmails.length }}</strong>
+          </span>
+          <span v-if="activeMode === 'manual' && invalidEmails.length > 0" class="flex items-center text-red-600 dark:text-red-400">
+            <ExclamationTriangleIcon class="w-4 h-4 me-1" />
+            Invalides (ignorés) : <strong class="ms-1">{{ invalidEmails.length }}</strong>
+          </span>
+        </div>
+      </FormSection>
+
+      <!-- Warning Alert -->
+      <div class="q-callout q-callout-warning">
+        <ExclamationTriangleIcon class="w-4 h-4 shrink-0 mt-0.5" />
+        <div>
+          <p class="font-semibold">Attention</p>
+          <p class="mt-0.5 opacity-90">
+            La publication figera définitivement la structure du questionnaire (sections et questions). Vous ne pourrez plus y apporter de modifications structurelles.
+          </p>
+        </div>
+      </div>
+
+      <!-- Confirmation -->
+      <ToggleCard
+        v-model="isConfirmed"
+        control="checkbox"
+        tone="emerald"
+        :icon="CheckBadgeIcon"
+        title="Je confirme vouloir publier ce questionnaire"
+        description="et lancer sa diffusion aux destinataires."
+      />
+
+      <div class="q-actions">
+        <Button severity="secondary" outlined type="button" label="Annuler" @click="$emit('close')" />
+        <Button
+          type="button"
+          icon="pi pi-send"
+          label="Confirmer et Publier"
+          :disabled="!isConfirmed || !!dateError || uniqueQuestionsCount === 0"
+          @click="submitPublish"
+        />
+      </div>
+    </div>
+  </Dialog>
+</template>

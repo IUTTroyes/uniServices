@@ -27,11 +27,11 @@ import ActionButtonVertical from '@components/components/ActionButtonVertical.vu
 import { format, subDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { formatDuration } from '@/utils/date';
-import { HeaderComponent, Kpi, Card } from '@components';
+import { HeaderComponent, Kpi, Card, EmptyState } from '@components';
 import { CheckCircleIcon } from '@heroicons/vue/24/outline';
 import { DocumentArrowDownIcon, TableCellsIcon } from '@heroicons/vue/24/outline';
 import { showSuccess, showDanger } from '@helpers/toast';
-import { exportQuestionnaireExcel, exportQuestionnairePdf } from '@/requests/questionnaire_services/questionnaireService';
+import { exportExcelService, exportPdfService } from '@/requests/questionnaire_service';
 
 // Register Chart.js components
 ChartJS.register(
@@ -53,7 +53,13 @@ const responseStore = useResponseStore();
 const surveyId = route.params.id as string;
 const timeFilter = ref('all');
 
-const survey = computed(() => surveyStore.currentSurvey);
+// Un destinataire de la synthèse ne lit pas le questionnaire : l'en-tête vient alors des statistiques.
+const survey = computed(() => (surveyStore.currentSurvey?.uuid === surveyId ? surveyStore.currentSurvey : null) ?? (detailedAnalytics.value ? {
+  title: detailedAnalytics.value.title,
+  openingDate: detailedAnalytics.value.openingDate,
+  publishedAt: detailedAnalytics.value.publishedAt,
+} : null));
+const gestion = computed(() => detailedAnalytics.value?.gestion !== false);
 const detailedAnalytics = computed(() => responseStore.detailedAnalytics);
 
 const kpis = computed(() => [
@@ -286,7 +292,7 @@ async function exportPdf() {
       const img = chartToImage(key);
       if (img) charts[key] = img;
     }
-    await exportQuestionnairePdf(surveyId, charts);
+    await exportPdfService(surveyId, charts);
     showSuccess('Le rapport PDF a été téléchargé.', 'Export PDF terminé');
   } catch (e) {
     console.error(e);
@@ -299,7 +305,7 @@ async function exportPdf() {
 async function exportExcel() {
   isExportingExcel.value = true;
   try {
-    await exportQuestionnaireExcel(surveyId);
+    await exportExcelService(surveyId);
     showSuccess('Le fichier Excel a été téléchargé.', 'Export Excel terminé');
   } catch (e) {
     console.error(e);
@@ -310,8 +316,10 @@ async function exportExcel() {
 }
 
 onMounted(async () => {
-  await surveyStore.selectSurvey(surveyId);
   await responseStore.fetchDetailedAnalytics(surveyId);
+  if (gestion.value) {
+    await surveyStore.selectSurvey(surveyId);
+  }
 });
 </script>
 
@@ -320,8 +328,15 @@ onMounted(async () => {
     <HeaderComponent :titre="`Analyses - ${survey?.title}`"
       description="Explorez les résultats et tendances de votre questionnaire" icon="pi pi-chart-bar">
       <template #actions>
-        <ActionButtonVertical :to="{ name: 'questionnaire_responses', params: { id: surveyId } }"
+        <ActionButtonVertical v-if="gestion" :to="{ name: 'questionnaire_responses', params: { id: surveyId } }"
           :icon="ChatBubbleLeftRightIcon" label="Voir les réponses" severity="success" />
+        <ActionButtonVertical
+          v-if="gestion && survey?.modeleOrigineResume"
+          :to="{ name: 'questionnaire_comparaison', params: { id: survey.modeleOrigineResume.uuid } }"
+          icon="pi pi-chart-line"
+          label="Comparer"
+          severity="help"
+        />
         <ActionButtonVertical :icon="TableCellsIcon" label="Excel" severity="secondary" :disabled="isExportingExcel" @click="exportExcel" />
         <ActionButtonVertical :icon="DocumentArrowDownIcon" label="PDF" severity="secondary" :disabled="isExportingPdf" @click="exportPdf" />
       </template>
@@ -354,6 +369,22 @@ onMounted(async () => {
     </Card>
   </div>
 
+  <!-- Réponses purgées (durée de conservation) : statistiques archivées -->
+  <div v-if="detailedAnalytics?.archiveLe" class="q-callout q-callout-info text-sm mt-6" role="note">
+    <i class="pi pi-archive" aria-hidden="true" />
+    <p>Les réponses individuelles ont été supprimées le {{ new Date(detailedAnalytics.archiveLe).toLocaleDateString('fr-FR') }} (durée de conservation dépassée) : ces statistiques sont celles archivées à cette date.</p>
+  </div>
+
+  <!-- Seuil d'anonymat non atteint : le détail des réponses est masqué par le serveur -->
+  <EmptyState
+    v-if="detailedAnalytics && detailedAnalytics.seuilAtteint === false"
+    class="mt-8"
+    icon="pi pi-eye-slash"
+    color="amber"
+    title="Résultats détaillés masqués"
+    :description="`Questionnaire anonyme : le détail des réponses et les exports sont disponibles à partir de ${detailedAnalytics.seuilMinReponses} réponses envoyées (${detailedAnalytics.totalResponses} pour l'instant).`"
+  />
+
   <!-- Question Analytics -->
   <div class="space-y-8 mt-8">
     <div v-for="section in detailedAnalytics?.sections" :key="section.sectionInstanceId"
@@ -362,7 +393,7 @@ onMounted(async () => {
         <h2 class="card-header flex items-center gap-2">
           {{ section.sectionTitle }}
           <span v-if="section.sectionType === 'configurable'"
-            class="inline-flex items-center rounded-md bg-indigo-50 dark:bg-indigo-950/50 px-2 py-1 text-xs font-medium text-indigo-700 dark:text-indigo-300 ring-1 ring-inset ring-indigo-700/10">
+            class="inline-flex items-center rounded-md bg-indigo-50 dark:bg-indigo-950/50 px-2 py-1 text-sm font-medium text-indigo-700 dark:text-indigo-300 ring-1 ring-inset ring-indigo-700/10">
             Instance répétable
           </span>
         </h2>
@@ -386,7 +417,7 @@ onMounted(async () => {
                   }}%)</span>
               </div>
             </div>
-            <div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-500">
+            <div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 text-sm text-gray-500">
               Total : {{ question.totalResponses }} réponses
             </div>
           </div>
@@ -422,12 +453,10 @@ onMounted(async () => {
                   Commentaires et réponses :
                 </h5>
                 <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                  <div v-if="!question.stats.samples || question.stats.samples.length === 0"
-                    class="text-xs text-gray-500 italic">
-                    Aucune réponse textuelle enregistrée.
-                  </div>
+                  <EmptyState v-if="!question.stats.samples || question.stats.samples.length === 0"
+                    compact icon="pi pi-comment" title="Aucune réponse textuelle" />
                   <div v-for="(sample, index) in question.stats.samples" :key="index"
-                    class="text-xs text-gray-700 dark:text-gray-300 p-2.5 bg-gray-50 dark:bg-gray-700/40 rounded-lg border border-gray-100 dark:border-gray-700/50 line-clamp-3 hover:line-clamp-none transition-all duration-200">
+                    class="text-sm text-gray-700 dark:text-gray-300 p-2.5 bg-gray-50 dark:bg-gray-700/40 rounded-lg border border-gray-100 dark:border-gray-700/50 line-clamp-3 hover:line-clamp-none transition-all duration-200">
                     "{{ sample }}"
                   </div>
                 </div>
@@ -438,7 +467,7 @@ onMounted(async () => {
           <!-- Matrix Heatmap/Table -->
           <div v-else-if="question.questionType === 'matrix'">
             <div class="overflow-x-auto">
-              <table class="w-full text-xs border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <table class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
                 <thead class="bg-gray-50 dark:bg-gray-700/50">
                   <tr>
                     <th
@@ -465,7 +494,7 @@ onMounted(async () => {
                 </tbody>
               </table>
             </div>
-            <div class="mt-3 text-xs text-gray-500">
+            <div class="mt-3 text-sm text-gray-500">
               Total : {{ question.totalResponses }} réponses
             </div>
           </div>
@@ -482,7 +511,7 @@ onMounted(async () => {
                 <span class="font-medium">Rang moyen : {{ rank.averageRank }}</span>
               </div>
             </div>
-            <div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-500">
+            <div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 text-sm text-gray-500">
               Total : {{ question.totalResponses }} réponses
             </div>
           </div>

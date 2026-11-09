@@ -2,6 +2,8 @@
 
 namespace FinanceBundle\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -12,18 +14,28 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use FinanceBundle\Repository\FinanceFournisseurRepository;
+use FinanceBundle\State\FinanceReferentielProcessor;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: FinanceFournisseurRepository::class)]
 #[ApiResource(
     operations: [
-        new GetCollection(normalizationContext: ['groups' => ['fournisseur:read']]),
-        new Get(normalizationContext: ['groups' => ['fournisseur:read']]),
-        new Post(denormalizationContext: ['groups' => ['fournisseur:write']]),
-        new Patch(denormalizationContext: ['groups' => ['fournisseur:write']]),
-        new Delete()
+        // Référentiel partagé : consultable par toute personne ayant accès au package, géré par le service financier.
+        new GetCollection(
+            normalizationContext: ['groups' => ['fournisseur:read']],
+            order: ['nomFournisseur' => 'ASC'],
+            security: "is_granted('FINANCE_ACCES')",
+            paginationClientItemsPerPage: true,
+            paginationMaximumItemsPerPage: 100,
+        ),
+        new Get(normalizationContext: ['groups' => ['fournisseur:read']], security: "is_granted('FINANCE_ACCES')"),
+        new Post(denormalizationContext: ['groups' => ['fournisseur:write']], security: "is_granted('FINANCE_REFERENTIEL_GERER')", processor: FinanceReferentielProcessor::class),
+        new Patch(denormalizationContext: ['groups' => ['fournisseur:write']], security: "is_granted('FINANCE_REFERENTIEL_GERER')", processor: FinanceReferentielProcessor::class),
+        new Delete(security: "is_granted('FINANCE_REFERENTIEL_GERER')", processor: FinanceReferentielProcessor::class),
     ]
 )]
+#[ApiFilter(SearchFilter::class, properties: ['nomFournisseur' => 'ipartial', 'numeroFournisseur' => 'start'])]
 class FinanceFournisseur
 {
     #[ORM\Id]
@@ -33,11 +45,13 @@ class FinanceFournisseur
     private ?int $id = null;
 
     #[ORM\Column(length: 50, nullable: true)]
-    #[Groups(['fournisseur:read', 'fournisseur:write', 'finance:read', 'finance:list', 'finance:write'])]
+    #[Groups(['fournisseur:read', 'fournisseur:write', 'finance:read', 'finance:list'])]
     private ?string $numeroFournisseur = null; // Code SIFAC (ex: 1650, 1471)
 
     #[ORM\Column(length: 255)]
-    #[Groups(['fournisseur:read', 'fournisseur:write', 'finance:read', 'finance:list', 'finance:write'])]
+    #[Groups(['fournisseur:read', 'fournisseur:write', 'finance:read', 'finance:list'])]
+    #[Assert\NotBlank(message: 'La raison sociale est obligatoire.')]
+    #[Assert\Length(max: 255)]
     private ?string $nomFournisseur = null; // Raison sociale (ex: ELITE SECURITE, TOUSSAINT)
 
     /**
@@ -74,7 +88,7 @@ class FinanceFournisseur
 
     public function setNomFournisseur(string $nomFournisseur): static
     {
-        $this->nomFournisseur = $nomFournisseur;
+        $this->nomFournisseur = trim($nomFournisseur);
         return $this;
     }
 

@@ -1,7 +1,7 @@
 <script setup>
 import Button from 'primevue/button';
 import { getStagePeriodeService, updateStagePeriodeService, getStageSoutenancesService, saveStageSoutenanceService, checkConflitStageSoutenanceService, generateStageSoutenancesService, deleteStageSoutenanceService } from '@/requests/stage_service';
-import { useConfirmation } from '@/composables/useConfirmation';
+import { useConfirmation } from '@composables/useConfirmation';
 import { idDepuisRelation } from '@/utils/stage';
 import { computed, ref, onMounted, watch } from 'vue';
 import { useToast } from 'primevue/usetoast';
