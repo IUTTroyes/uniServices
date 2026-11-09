@@ -9,7 +9,7 @@ const destination = computed(() => {
     return anneeId ? {name: type === 'absences' ? 'liste-absences' : 'liste-evaluations', params: {anneeId}} : null;
   }
   if (type === 'previsionnel') return '/intranet/administration/previsionnel/personnel';
-  return {path: '/intranet/pedagogie', query: {onglet: type === 'plan' ? 'plans' : 'enseignements'}};
+  return {path: '/intranet/pedagogie', query: {tab: type === 'plan' ? 'plans' : 'enseignements'}};
 });
 const accessible = computed(() => destination.value && router.resolve(destination.value).matched.every(record => !record.meta.permission || hasPermission(record.meta.permission)));
 

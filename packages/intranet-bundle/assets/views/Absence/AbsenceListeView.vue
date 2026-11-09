@@ -8,6 +8,8 @@ import {getAnneeService, getEtudiantAbsencesService, deleteEtudiantAbsenceServic
 import {useRoute, useRouter} from "vue-router";
 import {Button} from "primevue";
 
+const props = defineProps({ integre: Boolean });
+
 const route = useRoute();
 const router = useRouter();
 const hasError = ref(false);
@@ -81,7 +83,7 @@ const getAnnee = async () => {
 watch(annee, async (newAnnee, oldAnnee) => {
   if (newAnnee?.id === oldAnnee?.id) return;
 
-  if (newAnnee?.id && String(route.params.anneeId) !== String(newAnnee.id)) {
+  if (!props.integre && newAnnee?.id && String(route.params.anneeId) !== String(newAnnee.id)) {
     await router.replace({
       name: route.name,
       params: {

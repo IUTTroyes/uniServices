@@ -19,6 +19,8 @@ import EvaluationListeInitForm from "../../components/Evaluation/EvaluationListe
 import EvaluationStatistiques from "../../components/Evaluation/EvaluationStatistiques.vue";
 import EvaluationCard from "@/components/Evaluation/EvaluationCard.vue";
 
+const props = defineProps({ integre: Boolean });
+
 const route = useRoute();
 const router = useRouter();
 const usersStore = useUsersStore();
@@ -69,7 +71,7 @@ watch(semestre, async (newSemestre, oldSemestre) => {
 // watcher pour relancer getSemestres quand annee change
 watch(annee, async (newAnnee, oldAnnee) => {
   if (newAnnee?.id && newAnnee.id !== oldAnnee?.id) {
-    if (String(route.params.anneeId) !== String(newAnnee.id)) {
+    if (!props.integre && String(route.params.anneeId) !== String(newAnnee.id)) {
       await router.replace({
         name: route.name,
         params: {

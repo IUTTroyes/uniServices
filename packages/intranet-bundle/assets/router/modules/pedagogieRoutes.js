@@ -26,7 +26,7 @@ export default [
       breadcrumb: [
         { label: 'Dashboard', route: '/intranet' },
         { label: 'Pédagogie', route: '/intranet/pedagogie', icon: 'pi pi-book' },
-        { label: 'Plans de cours', route: '/intranet/pedagogie?onglet=plans' },
+        { label: 'Plans de cours', route: '/intranet/pedagogie?tab=plans' },
         { label: 'Édition', route: null }
       ]
     }
