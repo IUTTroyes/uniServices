@@ -11,6 +11,7 @@ import {
 import {useDepartementStore, useSecurity} from '@stores';
 import noImage from "@images/photos_etudiants/noimage.png";
 import { getAuthenticatedUser, logout as authLogout } from "@helpers/authService";
+import { normalizeAppSlug } from "@utils";
 
 export const useUsersStore = defineStore('users', () => {
     // Les informations utilisateur seront récupérées depuis le serveur
@@ -52,24 +53,35 @@ export const useUsersStore = defineStore('users', () => {
     };
 
     const applications = computed(() => {
+        const securityStore = useSecurity();
+
+        let raw = [];
         if (userType.value === 'personnels') {
-            const packages = departementDefaut.value?.departementPersonnel?.packages;
-            if (!Array.isArray(packages)) return [];
-
-            const normalizedPackages = packages
-                .map(normalizePackageSlug)
-                .filter(Boolean);
-
-            return Array.from(new Set(normalizedPackages));
+            raw = departementDefaut.value?.departementPersonnel?.packages;
+            if (!Array.isArray(raw) || raw.length === 0) {
+                raw = securityStore.activePackages || [];
+            }
+        } else {
+            raw = user.value?.applications || securityStore.user?.applications || securityStore.activePackages;
         }
 
-        if (!Array.isArray(user.value?.applications)) {
-            return [];
+        if (typeof raw === 'string') {
+            try { raw = JSON.parse(raw); } catch { raw = [raw]; }
         }
 
-        return Array.from(new Set(user.value.applications
-            .map(normalizePackageSlug)
+        if (!Array.isArray(raw) || raw.length === 0) {
+            return ['intranet'];
+        }
+
+        const normalized = Array.from(new Set(raw
+            .map(normalizeAppSlug)
             .filter(Boolean)));
+
+        if (!normalized.includes('intranet')) {
+            normalized.unshift('intranet');
+        }
+
+        return normalized;
     });
 
     const normalizePersonnelDepartements = (items) => {

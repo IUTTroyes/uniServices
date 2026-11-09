@@ -6,25 +6,21 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use QuestionnaireBundle\Domain\Questionnaire\Structure\QuestionnaireStructureService;
 use QuestionnaireBundle\Entity\Questionnaires\Questionnaire;
-use Doctrine\ORM\EntityManagerInterface;
+use QuestionnaireBundle\Security\QuestionnaireResolver;
+use QuestionnaireBundle\Security\QuestionnaireVoter;
 use QuestionnaireBundle\ApiDto\Questionnaire\Preview\PreviewIndexDto;
 use QuestionnaireBundle\ApiDto\Questionnaire\Preview\PreviewSectionIndexDto;
 
 final readonly class PreviewIndexProvider implements ProviderInterface
 {
     public function __construct(
-        private EntityManagerInterface $em,
+        private readonly QuestionnaireResolver $questionnaires,
         private readonly QuestionnaireStructureService $structureService,
     ) {}
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): PreviewIndexDto
     {
-        $uuid = $uriVariables['questionnaireUuid'];
-        $q = $this->em->getRepository(Questionnaire::class)->findOneBy(['uuid' => $uuid]);
-
-        if (!$q) {
-            throw new \RuntimeException('Questionnaire not found');
-        }
+        $q = $this->questionnaires->charger($uriVariables['questionnaireUuid'] ?? '', QuestionnaireVoter::VIEW);
 
         $plan = $this->structureService->buildPlan($q);
 

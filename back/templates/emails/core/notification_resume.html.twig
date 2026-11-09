@@ -1,0 +1,32 @@
+{% extends 'emails/layout.html.twig' %}
+
+{% block subject %}{{ nb_total }} nouveauté(s) {{ periode }}{% endblock %}
+
+{% block preheader %}{% for r in rubriques %}{{ r.libelle }} ({{ r.nombre }}){% if not loop.last %} · {% endif %}{% endfor %}{% endblock %}
+
+{% block body %}
+    <h1>Votre résumé</h1>
+
+    <p>Bonjour {{ destinataire_nom }},</p>
+
+    <p>Voici ce qui s'est passé {{ periode }} :</p>
+
+    {% for r in rubriques %}
+        <h2 style="font-size: 16px; margin: 24px 0 8px;">{{ r.libelle }} <span style="color: #6b7280; font-weight: normal;">({{ r.nombre }})</span></h2>
+        <ul style="margin: 0; padding-left: 20px;">
+            {% for e in r.elements %}
+                <li style="margin-bottom: 6px;">
+                    {% if e.url %}<a href="{{ e.url }}">{{ e.texte }}</a>{% else %}{{ e.texte }}{% endif %}
+                    {% if e.nombre > 1 %}<span style="color: #6b7280;"> (×{{ e.nombre }})</span>{% endif %}
+                </li>
+            {% endfor %}
+            {% if r.reste > 0 %}
+                <li style="color: #6b7280;">… et {{ r.reste }} autre(s)</li>
+            {% endif %}
+        </ul>
+    {% endfor %}
+
+    <p style="margin-top: 24px;">
+        <a href="{{ urlPortal|default('/app') }}" class="btn">Ouvrir l'application</a>
+    </p>
+{% endblock %}

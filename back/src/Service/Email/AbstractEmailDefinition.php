@@ -17,6 +17,11 @@ namespace App\Service\Email;
  */
 abstract class AbstractEmailDefinition
 {
+    /** Notification : le destinataire règle sa réception ; le pied de page porte le lien vers ses préférences. */
+    public const CATEGORIE_NOTIFICATION = 'notification';
+    /** Transactionnel (mot de passe, invitation, lien à usage unique…) : toujours envoyé, sans désabonnement. */
+    public const CATEGORIE_TRANSACTIONNEL = 'transactionnel';
+
     /**
      * Clé unique de l'email, ex : "questionnaire.invitation".
      */
@@ -61,6 +66,21 @@ abstract class AbstractEmailDefinition
      * @return array<string, string>
      */
     abstract public function getAvailableVariables(): array;
+
+    /**
+     * Clé d'un e-mail « parent » dont la personnalisation s'applique tant que celui-ci n'est pas personnalisé
+     * (ex. : chaque notification hérite du modèle générique « notification.immediate »). Null : pas d'héritage.
+     */
+    /** Nature de l'e-mail (CATEGORIE_*), qui détermine les mentions imposées dans le pied de page. */
+    public function getCategorie(): string
+    {
+        return self::CATEGORIE_TRANSACTIONNEL;
+    }
+
+    public function getParentKey(): ?string
+    {
+        return null;
+    }
 
     /**
      * Description humaine de l'email, affichée dans l'interface admin.

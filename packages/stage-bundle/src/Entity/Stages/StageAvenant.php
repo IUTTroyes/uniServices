@@ -11,24 +11,39 @@ use ApiPlatform\Metadata\Post;
 use App\Entity\Contracts\TimestampableInterface;
 use App\Entity\Traits\TimestampableTrait;
 use StageBundle\Repository\Stages\StageAvenantRepository;
+use StageBundle\State\StageAvenantProcessor;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: StageAvenantRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['stage_avenant:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['stage_avenant:read']]),
+        new Get(
+            normalizationContext: ['groups' => ['stage_avenant:read']],
+            security: "object.getStageEtudiant() and is_granted('STAGE_ETUDIANT_VIEW', object.getStageEtudiant())"
+        ),
+        // Les avenants d'un dossier sont exposés dans le dossier lui-même (stage_etudiant:read) ;
+        // la liste brute, tous départements confondus, est réservée au super administrateur.
+        new GetCollection(
+            normalizationContext: ['groups' => ['stage_avenant:read']],
+            security: "is_granted('SUPER_ADMIN')"
+        ),
+        // Demande d'avenant : l'étudiant pour son dossier, ou le service des stages
         new Post(
             normalizationContext: ['groups' => ['stage_avenant:read']],
-            denormalizationContext: ['groups' => ['stage_avenant:write']]
+            denormalizationContext: ['groups' => ['stage_avenant:write']],
+            securityPostDenormalize: "object.getStageEtudiant() and (is_granted('STAGE_ETUDIANT_MANAGE', object.getStageEtudiant()) or (is_granted('IS_ETUDIANT') and is_granted('STAGE_ETUDIANT_VIEW', object.getStageEtudiant())))",
+            processor: StageAvenantProcessor::class
         ),
         new Patch(
             normalizationContext: ['groups' => ['stage_avenant:read']],
-            denormalizationContext: ['groups' => ['stage_avenant:write']]
+            denormalizationContext: ['groups' => ['stage_avenant:write']],
+            security: "object.getStageEtudiant() and is_granted('STAGE_ETUDIANT_MANAGE', object.getStageEtudiant())",
+            securityPostDenormalize: "object.getStageEtudiant() and is_granted('STAGE_ETUDIANT_MANAGE', object.getStageEtudiant())"
         ),
-        new Delete()
+        new Delete(security: "object.getStageEtudiant() and is_granted('STAGE_ETUDIANT_MANAGE', object.getStageEtudiant())")
     ]
 )]
 class StageAvenant implements TimestampableInterface
@@ -46,16 +61,19 @@ class StageAvenant implements TimestampableInterface
     #[Groups(['stage_avenant:read', 'stage_avenant:write'])]
     private ?StageEtudiant $stageEtudiant = null;
 
+    #[Assert\NotBlank(message: "Indiquez l'objet de l'avenant.")]
     #[ORM\Column(length: 150)]
     #[Groups(['stage_avenant:read', 'stage_avenant:write', 'stage_etudiant:read'])]
     private ?string $libelle = null;
 
+    #[Assert\NotBlank(message: "Décrivez la modification demandée.")]
     #[ORM\Column(type: Types::TEXT)]
     #[Groups(['stage_avenant:read', 'stage_avenant:write', 'stage_etudiant:read'])]
     private ?string $texte = null;
 
     #[ORM\Column(length: 25)]
     #[Groups(['stage_avenant:read', 'stage_avenant:write', 'stage_etudiant:read'])]
+    #[Assert\Choice(choices: ['DATES', 'HORAIRES', 'GRATIFICATION', 'TUTEUR', 'AUTRE'], message: 'Type de modification inconnu.')]
     private ?string $typeModification = 'AUTRE'; // DATES, HORAIRES, GRATIFICATION, TUTEUR, AUTRE
 
     #[ORM\Column(type: Types::BOOLEAN)]

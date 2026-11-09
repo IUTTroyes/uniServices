@@ -62,7 +62,34 @@ const createStageEtudiantService = async (data, showToast = false) => {
     }
 };
 
+// ---------- Rapport de stage (fichier PDF stocké côté serveur) ----------
+
+/** URL de téléchargement du rapport (à utiliser dans un lien : le navigateur envoie le cookie de session). */
+const rapportStageUrl = (id) => `/api/stage_etudiants/${id}/rapport`;
+
+const deposerRapportStageService = async (id, file, onProgress = null) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post(rapportStageUrl(id), formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (event) => {
+            if (onProgress && event.total) {
+                onProgress(Math.round((event.loaded * 100) / event.total));
+            }
+        }
+    });
+    return response.data;
+};
+
+const retirerRapportStageService = async (id) => {
+    const response = await api.delete(rapportStageUrl(id));
+    return response.data;
+};
+
 export {
+    rapportStageUrl,
+    deposerRapportStageService,
+    retirerRapportStageService,
     getStageEtudiantsService,
     createStageEtudiantService,
     updateStageEtudiantService,

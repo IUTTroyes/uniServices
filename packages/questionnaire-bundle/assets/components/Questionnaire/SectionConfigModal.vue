@@ -1,284 +1,5 @@
-<template>
-  <Dialog
-    :style="{ width: '92vw', maxWidth: '850px' }"
-    :visible="true"
-    :modal="true"
-    :closable="true"
-    :draggable="false"
-    @update:visible="$emit('close')"
-  >
-    <template #header>
-      <DialogHeader
-        :icon="Cog6ToothIcon"
-        :title="isEditing ? 'Modifier la section' : 'Configuration de la section'"
-        subtitle="Définissez le type, les informations générales et les éléments évalués"
-      />
-    </template>
-
-    <form @submit.prevent="saveSection" class="q-form">
-      <!-- Section Type -->
-      <FormSection :icon="Squares2X2Icon" tone="blue" title="Type de section" subtitle="Choisissez comment cette section est structurée">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div
-            :class="['q-choice', localSection.typeSection === 'normal' && 'q-choice-active']"
-            @click="localSection.typeSection = 'normal'"
-          >
-            <DocumentTextIcon class="w-5 h-5 text-primary-600 dark:text-primary-400 shrink-0 mt-0.5" />
-            <div>
-              <span class="q-choice-title">Section normale</span>
-              <span class="q-choice-desc block">Section standard avec questions fixes posées une seule fois</span>
-            </div>
-          </div>
-
-          <div
-            :class="['q-choice', localSection.typeSection === 'configurable' && 'q-choice-active']"
-            @click="localSection.typeSection = 'configurable'"
-          >
-            <Cog6ToothIcon class="w-5 h-5 text-primary-600 dark:text-primary-400 shrink-0 mt-0.5" />
-            <div>
-              <span class="q-choice-title">Section configurable</span>
-              <span class="q-choice-desc block">Section répétée dynamiquement pour chaque élément d'une liste</span>
-            </div>
-          </div>
-        </div>
-      </FormSection>
-
-      <!-- Basic Section Info -->
-      <FormSection :icon="DocumentTextIcon" tone="slate" title="Informations générales">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField label="Titre de la section" for="section-title" required>
-            <input
-              id="section-title"
-              v-model="localSection.title"
-              type="text"
-              class="q-input"
-              placeholder="Ex: Évaluation pédagogique"
-              required
-            />
-          </FormField>
-
-          <div v-if="localSection.typeSection === 'configurable' && localSection.opt">
-            <FormField
-              label="Modèle de titre dynamique"
-              for="section-title-template"
-              hint="Utilisez {element} pour insérer automatiquement le nom"
-            >
-              <input
-                id="section-title-template"
-                v-model="localSection.opt.titleTemplate"
-                type="text"
-                class="q-input"
-                placeholder="Évaluation de {element}"
-              />
-            </FormField>
-          </div>
-        </div>
-
-        <FormField label="Description (optionnelle)" for="section-description">
-          <textarea
-            id="section-description"
-            v-model="localSection.description"
-            rows="3"
-            class="q-input"
-            placeholder="Précisez le contexte ou les consignes pour cette section..."
-          />
-        </FormField>
-      </FormSection>
-
-      <!-- Configurable Section Settings -->
-      <FormSection
-        v-if="localSection.typeSection === 'configurable' && localSection.opt"
-        :icon="ListBulletIcon"
-        tone="purple"
-        title="Configuration des éléments à évaluer"
-        subtitle="Sélectionnez les matières, ressources, SAÉ ou prévisionnels concernés"
-      >
-        <!-- Source Type Selection -->
-        <div>
-          <label class="q-label">Type d'éléments</label>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-            <div
-              v-for="sourceType in sourceTypes"
-              :key="sourceType.value"
-              :class="[
-                'p-3 rounded-xl border text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-1.5 shadow-2xs',
-                localSection.opt?.sourceType === sourceType.value
-                  ? 'bg-primary-50/70 dark:bg-primary-950/40 border-primary-400 dark:border-primary-700 text-primary-700 dark:text-primary-300 font-semibold'
-                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'
-              ]"
-              @click="selectSourceType(sourceType.value)"
-            >
-              <component :is="sourceType.icon" class="w-5 h-5" />
-              <span class="text-xs">{{ sourceType.label }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Elements Management -->
-        <div v-if="localSection.opt?.sourceType" class="space-y-4 pt-2">
-          <!-- Sélecteur de semestres -->
-          <div>
-            <div class="flex items-center justify-between gap-2 mb-2">
-              <label class="q-label !mb-0">Filtrer par semestre</label>
-              <div class="flex items-center gap-3 text-xs">
-                <button type="button" class="font-semibold text-primary-600 dark:text-primary-400 hover:underline border-0 bg-transparent cursor-pointer" @click="selectAllSemestres()">
-                  Tout sélectionner
-                </button>
-                <span class="text-slate-300 dark:text-slate-600">|</span>
-                <button type="button" class="text-slate-500 dark:text-slate-400 hover:underline border-0 bg-transparent cursor-pointer" @click="localSection.opt.selectedSemesters = []">
-                  Effacer
-                </button>
-              </div>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800">
-              <label
-                v-for="semestre in semestresList"
-                :key="semestre.id"
-                :class="[
-                  'px-3 py-1.5 rounded-lg border text-xs font-medium cursor-pointer transition-all flex items-center gap-2 select-none',
-                  localSection.opt.selectedSemesters?.includes(semestre.id)
-                    ? 'bg-primary-50 dark:bg-primary-950/60 border-primary-300 dark:border-primary-700 text-primary-700 dark:text-primary-300 font-semibold'
-                    : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300'
-                ]"
-              >
-                <input
-                  type="checkbox"
-                  :value="semestre.id"
-                  v-model="localSection.opt.selectedSemesters"
-                  class="q-check !w-3.5 !h-3.5"
-                />
-                <span>{{ semestre.libelle }}</span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Checklist of API Elements -->
-          <div>
-            <div class="flex items-center justify-between gap-2 mb-2">
-              <label class="q-label !mb-0">Éléments disponibles à évaluer</label>
-              <div v-if="availableElements.length > 0" class="flex items-center gap-3 text-xs">
-                <button type="button" class="font-semibold text-primary-600 dark:text-primary-400 hover:underline border-0 bg-transparent cursor-pointer" @click="selectAllElements">
-                  Tout sélectionner
-                </button>
-                <span class="text-slate-300 dark:text-slate-600">|</span>
-                <button type="button" class="text-slate-500 dark:text-slate-400 hover:underline border-0 bg-transparent cursor-pointer" @click="deselectAllElements">
-                  Effacer
-                </button>
-              </div>
-            </div>
-
-            <div v-if="isLoadingElements" class="flex justify-center items-center py-6 text-xs text-slate-500 gap-2">
-              <i class="pi pi-spin pi-spinner text-primary-500 text-lg"></i>
-              <span>Chargement des éléments...</span>
-            </div>
-
-            <div v-else-if="availableElements.length === 0" class="text-xs text-slate-500 py-6 text-center border border-dashed border-slate-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800">
-              Aucun élément disponible pour les semestres sélectionnés.
-            </div>
-
-            <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto border border-slate-200 dark:border-slate-700/80 rounded-xl p-3 bg-white dark:bg-slate-800">
-              <label 
-                v-for="avail in availableElements" 
-                :key="avail.id" 
-                :class="[
-                  'flex items-start gap-2.5 p-2.5 rounded-lg border text-xs cursor-pointer transition-colors',
-                  isElementSelected(avail)
-                    ? 'bg-primary-50/50 dark:bg-primary-950/30 border-primary-200 dark:border-primary-800/60'
-                    : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/50'
-                ]"
-              >
-                <input 
-                  type="checkbox" 
-                  :checked="isElementSelected(avail)" 
-                  @change="toggleElementSelection(avail)"
-                  class="q-check mt-0.5"
-                />
-                <div class="flex-1 min-w-0">
-                  <span class="font-medium text-slate-900 dark:text-white block truncate">{{ avail.name }}</span>
-                  <span v-if="avail.code" class="inline-block mt-0.5 text-[10px] px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded font-mono">{{ avail.code }}</span>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <!-- Custom / Manually Added Elements -->
-          <div class="pt-3 border-t border-slate-200 dark:border-slate-700/80">
-            <div class="flex items-center justify-between gap-3 mb-2">
-              <label class="q-label !mb-0">Éléments personnalisés / manuels</label>
-              <Button
-                type="button"
-                severity="secondary"
-                outlined
-                size="small"
-                icon="pi pi-plus"
-                label="Ajouter un élément"
-                @click="addCustomElement"
-              />
-            </div>
-
-            <p v-if="customElements.length === 0" class="q-hint italic">
-              Aucun élément personnalisé ajouté.
-            </p>
-            <div v-else class="space-y-2 max-h-48 overflow-y-auto pr-1">
-              <div
-                v-for="element in customElements"
-                :key="element.id"
-                class="flex items-center gap-2 p-2.5 border border-slate-200 dark:border-slate-700/80 rounded-xl bg-white dark:bg-slate-800"
-              >
-                <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <input
-                    v-model="element.name"
-                    type="text"
-                    class="q-input q-input-sm"
-                    placeholder="Nom de l'élément"
-                    required
-                  />
-                  <input
-                    v-model="element.code"
-                    type="text"
-                    class="q-input q-input-sm"
-                    placeholder="Code (optionnel)"
-                  />
-                </div>
-                <Button
-                  severity="danger"
-                  text
-                  rounded
-                  icon="pi pi-times"
-                  aria-label="Supprimer"
-                  @click="removeCustomElement(element)"
-                />
-              </div>
-            </div>
-          </div>
-
-          <!-- Preview -->
-          <div v-if="localSection.opt?.elements?.length > 0" class="q-callout q-callout-info">
-            <InformationCircleIcon class="w-4 h-4 shrink-0 mt-0.5" />
-            <div class="space-y-1">
-              <p class="font-semibold">Aperçu des sections générées ({{ localSection.opt.elements.length }})</p>
-              <div v-for="element in localSection.opt.elements.slice(0, 3)" :key="element.id" class="text-xs">
-                • {{ generateSectionTitle(element.name) }}
-              </div>
-              <div v-if="localSection.opt?.elements?.length > 3" class="text-[11px] opacity-80">
-                ... et {{ localSection.opt.elements.length - 3 }} autres sections
-              </div>
-            </div>
-          </div>
-        </div>
-      </FormSection>
-
-      <!-- Actions -->
-      <div class="q-actions">
-        <Button severity="secondary" outlined type="button" label="Annuler" @click="$emit('close')" />
-        <Button type="submit" icon="pi pi-check" :label="isEditing ? 'Mettre à jour' : 'Créer la section'" />
-      </div>
-    </form>
-  </Dialog>
-</template>
-
 <script setup lang="ts">
+import { EmptyState, ListSkeleton } from '@components';
 import { computed, onMounted, ref, watch } from 'vue';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
@@ -299,7 +20,7 @@ import {
   getSemestrePreviService,
   getEnseignementsService
 } from '@requests';
-import { getMiniSemestres } from '@/requests/questionnaire_services/questionnaireService';
+import { getMiniSemestresService } from '@/requests/questionnaire_service';
 import { v4 as uuidv4 } from 'uuid';
 import { DialogHeader, FormField, FormSection } from '../Form';
 
@@ -359,7 +80,7 @@ const loadSemestres = async () => {
     const res = await getDepartementSemestresService(deptId, true);
     semestres.value = res || [];
   } else {
-    const res = await getMiniSemestres();
+    const res = await getMiniSemestresService();
     semestres.value = res?.member || res || [];
   }
 
@@ -417,11 +138,14 @@ const fetchElements = async () => {
         const name = item.intervenant
           ? `${item.libelleEnseignement} (${item.intervenant})`
           : item.libelleEnseignement;
+        // Ligne de prévisionnel : un enseignement assuré par un intervenant (résultats diffusés à cet intervenant).
         return {
-          id: uuidv4(),
+          id: `previsionnel-${item.id}`,
           name: name,
           code: item.codeEnseignement,
-          semesters: [item.semId]
+          semesters: [item.semId],
+          enseignementId: item.idEnseignement,
+          personnelId: item.idPersonnel,
         };
       });
     } else {
@@ -447,22 +171,19 @@ const fetchElements = async () => {
       const allEnseignements = responses.flat().filter(Boolean);
       const filtered = allEnseignements.filter((item: any) => item.type === sourceType);
 
+      // Identifiant réel de l'enseignement : la diffusion des résultats retrouve ses intervenants.
       availableElements.value = filtered.map((item: any) => ({
-        id: uuidv4(),
+        id: `enseignement-${item.id}`,
         name: item.libelle,
         code: item.codeEnseignement,
-        semesters: [item.semId]
+        semesters: [item.semId],
+        enseignementId: item.id,
       }));
     }
 
     // Preselect all available elements if elements array is empty
     if (availableElements.value.length > 0 && (!localSection.value.opt.elements || localSection.value.opt.elements.length === 0)) {
-      localSection.value.opt.elements = availableElements.value.map(avail => ({
-        id: avail.id || uuidv4(),
-        name: avail.name,
-        code: avail.code,
-        semesters: avail.semesters || []
-      }));
+      localSection.value.opt.elements = availableElements.value.map(versElement);
     }
   } catch (error) {
     console.error('Erreur lors du chargement des éléments configurables:', error);
@@ -473,12 +194,7 @@ const fetchElements = async () => {
 
 const selectAllElements = () => {
   if (!localSection.value.opt) return;
-  localSection.value.opt.elements = availableElements.value.map(avail => ({
-    id: avail.id || uuidv4(),
-    name: avail.name,
-    code: avail.code,
-    semesters: avail.semesters || []
-  }));
+  localSection.value.opt.elements = availableElements.value.map(versElement);
 };
 
 const deselectAllElements = () => {
@@ -486,13 +202,19 @@ const deselectAllElements = () => {
   localSection.value.opt.elements = [];
 };
 
-const isElementSelected = (avail: ConfigurableElement) => {
-  if (!localSection.value.opt?.elements) return false;
-  return localSection.value.opt.elements.some(el => {
-    if (avail.code && el.code) return avail.code === el.code;
-    return avail.name === el.name;
-  });
-};
+/** Élément enregistré dans la section (identifiant stable, enseignement et intervenant éventuels). */
+const versElement = (avail: ConfigurableElement) => ({
+  id: avail.id,
+  name: avail.name,
+  code: avail.code,
+  semesters: avail.semesters || [],
+  enseignementId: avail.enseignementId ?? null,
+  personnelId: avail.personnelId ?? null,
+});
+
+// Comparaison par identifiant : plusieurs lignes de prévisionnel partagent le même code d'enseignement.
+const isElementSelected = (avail: ConfigurableElement) =>
+  !!localSection.value.opt?.elements?.some(el => el.id === avail.id);
 
 const toggleElementSelection = (avail: ConfigurableElement) => {
   if (!localSection.value.opt) return;
@@ -500,20 +222,12 @@ const toggleElementSelection = (avail: ConfigurableElement) => {
     localSection.value.opt.elements = [];
   }
 
-  const index = localSection.value.opt.elements.findIndex(el => {
-    if (avail.code && el.code) return avail.code === el.code;
-    return avail.name === el.name;
-  });
+  const index = localSection.value.opt.elements.findIndex(el => el.id === avail.id);
 
   if (index > -1) {
     localSection.value.opt.elements.splice(index, 1);
   } else {
-    localSection.value.opt.elements.push({
-      id: avail.id || uuidv4(),
-      name: avail.name,
-      code: avail.code,
-      semesters: avail.semesters || []
-    });
+    localSection.value.opt.elements.push(versElement(avail));
   }
 };
 
@@ -654,3 +368,275 @@ onMounted(async () => {
   }
 });
 </script>
+<template>
+  <Dialog
+    :style="{ width: '92vw', maxWidth: '850px' }"
+    :visible="true"
+    :modal="true"
+    :closable="true"
+    :draggable="false"
+    @update:visible="$emit('close')"
+  >
+    <template #header>
+      <DialogHeader
+        :icon="Cog6ToothIcon"
+        :title="isEditing ? 'Modifier la section' : 'Configuration de la section'"
+        subtitle="Définissez le type, les informations générales et les éléments évalués"
+      />
+    </template>
+
+    <form @submit.prevent="saveSection" class="q-form">
+      <!-- Section Type -->
+      <FormSection :icon="Squares2X2Icon" tone="blue" title="Type de section" subtitle="Choisissez comment cette section est structurée">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div
+            :class="['q-choice', localSection.typeSection === 'normal' && 'q-choice-active']"
+            @click="localSection.typeSection = 'normal'"
+          >
+            <DocumentTextIcon class="w-5 h-5 text-primary-600 dark:text-primary-400 shrink-0 mt-0.5" />
+            <div>
+              <span class="q-choice-title">Section normale</span>
+              <span class="q-choice-desc block">Section standard avec questions fixes posées une seule fois</span>
+            </div>
+          </div>
+
+          <div
+            :class="['q-choice', localSection.typeSection === 'configurable' && 'q-choice-active']"
+            @click="localSection.typeSection = 'configurable'"
+          >
+            <Cog6ToothIcon class="w-5 h-5 text-primary-600 dark:text-primary-400 shrink-0 mt-0.5" />
+            <div>
+              <span class="q-choice-title">Section configurable</span>
+              <span class="q-choice-desc block">Section répétée dynamiquement pour chaque élément d'une liste</span>
+            </div>
+          </div>
+        </div>
+      </FormSection>
+
+      <!-- Basic Section Info -->
+      <FormSection :icon="DocumentTextIcon" tone="slate" title="Informations générales">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField label="Titre de la section" for="section-title" required>
+            <input
+              id="section-title"
+              v-model="localSection.title"
+              type="text"
+              class="q-input"
+              placeholder="Ex: Évaluation pédagogique"
+              required
+            />
+          </FormField>
+
+          <div v-if="localSection.typeSection === 'configurable' && localSection.opt">
+            <FormField
+              label="Modèle de titre dynamique"
+              for="section-title-template"
+              hint="Utilisez {element} pour insérer automatiquement le nom"
+            >
+              <input
+                id="section-title-template"
+                v-model="localSection.opt.titleTemplate"
+                type="text"
+                class="q-input"
+                placeholder="Évaluation de {element}"
+              />
+            </FormField>
+          </div>
+        </div>
+
+        <FormField label="Description (optionnelle)" for="section-description">
+          <textarea
+            id="section-description"
+            v-model="localSection.description"
+            rows="3"
+            class="q-input"
+            placeholder="Précisez le contexte ou les consignes pour cette section..."
+          />
+        </FormField>
+      </FormSection>
+
+      <!-- Configurable Section Settings -->
+      <FormSection
+        v-if="localSection.typeSection === 'configurable' && localSection.opt"
+        :icon="ListBulletIcon"
+        tone="purple"
+        title="Configuration des éléments à évaluer"
+        subtitle="Sélectionnez les matières, ressources, SAÉ ou prévisionnels concernés"
+      >
+        <!-- Source Type Selection -->
+        <div>
+          <p class="q-label">Type d'éléments</p>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+            <div
+              v-for="sourceType in sourceTypes"
+              :key="sourceType.value"
+              :class="[
+                'p-3 rounded-xl border text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-1.5 shadow-2xs',
+                localSection.opt?.sourceType === sourceType.value
+                  ? 'bg-primary-50/70 dark:bg-primary-950/40 border-primary-400 dark:border-primary-700 text-primary-700 dark:text-primary-300 font-semibold'
+                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'
+              ]"
+              @click="selectSourceType(sourceType.value)"
+            >
+              <component :is="sourceType.icon" class="w-5 h-5" />
+              <span class="text-sm">{{ sourceType.label }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Elements Management -->
+        <div v-if="localSection.opt?.sourceType" class="space-y-4 pt-2">
+          <!-- Sélecteur de semestres -->
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <p class="q-label !mb-0">Filtrer par semestre</p>
+              <div class="flex items-center gap-3 text-sm">
+                <button type="button" class="font-semibold text-primary-600 dark:text-primary-400 hover:underline border-0 bg-transparent cursor-pointer" @click="selectAllSemestres()">
+                  Tout sélectionner
+                </button>
+                <span class="text-slate-300 dark:text-slate-600">|</span>
+                <button type="button" class="text-slate-500 dark:text-slate-400 hover:underline border-0 bg-transparent cursor-pointer" @click="localSection.opt.selectedSemesters = []">
+                  Effacer
+                </button>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800">
+              <label
+                v-for="semestre in semestresList"
+                :key="semestre.id"
+                :class="[
+                  'px-3 py-1.5 rounded-lg border text-sm font-medium cursor-pointer transition-all flex items-center gap-2 select-none',
+                  localSection.opt.selectedSemesters?.includes(semestre.id)
+                    ? 'bg-primary-50 dark:bg-primary-950/60 border-primary-300 dark:border-primary-700 text-primary-700 dark:text-primary-300 font-semibold'
+                    : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                ]"
+              >
+                <input
+                  type="checkbox"
+                  :value="semestre.id"
+                  v-model="localSection.opt.selectedSemesters"
+                  class="q-check !w-3.5 !h-3.5"
+                />
+                <span>{{ semestre.libelle }}</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Checklist of API Elements -->
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <p class="q-label !mb-0">Éléments disponibles à évaluer</p>
+              <div v-if="availableElements.length > 0" class="flex items-center gap-3 text-sm">
+                <button type="button" class="font-semibold text-primary-600 dark:text-primary-400 hover:underline border-0 bg-transparent cursor-pointer" @click="selectAllElements">
+                  Tout sélectionner
+                </button>
+                <span class="text-slate-300 dark:text-slate-600">|</span>
+                <button type="button" class="text-slate-500 dark:text-slate-400 hover:underline border-0 bg-transparent cursor-pointer" @click="deselectAllElements">
+                  Effacer
+                </button>
+              </div>
+            </div>
+
+            <ListSkeleton v-if="isLoadingElements" />
+
+            <EmptyState v-else-if="availableElements.length === 0" compact icon="pi pi-inbox" title="Aucun élément disponible" description="Aucun élément pour les semestres sélectionnés." />
+
+            <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto border border-slate-200 dark:border-slate-700/80 rounded-xl p-3 bg-white dark:bg-slate-800">
+              <label 
+                v-for="avail in availableElements" 
+                :key="avail.id" 
+                :class="[
+                  'flex items-start gap-2.5 p-2.5 rounded-lg border text-sm cursor-pointer transition-colors',
+                  isElementSelected(avail)
+                    ? 'bg-primary-50/50 dark:bg-primary-950/30 border-primary-200 dark:border-primary-800/60'
+                    : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                ]"
+              >
+                <input 
+                  type="checkbox" 
+                  :checked="isElementSelected(avail)" 
+                  @change="toggleElementSelection(avail)"
+                  class="q-check mt-0.5"
+                />
+                <div class="flex-1 min-w-0">
+                  <span class="font-medium text-slate-900 dark:text-white block truncate">{{ avail.name }}</span>
+                  <span v-if="avail.code" class="inline-block mt-0.5 text-sm px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded font-mono">{{ avail.code }}</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Custom / Manually Added Elements -->
+          <div class="pt-3 border-t border-slate-200 dark:border-slate-700/80">
+            <div class="flex items-center justify-between gap-3 mb-2">
+              <p class="q-label !mb-0">Éléments personnalisés / manuels</p>
+              <Button
+                type="button"
+                severity="secondary"
+                outlined
+                size="small"
+                icon="pi pi-plus"
+                label="Ajouter un élément"
+                @click="addCustomElement"
+              />
+            </div>
+
+            <EmptyState v-if="customElements.length === 0" compact icon="pi pi-plus-circle" title="Aucun élément personnalisé" />
+            <div v-else class="space-y-2 max-h-48 overflow-y-auto pr-1">
+              <div
+                v-for="element in customElements"
+                :key="element.id"
+                class="flex items-center gap-2 p-2.5 border border-slate-200 dark:border-slate-700/80 rounded-xl bg-white dark:bg-slate-800"
+              >
+                <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <input
+                    v-model="element.name"
+                    type="text"
+                    class="q-input q-input-sm"
+                    placeholder="Nom de l'élément"
+                    required
+                  />
+                  <input
+                    v-model="element.code"
+                    type="text"
+                    class="q-input q-input-sm"
+                    placeholder="Code (optionnel)"
+                  />
+                </div>
+                <Button
+                  severity="danger"
+                  text
+                  rounded
+                  icon="pi pi-times"
+                  aria-label="Supprimer"
+                  @click="removeCustomElement(element)"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Preview -->
+          <div v-if="localSection.opt?.elements?.length > 0" class="q-callout q-callout-info">
+            <InformationCircleIcon class="w-4 h-4 shrink-0 mt-0.5" />
+            <div class="space-y-1">
+              <p class="font-semibold">Aperçu des sections générées ({{ localSection.opt.elements.length }})</p>
+              <div v-for="element in localSection.opt.elements.slice(0, 3)" :key="element.id" class="text-sm">
+                • {{ generateSectionTitle(element.name) }}
+              </div>
+              <div v-if="localSection.opt?.elements?.length > 3" class="text-sm opacity-80">
+                ... et {{ localSection.opt.elements.length - 3 }} autres sections
+              </div>
+            </div>
+          </div>
+        </div>
+      </FormSection>
+
+      <!-- Actions -->
+      <div class="q-actions">
+        <Button severity="secondary" outlined type="button" label="Annuler" @click="$emit('close')" />
+        <Button type="submit" icon="pi pi-check" :label="isEditing ? 'Mettre à jour' : 'Créer la section'" />
+      </div>
+    </form>
+  </Dialog>
+</template>

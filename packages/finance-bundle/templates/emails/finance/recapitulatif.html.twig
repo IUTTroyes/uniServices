@@ -1,0 +1,27 @@
+{% extends 'emails/layout.html.twig' %}
+
+{% block preheader %}{{ total }} demande(s) d'achat en attente : {{ resume }}.{% endblock %}
+
+{% block body %}
+    <h1>Demandes d'achat en attente</h1>
+
+    <p>Bonjour{% if destinataire_nom %} {{ destinataire_nom }}{% endif %},</p>
+
+    <p>{{ total }} demande(s) d'achat sont en cours : {{ resume }}.</p>
+
+    {% for groupe in groupes %}
+        <h2 style="font-size:16px;margin:20px 0 8px;">{{ groupe.statut }} ({{ groupe.nombre }})</h2>
+        <ul style="padding-left:18px;margin:0;">
+            {% for ligne in groupe.lignes %}
+                <li style="margin-bottom:6px;">
+                    <a href="{{ ligne.lien }}">{{ ligne.objet }}</a>
+                    — {{ ligne.departement }}, {{ ligne.demandeur }}, {{ ligne.montant }}{% if ligne.numero %}, BC {{ ligne.numero }}{% endif %}
+                    <span style="color:#718096;">({{ ligne.depuis }})</span>
+                </li>
+            {% endfor %}
+        </ul>
+        {% if groupe.autres > 0 %}<p style="color:#718096;margin:4px 0 0;">… et {{ groupe.autres }} autre(s).</p>{% endif %}
+    {% endfor %}
+
+    <p><a href="{{ lien }}" class="btn">Ouvrir le tableau de bord</a></p>
+{% endblock %}

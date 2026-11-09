@@ -1,0 +1,24 @@
+{% extends 'emails/layout.html.twig' %}
+
+{% block subject %}[UniFolio] Une révision vous est demandée : {{ trace_titre }}{% endblock %}
+
+{% block preheader %}{{ evaluateur_nom }} vous demande de réviser « {{ trace_titre }} ».{% endblock %}
+
+{% block body %}
+    <h1>Une révision vous est demandée</h1>
+
+    <p>Bonjour {{ etudiant_nom }},</p>
+
+    <p>
+        <strong>{{ evaluateur_nom }}</strong> vous demande de réviser votre trace
+        <strong>« {{ trace_titre }} »</strong> avant de pouvoir l'évaluer.
+    </p>
+
+    <div style="background-color: #fffbeb; border-left: 4px solid #d97706; padding: 16px; margin: 20px 0; border-radius: 4px; white-space: pre-line;">{{ motif }}</div>
+
+    <p>Modifiez votre trace puis déposez-la à nouveau pour qu'elle soit reprise en évaluation.</p>
+
+    <p>
+        <a href="{{ urlPortal|default('/app/unifolio') }}" class="btn">Réviser ma trace</a>
+    </p>
+{% endblock %}

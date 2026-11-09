@@ -2,12 +2,14 @@
 
 namespace StageBundle\Entity\Stages;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\QueryParameter;
 use App\Entity\Contracts\TimestampableInterface;
 use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Users\Personnel;
@@ -19,17 +21,25 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: StageSoutenanceRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['stage_soutenance:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['stage_soutenance:read']]),
+        new Get(normalizationContext: ['groups' => ['stage_soutenance:read']], security: "is_granted('STAGE_PERIODE_MANAGE', object.getStagePeriode())"),
+        // Liste restreinte aux départements gérés : StageVisibiliteExtension
+        new GetCollection(normalizationContext: ['groups' => ['stage_soutenance:read']], security: "is_granted('IS_PERSONNEL')"),
+        // La planification passe par StageSoutenanceController (contrôle des conflits + notifications).
         new Post(
             normalizationContext: ['groups' => ['stage_soutenance:read']],
-            denormalizationContext: ['groups' => ['stage_soutenance:write']]
+            denormalizationContext: ['groups' => ['stage_soutenance:write']],
+            securityPostDenormalize: "is_granted('STAGE_PERIODE_MANAGE', object.getStagePeriode())"
         ),
         new Patch(
             normalizationContext: ['groups' => ['stage_soutenance:read']],
-            denormalizationContext: ['groups' => ['stage_soutenance:write']]
+            denormalizationContext: ['groups' => ['stage_soutenance:write']],
+            security: "is_granted('STAGE_PERIODE_MANAGE', object.getStagePeriode())",
+            securityPostDenormalize: "is_granted('STAGE_PERIODE_MANAGE', object.getStagePeriode())"
         ),
-        new Delete()
+        new Delete(security: "is_granted('STAGE_PERIODE_MANAGE', object.getStagePeriode())")
+    ],
+    parameters: [
+        'stagePeriode' => new QueryParameter(filter: SearchFilter::class),
     ]
 )]
 class StageSoutenance implements TimestampableInterface

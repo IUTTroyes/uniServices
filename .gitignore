@@ -59,3 +59,4 @@ packages/*/assets/node_modules/
 /.github/workflows/CI-front.yml
 /.github/workflows/CI-cypress.yml
 
+/packages/unifolio-bundle/renderer/dist/

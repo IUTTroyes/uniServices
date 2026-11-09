@@ -1,4 +1,5 @@
 <script setup>
+import { dateFr } from '@/utils/stage';
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
@@ -9,7 +10,9 @@ import BlocHelp from '@components/components/BlocHelp.vue';
 
 // Import Services for real API platform requests
 import { getStagePeriodesService, getStageEtudiantsService } from '@/requests/stage_service';
+import RapportStage from '@/components/RapportStage.vue';
 import { fetchStageOfferDocuments } from '@/requests/stage_documents';
+import AvenantsEtudiant from '@/components/AvenantsEtudiant.vue';
 import { useUsersStore } from '@stores';
 
 // Import Heroicons for KPIs and UI icons
@@ -26,7 +29,6 @@ import {
   ExclamationTriangleIcon,
   PencilSquareIcon,
   CloudArrowUpIcon,
-  TrashIcon,
   EyeIcon,
   CheckBadgeIcon,
   LockClosedIcon,
@@ -53,10 +55,6 @@ const studentDepartmentName = ref('');
 const showArchives = ref(false);
 
 // Upload state simulation
-const fileInput = ref(null);
-const isUploading = ref(false);
-const uploadProgress = ref(0);
-const activeUploadPeriodId = ref(null);
 
 // Modal state for offer details
 const selectedOffer = ref(null);
@@ -94,14 +92,7 @@ const mapStudentStageData = (matchedStage, respName) => {
   if (!matchedStage) return null;
 
   const etat = matchedStage.etatStage || 'ETAT_STAGE_DEPOSE';
-  const formatDate = (isoStr) => {
-    if (!isoStr) return '';
-    const parts = isoStr.substring(0, 10).split('-');
-    if (parts.length === 3) {
-      return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
-    return isoStr;
-  };
+  const formatDate = dateFr;
 
   let status = 'En attente de validation';
   let statusClass = 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50';
@@ -212,8 +203,10 @@ const mapStudentStageData = (matchedStage, respName) => {
     statusHeaderLabel,
     statusBadgeSeverity,
     reportUploaded: !!matchedStage.reportUploaded,
-    reportName: matchedStage.reportName || (matchedStage.reportUploaded ? 'Rapport_Stage_Final.pdf' : ''),
-    reportDate: matchedStage.reportDate || '',
+    reportName: matchedStage.reportName || '',
+    motifRefus: matchedStage.motifRefus || '',
+    avenants: matchedStage.avenants || [],
+    reportDate: matchedStage.reportDate ? new Date(matchedStage.reportDate).toLocaleDateString('fr-FR') : '',
     grade: matchedStage.evaluationNote ? `${matchedStage.evaluationNote} / 20` : null,
     workflowSteps: [
       { id: 1, label: 'Demande déposée', completed: step1Completed, date: step1Date },
@@ -504,81 +497,23 @@ const summaryKpis = computed(() => {
 });
 
 // Actions & Handlers
-const triggerFileUpload = (periodId) => {
-  activeUploadPeriodId.value = periodId;
-  if (fileInput.value) {
-    fileInput.value.click();
-  }
-};
-
-const handleFileChange = (e) => {
-  const file = e.target.files[0];
-  if (!file || activeUploadPeriodId.value === null) return;
-
-  const targetId = activeUploadPeriodId.value;
-  isUploading.value = true;
-  uploadProgress.value = 10;
-  
-  const interval = setInterval(() => {
-    uploadProgress.value += 30;
-    if (uploadProgress.value >= 100) {
-      clearInterval(interval);
-      isUploading.value = false;
-      
-      for (const year of Object.keys(studentAcademicHistory.value)) {
-        const period = studentAcademicHistory.value[year].periods.find(p => p.id === targetId);
-        if (period && period.stage) {
-          period.stage.reportUploaded = true;
-          period.stage.reportName = file.name;
-          period.stage.reportDate = new Date().toLocaleDateString('fr-FR');
-          
-          if (period.stage.workflowSteps) {
-            const reportStep = period.stage.workflowSteps.find(s => s.id === 5);
-            if (reportStep) {
-              reportStep.completed = true;
-              reportStep.date = new Date().toLocaleDateString('fr-FR');
-            }
-          }
-          break;
-        }
-      }
-
-      toast.add({
-        severity: 'success',
-        summary: 'Fichier déposé',
-        detail: `Le document "${file.name}" a été transmis avec succès.`,
-        life: 4000
-      });
-      activeUploadPeriodId.value = null;
-    }
-  }, 400);
-};
-
-const deleteReport = (periodId) => {
+// Met à jour la carte de la période après un dépôt ou un retrait (état renvoyé par le serveur).
+const appliquerEtatRapport = (periodId, etat) => {
   for (const year of Object.keys(studentAcademicHistory.value)) {
     const period = studentAcademicHistory.value[year].periods.find(p => p.id === periodId);
     if (period && period.stage) {
-      period.stage.reportUploaded = false;
-      period.stage.reportName = '';
-      period.stage.reportDate = '';
-      
-      if (period.stage.workflowSteps) {
-        const reportStep = period.stage.workflowSteps.find(s => s.id === 5);
-        if (reportStep) {
-          reportStep.completed = false;
-          reportStep.date = 'En attente';
-        }
+      period.stage.reportUploaded = !!etat.reportUploaded;
+      period.stage.reportName = etat.reportName || '';
+      period.stage.reportDate = etat.reportDate ? new Date(etat.reportDate).toLocaleDateString('fr-FR') : '';
+      const reportStep = period.stage.workflowSteps?.find(s => s.id === 5);
+      if (reportStep) {
+        reportStep.completed = !!etat.reportUploaded;
+        reportStep.date = etat.reportUploaded ? period.stage.reportDate : 'En attente';
       }
-      break;
+      return period;
     }
   }
-
-  toast.add({
-    severity: 'info',
-    summary: 'Dépôt annulé',
-    detail: 'Votre rapport de stage a été retiré.',
-    life: 3000
-  });
+  return null;
 };
 
 const navigateToRequest = (periodId) => {
@@ -602,7 +537,6 @@ const openOfferModal = (offer) => {
 
 <template>
   <div class="mx-auto space-y-6 pb-12">
-    <Toast />
 
     <!-- Main Header Component from Shared Library -->
     <HeaderComponent
@@ -975,6 +909,9 @@ const openOfferModal = (offer) => {
                       <p class="text-rose-700 dark:text-rose-300 leading-relaxed">
                         Des modifications ou précisions sont demandées sur votre déclaration. Veuillez corriger les informations nécessaires et déposer à nouveau votre demande.
                       </p>
+                      <p v-if="period.stage.motifRefus" class="text-rose-800 dark:text-rose-200 font-semibold whitespace-pre-line">
+                        Motif : {{ period.stage.motifRefus }}
+                      </p>
                     </div>
                   </div>
 
@@ -1044,6 +981,10 @@ const openOfferModal = (offer) => {
                           <span>{{ period.stage.etatStage === 'ETAT_STAGE_DEPOSE' ? 'Consulter / Corriger ma demande' : 'Compléter / Modifier ma convention' }}</span>
                         </button>
                       </div>
+                    </div>
+
+                    <div>
+                      <AvenantsEtudiant :stage="period.stage" @cree="fetchDashboardData" />
                     </div>
                   </Card>
                 </div>
@@ -1322,75 +1263,7 @@ const openOfferModal = (offer) => {
 
             <!-- SOUS-ONGLET 4 : RAPPORT DE STAGE -->
             <div v-else-if="getSubTab(period.id) === 'report' && period.hasStage">
-              <Card
-                title="Dépôt &amp; Évaluation du Rapport de Stage"
-                subtitle="Transmettez votre mémoire final au format PDF"
-                icon="pi pi-cloud-upload"
-                color="emerald"
-              >
-                <div class="space-y-4">
-                  <!-- Rapport déjà déposé -->
-                  <div 
-                    v-if="period.stage.reportUploaded" 
-                    class="bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm"
-                  >
-                    <div class="flex items-center gap-3">
-                      <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                        <i class="pi pi-file-pdf text-2xl"></i>
-                      </div>
-                      <div>
-                        <span class="text-xs font-black text-slate-900 dark:text-white block truncate max-w-[250px] sm:max-w-[350px]">
-                          {{ period.stage.reportName }}
-                        </span>
-                        <span class="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold block mt-0.5">
-                          Transmis le {{ period.stage.reportDate || 'Récemment' }} &bull; Statut : Validé pour correction
-                        </span>
-                      </div>
-                    </div>
-
-                    <div class="flex items-center gap-2 self-end sm:self-auto">
-                      <span v-if="period.stage.grade" class="text-xs font-black bg-emerald-600 text-white px-3 py-1.5 rounded-xl shadow-sm">
-                        Note attribuée : {{ period.stage.grade }}
-                      </span>
-                      <button 
-                        v-if="!period.stage.grade"
-                        @click="deleteReport(period.id)"
-                        class="text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-100/50 dark:hover:bg-rose-950/40 p-2 rounded-xl transition-all"
-                        title="Retirer le rapport"
-                      >
-                        <TrashIcon class="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Transfert en cours -->
-                  <div 
-                    v-else-if="isUploading && activeUploadPeriodId === period.id"
-                    class="border border-slate-200 dark:border-slate-700 rounded-2xl p-6 text-center bg-slate-50 dark:bg-slate-800/50"
-                  >
-                    <div class="w-10 h-10 flex items-center justify-center mx-auto text-violet-600">
-                      <i class="pi pi-spin pi-spinner text-2xl"></i>
-                    </div>
-                    <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 mt-2">Transfert du rapport en cours...</h4>
-                    <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-3 max-w-xs mx-auto overflow-hidden">
-                      <div class="bg-violet-600 h-full transition-all duration-300" :style="{ width: uploadProgress + '%' }"></div>
-                    </div>
-                  </div>
-
-                  <!-- Zone de dépôt PDF -->
-                  <div 
-                    v-else
-                    @click="triggerFileUpload(period.id)"
-                    class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-violet-500 rounded-2xl p-8 text-center cursor-pointer hover:bg-violet-50/20 dark:hover:bg-violet-950/10 transition-all duration-300 group"
-                  >
-                    <div class="w-12 h-12 bg-violet-100 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
-                      <CloudArrowUpIcon class="w-7 h-7" />
-                    </div>
-                    <h4 class="text-xs font-extrabold text-slate-800 dark:white mt-3">Déposer mon rapport de stage (PDF)</h4>
-                    <p class="text-[11px] text-slate-400 mt-1">Glissez votre fichier ici ou cliquez pour choisir sur votre ordinateur (max 15 Mo)</p>
-                  </div>
-                </div>
-              </Card>
+              <RapportStage :stage="period.stage" @change="etat => appliquerEtatRapport(period.id, etat)" />
             </div>
 
           </div>
@@ -1450,14 +1323,6 @@ const openOfferModal = (offer) => {
       </div>
     </Dialog>
 
-    <!-- Input fichier masqué pour les dépôts -->
-    <input 
-      type="file" 
-      ref="fileInput" 
-      @change="handleFileChange" 
-      accept=".pdf" 
-      class="hidden" 
-    />
   </div>
 </template>
 

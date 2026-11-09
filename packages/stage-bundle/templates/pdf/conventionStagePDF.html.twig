@@ -71,13 +71,13 @@
                 <div class="center"><strong><u>L’ÉTABLISSEMENT D’ENSEIGNEMENT OU DE
                                                FORMATION</u></strong></div>
                 <br>
-                <p>Nom : UNIVERSITÉ DE REIMS CHAMPAGNE-ARDENNE</p>
-                <p>Adresse : 2, avenue Robert Schuman 51100 Reims</p>
-                <p>Tél. : 03.26.91.34.68</p>
-                <p>Représentée par (signataire de la convention) : Martial Martin</p>
-                <p>Qualité du représentant : DIRECTEUR</p>
+                <p>Nom : {{ user_data.universite.libelle|upper }}</p>
+                <p>Adresse : {{ user_data.universite.adresse }}</p>
+                <p>Tél. : {{ user_data.universite.telephone|tel_format }}</p>
+                <p>Représentée par (signataire de la convention) : {{ user_data.etablissement.signataireNom }}</p>
+                <p>Qualité du représentant : {{ user_data.etablissement.signataireQualite|upper }}</p>
                 <p>Département/Composante : {{ proposition.etudiant.semestre.annee.diplome.typediplome
-                    .sigle }} {{ proposition.etudiant.semestre.annee.diplome.sigle }} / IUT de Troyes</p>
+                    .sigle }} {{ proposition.etudiant.semestre.annee.diplome.sigle }} / {{ user_data.etablissement.libelle }}</p>
                 <p>Tél. : {{ user_data.departement.telcontact|tel_format }}</p>
                 <p>Email : {{ proposition.etudiant.semestre.annee.diplome.assistantDiplome != null ? proposition.etudiant.semestre.annee.diplome.assistantDiplome.mailUniv : '' }}</p>
                 <p>Adresse (si différente de celle de l’établissement)
@@ -674,7 +674,7 @@
     <br>
     <table style="width:100%">
         <tr>
-            <td style="width:50%"><strong>POUR L’UNIVERSITÉ DE REIMS CHAMPAGNE-ARDENNE</strong></td>
+            <td style="width:50%"><strong>POUR L’ÉTABLISSEMENT : {{ user_data.universite.libelle|upper }}</strong></td>
             <td style="width:50%"><strong>ORGANISME D’ACCUEIL</strong></td>
         </tr>
         <tr>
@@ -775,7 +775,7 @@
                     .etudiant.semestre.annee.diplome.libelle }}</p>
                 <p><strong style="font-size: 14px">AU SEIN DE </strong>(nom de l'établissement d'enseignement supérieur)
                 </p>
-                <p>UNIVERSITÉ DE REIMS CHAMPAGNE-ARDENNE / IUT de Troyes</p>
+                <p>{{ user_data.universite.libelle|upper }} / {{ user_data.etablissement.libelle }}</p>
             </td>
         </tr>
     </table>

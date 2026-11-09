@@ -64,7 +64,39 @@ class StageEntreprise implements TimestampableInterface
 
     public function setSiret(?string $siret): self
     {
-        $this->siret = $siret;
+        $this->siret = self::normaliserSiret($siret);
+
+        return $this;
+    }
+
+    /** SIRET sans espaces ni ponctuation (null si vide) : clé de rapprochement des entreprises. */
+    public static function normaliserSiret(?string $siret): ?string
+    {
+        $chiffres = preg_replace('/\D+/', '', (string) $siret);
+
+        return $chiffres === '' || $chiffres === null ? null : $chiffres;
+    }
+
+    /**
+     * Reprend les informations saisies dans $source (raison sociale, SIRET, adresse, signataire).
+     * Le signataire existant est mis à jour plutôt que remplacé, pour ne pas laisser de contact orphelin.
+     */
+    public function copierDepuis(self $source): self
+    {
+        if ($source->getRaisonSociale() !== null && $source->getRaisonSociale() !== '') {
+            $this->raisonSociale = $source->getRaisonSociale();
+        }
+        $this->siret = $source->getSiret() ?? $this->siret;
+        $this->adresse = $source->getAdresse()?->toArray() ?? $this->adresse;
+
+        $responsable = $source->getResponsable();
+        if ($responsable !== null) {
+            if ($this->responsable !== null && $this->responsable !== $responsable) {
+                $this->responsable->copierDepuis($responsable);
+            } else {
+                $this->responsable = $responsable;
+            }
+        }
 
         return $this;
     }

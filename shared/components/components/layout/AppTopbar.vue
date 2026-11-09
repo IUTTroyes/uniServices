@@ -9,6 +9,8 @@ import { tools } from '@config/uniServices.js';
 import noImage from "@images/photos_etudiants/noimage.png";
 import { PermissionGuard } from "@components";
 import ApplicationBadge from '../Application/ApplicationBadge.vue';
+import NotificationBell from './NotificationBell.vue';
+import { normalizeAppSlug } from '@utils';
 import api from '@helpers/axios';
 
 const anneeUnivStore = useAnneeUnivStore();
@@ -156,6 +158,13 @@ const profileItems = ref([
         }
       },
       {
+        label: 'Notifications',
+        icon: 'pi pi-bell',
+        command: () => {
+          router.push('/auth/notifications');
+        }
+      },
+      {
         label: 'Paramètres',
         icon: 'pi pi-cog'
       },
@@ -216,7 +225,9 @@ const initiales = computed(() => {
 });
 
 const isEnabled = (item) => {
-  return item.urlSlug === 'intranet' || userStore.applications.includes(item.urlSlug);
+  const userApps = (userStore.applications || []).map(normalizeAppSlug);
+  const slug = normalizeAppSlug(item.urlSlug || item.name || item);
+  return slug === 'intranet' || userApps.includes(slug);
 };
 
 const activeTools = computed(() => {
@@ -350,10 +361,7 @@ const selectAnneeUniversitaire = (annee) => {
             </span>
             <span>Messages</span>
           </button>
-          <button type="button" class="layout-topbar-action">
-            <i class="pi pi-bell"></i>
-            <span>Notifications</span>
-          </button>
+          <NotificationBell />
           <div class="layout-config-menu">
             <button type="button" class="layout-topbar-action" @click="toggleDarkMode">
               <i :class="['pi', { 'pi-moon': isDarkTheme, 'pi-sun': !isDarkTheme }]"></i>

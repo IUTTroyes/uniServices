@@ -28,7 +28,13 @@ class EtablissementFixtures extends Fixture implements OrderedFixtureInterface
                 'complement2' => ''
             ])
             ->setSiteWeb('https://www.univ-reims.fr/iut-troyes')
+            ->setDirecteurNom('Martial Martin')
+            ->setSignataireNom('Martial Martin')
+            ->setSignataireQualite('Directeur de l\'IUT, par délégation du Président')
             ->setIsMain(true);
+        $etablissement->getUniversite()
+            ->setLibelle('Université de Reims Champagne-Ardenne')
+            ->setAdresse(['adresse' => '2 avenue Robert Schuman', 'ville' => 'Reims', 'codePostal' => '51100', 'pays' => 'France']);
 
         $manager->persist($etablissement);
         $manager->flush();

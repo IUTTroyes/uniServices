@@ -80,3 +80,29 @@ export function hexToRgb(hex) {
   const num = parseInt(c, 16);
   return `rgb(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, 1)`;
 }
+
+
+/**
+ * Couleurs des compétences APC : le référentiel stocke une clé (c1…c6), cf. styles/layout/_utils.scss.
+ * Accepte aussi une couleur CSS directe (#RRGGBB).
+ */
+const COULEURS_COMPETENCES = {
+  c1: '156, 43, 38',
+  c2: '208, 119, 64',
+  c3: '229, 185, 77',
+  c4: '65, 108, 63',
+  c5: '43, 76, 118',
+  c6: '127, 31, 83',
+};
+
+export const couleurCompetence = (cle, opacite = 1) => {
+  if (cle && COULEURS_COMPETENCES[cle]) return `rgba(${COULEURS_COMPETENCES[cle]}, ${opacite})`;
+  if (cle && /^#[0-9a-f]{6}$/i.test(cle)) {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(cle.slice(i, i + 2), 16));
+    return `rgba(${r}, ${g}, ${b}, ${opacite})`;
+  }
+  return opacite === 1 ? 'var(--p-primary-color)' : 'var(--p-content-hover-background)';
+};
+
+/** Texte lisible sur la couleur pleine d'une compétence (c3 est claire). */
+export const texteSurCompetence = (cle) => (cle === 'c3' ? '#1f2937' : '#ffffff');

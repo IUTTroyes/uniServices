@@ -7,6 +7,8 @@ const props = defineProps({
   icon: { type: String, default: null },
   message: { type: String, default: null },
   closable: { type: Boolean, default: true },
+  // true : laisse PrimeVue choisir l'icône de la sévérité (au lieu des icônes PrimeIcons de ce composant)
+  iconNative: { type: Boolean, default: false },
 })
 const computedIcon = computed(() => {
   if (props.icon) {
@@ -30,7 +32,7 @@ const hasSlotContent = useSlots().default?.().length > 0;
   <Message
       :closable="closable"
       :severity="severity"
-      :icon="computedIcon">
+      :icon="iconNative ? undefined : computedIcon">
     <template v-if="hasSlotContent">
       <slot />
     </template>

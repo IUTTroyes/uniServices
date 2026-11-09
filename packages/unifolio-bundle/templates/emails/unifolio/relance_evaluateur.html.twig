@@ -1,0 +1,30 @@
+{% extends 'emails/layout.html.twig' %}
+
+{% block subject %}[UniFolio] {{ nb_a_evaluer }} évaluation(s) en attente — {{ campagne_libelle }}{% endblock %}
+
+{% block preheader %}{{ nb_a_evaluer }} élément(s) attendent votre évaluation.{% endblock %}
+
+{% block body %}
+    <h1>Évaluations en attente</h1>
+
+    <p>Bonjour {{ evaluateur_nom }},</p>
+
+    <p>
+        Il vous reste <strong>{{ nb_a_evaluer }} élément(s)</strong> à évaluer pour la campagne
+        <strong>{{ campagne_libelle }}</strong>.
+    </p>
+
+    {% if limite %}
+        {% if en_retard %}
+        <div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px; border-radius: 4px; margin-bottom: 20px;">
+            La date limite d'évaluation (<strong>{{ limite }}</strong>) est dépassée.
+        </div>
+        {% else %}
+        <p>Date limite d'évaluation : <strong>{{ limite }}</strong>.</p>
+        {% endif %}
+    {% endif %}
+
+    <p>
+        <a href="{{ urlPortal|default('/app/unifolio') }}" class="btn">Ouvrir ma file d'évaluation</a>
+    </p>
+{% endblock %}

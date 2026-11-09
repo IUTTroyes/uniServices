@@ -1,14 +1,25 @@
 {# Layout commun texte brut pour tous les emails de l'application.
-   Blocs disponibles : subject, body, footer_extra
+   Blocs disponibles : subject, body, footer_extra. Pied de page imposé (cf. layout.html.twig).
 #}
+{% set h = habillage|default({}) %}
 =====================================
-UniServices{% if departement_libelle is defined and departement_libelle %} – {{ departement_libelle }}{% endif %}
+{{ h.etablissement|default('UniServices') }}{% if departement_libelle is defined and departement_libelle %} – {{ departement_libelle }}{% endif %}
 
 =====================================
 
 {% block body %}{% endblock %}
+{% if h.signature|default('') %}
+
+{{ h.signature }}
+{% endif %}
 
 -------------------------------------
 {% block footer_extra %}{% endblock %}
-Cet email a été envoyé automatiquement, merci de ne pas y répondre directement.
-© {{ "now"|date("Y") }} UniServices{% if departement_libelle is defined and departement_libelle %} – {{ departement_libelle }}{% endif %}
+{% if h.lien_preferences|default('') %}Vous recevez cet e-mail selon vos préférences de notification : {{ h.lien_preferences }}
+{% endif %}
+E-mail envoyé automatiquement par {{ h.expediteur|default('UniServices') }}, merci de ne pas y répondre directement.
+{% if h.mentions_legales|default('') %}{{ h.mentions_legales }}
+{% endif %}
+{% if h.contact_rgpd|default('') %}Données personnelles — pour exercer vos droits : {{ h.contact_rgpd }}
+{% endif %}
+© {{ "now"|date("Y") }} {{ h.etablissement|default('UniServices') }}{% if h.universite|default('') %} – {{ h.universite }}{% endif %}

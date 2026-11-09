@@ -20,9 +20,10 @@ final class ResolvedEmailTemplate
     ) {
     }
 
-    public static function fromDatabase(EmailTemplate $template): self
+    /** @param AbstractEmailDefinition|null $definition définition de l'e-mail (repli si la personnalisation échoue) */
+    public static function fromDatabase(EmailTemplate $template, ?AbstractEmailDefinition $definition = null): self
     {
-        return new self(self::SOURCE_DATABASE, $template, null);
+        return new self(self::SOURCE_DATABASE, $template, $definition);
     }
 
     public static function fromDefinition(AbstractEmailDefinition $definition): self

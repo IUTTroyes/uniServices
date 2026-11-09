@@ -11,6 +11,7 @@ use App\Entity\Traits\OptionTrait;
 use QuestionnaireBundle\Enum\QuestTypeRepeatEnum;
 use QuestionnaireBundle\Enum\QuestTypeSectionEnum;
 use QuestionnaireBundle\Repository\Questionnaires\QuestionnaireSectionRepository;
+use QuestionnaireBundle\State\QuestionnaireStructureProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -25,10 +26,14 @@ use Symfony\Component\Uid\Uuid;
 #[ApiResource(
     uriTemplate: '/questionnaires/{questionnaireId}/questionnaire_sections',
     operations: [
-        new GetCollection(normalizationContext: ['groups' => ['questionnaire_section:read']]),
+        // Liste restreinte par QuestionnaireVisibiliteExtension.
+        new GetCollection(normalizationContext: ['groups' => ['questionnaire_section:read']], security: "is_granted('IS_PERSONNEL')"),
+        // Le questionnaire parent (URL) et le droit de le gérer sont contrôlés par le processeur.
         new Post(
             read: false,
-            normalizationContext: ['groups' => ['questionnaire_section:read']]
+            normalizationContext: ['groups' => ['questionnaire_section:read']],
+            security: "is_granted('IS_PERSONNEL')",
+            processor: QuestionnaireStructureProcessor::class,
         ),
     ],
     uriVariables: [
@@ -38,8 +43,12 @@ use Symfony\Component\Uid\Uuid;
 #[ApiResource(
     uriTemplate: '/questionnaires/{questionnaireId}/questionnaire_sections/{uuid}',
     operations: [
-        new Patch(normalizationContext: ['groups' => ['questionnaire_section:read']]),
-        new Delete(),
+        new Patch(
+            normalizationContext: ['groups' => ['questionnaire_section:read']],
+            security: "is_granted('QUESTIONNAIRE_MANAGE', object)",
+            processor: QuestionnaireStructureProcessor::class,
+        ),
+        new Delete(security: "is_granted('QUESTIONNAIRE_MANAGE', object)", processor: QuestionnaireStructureProcessor::class),
     ],
     uriVariables: [
         'questionnaireId' => new Link(toProperty: 'questionnaire', fromClass: Questionnaire::class),
@@ -87,13 +96,14 @@ class QuestionnaireSection
      * @var Collection<int, QuestionnaireQuestion>
      */
     #[ORM\OneToMany(targetEntity: QuestionnaireQuestion::class, mappedBy: 'section', cascade: ['persist', 'remove'])]
+    #[ORM\OrderBy(['sortOrder' => 'ASC'])]
     #[Groups(['questionnaire_section:read'])]
     private Collection $questions;
 
     /**
      * @var Collection<int, QuestionnaireSectionInstance>
      */
-    #[ORM\OneToMany(targetEntity: QuestionnaireSectionInstance::class, mappedBy: 'section', cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(targetEntity: QuestionnaireSectionInstance::class, mappedBy: 'section')]
     private Collection $sectionInstances;
 
 

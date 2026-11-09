@@ -1,22 +1,19 @@
 {% extends 'emails/layout.txt.twig' %}
 
 {% block body %}
-Invitation au questionnaire : {{ questionnaire.title }}
----------------------------------------------------------
-
 Bonjour,
 
-Vous avez été invité(e) à répondre au questionnaire suivant :
+Vous êtes invité(e) à répondre au questionnaire « {{ questionnaire_titre }} ».
+{% if questionnaire_description %}
+{{ questionnaire_description }}
+{% endif %}
+{% if duree_estimee %}Durée estimée : {{ duree_estimee }} minute(s).{% endif %}
+{% if anonyme %}Vos réponses sont anonymes.{% endif %}
 
-  {{ questionnaire.title }}
-  {% if questionnaire.description %}{{ questionnaire.description }}{% endif %}
-
-Pour répondre, cliquez sur le lien ci-dessous :
-{{ surveyUrl }}
-
-{% if expiresAt is defined and expiresAt %}
-Cette invitation est valide jusqu'au {{ expiresAt|date('d/m/Y') }}.
+Répondre : {{ lien }}
+{% if date_cloture %}
+Le questionnaire est ouvert jusqu'au {{ date_cloture }}.
 {% endif %}
 
-Si vous pensez avoir reçu cet email par erreur, vous pouvez l'ignorer.
+Ce lien vous est personnel : ne le transférez pas.
 {% endblock %}

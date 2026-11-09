@@ -1,3 +1,24 @@
+<script setup lang="ts">
+import type { Component } from 'vue';
+import ToggleSwitch from 'primevue/toggleswitch';
+import { toneActiveClasses, toneIconClasses, type FormTone } from './tones';
+
+withDefaults(defineProps<{
+  modelValue: boolean;
+  title?: string;
+  description?: string;
+  icon?: Component;
+  tone?: FormTone;
+  control?: 'switch' | 'checkbox';
+  disabled?: boolean;
+}>(), {
+  tone: 'primary',
+  control: 'switch',
+  disabled: false
+});
+
+const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>();
+</script>
 <template>
   <label :class="['q-choice', modelValue ? toneActiveClasses[tone] : '', disabled ? 'opacity-60 !cursor-not-allowed' : '']">
     <div class="flex items-start gap-2.5 min-w-0 flex-1">
@@ -28,25 +49,3 @@
     />
   </label>
 </template>
-
-<script setup lang="ts">
-import type { Component } from 'vue';
-import ToggleSwitch from 'primevue/toggleswitch';
-import { toneActiveClasses, toneIconClasses, type FormTone } from './tones';
-
-withDefaults(defineProps<{
-  modelValue: boolean;
-  title?: string;
-  description?: string;
-  icon?: Component;
-  tone?: FormTone;
-  control?: 'switch' | 'checkbox';
-  disabled?: boolean;
-}>(), {
-  tone: 'primary',
-  control: 'switch',
-  disabled: false
-});
-
-const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>();
-</script>

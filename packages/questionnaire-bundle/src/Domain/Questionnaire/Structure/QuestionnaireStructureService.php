@@ -2,54 +2,48 @@
 
 namespace QuestionnaireBundle\Domain\Questionnaire\Structure;
 
-use QuestionnaireBundle\Domain\Questionnaire\Repeat\RepeatItemsProviderRegistry;
 use QuestionnaireBundle\Entity\Questionnaires\Questionnaire;
 use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireSection;
 use QuestionnaireBundle\Enum\QuestTypeSectionEnum;
 
 final class QuestionnaireStructureService
 {
-    public function __construct(private readonly RepeatItemsProviderRegistry $repeatRegistry) {}
-
     /**
-     * Plan des sections réelles.
-     * @return list<array{sectionTemplate: QuestionnaireSection, title: string, repeatItemType: ?string, repeatItemId: ?string, order: int}>
+     * Plan des sections réelles, dans l'ordre de l'éditeur : une section normale donne une section ; une section
+     * configurable donne une section par élément choisi (matière, ressource…), titrée d'après son patron.
+     *
+     * @return list<array{sectionTemplate: QuestionnaireSection, title: string, repeatItemType: ?string, repeatItemId: ?string, sortOrder: int, enseignementId: ?int, personnelId: ?int}>
      */
     public function buildPlan(Questionnaire $q): array
     {
-        $plan = [];
-        $order = 1;
+        $sections = $q->getSections()->toArray();
+        usort($sections, static fn (QuestionnaireSection $a, QuestionnaireSection $b) => $a->getSortOrder() <=> $b->getSortOrder());
 
-        foreach ($q->getSections() as $st) {
-            if ($st->getTypeSection() === QuestTypeSectionEnum::normal) {
-                $plan[] = [
-                    'sectionTemplate' => $st,
-                    'title' => $st->getTitle(),
-                    'repeatItemType' => null,
-                    'repeatItemId' => null,
-                    'sortOrder' => $order++,
-                ];
+        $plan = [];
+        $ordre = 1;
+        foreach ($sections as $st) {
+            if ($st->getTypeSection() !== QuestTypeSectionEnum::configurable) {
+                $plan[] = ['sectionTemplate' => $st, 'title' => (string) $st->getTitle(), 'repeatItemType' => null, 'repeatItemId' => null, 'sortOrder' => $ordre++, 'enseignementId' => null, 'personnelId' => null];
                 continue;
             }
 
-            // Section configurable : on boucle sur les éléments sauvegardés dans le JSON opt
+            // Les options ont des valeurs par défaut vides : « ?: » plutôt que « ?? ».
             $opts = $st->getOpt();
-            $elements = $opts['elements'] ?? [];
-            foreach ($elements as $el) {
-                $elementName = $el['name'] ?? '';
-                $elementId = $el['id'] ?? '';
-                $sourceType = $opts['sourceType'] ?? 'matiere';
-
-                // Génération du titre avec le patron
-                $titleTemplate = $opts['titleTemplate'] ?? 'Évaluation de {element}';
-                $title = str_replace('{element}', $elementName, $titleTemplate);
-
+            $type = (string) ($opts['sourceType'] ?: 'matiere');
+            $patron = (string) ($opts['titleTemplate'] ?: 'Évaluation de {element}');
+            foreach ($opts['elements'] ?? [] as $element) {
+                if (!\is_array($element)) {
+                    continue;
+                }
                 $plan[] = [
                     'sectionTemplate' => $st,
-                    'title' => $title,
-                    'repeatItemType' => $sourceType,
-                    'repeatItemId' => $elementId,
-                    'sortOrder' => $order++,
+                    'title' => str_replace('{element}', (string) ($element['name'] ?? ''), $patron),
+                    'repeatItemType' => $type,
+                    'repeatItemId' => isset($element['id']) ? (string) $element['id'] : null,
+                    'sortOrder' => $ordre++,
+                    // Enseignement évalué et, pour une ligne de prévisionnel, l'intervenant (renseignés par l'éditeur).
+                    'enseignementId' => is_numeric($element['enseignementId'] ?? null) ? (int) $element['enseignementId'] : null,
+                    'personnelId' => is_numeric($element['personnelId'] ?? null) ? (int) $element['personnelId'] : null,
                 ];
             }
         }

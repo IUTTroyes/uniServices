@@ -17,6 +17,7 @@ use App\Entity\Users\Personnel;
 use App\ValueObject\Adresse;
 use StageBundle\Enum\EtatStageEnum;
 use StageBundle\Repository\Stages\StageEtudiantRepository;
+use StageBundle\State\StageEtudiantProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -25,23 +26,35 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 use ApiPlatform\Metadata\ApiFilter;
-use App\Filter\StageEtudiantFilter;
+use StageBundle\Filter\StageEtudiantFilter;
 
 #[ORM\Entity(repositoryClass: StageEtudiantRepository::class)]
 #[ApiFilter(StageEtudiantFilter::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']]),
+        new Get(
+            normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']],
+            security: "is_granted('STAGE_ETUDIANT_VIEW', object)"
+        ),
+        // Liste restreinte aux dossiers visibles par l'utilisateur : StageVisibiliteExtension
+        new GetCollection(
+            normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']],
+            security: "is_granted('IS_PERSONNEL') or is_granted('IS_ETUDIANT')"
+        ),
         new Post(
             normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']],
-            denormalizationContext: ['groups' => ['stage_etudiant:write']]
+            denormalizationContext: ['groups' => ['stage_etudiant:write']],
+            securityPostDenormalize: "is_granted('STAGE_ETUDIANT_EDIT', object)",
+            processor: StageEtudiantProcessor::class
         ),
         new Patch(
             normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']],
-            denormalizationContext: ['groups' => ['stage_etudiant:write']]
+            denormalizationContext: ['groups' => ['stage_etudiant:write']],
+            security: "is_granted('STAGE_ETUDIANT_EDIT', object)",
+            securityPostDenormalize: "is_granted('STAGE_ETUDIANT_EDIT', object)",
+            processor: StageEtudiantProcessor::class
         ),
-        new Delete()
+        new Delete(security: "is_granted('STAGE_ETUDIANT_MANAGE', object)")
     ],
     parameters: [
         'stagePeriode' => new QueryParameter(filter: StageEtudiantFilter::class),
@@ -83,24 +96,33 @@ class StageEtudiant implements TimestampableInterface
     private ?string $sujetStage = '';
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
+    // Posé par le serveur (StageEtudiantProcessor / StageRapportController), jamais par le client.
+    #[Groups(['stage_etudiant:read'])]
     private ?\DateTimeInterface $dateDepotFormulaire = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
+    // Posé par le serveur (StageEtudiantProcessor / StageRapportController), jamais par le client.
+    #[Groups(['stage_etudiant:read'])]
     private ?\DateTimeInterface $dateValidation = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
+    // Posé par le serveur (StageEtudiantProcessor / StageRapportController), jamais par le client.
+    #[Groups(['stage_etudiant:read'])]
     private ?\DateTimeInterface $dateConventionEnvoyee = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
+    // Posé par le serveur (StageEtudiantProcessor / StageRapportController), jamais par le client.
+    #[Groups(['stage_etudiant:read'])]
     private ?\DateTimeInterface $dateConventionRecu = null;
 
     #[ORM\Column(type: Types::STRING, length: 50, enumType: EtatStageEnum::class)]
     #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
     private EtatStageEnum $etatStage = EtatStageEnum::AUTORISE;
+
+    /** Motif communiqué à l'étudiant quand sa demande est refusée (effacé quand il la redépose). */
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
+    private ?string $motifRefus = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     #[Groups(['stage_entreprise_administration', 'stage_entreprise', 'stage_periode_gestion', 'stage_etudiant:read', 'stage_etudiant:write'])]
@@ -158,7 +180,8 @@ class StageEtudiant implements TimestampableInterface
     #[Groups(['stage_periode_gestion', 'stage_etudiant:read', 'stage_etudiant:write'])]
     private ?Personnel $tuteurUniversitaire = null;
 
-    #[ORM\ManyToOne(targetEntity: StageEntreprise::class, inversedBy: 'stageEtudiants', cascade: ['persist', 'remove'])]
+    // Pas de cascade « remove » : une entreprise est partagée entre plusieurs dossiers.
+    #[ORM\ManyToOne(targetEntity: StageEntreprise::class, inversedBy: 'stageEtudiants', cascade: ['persist'])]
     #[Groups(['stage_entreprise_administration', 'stage_periode_gestion', 'stage_etudiant:read', 'stage_etudiant:write'])]
     private ?StageEntreprise $entreprise = null;
 
@@ -171,11 +194,13 @@ class StageEtudiant implements TimestampableInterface
     private ?string $assuranceNumero = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
+    // Posé par le serveur (StageEtudiantProcessor / StageRapportController), jamais par le client.
+    #[Groups(['stage_etudiant:read'])]
     private ?\DateTimeInterface $dateAutorise = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
+    // Posé par le serveur (StageEtudiantProcessor / StageRapportController), jamais par le client.
+    #[Groups(['stage_etudiant:read'])]
     private ?\DateTimeInterface $dateImprime = null;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
@@ -203,12 +228,26 @@ class StageEtudiant implements TimestampableInterface
     private ?array $suiviRencontres = [];
 
     #[ORM\Column(type: Types::BOOLEAN)]
-    #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
+    // Posé par le serveur (StageEtudiantProcessor / StageRapportController), jamais par le client.
+    #[Groups(['stage_etudiant:read'])]
     private bool $reportUploaded = false;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
-    #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
+    // Posé par le serveur (StageEtudiantProcessor / StageRapportController), jamais par le client.
+    #[Groups(['stage_etudiant:read'])]
     private ?string $reportName = null;
+
+    /** Chemin du rapport déposé, relatif au dossier de stockage (jamais exposé). */
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $reportPath = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Groups(['stage_etudiant:read'])]
+    private ?\DateTimeInterface $reportDate = null;
+
+    /** Date d'anonymisation (purge des données personnelles, cf. stage:purger) ; null tant que le dossier est actif. */
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $anonymiseLe = null;
 
     /**
      * @var Collection<int, StageAvenant>
@@ -347,6 +386,30 @@ class StageEtudiant implements TimestampableInterface
         $this->etatStage = $etatStage;
 
         return $this;
+    }
+
+    public function getMotifRefus(): ?string
+    {
+        return $this->motifRefus;
+    }
+
+    public function setMotifRefus(?string $motifRefus): self
+    {
+        $motifRefus = $motifRefus !== null ? trim($motifRefus) : null;
+        $this->motifRefus = $motifRefus !== '' ? $motifRefus : null;
+
+        return $this;
+    }
+
+    /**
+     * États vers lesquels le dossier peut passer (cf. EtatStageEnum::transitionsPossibles), pour les écrans.
+     *
+     * @return list<string>
+     */
+    #[Groups(['stage_etudiant:read'])]
+    public function getTransitionsPossibles(): array
+    {
+        return array_map(static fn (EtatStageEnum $e) => $e->value, $this->etatStage->transitionsPossibles());
     }
 
     public function getActivites(): ?string
@@ -657,6 +720,61 @@ class StageEtudiant implements TimestampableInterface
     public function setReportName(?string $reportName): self
     {
         $this->reportName = $reportName;
+
+        return $this;
+    }
+
+    public function getReportPath(): ?string
+    {
+        return $this->reportPath;
+    }
+
+    public function getReportDate(): ?\DateTimeInterface
+    {
+        return $this->reportDate;
+    }
+
+    public function getAnonymiseLe(): ?\DateTimeInterface
+    {
+        return $this->anonymiseLe;
+    }
+
+    /**
+     * Efface les données personnelles du dossier (étudiant, coordonnées, textes libres, suivi, avenants) et garde ce qui
+     * sert aux statistiques : période, entreprise, dates, durée, gratification, statut, note.
+     * Le rapport et le tuteur entreprise sont à effacer par l'appelant (fichier sur disque, ligne de contact).
+     */
+    public function anonymiser(): self
+    {
+        $this->etudiant = null;
+        $this->tuteur = null;
+        $this->sujetStage = null;
+        $this->activites = null;
+        $this->amenagementStage = null;
+        $this->avantages = null;
+        $this->adresseStage = null;
+        $this->assuranceCompagnie = null;
+        $this->assuranceNumero = null;
+        $this->periodesInterruptions = null;
+        $this->commentaireDureeHebdomadaire = null;
+        $this->evaluationCommentaire = null;
+        $this->suiviRencontres = null;
+        $this->motifRefus = null;
+        $this->serviceStageEntreprise = null;
+        $this->deposerRapport(null, null);
+        $this->avenants->clear();
+        $this->anonymiseLe = new \DateTime();
+
+        return $this;
+    }
+
+    /** Enregistre (ou retire, avec null) le rapport déposé. */
+    public function deposerRapport(?string $chemin, ?string $nom): self
+    {
+        $this->reportPath = $chemin;
+        $this->reportName = $chemin !== null ? $nom : null;
+        $this->reportUploaded = $chemin !== null;
+        $this->reportDate = $chemin !== null ? new \DateTime() : null;
 
         return $this;
     }

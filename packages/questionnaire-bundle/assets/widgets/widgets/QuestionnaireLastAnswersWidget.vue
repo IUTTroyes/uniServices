@@ -1,6 +1,6 @@
 <script setup>
+import { computed } from 'vue';
 import { EmptyState } from '@components';
-import { computed, defineProps } from 'vue';
 
 const props = defineProps({
     data: {
@@ -18,5 +18,5 @@ const items = computed(() => props.data?.items || []);
             {{ item }}
         </li>
     </ul>
-    <EmptyState v-else compact title="Aucune réponse récente." />
+    <EmptyState v-else compact title="Aucune réponse récente" icon="pi pi-history" />
 </template>

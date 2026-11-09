@@ -1,4 +1,5 @@
 <script setup>
+import CriteresEvaluationPeriode from '@/components/CriteresEvaluationPeriode.vue';
 import { Card } from '@components';
 import {
   CalendarIcon,
@@ -186,6 +187,16 @@ const emit = defineEmits(['edit']);
             </p>
           </div>
         </div>
+      </Card>
+
+      <Card
+        title="Évaluation par le tuteur en entreprise"
+        subtitle="Grille envoyée par e-mail à l'organisme d'accueil."
+        :icon="DocumentTextIcon"
+        iconClass="text-violet-600 dark:text-violet-400"
+        iconBgClass="bg-violet-50 dark:bg-violet-950/20 border-violet-100 dark:border-violet-900/30"
+      >
+        <CriteresEvaluationPeriode :periode-id="period.id" />
       </Card>
     </div>
   </div>

@@ -40,7 +40,7 @@
 
         /* Header */
         .email-header {
-            background-color: {{ departement_couleur|default('#1a3a5c') }};
+            background-color: {{ couleur_principale|default('#1a3a5c') }};
             padding: 28px 40px;
             text-align: left;
         }
@@ -84,13 +84,13 @@
             margin-bottom: 16px;
         }
         .email-body a {
-            color: {{ departement_couleur|default('#1a3a5c') }};
+            color: {{ couleur_principale|default('#1a3a5c') }};
         }
 
         /* Button */
         .btn {
             display: inline-block;
-            background-color: {{ departement_couleur|default('#1a3a5c') }};
+            background-color: {{ couleur_principale|default('#1a3a5c') }};
             color: #ffffff !important;
             text-decoration: none;
             padding: 12px 28px;
@@ -137,6 +137,10 @@
             color: #9aa5b4;
             margin-bottom: 4px;
         }
+        .signature {
+            margin-top: 28px;
+            color: #4a5568;
+        }
         .email-footer a {
             color: #9aa5b4;
             text-decoration: underline;
@@ -155,32 +159,48 @@
     <div class="email-wrapper">
         <div class="email-container">
 
+            {#
+               En-tête et pied de page : imposés à tous les e-mails (ni l'éditeur des modèles ni un package ne peuvent les
+               retirer). Contenu fourni par EmailService (habillage de l'établissement, cf. Etablissement::getHabillageEmails).
+            #}
+            {% set h = habillage|default({}) %}
+
             {# ── Header ── #}
             <div class="email-header">
-                {% if departement_logo is defined and departement_logo %}
-                    <img src="{{ departement_logo }}" alt="{{ departement_libelle|default('UniServices') }}">
+                {% if h.logo_url|default('') %}
+                    <img src="{{ h.logo_url }}" alt="{{ h.etablissement|default('UniServices') }}">
                 {% else %}
-                    <span class="app-name">UniServices</span>
-                    {% if departement_libelle is defined and departement_libelle %}
-                        <div class="dept-name">{{ departement_libelle }}</div>
-                    {% endif %}
+                    <span class="app-name">{{ h.etablissement|default('UniServices') }}</span>
+                {% endif %}
+                {% if departement_libelle is defined and departement_libelle %}
+                    <div class="dept-name">{{ departement_libelle }}</div>
                 {% endif %}
             </div>
 
             {# ── Corps principal ── #}
             <div class="email-body">
                 {% block body %}{% endblock %}
+                {% if h.signature|default('') %}
+                    <p class="signature">{{ h.signature|nl2br }}</p>
+                {% endif %}
             </div>
 
-            {# ── Footer ── #}
+            {# ── Pied de page (mentions imposées) ── #}
             <div class="email-footer">
                 {% block footer_extra %}{% endblock %}
-                <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre directement.</p>
-                <p>&copy; {{ "now"|date("Y") }} UniServices
-                    {% if departement_libelle is defined and departement_libelle %}
-                        – {{ departement_libelle }}
-                    {% endif %}
-                </p>
+                {% if h.lien_preferences|default('') %}
+                    <p>Vous recevez cet e-mail selon vos préférences de notification :
+                        <a href="{{ h.lien_preferences }}">gérer mes préférences de notification</a>.</p>
+                {% endif %}
+                <p>E-mail envoyé automatiquement par {{ h.expediteur|default('UniServices') }}, merci de ne pas y répondre directement.</p>
+                {% if h.mentions_legales|default('') %}
+                    <p>{{ h.mentions_legales|nl2br }}</p>
+                {% endif %}
+                {% if h.contact_rgpd|default('') %}
+                    <p>Vos données personnelles sont traitées par l'établissement pour les besoins de votre scolarité ou de votre activité.
+                        Pour exercer vos droits (accès, rectification, opposition) : {{ h.contact_rgpd }}.</p>
+                {% endif %}
+                <p>&copy; {{ "now"|date("Y") }} {{ h.etablissement|default('UniServices') }}{% if h.universite|default('') %} – {{ h.universite }}{% endif %}</p>
             </div>
 
         </div>

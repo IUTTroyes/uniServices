@@ -2,6 +2,9 @@
 
 namespace QuestionnaireBundle\Domain\Questionnaire\Duplicate;
 
+use App\Entity\Structure\StructureAnneeUniversitaire;
+use App\Entity\Structure\StructureDepartement;
+use App\Entity\Users\Personnel;
 use Doctrine\ORM\EntityManagerInterface;
 use QuestionnaireBundle\Entity\Questionnaires\Questionnaire;
 use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireQuestion;
@@ -15,7 +18,16 @@ final class DuplicateQuestionnaireService
         private readonly EntityManagerInterface $em
     ) {}
 
-    public function duplicate(Questionnaire $source, ?string $newTitle = null): array
+    /**
+     * Copie complète (sections, questions, règles conditionnelles réécrites). La copie est un brouillon de l'année
+     * universitaire en cours ; chaque question garde la trace de sa question d'origine (comparaison entre campagnes).
+     *
+     * Options : 'departement' (département de la copie, sinon celui de la source), 'modele' (la copie est un modèle),
+     * 'modeleOrigine' (modèle dont la copie est une campagne).
+     *
+     * @param array{departement?: ?StructureDepartement, modele?: bool, modeleOrigine?: ?Questionnaire} $options
+     */
+    public function duplicate(Questionnaire $source, ?string $newTitle = null, ?Personnel $auteur = null, array $options = []): array
     {
         $this->em->beginTransaction();
         try {
@@ -26,9 +38,13 @@ final class DuplicateQuestionnaireService
             $duplicate->setStatus(QuestStatutEnum::DRAFT);
             $duplicate->setOpeningDate(null);
             $duplicate->setClosingDate(null);
-            $duplicate->setOpt($source->getOpt() ?? []);
-            $duplicate->setDepartement($source->getDepartement());
-            $duplicate->setAuthor($source->getAuthor());
+            $duplicate->setOpt($source->getOpt());
+            $duplicate->setDepartement(\array_key_exists('departement', $options) ? $options['departement'] : $source->getDepartement());
+            $duplicate->setEstModele($options['modele'] ?? false);
+            $duplicate->setModeleOrigine($options['modeleOrigine'] ?? ($source->isEstModele() ? null : $source->getModeleOrigine()));
+            $duplicate->setAnneeUniversitaire($duplicate->isEstModele() ? null : $this->em->getRepository(StructureAnneeUniversitaire::class)->findOneBy(['actif' => true], ['id' => 'DESC']));
+            // La copie appartient à la personne qui la crée.
+            $duplicate->setAuthor($auteur ?? $source->getAuthor());
             $duplicate->setCompletionNotified(false);
             $duplicate->setCompletionNotifiedAt(null);
 
@@ -52,7 +68,7 @@ final class DuplicateQuestionnaireService
                 $newSection->setDescription($section->getDescription());
                 $newSection->setSortOrder($section->getSortOrder());
                 $newSection->setTypeSection($section->getTypeSection());
-                $newSection->setOpt($section->getOpt() ?? []);
+                $newSection->setOpt($section->getOpt());
                 $newSection->setQuestionnaire($duplicate);
 
                 $sectionUuidMap[(string)$section->getUuid()] = (string)$newSection->getUuid();
@@ -73,7 +89,8 @@ final class DuplicateQuestionnaireService
                     $newQ->setChoices($q->getChoices());
                     $newQ->setConditionalRules($q->getConditionalRules());
                     $newQ->setSortOrder($q->getSortOrder());
-                    $newQ->setOpt($q->getOpt() ?? []);
+                    $newQ->setOrigine($q->cleComparaison());
+                    $newQ->setOpt($q->getOpt());
                     $newQ->setSection($newSection);
 
                     $questionUuidMap[(string)$q->getUuid()] = (string)$newQ->getUuid();
@@ -89,7 +106,7 @@ final class DuplicateQuestionnaireService
             // 2. Re-map conditional rules across all cloned questions
             foreach ($allClonedQuestions as $newQ) {
                 $rules = $newQ->getConditionalRules();
-                if (!empty($rules) && is_array($rules)) {
+                if (!empty($rules)) {
                     $remappedRules = [];
                     $ruleList = isset($rules[0]) && is_array($rules[0]) ? $rules : [$rules];
 

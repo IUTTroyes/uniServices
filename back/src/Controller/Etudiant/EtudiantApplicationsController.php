@@ -60,6 +60,18 @@ class EtudiantApplicationsController extends AbstractController
 
         if (!empty($etudiantIds) && is_array($etudiantIds)) {
             $etudiants = $this->etudiantRepository->findBy(['id' => $etudiantIds]);
+            if (empty($etudiants)) {
+                // Tenter via les IDs de scolarité au cas où des scolariteId auraient été passés
+                $scols = $this->etudiantScolariteRepository->findBy(['id' => $etudiantIds]);
+                $resolved = [];
+                foreach ($scols as $scol) {
+                    $e = $scol->getEtudiant();
+                    if ($e && !in_array($e, $resolved, true)) {
+                        $resolved[] = $e;
+                    }
+                }
+                $etudiants = $resolved;
+            }
         } elseif ($anneeId !== null) {
             $qb = $this->etudiantScolariteRepository->createQueryBuilder('es')
                 ->select('DISTINCT e')
@@ -68,7 +80,6 @@ class EtudiantApplicationsController extends AbstractController
                 ->join('ss.semestre', 's')
                 ->join('s.annee', 'a')
                 ->where('a.id = :anneeId')
-                ->andWhere('es.actif = true')
                 ->setParameter('anneeId', $anneeId);
 
             if ($departementId) {
@@ -96,11 +107,14 @@ class EtudiantApplicationsController extends AbstractController
         }
 
         foreach ($etudiants as $etudiant) {
-            $rawApps = $etudiant->getApplications() ?? ['Intranet'];
+            $rawApps = $etudiant->getApplications() ?? ['intranet'];
+            if (is_string($rawApps)) {
+                $rawApps = json_decode($rawApps, true) ?? ['intranet'];
+            }
             $currentApps = array_values(array_unique(array_map(function ($app) {
                 $low = strtolower(trim((string) $app));
                 return $low === 'intranet' ? 'intranet' : $low;
-            }, $rawApps)));
+            }, (array) $rawApps)));
 
             if ($action === 'add') {
                 $merged = array_values(array_unique(array_merge($currentApps, $inputApps)));

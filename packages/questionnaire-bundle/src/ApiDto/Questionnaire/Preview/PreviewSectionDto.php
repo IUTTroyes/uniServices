@@ -16,6 +16,8 @@ use QuestionnaireBundle\Enum\QuestTypeRepeatEnum;
 #[ApiResource(
     operations: [
         new Get(
+            // Droit sur le questionnaire vérifié par le provider / processeur (QuestionnaireResolver).
+            security: "is_granted('IS_PERSONNEL')",
             uriTemplate: '/questionnaires/{questionnaireUuid}/preview/sections/{key}',
             uriVariables: [
                 'questionnaireUuid' => new Link(

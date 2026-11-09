@@ -18,7 +18,7 @@ final class QuestionRuntimeMapper
         $choices = null;
         if (in_array($q->getTypeQuestion(), [QuestTypeQuestionEnum::MultipleChoice, QuestTypeQuestionEnum::SingleChoice], true)) {
             $choices = [];
-            foreach ($config as $c) {
+            foreach ($config ?? [] as $c) {
                 $choices[] = new ChoiceDto((string) $c['id'], (string) $c['text'], (string) ($c['value'] ?? $c['text']));
             }
         }
@@ -52,7 +52,7 @@ final class QuestionRuntimeMapper
         $targetedRule = null;
         foreach ($searchQuestions as $sq) {
             $rules = $sq->getConditionalRules();
-            if (empty($rules) || !is_array($rules)) {
+            if (empty($rules)) {
                 continue;
             }
 

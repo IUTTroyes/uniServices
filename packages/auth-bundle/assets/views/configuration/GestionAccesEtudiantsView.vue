@@ -54,6 +54,13 @@ const selectedAnneeObj = computed(() => {
   return anneesList.value.find((a) => a.id === selectedAnneeId.value) || null;
 });
 
+const formatAnnee = (data) => {
+  if (Array.isArray(data?.annee) && data.annee.length > 0) {
+    return data.annee.map((a) => a.libelle).filter(Boolean).join(', ');
+  }
+  return data?.annee?.libelle || data?.semestre?.libelle || '-';
+};
+
 // Charger la liste des départements
 const loadDepartements = async () => {
   isLoadingDepartements.value = true;
@@ -127,11 +134,10 @@ const loadEtudiants = async () => {
       params.search = q;
     }
 
-    const data = await getEtudiantsScolariteService(params);
+    const data = await getEtudiantsScolariteService(params, '/liste');
     const items = Array.isArray(data) ? data : [];
     etudiants.value = items;
-    // Si l'API retourne totalItems ou si on est en pagination simple
-    totalEtudiants.value = items.length >= rowsPerPage.value ? 500 : (page.value * rowsPerPage.value + items.length);
+    totalEtudiants.value = data?.totalRecords ?? data?.totalItems ?? (items.length >= rowsPerPage.value ? (page.value + 2) * rowsPerPage.value : (page.value * rowsPerPage.value + items.length));
   } catch (error) {
     console.error('Erreur lors du chargement des étudiants :', error);
     etudiants.value = [];
@@ -140,6 +146,13 @@ const loadEtudiants = async () => {
     isLoadingEtudiants.value = false;
   }
 };
+
+// Changement d'année universitaire -> recharger les étudiants
+watch(selectedAnneeUniversitaireId, async () => {
+  page.value = 0;
+  selectedScolarites.value = [];
+  await loadEtudiants();
+});
 
 // Changement de département -> recharger les années puis les étudiants
 watch(selectedDepartementId, async () => {
@@ -296,6 +309,11 @@ onMounted(async () => {
               placeholder="Rechercher par nom, prénom, email..."
               class="w-full"
             />
+            <InputIcon
+              v-if="searchQuery"
+              class="pi pi-times cursor-pointer hover:text-primary transition-colors"
+              @click="searchQuery = ''"
+            />
           </IconField>
         </div>
       </div>
@@ -350,7 +368,7 @@ onMounted(async () => {
                 {{ data.etudiant?.prenom }} {{ data.etudiant?.nom }}
               </span>
               <span class="text-xs text-muted-color font-mono">
-                N° {{ data.etudiant?.num_etudiant || data.etudiant?.username || '-' }}
+                N° {{ data.etudiant?.numEtudiant || data.etudiant?.num_etudiant || data.etudiant?.username || '-' }}
               </span>
             </div>
           </template>
@@ -377,7 +395,7 @@ onMounted(async () => {
           <template #body="{ data }">
             <div class="flex flex-col">
               <span class="text-xs font-semibold text-surface-900 dark:text-surface-100">
-                {{ data.annee?.libelle || data.semestre?.libelle || '-' }}
+                {{ formatAnnee(data) }}
               </span>
               <span v-if="data.diplome" class="text-[11px] text-muted-color truncate max-w-[200px]">
                 {{ data.diplome.libelle }}
@@ -391,7 +409,7 @@ onMounted(async () => {
           <template #body="{ data }">
             <div class="flex flex-wrap gap-1.5 items-center">
               <ApplicationBadge
-                v-for="app in (data.etudiant?.applications || ['intranet'])"
+                v-for="app in (data.etudiant?.applications?.length ? data.etudiant.applications : ['intranet'])"
                 :key="app"
                 :app="app"
                 size="sm"

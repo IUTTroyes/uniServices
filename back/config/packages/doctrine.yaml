@@ -55,6 +55,12 @@ doctrine:
                         dir: 'src/Entity'
                         prefix: 'MessageBundle\Entity'
                         alias: Message
+                    UnifolioBundle:
+                        is_bundle: true
+                        type: attribute
+                        dir: 'src/Entity'
+                        prefix: 'UnifolioBundle\Entity'
+                        alias: Unifolio
 
 
 when@test:

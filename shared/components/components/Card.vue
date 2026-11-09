@@ -3,6 +3,16 @@ import { computed } from 'vue';
 import Tag from 'primevue/tag';
 
 const props = defineProps({
+  /** Conteneur nu : seule la bordure/ombre de la carte, le contenu gère son propre espacement (via class). */
+  bare: {
+    type: Boolean,
+    default: false
+  },
+  /** Balise HTML du conteneur (section, article, aside, button…). */
+  tag: {
+    type: String,
+    default: 'div'
+  },
   title: {
     type: String,
     default: ''
@@ -116,7 +126,10 @@ const colorClasses = computed(() => {
 </script>
 
 <template>
-  <div class="card">
+  <component :is="tag" v-if="bare" class="card">
+    <slot />
+  </component>
+  <div v-else class="card">
     <div v-if="title || $slots.header" class="card-header flex justify-between items-center gap-4">
       <slot name="header">
         <div class="flex flex-col min-w-0">

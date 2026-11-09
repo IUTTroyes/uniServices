@@ -2,6 +2,7 @@
 
 namespace App\Security;
 
+use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
@@ -101,7 +102,8 @@ class StructureVoter extends Voter
     ];
 
     public function __construct(
-        private readonly UserEffectivePermissionService $effectivePermissionService
+        private readonly UserEffectivePermissionService $effectivePermissionService,
+        private readonly DepartmentPermissionChecker $departements,
     ) {}
 
     /**
@@ -133,8 +135,8 @@ class StructureVoter extends Voter
         return match ($attribute) {
             // Département
             self::CAN_VIEW_DEPARTEMENT => $this->canViewDepartement($user),
-            self::CAN_EDIT_DEPARTEMENT => $this->canEditDepartement($user),
-            self::CAN_DELETE_DEPARTEMENT => $this->canDeleteDepartement($user),
+            self::CAN_EDIT_DEPARTEMENT => $this->canEditDepartement($user, $subject),
+            self::CAN_DELETE_DEPARTEMENT => $this->canDeleteDepartement($user, $subject),
 
             // Diplôme
             self::CAN_VIEW_DIPLOME => $this->canViewDiplome($user),
@@ -206,21 +208,29 @@ class StructureVoter extends Voter
         return true;
     }
 
-    private function canEditDepartement(Personnel|Etudiant $user): bool
+    /**
+     * Modifier un département : administrateur ou chef de département **de ce département** (le super administrateur
+     * est déjà accepté plus haut). Créer un département (sans identifiant) reste réservé au super administrateur.
+     */
+    private function canEditDepartement(Personnel|Etudiant $user, mixed $subject = null): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN',
-            'ROLE_CHEF_DEPT'
-        ]);
+        if (!$user instanceof Personnel || !$subject instanceof StructureDepartement || $subject->getId() === null) {
+            return false;
+        }
+        foreach (['ROLE_ADMIN', 'ROLE_CHEF_DEPT', 'ROLE_CHEF_DEPARTEMENT'] as $role) {
+            if ($this->departements->checkPermission($user, $subject, $role)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    private function canDeleteDepartement(Personnel|Etudiant $user): bool
+    /** Supprimer un département : administrateur de ce département (le super administrateur est accepté plus haut). */
+    private function canDeleteDepartement(Personnel|Etudiant $user, mixed $subject = null): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN'
-        ]);
+        return $user instanceof Personnel && $subject instanceof StructureDepartement && $subject->getId() !== null
+            && $this->departements->checkPermission($user, $subject, 'ROLE_ADMIN');
     }
 
     // ========== Diplôme ==========

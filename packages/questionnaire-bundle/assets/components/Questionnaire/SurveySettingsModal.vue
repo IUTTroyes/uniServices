@@ -1,3 +1,115 @@
+<script setup lang="ts">
+import { ref, reactive, watch, computed } from 'vue';
+import type { Survey, SurveySettings } from '@types';
+import Button from 'primevue/button';
+import Dialog from 'primevue/dialog';
+import { DialogHeader, FormSection, FormField, ToggleCard } from '../Form';
+import {
+  AdjustmentsHorizontalIcon,
+  CalendarDaysIcon,
+  ShieldCheckIcon,
+  LockClosedIcon,
+  SparklesIcon,
+  CloudArrowUpIcon,
+  ArrowUturnLeftIcon,
+  ChartBarIcon,
+  CheckBadgeIcon,
+  ChatBubbleBottomCenterTextIcon,
+} from '@heroicons/vue/24/outline';
+
+interface Props {
+  survey: Survey | null;
+}
+
+interface SettingsPayload {
+  opt: SurveySettings;
+  openingDate?: string | null;
+  closingDate?: string | null;
+  estimatedTime?: number | null;
+  startText?: string;
+  endText?: string;
+}
+
+interface Emits {
+  close: [];
+  update: [payload: SettingsPayload | SurveySettings];
+}
+
+const props = defineProps<Props>();
+const emit = defineEmits<Emits>();
+
+const DEFAUTS: SurveySettings = {
+  anonymous: true,
+  autoSave: true,
+  allowBack: true,
+  showProgress: true,
+  requireCompletion: false,
+  modificationReponses: true,
+  seuilMinReponses: 0,
+};
+
+const localSettings = ref<SurveySettings>({ ...DEFAUTS });
+
+/** Anonymat et seuil sont figés après publication (le serveur le refuse aussi). */
+const estPublie = computed(() => !!props.survey && props.survey.status !== 'draft');
+
+const formState = reactive({
+  openingDate: '',
+  closingDate: '',
+  estimatedTime: null as number | null,
+  startText: '',
+  endText: ''
+});
+
+function toInputDateTime(val: any): string {
+  if (!val) return '';
+  const d = val instanceof Date ? val : new Date(val);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+watch(
+  () => props.survey,
+  (s) => {
+    if (s) {
+      localSettings.value = { ...DEFAUTS, ...(s.opt || {}) };
+
+      formState.openingDate = toInputDateTime(s.openingDate);
+      formState.closingDate = toInputDateTime(s.closingDate);
+      formState.estimatedTime = s.estimatedTime ?? null;
+      formState.startText = s.startText || '';
+      formState.endText = s.endText || '';
+    } else {
+      localSettings.value = { ...DEFAUTS };
+      formState.openingDate = '';
+      formState.closingDate = '';
+      formState.estimatedTime = null;
+      formState.startText = '';
+      formState.endText = '';
+    }
+  },
+  { immediate: true }
+);
+
+function saveSettings() {
+  const payload: SettingsPayload = {
+    opt: { ...localSettings.value, seuilMinReponses: Number(localSettings.value.seuilMinReponses) || 0 },
+    openingDate: formState.openingDate ? new Date(formState.openingDate).toISOString() : null,
+    closingDate: formState.closingDate ? new Date(formState.closingDate).toISOString() : null,
+    estimatedTime: formState.estimatedTime ? Number(formState.estimatedTime) : null,
+    startText: formState.startText.trim(),
+    endText: formState.endText.trim(),
+  };
+
+  emit('update', payload);
+}
+</script>
 <template>
   <Dialog
     :style="{ width: '92vw', maxWidth: '780px' }"
@@ -43,7 +155,7 @@
                 placeholder="ex: 10"
                 class="q-input pr-12"
               />
-              <span class="absolute right-3 top-2.5 text-xs text-slate-400 dark:text-slate-500 pointer-events-none">min</span>
+              <span class="absolute right-3 top-2.5 text-sm text-slate-400 dark:text-slate-500 pointer-events-none">min</span>
             </div>
           </FormField>
         </div>
@@ -60,17 +172,41 @@
           v-model="localSettings.anonymous"
           :icon="LockClosedIcon"
           tone="emerald"
-          description="Les réponses collectées ne seront jamais associées à l'identité ou à l'adresse e-mail des participants."
+          :disabled="estPublie"
+          description="Les réponses collectées ne seront jamais associées à l'identité ou à l'adresse e-mail des participants. Figé après publication."
         >
           <template #title>
             <span class="inline-flex items-center gap-2">
               Questionnaire 100% anonyme
-              <span v-if="localSettings.anonymous" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900/80 text-emerald-800 dark:text-emerald-200">
-                Activé
-              </span>
+              <Tag v-if="localSettings.anonymous" value="Activé" severity="success" />
             </span>
           </template>
         </ToggleCard>
+
+        <FormField
+          v-if="localSettings.anonymous"
+          label="Seuil minimal de réponses"
+          for="seuil-min-reponses"
+          hint="En dessous de ce nombre de réponses envoyées, le détail des résultats et les exports restent masqués (0 = aucun seuil). Figé après publication."
+        >
+          <input
+            id="seuil-min-reponses"
+            v-model.number="localSettings.seuilMinReponses"
+            type="number"
+            min="0"
+            max="50"
+            class="q-input"
+            :disabled="estPublie"
+          />
+        </FormField>
+
+        <ToggleCard
+          v-model="localSettings.modificationReponses"
+          :icon="ArrowUturnLeftIcon"
+          tone="emerald"
+          title="Modification des réponses envoyées"
+          description="Les participants peuvent revenir sur leurs réponses tant que le questionnaire est ouvert."
+        />
       </FormSection>
 
       <!-- 3. User Experience & Navigation -->
@@ -158,121 +294,3 @@
     </form>
   </Dialog>
 </template>
-
-<script setup lang="ts">
-import { ref, reactive, watch } from 'vue';
-import type { Survey, SurveySettings } from '@types';
-import Button from 'primevue/button';
-import Dialog from 'primevue/dialog';
-import { DialogHeader, FormSection, FormField, ToggleCard } from '../Form';
-import {
-  AdjustmentsHorizontalIcon,
-  CalendarDaysIcon,
-  ShieldCheckIcon,
-  LockClosedIcon,
-  SparklesIcon,
-  CloudArrowUpIcon,
-  ArrowUturnLeftIcon,
-  ChartBarIcon,
-  CheckBadgeIcon,
-  ChatBubbleBottomCenterTextIcon
-} from '@heroicons/vue/24/outline';
-
-interface Props {
-  survey: Survey | null;
-}
-
-interface SettingsPayload {
-  opt: SurveySettings;
-  openingDate?: string | null;
-  closingDate?: string | null;
-  estimatedTime?: number | null;
-  startText?: string;
-  endText?: string;
-}
-
-interface Emits {
-  close: [];
-  update: [payload: SettingsPayload | SurveySettings];
-}
-
-const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
-
-const localSettings = ref<SurveySettings>({
-  anonymous: false,
-  autoSave: true,
-  allowBack: true,
-  showProgress: true,
-  requireCompletion: false
-});
-
-const formState = reactive({
-  openingDate: '',
-  closingDate: '',
-  estimatedTime: null as number | null,
-  startText: '',
-  endText: ''
-});
-
-function toInputDateTime(val: any): string {
-  if (!val) return '';
-  const d = val instanceof Date ? val : new Date(val);
-  if (isNaN(d.getTime())) return '';
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const year = d.getFullYear();
-  const month = pad(d.getMonth() + 1);
-  const day = pad(d.getDate());
-  const hours = pad(d.getHours());
-  const minutes = pad(d.getMinutes());
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-}
-
-watch(
-  () => props.survey,
-  (s) => {
-    if (s) {
-      localSettings.value = {
-        anonymous: s.opt?.anonymous ?? false,
-        autoSave: s.opt?.autoSave ?? true,
-        allowBack: s.opt?.allowBack ?? true,
-        showProgress: s.opt?.showProgress ?? true,
-        requireCompletion: s.opt?.requireCompletion ?? false
-      };
-
-      formState.openingDate = toInputDateTime(s.openingDate);
-      formState.closingDate = toInputDateTime(s.closingDate);
-      formState.estimatedTime = s.estimatedTime ?? null;
-      formState.startText = s.startText || '';
-      formState.endText = s.endText || '';
-    } else {
-      localSettings.value = {
-        anonymous: false,
-        autoSave: true,
-        allowBack: true,
-        showProgress: true,
-        requireCompletion: false
-      };
-      formState.openingDate = '';
-      formState.closingDate = '';
-      formState.estimatedTime = null;
-      formState.startText = '';
-      formState.endText = '';
-    }
-  },
-  { immediate: true }
-);
-
-function saveSettings() {
-  const payload: SettingsPayload = {
-    opt: { ...localSettings.value },
-    openingDate: formState.openingDate ? new Date(formState.openingDate).toISOString() : null,
-    closingDate: formState.closingDate ? new Date(formState.closingDate).toISOString() : null,
-    estimatedTime: formState.estimatedTime ? Number(formState.estimatedTime) : null,
-    startText: formState.startText.trim(),
-    endText: formState.endText.trim()
-  };
-
-  emit('update', payload);
-}
-</script>

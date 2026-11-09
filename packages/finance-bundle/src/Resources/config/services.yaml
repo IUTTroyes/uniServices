@@ -1,3 +1,8 @@
+parameters:
+  # Demandes d'achat signées (hors webroot) ; FINANCE_DOCUMENTS_DIR pour un volume persistant dédié.
+  finance.documents_dir_defaut: '%kernel.project_dir%/var/finance/documents'
+  finance.documents_dir: '%env(default:finance.documents_dir_defaut:FINANCE_DOCUMENTS_DIR)%'
+
 services:
   _defaults:
     autowire: true

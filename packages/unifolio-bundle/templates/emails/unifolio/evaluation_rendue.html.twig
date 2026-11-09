@@ -1,0 +1,28 @@
+{% extends 'emails/layout.html.twig' %}
+
+{% block subject %}[UniFolio] Votre travail a été évalué{% endblock %}
+
+{% block preheader %}{{ evaluateur_nom }} vous a communiqué une évaluation.{% endblock %}
+
+{% block body %}
+    <h1>Votre travail a été évalué</h1>
+
+    <p>Bonjour {{ etudiant_nom }},</p>
+
+    <p>
+        <strong>{{ evaluateur_nom }}</strong> vous a communiqué son évaluation de
+        <strong>{{ cible }}</strong>{% if trace_titre %} (trace « {{ trace_titre }} »){% endif %}.
+    </p>
+
+    {% if score is not null and score != '' %}
+    <p>Positionnement : <strong>{{ score }} %</strong></p>
+    {% endif %}
+
+    {% if appreciation %}
+    <div style="background-color: #f8fafc; border-left: 4px solid #059669; padding: 16px; margin: 20px 0; border-radius: 4px; white-space: pre-line;">{{ appreciation }}</div>
+    {% endif %}
+
+    <p>
+        <a href="{{ urlPortal|default('/app/unifolio') }}" class="btn">Consulter dans UniFolio</a>
+    </p>
+{% endblock %}

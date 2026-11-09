@@ -1,0 +1,12 @@
+{% extends 'emails/layout.txt.twig' %}
+
+{% block body %}
+Bonjour{% if destinataire_nom %} {{ destinataire_nom }}{% endif %},
+
+Les résultats du questionnaire « {{ questionnaire_titre }} » qui vous concernent sont publiés ({{ nb_sections }} section(s) : {{ sections }}).{% if anonyme %} Les réponses sont anonymes.{% endif %}
+
+
+Consulter mes résultats : {{ lien }}
+
+Vous pouvez y ajouter un commentaire ou un plan d'action, lus par l'équipe qui pilote le questionnaire.
+{% endblock %}

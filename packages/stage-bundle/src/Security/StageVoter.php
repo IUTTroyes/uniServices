@@ -5,6 +5,8 @@ namespace StageBundle\Security;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use App\Security\UserEffectivePermissionService;
+use StageBundle\Entity\Stages\StageEtudiant;
+use StageBundle\Entity\Stages\StagePeriode;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
@@ -26,6 +28,14 @@ class StageVoter extends Voter
     public const CAN_DELETE_STAGE = 'CAN_DELETE_STAGE';
     public const CAN_VALIDATE_STAGE = 'CAN_VALIDATE_STAGE';
 
+    // Permissions sur un dossier de stage précis (sujet : StageEtudiant), voir StageAccess
+    public const STAGE_ETUDIANT_VIEW = 'STAGE_ETUDIANT_VIEW';
+    /** Écriture : gestionnaire, responsable de la période, tuteur ou étudiant ; le détail des champs est contrôlé par le processeur. */
+    public const STAGE_ETUDIANT_EDIT = 'STAGE_ETUDIANT_EDIT';
+    public const STAGE_ETUDIANT_MANAGE = 'STAGE_ETUDIANT_MANAGE';
+    /** Gestion d'une période (et de ses dossiers, créneaux, interruptions) : responsable des stages de SON département. */
+    public const STAGE_PERIODE_MANAGE = 'STAGE_PERIODE_MANAGE';
+
     private const SUPPORTED_ATTRIBUTES = [
         self::CAN_VIEW_STAGE_PERIODE,
         self::CAN_EDIT_STAGE_PERIODE,
@@ -37,7 +47,8 @@ class StageVoter extends Voter
     ];
 
     public function __construct(
-        private readonly UserEffectivePermissionService $effectivePermissionService
+        private readonly UserEffectivePermissionService $effectivePermissionService,
+        private readonly StageAccess $access,
     ) {}
 
     /**
@@ -45,7 +56,14 @@ class StageVoter extends Voter
      */
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return in_array($attribute, self::SUPPORTED_ATTRIBUTES);
+        if (in_array($attribute, [self::STAGE_ETUDIANT_VIEW, self::STAGE_ETUDIANT_EDIT, self::STAGE_ETUDIANT_MANAGE], true)) {
+            return $subject instanceof StageEtudiant;
+        }
+        if ($attribute === self::STAGE_PERIODE_MANAGE) {
+            return $subject instanceof StagePeriode;
+        }
+
+        return in_array($attribute, self::SUPPORTED_ATTRIBUTES, true);
     }
 
     /**
@@ -77,6 +95,12 @@ class StageVoter extends Voter
             self::CAN_EDIT_STAGE => $this->canEditStage($subject, $user),
             self::CAN_DELETE_STAGE => $this->canDeleteStage($user),
             self::CAN_VALIDATE_STAGE => $this->canValidateStage($user),
+
+            // Dossier de stage
+            self::STAGE_ETUDIANT_VIEW => $this->access->peutVoir($user, $subject),
+            self::STAGE_ETUDIANT_EDIT => $this->access->peutGerer($user, $subject) || $this->access->estTuteur($user, $subject) || $this->access->estProprietaire($user, $subject),
+            self::STAGE_ETUDIANT_MANAGE => $this->access->peutGerer($user, $subject),
+            self::STAGE_PERIODE_MANAGE => $this->access->estGestionnaire($user, $subject),
 
             default => false,
         };

@@ -5,9 +5,10 @@ namespace QuestionnaireBundle\Email;
 use App\Service\Email\AbstractEmailDefinition;
 
 /**
- * Définition de l'email d'invitation à répondre à un questionnaire.
+ * Envoyé à chaque destinataire quand un questionnaire est publié ou quand de nouveaux participants sont invités. Le lien est personnel.
+ * Contexte fourni par QuestionnaireMailer (valeurs simples).
  */
-final class QuestionnaireInvitationEmail extends AbstractEmailDefinition
+class QuestionnaireInvitationEmail extends AbstractEmailDefinition
 {
     public function getKey(): string
     {
@@ -16,12 +17,17 @@ final class QuestionnaireInvitationEmail extends AbstractEmailDefinition
 
     public function getLabel(): string
     {
-        return 'Invitation à répondre à un questionnaire';
+        return 'Questionnaires — invitation à répondre (adresse extérieure)';
+    }
+
+    public function getDescription(): string
+    {
+        return 'Envoyé à chaque destinataire quand un questionnaire est publié ou quand de nouveaux participants sont invités. Le lien est personnel.';
     }
 
     public function getDefaultSubject(): string
     {
-        return 'Vous avez été invité(e) à répondre au questionnaire : {{ questionnaire.title }}';
+        return 'Invitation à répondre au questionnaire « {{ questionnaire_titre }} »';
     }
 
     public function getHtmlTemplatePath(): string
@@ -29,7 +35,7 @@ final class QuestionnaireInvitationEmail extends AbstractEmailDefinition
         return '@Questionnaire/emails/questionnaire/invitation.html.twig';
     }
 
-    public function getTxtTemplatePath(): ?string
+    public function getTxtTemplatePath(): string
     {
         return '@Questionnaire/emails/questionnaire/invitation.txt.twig';
     }
@@ -37,15 +43,12 @@ final class QuestionnaireInvitationEmail extends AbstractEmailDefinition
     public function getAvailableVariables(): array
     {
         return [
-            'invitation'    => 'Objet QuestionnaireInvitation (token, email)',
-            'questionnaire' => 'Objet Questionnaire (titre, description)',
-            'surveyUrl'     => 'URL directe pour accéder au questionnaire',
-            'expiresAt'     => 'Date d\'expiration de l\'invitation (si définie)',
+            'questionnaire_titre' => 'Titre du questionnaire',
+            'questionnaire_description' => 'Description du questionnaire (peut être vide)',
+            'date_cloture' => 'Date de clôture (jj/mm/aaaa, vide si aucune)',
+            'duree_estimee' => 'Durée estimée en minutes (0 si inconnue)',
+            'anonyme' => 'Les réponses sont anonymes (booléen)',
+            'lien' => 'Lien personnel pour répondre',
         ];
-    }
-
-    public function getDescription(): string
-    {
-        return 'Envoyé lorsqu\'un utilisateur est invité à répondre à un questionnaire.';
     }
 }

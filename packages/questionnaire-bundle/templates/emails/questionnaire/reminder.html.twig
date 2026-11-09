@@ -1,46 +1,25 @@
 {% extends 'emails/layout.html.twig' %}
 
-{% block subject %}Rappel : Répondre au questionnaire : {{ questionnaire.title }}{% endblock %}
-
-{% block preheader %}Rappel – Plus que quelques jours pour répondre au questionnaire {{ questionnaire.title }}{% endblock %}
+{% block preheader %}Vous n'avez pas encore envoyé vos réponses au questionnaire « {{ questionnaire_titre }} ».{% endblock %}
 
 {% block body %}
-    <h1>Rappel : Votre avis nous intéresse</h1>
+    <h1>Rappel : votre avis est attendu</h1>
 
     <p>Bonjour,</p>
 
-    <p>
-        Ceci est un rappel amical concernant l'enquête suivante :
-    </p>
-
-    <h2 style="color:#1a3a5c;">{{ questionnaire.title }}</h2>
-
-    {% if questionnaire.description %}
-    <p style="color:#718096;font-style:italic;">{{ questionnaire.description }}</p>
+    {% if message %}
+    <p>{{ message|nl2br }}</p>
+    {% else %}
+    <p>Vous n'avez pas encore envoyé vos réponses au questionnaire <strong>{{ questionnaire_titre }}</strong>. Votre participation compte.</p>
     {% endif %}
 
-    <p>
-        Vous n'avez pas encore validé votre réponse. Votre participation est importante pour nous aider à améliorer la qualité de nos formations.
-    </p>
+    <p><a href="{{ lien }}" class="btn">Répondre au questionnaire</a></p>
 
-    <p>
-        <a href="{{ surveyUrl }}" class="btn">Répondre au questionnaire</a>
-    </p>
-
-    {% if expiresAt is defined and expiresAt %}
-    <div class="alert">
-        Ce questionnaire ferme le <strong>{{ expiresAt|date('d/m/Y') }}</strong>.
-    </div>
+    {% if date_cloture %}
+    <div class="alert">Le questionnaire ferme le <strong>{{ date_cloture }}</strong>.</div>
     {% endif %}
 
     <hr class="divider">
 
-    <p style="font-size:13px;color:#718096;">
-        Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :<br>
-        <a href="{{ surveyUrl }}" style="word-break:break-all;">{{ surveyUrl }}</a>
-    </p>
-
-    <p style="font-size:13px;color:#718096;">
-        Si vous pensez avoir reçu cet email par erreur, vous pouvez l'ignorer.
-    </p>
+    <p>Ce lien vous est personnel. S'il ne s'ouvre pas, copiez-le dans votre navigateur :<br>{{ lien }}</p>
 {% endblock %}

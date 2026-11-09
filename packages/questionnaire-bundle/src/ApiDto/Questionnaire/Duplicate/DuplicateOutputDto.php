@@ -11,6 +11,8 @@ use QuestionnaireBundle\State\Provider\Questionnaire\Duplicate\DuplicateProcesso
 #[ApiResource(
     operations: [
         new Post(
+            // Droit sur le questionnaire vérifié par le provider / processeur (QuestionnaireResolver).
+            security: "is_granted('IS_PERSONNEL')",
             uriTemplate: '/questionnaires/{questionnaireUuid}/duplicate',
             openapi: new Operation(
                 tags: ['Questionnaire Management'],
