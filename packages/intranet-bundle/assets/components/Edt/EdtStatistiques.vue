@@ -1,7 +1,7 @@
 <script setup>
 import ContexteSelection from '../Structure/ContexteSelection.vue';
 import {computed, onMounted, ref, watch} from "vue";
-import {ErrorState, ListSkeleton, PermissionGuard, SimpleSkeleton, ValidatedInput} from "@components";
+import { EmptyState, ErrorState, ListSkeleton, PermissionGuard, SimpleSkeleton, ValidatedInput} from "@components";
 import {useUsersStore} from "@stores";
 import {
   exportService,
@@ -706,7 +706,7 @@ const exportDataHeures = async () => {
             </div>
             <Button label="Exporter en xlsx" icon="pi pi-file" severity="secondary" class="w-full" @click="exportDataHeures()" />
           </div>
-          <div v-else class="text-neutral-500">Aucune donnée à afficher pour les filtres sélectionnés.</div>
+          <EmptyState v-else compact title="Aucune donnée à afficher pour les filtres sélectionnés." />
         </div>
       </div>
       <div class="border border-neutral-300 dark:border-neutral-700 rounded-lg p-6 w-full flex flex-col">
@@ -724,9 +724,7 @@ const exportDataHeures = async () => {
           </DataTable>
         </div>
         <div v-else class="h-full flex items-center">
-          <Message severity="warn" class="mb-4 w-fit mx-auto" icon="pi pi-info-circle">
-            Aucune donnée disponible.
-          </Message>
+          <EmptyState class="mb-4 w-fit mx-auto" compact title="Aucune donnée disponible." />
         </div>
       </div>
     </div>
@@ -750,7 +748,7 @@ const exportDataHeures = async () => {
           </Column>
         </DataTable>
       </div>
-      <div v-else class="text-neutral-500">Aucune répartition disponible.</div>
+      <EmptyState v-else compact title="Aucune répartition disponible." />
     </div>
     <Divider/>
     <ListSkeleton v-if="isLoadingStatsPreviData" class="w-full"/>
@@ -792,9 +790,7 @@ const exportDataHeures = async () => {
       </div>
       <PermissionGuard :permission="'canViewPersonnelDetails'">
         <div v-if="displayedComparatifRows">
-          <Message v-if="displayedComparatifRows.length < 1" severity="warn" class="mb-4 w-fit mx-auto" icon="pi pi-info-circle">
-            Aucune donnée de comparatif prévisionnel disponible pour les filtres sélectionnés.
-          </Message>
+          <EmptyState v-if="displayedComparatifRows.length < 1" class="mb-4 w-fit mx-auto" compact title="Aucune donnée de comparatif prévisionnel disponible pour les filtres sélectionnés." />
           <div class="flex flex-col gap-4 w-full items-center justify-center" v-else>
             <SelectButton
                 :options="features"

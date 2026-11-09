@@ -1,4 +1,5 @@
 <script setup>
+import { EmptyState } from '@components';
 defineProps({
     data: {
         type: Object,
@@ -9,7 +10,7 @@ defineProps({
 
 <template>
     <div class="flex flex-col gap-2.5">
-        <p v-if="!data.items?.length" class="m-0! text-sm text-muted-color">Aucune action urgente à afficher.</p>
+        <EmptyState v-if="!data.items?.length" compact title="Aucune action urgente à afficher." />
         <div v-for="action in data.items || []" :key="action.titre" class="flex items-center justify-between gap-3 rounded-lg border p-2.5"
              :class="{
                'border-red-200 bg-red-500/10': action.color === 'red',

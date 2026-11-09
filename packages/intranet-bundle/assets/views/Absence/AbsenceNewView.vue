@@ -1,7 +1,7 @@
 <script setup>
 import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import { onMounted, ref, watch, computed } from "vue";
-import {SimpleSkeleton, ValidatedInput, ListSkeleton, HeaderComponent, UserCard, EdtEventRow, Kpi} from "@components";
+import { EmptyState, SimpleSkeleton, ValidatedInput, ListSkeleton, HeaderComponent, UserCard, EdtEventRow, Kpi} from "@components";
 import {useAnneeStore, useSemestreStore, useUsersStore} from "@stores";
 import {getAnneeService, getSemestresService, getGroupesService, getEtudiantScolariteSemestresService, getEdtEventsService, createEtudiantAbsenceService, getEtudiantAbsencesService} from "@requests";
 import {useRoute, useRouter} from "vue-router";
@@ -703,17 +703,13 @@ const confirmAbsencesCreation = async () => {
                 :rowsPerPageOptions="[12, 24, 48]"
             />
           </div>
-          <Message v-else severity="warn" class="mb-4 w-fit" icon="pi pi-info-circle">
-            Aucun étudiant trouvé.
-          </Message>
+          <EmptyState v-else class="mb-4 w-fit" compact title="Aucun étudiant trouvé." />
         </div>
 
         <div class="flex flex-col justify-between xl:col-span-1">
           <div>
             <h3 class="m-0 mb-3">Cours du jour</h3>
-            <Message v-if="edtEvents.length === 0" severity="warn" class="mb-4 w-fit" icon="pi pi-info-circle">
-              Aucun cours trouvé pour cette date et ce groupe.
-            </Message>
+            <EmptyState v-if="edtEvents.length === 0" class="mb-4 w-fit" compact title="Aucun cours trouvé pour cette date et ce groupe." />
             <ListSkeleton v-if="isLoadingEvents" class="!w-full mt-4" />
             <div v-else-if="edtEvents.length > 0" class="flex flex-col gap-2">
               <EdtEventRow
@@ -810,9 +806,7 @@ const confirmAbsencesCreation = async () => {
           Vérification des absences existantes en cours...
         </Message>
 
-        <Message v-if="absencesSummary.length === 0" severity="warn" class="mt-4" icon="pi pi-info-circle">
-          Aucune absence à créer. Ajoutez des lignes ou fermez la fenêtre.
-        </Message>
+        <EmptyState v-if="absencesSummary.length === 0" class="mt-4" compact title="Aucune absence à créer. Ajoutez des lignes ou fermez la fenêtre." />
 
         <template #footer>
           <div class="flex justify-end gap-2 w-full">

@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { HeaderComponent } from '@components';
+import { EmptyState, ErrorState, HeaderComponent } from '@components';
 import { useAnneeStore, useAnneeUnivStore, useUsersStore } from '@stores';
 import { getAnneesService, getSemestresService } from '@requests';
 import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
@@ -132,11 +132,11 @@ const onTabChange = async (value) => {
                 </div>
               </div>
             </ContexteSelection>
-            <Message v-if="erreurAnnees" severity="error">Impossible de charger les années de formation.</Message>
-            <Message v-else-if="!isLoadingAnnees && !annee" severity="info">Aucune année de formation disponible.</Message>
+            <ErrorState v-if="erreurAnnees" compact :show-navigation="false" message="Impossible de charger les années de formation." />
+            <EmptyState v-else-if="!isLoadingAnnees && !annee" compact title="Aucune année de formation disponible." />
             <template v-else-if="annee">
-              <Message v-if="erreurSemestres" severity="error">Impossible de charger les semestres.</Message>
-              <Message v-else-if="!isLoadingSemestres && !semestre" severity="info">Aucun semestre disponible.</Message>
+              <ErrorState v-if="erreurSemestres" compact :show-navigation="false" message="Impossible de charger les semestres." />
+              <EmptyState v-else-if="!isLoadingSemestres && !semestre" compact title="Aucun semestre disponible." />
               <template v-else-if="semestre">
                 <PlanCoursListView v-if="tab.value === 'plans'" :key="anneeUniversitaireId"
                                    :semestre-id="semestre.id" integre />

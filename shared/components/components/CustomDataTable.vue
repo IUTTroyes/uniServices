@@ -1,4 +1,5 @@
 <script setup>
+import EmptyState from './EmptyState.vue';
 import { ref, onMounted, computed, watch } from 'vue'
 import { DataTable, Column, Button } from 'primevue'
 import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue'
@@ -129,7 +130,9 @@ function getNestedValue(obj, path) {
         </IconField>
       </div>
     </template>
-    <template #empty> Aucun enregistrement trouvé.</template>
+    <template #empty>
+      <EmptyState compact title="Aucun enregistrement trouvé." />
+    </template>
     <template #loading> Chargement des données. Patientez.</template>
     <Column v-for="col in columns" :key="col.field" :field="col.field" :header="col.header" :style="col.style"
       :sortable="col.sortable">

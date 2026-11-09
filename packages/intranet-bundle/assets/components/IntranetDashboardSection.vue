@@ -1,4 +1,5 @@
 <script setup>
+import { EmptyState } from '@components';
 import { ref, watch, onBeforeUnmount } from 'vue';
 import EdtJour from '../components/Edt/EdtJour.vue';
 import { useUsersStore, useSecurity } from '@stores';
@@ -55,7 +56,7 @@ onBeforeUnmount(() => { ++requestId; });
             <p class="mt-2! mb-0! text-sm text-muted-color">{{ department.formations }} formation{{ department.formations > 1 ? 's' : '' }}</p>
           </article>
         </div>
-        <p v-else class="m-0! text-sm text-muted-color">Aucun département actif dans votre périmètre de direction.</p>
+        <EmptyState v-else compact title="Aucun département actif dans votre périmètre de direction." />
       </template>
       <template v-else>
         <ul v-if="data.diplomes?.length" class="m-0! p-0! list-none flex flex-wrap gap-2">
@@ -63,7 +64,7 @@ onBeforeUnmount(() => { ++requestId; });
             <span v-if="diplome.sigle" class="font-semibold">{{ diplome.sigle }} · </span>{{ diplome.libelle }}
           </li>
         </ul>
-        <p v-else class="m-0! text-sm text-muted-color">Aucun diplôme dans votre périmètre.</p>
+        <EmptyState v-else compact title="Aucun diplôme dans votre périmètre." />
       </template>
     </template>
   </section>

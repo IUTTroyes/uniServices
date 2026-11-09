@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import AutoComplete from 'primevue/autocomplete';
-import { Kpi, Card } from '@components';
+import { EmptyState, Kpi, Card } from '@components';
 import {
   ArrowDownTrayIcon,
   ChartBarIcon,
@@ -975,7 +975,7 @@ const finalizeSignature = (student) => {
                   </div>
                 </template>
                 <template #empty>
-                  <div class="p-2 text-xs text-slate-400 italic">Aucun enseignant trouvé</div>
+                  <EmptyState compact title="Aucun enseignant trouvé" />
                 </template>
               </AutoComplete>
             </div>
@@ -1302,7 +1302,7 @@ const finalizeSignature = (student) => {
                       </div>
                     </template>
                     <template #empty>
-                      <div class="p-2 text-xs text-slate-400 italic">Aucun enseignant trouvé</div>
+                      <EmptyState compact title="Aucun enseignant trouvé" />
                     </template>
                   </AutoComplete>
                 </div>

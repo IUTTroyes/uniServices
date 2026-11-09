@@ -1,4 +1,5 @@
 <script setup>
+import EmptyState from '../EmptyState.vue';
 import {ref, onMounted, computed, onUnmounted} from 'vue'
 import { statuts } from '@config/uniServices.js'
 import {getPersonnelsService} from '@requests'
@@ -138,7 +139,9 @@ const editAccessPersonnel = (personnel) => {
         @sort="onSortChange($event)"
         @update:rows="limit = $event"
         :globalFilterFields="['nom', 'prenom']">
-      <template #empty>Aucun personnel trouvé.</template>
+      <template #empty>
+        <EmptyState compact title="Aucun personnel trouvé." />
+      </template>
       <template #isLoading>Loading customers data. Please wait.</template>
       <Column field="photo" :showFilterMenu="false" header="" style="min-width: 6rem">
         <template #body="{ data }">

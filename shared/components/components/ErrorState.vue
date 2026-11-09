@@ -8,6 +8,10 @@ const props = defineProps({
     default: 'Une erreur est survenue. Veuillez réessayer plus tard ou contacter les administrateurs du site.',
   },
   compact: Boolean,
+  showNavigation: {
+    type: Boolean,
+    default: true,
+  },
   debugMessage: {
     type: String,
     default: '',
@@ -36,9 +40,9 @@ const copyDebugMessage = async () => {
 <template>
   <EmptyState title="Erreur" icon="pi pi-exclamation-triangle" color="rose" :compact="compact">
     <p role="alert" class="m-0">{{ message }}</p>
-    <template #action>
+    <template v-if="showNavigation || debugMessage" #action>
       <div class="flex w-full flex-col items-center gap-4">
-        <a href="mailto:intranet.iut-troyes@univ-reims.fr" class="text-sm underline">
+        <a v-if="showNavigation" href="mailto:intranet.iut-troyes@univ-reims.fr" class="text-sm underline">
           Contacter les administrateurs du site
           <i class="pi pi-external-link text-xs" aria-hidden="true"></i>
         </a>
@@ -56,7 +60,7 @@ const copyDebugMessage = async () => {
           </div>
           <pre class="m-0 text-xs whitespace-pre-wrap break-words max-h-48 overflow-auto">{{ debugMessage }}</pre>
         </div>
-        <Button label="Retour" severity="danger" size="small" @click="$router.go(-1)" />
+        <Button v-if="showNavigation" label="Retour" severity="danger" size="small" @click="$router.go(-1)" />
       </div>
     </template>
   </EmptyState>

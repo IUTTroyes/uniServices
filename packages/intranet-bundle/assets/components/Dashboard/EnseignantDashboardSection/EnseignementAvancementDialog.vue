@@ -1,4 +1,5 @@
 <script setup>
+import { ErrorState, EmptyState } from '@components';
 import {useRouter} from 'vue-router';
 import {useEnseignementPage} from './useEnseignementPage';
 import { computed, ref, watch } from 'vue';
@@ -260,7 +261,7 @@ const {destination, accessible} = useEnseignementPage('avancement', () => props.
           <p v-if="saved === groupe.id" role="status" class="mt-2! mb-0! text-xs text-primary">Repère enregistré et partagé avec vos collègues.</p>
         </article>
       </div>
-      <p v-else class="text-muted-color">Aucun groupe n’est rattaché aux semestres des UE de cet enseignement pour cette année.</p>
+      <EmptyState v-else compact title="Aucun groupe n’est rattaché aux semestres des UE de cet enseignement pour cette année." />
     </template>
     <template #footer>
       <div class="w-full border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800/50 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -284,8 +285,8 @@ const {destination, accessible} = useEnseignementPage('avancement', () => props.
         <p v-if="version.prochaineEtape" class="mb-0! text-sm whitespace-pre-wrap"><span class="font-semibold">Prochaine séance :</span> {{ version.prochaineEtape }}</p>
       </li>
     </ol>
-    <p v-if="historiqueErreur" role="alert" class="text-sm">{{ historiqueErreur }}</p>
-    <p v-if="!historiqueLoading && !historique.length && !historiqueErreur" class="text-sm text-muted-color">Aucune modification enregistrée.</p>
+    <ErrorState v-if="historiqueErreur" class="text-sm" compact :show-navigation="false" :message="historiqueErreur" />
+    <EmptyState v-if="!historiqueLoading && !historique.length && !historiqueErreur" compact title="Aucune modification enregistrée." />
     <Button v-if="historiqueAvant || historiqueErreur" :label="historiqueErreur ? 'Réessayer' : 'Voir les modifications précédentes'" severity="secondary" size="small" :loading="historiqueLoading" class="mt-4" @click="chargerHistorique" />
     <p v-else-if="historiqueLoading" role="status" class="text-sm text-muted-color">Chargement…</p>
   </Dialog>

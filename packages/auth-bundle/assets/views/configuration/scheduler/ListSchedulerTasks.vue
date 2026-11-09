@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { EmptyState } from '@components';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '@helpers/axios';
@@ -142,10 +143,7 @@ onMounted(() => {
                  paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                  currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} tâches">
         <template #empty>
-          <div class="text-center py-8 text-slate-400">
-            <i class="pi pi-calendar-times text-4xl mb-3"></i>
-            <p>Aucune tâche planifiée enregistrée.</p>
-          </div>
+          <EmptyState compact title="Aucune tâche planifiée enregistrée." icon="pi pi-calendar-times" />
         </template>
 
         <Column field="name" header="Tâche" sortable class="font-medium text-slate-800 dark:text-white">

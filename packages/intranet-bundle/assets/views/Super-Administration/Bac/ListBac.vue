@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { getAllBacsService, createBacService, updateBacService, deleteBacService } from '@requests';
-import { ErrorState, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
+import { EmptyState, ErrorState, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
 import { useToast } from 'primevue/usetoast';
 
 const router = useRouter();
@@ -195,10 +195,7 @@ const deleteBac = async (bac) => {
         responsiveLayout="scroll"
       >
         <template #empty>
-          <div class="text-center py-8 text-muted-color">
-            <i class="pi pi-info-circle text-3xl mb-2 block"></i>
-            <span>Aucun bac trouvé.</span>
-          </div>
+          <EmptyState compact title="Aucun bac trouvé." icon="pi pi-info-circle" />
         </template>
 
         <Column field="id" header="ID" :sortable="true" style="width: 80px;" />

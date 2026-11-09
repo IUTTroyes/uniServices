@@ -1,7 +1,7 @@
 <script setup>
 import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import {computed, onMounted, onUnmounted, ref, watch} from "vue";
-import {SimpleSkeleton, HeaderComponent, Kpi, ListSkeleton} from "@components";
+import { EmptyState, SimpleSkeleton, HeaderComponent, Kpi, ListSkeleton} from "@components";
 import {useAnneeStore, useEtablissementStore, useUsersStore} from "@stores";
 import {getAnneeService, getEdtEventsService} from "@requests";
 import { formatDateCourt, heuresMinutesDate } from "@helpers/date";
@@ -242,9 +242,7 @@ const pointageStats = computed(() => {
         <Message severity="info" :closable="false" icon="pi pi-info-circle" class="mb-2">
           Maintenez Ctrl ou Cmd et cliquez sur plusieurs colonnes pour trier par plusieurs champs à la fois.
         </Message>
-        <Message severity="info" icon="pi pi-info-circle" class="w-full flex justify-center" v-if="!isLoadingEvents && (!events || events.length === 0)">
-          Aucun événement trouvé pour cette année.
-        </Message>
+        <EmptyState class="w-full flex justify-center" v-if="!isLoadingEvents && (!events || events.length === 0)" compact title="Aucun événement trouvé pour cette année." />
         <DataTable
             v-else
             :value="events"

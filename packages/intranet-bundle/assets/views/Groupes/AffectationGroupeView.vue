@@ -1,7 +1,7 @@
 <script setup>
 import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import {computed, onMounted, onUnmounted, ref, watch, nextTick} from 'vue'
-import {SimpleSkeleton, HeaderComponent} from "@components";
+import { EmptyState, SimpleSkeleton, HeaderComponent} from "@components";
 import {typesGroupes} from '@config/uniServices.js';
 import {useSemestreStore, useUsersStore, useAnneeUnivStore} from "@stores";
 import {
@@ -756,9 +756,7 @@ onUnmounted(() => {
       </DataTable>
 
       <div v-else-if="!isLoadingGroupes" class="flex items-center justify-center gap-2">
-        <Message severity="warn" class="w-fit" icon="pi pi-exclamation-triangle">
-          Aucun groupe pour le semestre ou le type sélectionné.
-        </Message>
+        <EmptyState class="w-fit" compact title="Aucun groupe pour le semestre ou le type sélectionné." />
       </div>
     </div>
   </div>

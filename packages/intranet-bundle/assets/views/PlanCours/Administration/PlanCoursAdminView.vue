@@ -3,7 +3,7 @@ import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import { onMounted, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAnneeUnivStore, useUsersStore } from '@stores'
-import { HeaderComponent } from '@components'
+import { EmptyState, HeaderComponent } from '@components'
 import { getDiplomesService, getPlansCoursService, getPlanCoursService, createPlanCoursService } from '@requests'
 import { showSuccess, showDanger } from '@helpers/toast'
 import PlanCoursShowDialog from '@/components/PlanCours/PlanCoursShowDialog.vue'
@@ -378,9 +378,7 @@ const getBadgeSeverity = (etat) => {
           </Column>
 
           <template #empty>
-            <div class="p-8 text-center text-muted-color">
-              Aucun enseignement pour ce diplôme et ces filtres.
-            </div>
+            <EmptyState compact title="Aucun enseignement pour ce diplôme et ces filtres." />
           </template>
         </DataTable>
       </div>

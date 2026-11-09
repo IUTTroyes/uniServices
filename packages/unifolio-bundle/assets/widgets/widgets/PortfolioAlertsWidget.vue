@@ -1,4 +1,5 @@
 <script setup>
+import { EmptyState } from '@components';
 import { computed, defineProps } from 'vue';
 
 const props = defineProps({
@@ -18,5 +19,5 @@ const items = computed(() => props.data?.items || []);
             {{ item }}
         </li>
     </ul>
-    <div v-else class="text-sm text-color-secondary">Aucune alerte portfolio.</div>
+    <EmptyState v-else compact title="Aucune alerte portfolio." />
 </template>

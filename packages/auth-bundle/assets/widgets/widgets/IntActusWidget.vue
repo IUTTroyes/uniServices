@@ -1,6 +1,6 @@
 <script setup>
 import {ref, onMounted, computed, watch} from 'vue';
-import {PermissionGuard, ValidatedInput, validationRules, ButtonDelete} from '@components';
+import { EmptyState, PermissionGuard, ValidatedInput, validationRules, ButtonDelete} from '@components';
 import {createActuService, deleteActuService} from '@requests';
 import {formatDateCourt} from '@helpers/date.js'
 import {useToast} from "primevue/usetoast";
@@ -205,9 +205,7 @@ const deleteActus = async (actus) => {
       </div>
     </div>
 
-    <Message v-else severity="info" icon="pi pi-info-circle">
-      Aucune actualité disponible.
-    </Message>
+    <EmptyState v-else compact title="Aucune actualité disponible." />
 
     <PermissionGuard :permission="['ROLE_ADMIN']">
       <Button size="small" severity="primary" label="Gérer les actus" icon="pi pi-pencil" @click="showActuDialog = true"/>
@@ -316,9 +314,7 @@ const deleteActus = async (actus) => {
       </Column>
 
       <template #empty>
-        <Message severity="info" icon="pi pi-info-circle">
-          Aucune actualité disponible.
-        </Message>
+        <EmptyState compact title="Aucune actualité disponible." />
       </template>
     </DataTable>
 

@@ -3,7 +3,7 @@ import {useEnseignementPage} from './useEnseignementPage';
 import {ref, watch} from 'vue';
 import {useRouter} from 'vue-router';
 import {getPlansCoursService, getPlanCoursService} from '@requests';
-import {ListSkeleton} from '@components';
+import { EmptyState, ErrorState, ListSkeleton} from '@components';
 import PlanCoursShowDialog from '@/components/PlanCours/PlanCoursShowDialog.vue';
 const router = useRouter();
 const props = defineProps({ visible: Boolean, enseignement: {type: Object, default: null}, anneeUniversitaire: {type: [Number, String], default: null} });
@@ -53,8 +53,8 @@ const {destination, accessible} = useEnseignementPage('plan', () => props.enseig
   <Dialog v-else :visible="visible" @update:visible="emit('update:visible', $event)" modal
     :header="`Plan de cours · ${enseignement?.codeEnseignement || ''} - ${enseignement?.libelle || ''}`" class="w-[90vw] md:w-[85vw]">
     <ListSkeleton v-if="loading" />
-    <Message v-else-if="error" severity="error">Impossible de récupérer le plan de cours.</Message>
-    <Message v-else severity="warn">Aucun plan de cours trouvé pour cette année universitaire.</Message>
+    <ErrorState v-else-if="error" compact :show-navigation="false" message="Impossible de récupérer le plan de cours." />
+    <EmptyState v-else compact title="Aucun plan de cours trouvé pour cette année universitaire." />
     <template #footer>
       <div class="w-full border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800/50 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3 text-left">

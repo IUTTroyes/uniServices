@@ -1,4 +1,5 @@
 <script setup>
+import { EmptyState } from '@components';
 defineProps({
   assiduite: {
     type: Array,
@@ -26,6 +27,6 @@ defineProps({
         <Tag :value="`${enseignement.absences} absence${enseignement.absences > 1 ? 's' : ''}`" severity="warn" />
       </li>
     </ul>
-    <p v-else class="m-0! text-sm text-muted-color">Aucune absence signalée pour vos enseignements.</p>
+    <EmptyState v-else compact title="Aucune absence signalée pour vos enseignements." />
   </article>
 </template>

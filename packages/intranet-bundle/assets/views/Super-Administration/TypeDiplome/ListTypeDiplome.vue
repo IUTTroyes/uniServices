@@ -7,7 +7,7 @@ import {
   updateTypeDiplomeService,
   deleteTypeDiplomeService
 } from '@requests';
-import { ErrorState, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
+import { EmptyState, ErrorState, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
 import { useToast } from 'primevue/usetoast';
 
 const router = useRouter();
@@ -229,10 +229,7 @@ const deleteTypeDiplome = async (type) => {
         responsiveLayout="scroll"
       >
         <template #empty>
-          <div class="text-center py-8 text-muted-color">
-            <i class="pi pi-info-circle text-3xl mb-2 block"></i>
-            <span>Aucun type de diplôme trouvé.</span>
-          </div>
+          <EmptyState compact title="Aucun type de diplôme trouvé." icon="pi pi-info-circle" />
         </template>
 
         <Column field="id" header="ID" :sortable="true" style="width: 80px;" />

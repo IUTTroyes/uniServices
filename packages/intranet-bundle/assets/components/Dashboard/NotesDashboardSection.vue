@@ -1,4 +1,5 @@
 <script setup>
+import { EmptyState } from '@components';
 import { computed } from 'vue';
 import IndicateursDashboard from './IndicateursDashboard.vue';
 
@@ -33,7 +34,9 @@ const pending = computed(() => evaluations.filter(item => item.entered < item.ex
       <Column header="Saisie"><template #body="{ data }"><span class="text-sm">{{ data.entered }} / {{ data.expected }} notes</span><ProgressBar :value="Math.round(data.entered / data.expected * 100)" :show-value="false" class="h-1.5! mt-1 min-w-24" /></template></Column>
       <Column field="due" header="Échéance" />
       <Column header="Statut"><template #body="{ data }"><Tag :value="data.entered ? 'À compléter' : 'À saisir'" :severity="data.entered ? 'info' : 'warn'" /></template></Column>
-      <template #empty>Toutes les évaluations sont renseignées.</template>
+      <template #empty>
+        <EmptyState compact title="Toutes les évaluations sont renseignées." />
+      </template>
     </DataTable>
   </section>
 </template>

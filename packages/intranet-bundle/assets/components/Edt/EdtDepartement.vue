@@ -416,9 +416,7 @@ const heuresParType = computed(() => {
     </ContexteSelection>
     <div class="flex justify-center items-center gap-4 mb-4">
       <SimpleSkeleton v-if="isLoadingEnseignants" class="w-1/3"/>
-      <Message v-else-if="hasErrorEnseignants" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
-        Erreur lors du chargement des enseignants.
-      </Message>
+      <ErrorState v-else-if="hasErrorEnseignants" class="w-full my-6" compact :show-navigation="false" message="Erreur lors du chargement des enseignants." />
       <Select
           v-else
           v-model="selectedEnseignant"
@@ -430,9 +428,7 @@ const heuresParType = computed(() => {
           filter
       ></Select>
       <SimpleSkeleton v-if="isLoadingSalles" class="w-1/3"/>
-      <Message v-else-if="hasErrorSalles" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
-        Erreur lors du chargement des salles.
-      </Message>
+      <ErrorState v-else-if="hasErrorSalles" class="w-full my-6" compact :show-navigation="false" message="Erreur lors du chargement des salles." />
       <Select
           v-else
           v-model="selectedSalle"
@@ -444,9 +440,7 @@ const heuresParType = computed(() => {
           filter
       ></Select>
       <SimpleSkeleton v-if="isLoadingEnseignements" class="w-1/3"/>
-      <Message v-else-if="hasErrorEnseignements" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
-        Erreur lors du chargement des enseignements.
-      </Message>
+      <ErrorState v-else-if="hasErrorEnseignements" class="w-full my-6" compact :show-navigation="false" message="Erreur lors du chargement des enseignements." />
       <Select
           v-else
           v-model="selectedEnseignement"

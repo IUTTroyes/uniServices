@@ -1,4 +1,5 @@
 <script setup>
+import { EmptyState } from '@components';
 import { computed, defineProps } from 'vue';
 
 const props = defineProps({
@@ -17,5 +18,5 @@ const items = computed(() => props.data?.items || []);
             {{ item }}
         </li>
     </ul>
-    <div v-else class="text-sm text-color-secondary">Aucun questionnaire en attente.</div>
+    <EmptyState v-else compact title="Aucun questionnaire en attente." />
 </template>

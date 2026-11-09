@@ -1,7 +1,7 @@
 <script setup>
 import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
-import {HeaderComponent, Kpi, EdtEventRow, ValidatedInput, validationRules, SimpleSkeleton, ButtonInfo, ButtonDelete} from '@components';
+import { EmptyState, HeaderComponent, Kpi, EdtEventRow, ValidatedInput, validationRules, SimpleSkeleton, ButtonInfo, ButtonDelete} from '@components';
 import {useAnneeStore, useUsersStore} from '@stores';
 import {getAbsenceJustificatifsService, getAnneeService, updateAbsenceJustificatifService, deleteAbsenceJustificatifService} from '@requests';
 import {useRoute, useRouter} from 'vue-router';
@@ -443,9 +443,7 @@ const showValidate = item => {
       </a>
       <div v-else class="text-500">Aucun fichier joint</div>
     </div>
-  </div><Message v-if="!detailsAbsences.length" severity="warn" :closable="false" icon="pi pi-exclamation-triangle">
-  Aucun cours manqué sur cette période.
-</Message>
+  </div><EmptyState v-if="!detailsAbsences.length" compact title="Aucun cours manqué sur cette période." />
   <DataTable v-else :value="detailsAbsences" striped-rows>
     <Column header="Cours manqués sur cette période">
       <template #body="slotProps">

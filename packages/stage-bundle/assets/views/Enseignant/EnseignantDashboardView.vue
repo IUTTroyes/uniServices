@@ -4,7 +4,7 @@ import { useToast } from 'primevue/usetoast';
 import { FilterMatchMode } from '@primevue/core/api';
 import { useUsersStore, useAnneeUnivStore } from '@stores';
 import { getStageEtudiantsService, updateStageEtudiantService, getStagePeriodesService } from '@/requests/stage_service';
-import { HeaderComponent, Card, Kpi } from '@components';
+import { EmptyState, HeaderComponent, Card, Kpi } from '@components';
 import {
   UserIcon,
   UsersIcon,
@@ -533,10 +533,7 @@ const getInitials = (name) => {
               </Column>
 
               <template #empty>
-                <div class="py-12 text-center text-slate-400">
-                  <UsersIcon class="w-10 h-10 mx-auto mb-2 text-slate-300 dark:text-slate-600" />
-                  <p class="font-medium">Aucun étudiant en stage pour l'année universitaire {{ currentAnneeUnivLibelle }}.</p>
-                </div>
+                <EmptyState compact><template #title>Aucun étudiant en stage pour l'année universitaire {{ currentAnneeUnivLibelle }}.</template></EmptyState>
               </template>
             </DataTable>
           </Card>
@@ -658,10 +655,7 @@ const getInitials = (name) => {
               </Column>
 
               <template #empty>
-                <div class="py-12 text-center text-slate-400">
-                  <ArchiveBoxIcon class="w-10 h-10 mx-auto mb-2 text-slate-300 dark:text-slate-600" />
-                  <p class="font-medium">Aucun stage archivé pour les années précédentes.</p>
-                </div>
+                <EmptyState compact title="Aucun stage archivé pour les années précédentes." />
               </template>
             </DataTable>
           </Card>

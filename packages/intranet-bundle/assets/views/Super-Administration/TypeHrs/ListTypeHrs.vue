@@ -7,7 +7,7 @@ import {
   updateTypeHrsService,
   deleteTypeHrsService
 } from '@requests';
-import { ErrorState, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
+import { EmptyState, ErrorState, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
 import { useToast } from 'primevue/usetoast';
 
 const router = useRouter();
@@ -231,10 +231,7 @@ const deleteItem = async (item) => {
         responsiveLayout="scroll"
       >
         <template #empty>
-          <div class="text-center py-8 text-muted-color">
-            <i class="pi pi-clock text-3xl mb-2 block"></i>
-            <span>Aucun type d'heures trouvé.</span>
-          </div>
+          <EmptyState compact title="Aucun type d'heures trouvé." icon="pi pi-clock" />
         </template>
 
         <Column field="id" header="ID" :sortable="true" style="width: 80px;" />

@@ -4,7 +4,7 @@ import {useEnseignementPage} from './useEnseignementPage';
 import {ref, computed, watch} from 'vue';
 import {getSemestreEnseignementPreviService} from '@requests';
 import {useUsersStore} from '@stores';
-import {ListSkeleton} from '@components';
+import { EmptyState, ErrorState, ListSkeleton} from '@components';
 import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
 const props = defineProps({ visible: Boolean, enseignement: {type: Object, default: null}, anneeUniversitaire: {type: [Number, String], default: null} });
 const usersStore = useUsersStore();
@@ -61,9 +61,9 @@ const {destination, accessible} = useEnseignementPage('previsionnel', () => prop
   <Dialog :visible="visible" @update:visible="emit('update:visible', $event)" modal
     :header="`Prévisionnel · ${enseignement?.codeEnseignement || ''} - ${enseignement?.libelle || ''}`" class="w-[90vw] md:w-[85vw]">
     <ListSkeleton v-if="loading" />
-    <Message v-else-if="error" severity="error">Impossible de récupérer le prévisionnel.</Message>
+    <ErrorState v-else-if="error" compact :show-navigation="false" message="Impossible de récupérer le prévisionnel." />
     <PrevisionnelTable v-else-if="data?.[0]?.length" origin="previMatiereSynthese" :columns="columns" :topHeaderCols="topHeaderCols" :additionalRows="additionalRows" :footerCols="footerCols" :data="data[0]" :filters="{}" size="small" :headerTitle="enseignement?.libelle" :headerTitlecolspan="1" />
-    <Message v-else severity="warn">Aucun prévisionnel trouvé pour vous dans cet enseignement et cette année universitaire.</Message>
+    <EmptyState v-else compact title="Aucun prévisionnel trouvé pour vous dans cet enseignement et cette année universitaire." />
     <template #footer>
       <div class="w-full border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800/50 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3 text-left">

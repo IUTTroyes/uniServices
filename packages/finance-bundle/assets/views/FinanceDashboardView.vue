@@ -529,13 +529,11 @@ onMounted(async () => {
                 </template>
 
                 <template #empty>
-                    <div class="text-center py-10">
-                        <DocumentTextIcon class="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                        <p class="text-gray-600 dark:text-gray-400 font-medium">Aucun bon de commande trouvé pour ce périmètre.</p>
-                        <div class="mt-3">
+                    <EmptyState compact title="Aucun bon de commande trouvé pour ce périmètre." :icon="DocumentTextIcon">
+                        <template #action>
                             <Button label="Créer une nouvelle demande" icon="pi pi-plus" size="small" @click="createNewDemande" />
-                        </div>
-                    </div>
+                        </template>
+                    </EmptyState>
                 </template>
 
                 <template #loading>

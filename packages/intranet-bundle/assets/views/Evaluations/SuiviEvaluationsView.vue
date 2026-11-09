@@ -14,7 +14,7 @@ import {
   getAnneesService
 } from '@requests';
 import {useUsersStore, useAnneeStore, useAnneeUnivStore} from '@stores';
-import {PermissionGuard, SimpleSkeleton, ListSkeleton, HeaderComponent, Kpi} from '@components';
+import { EmptyState, ErrorState, PermissionGuard, SimpleSkeleton, ListSkeleton, HeaderComponent, Kpi} from '@components';
 import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
 import EvaluationSaisieNotesForm from "@/components/Evaluation/EvaluationSaisieNotesForm.vue";
 import EvaluationListeInitForm from "../../components/Evaluation/EvaluationListeInitForm.vue";
@@ -384,7 +384,7 @@ const onEvaluationSaved = async () => {
         </div>
       </div>
       <ListSkeleton v-if="isLoadingEnseignements" class="card-body"/>
-      <Message v-else-if="hasError" severity="error">Impossible de charger le suivi des évaluations.</Message>
+      <ErrorState v-else-if="hasError" compact :show-navigation="false" message="Impossible de charger le suivi des évaluations." />
       <div v-else class="card-body">
         <Accordion v-if="semestre && enseignements.length !== 0" value="0" class="mt-4">
           <AccordionPanel v-for="enseignement in enseignements" :value="enseignement.id" :key="enseignement.id">
@@ -449,18 +449,14 @@ const onEvaluationSaved = async () => {
                   />
                 </div>
                 <div v-else class="flex justify-center">
-                  <Message severity="warn" class="w-fit p-4" icon="pi pi-exclamation-triangle">
-                    Aucune évaluation trouvée.
-                  </Message>
+                  <EmptyState class="w-fit p-4" compact title="Aucune évaluation trouvée." />
                 </div>
               </div>
             </AccordionContent>
           </AccordionPanel>
         </Accordion>
         <div v-else class="flex justify-center">
-          <Message severity="warn" class="w-fit p-4" icon="pi pi-exclamation-triangle">
-            Aucun enseignement trouvé.
-          </Message>
+          <EmptyState class="w-fit p-4" compact title="Aucun enseignement trouvé." />
         </div>
       </div>
     </div>

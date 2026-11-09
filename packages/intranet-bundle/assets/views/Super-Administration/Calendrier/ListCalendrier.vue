@@ -9,7 +9,7 @@ import {
   deleteCalendrierService,
   getAnneesUniversitairesService
 } from '@requests';
-import { ErrorState, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
+import { EmptyState, ErrorState, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
 import { useAnneeUnivStore } from '@stores';
 import { useToast } from 'primevue/usetoast';
 
@@ -283,10 +283,7 @@ const deleteItem = async (item) => {
         responsiveLayout="scroll"
       >
         <template #empty>
-          <div class="text-center py-8 text-muted-color">
-            <i class="pi pi-calendar-times text-3xl mb-2 block"></i>
-            <span>Aucune semaine trouvée dans le calendrier.</span>
-          </div>
+          <EmptyState compact title="Aucune semaine trouvée dans le calendrier." icon="pi pi-calendar-times" />
         </template>
 
         <Column field="id" header="ID" :sortable="true" style="width: 80px;" />
