@@ -276,22 +276,25 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.75rem 1.5rem;
-    padding: 0.625rem 2rem;
+    padding: 0.25rem 2rem;
     background: var(--surface-card);
     border-top: 1px solid var(--surface-border);
 }
 
 .layout-context-department {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
     min-width: 0;
     flex: 1;
 }
 
 .layout-context-label {
     display: block;
+    flex-shrink: 0;
     font-size: 0.75rem;
     color: var(--text-color-secondary);
-    margin-bottom: 0.125rem;
 }
 
 .layout-context-switch,
@@ -328,7 +331,6 @@
     &:focus-visible { @include mixins.focused(); }
 }
 
-.layout-context-switch { margin-left: -0.5rem; }
 .layout-context-year { flex-shrink: 0; }
 .layout-department-menu {
     max-width: calc(100vw - 2rem);
