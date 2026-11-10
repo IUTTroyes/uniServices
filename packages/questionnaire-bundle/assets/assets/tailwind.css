@@ -3,8 +3,7 @@
 
 @variant dark (&:where(.app-dark, .app-dark *));
 
-@source "/Users/cyndel/Web/uniServices/packages/*/assets/**/*.vue";
-@source "/Users/cyndel/Web/uniServices/shared/**/*.vue";
-@source "/Users/cyndel/Web/uniServices/shared/**/*.js";
-@source "/Users/cyndel/Web/uniServices/shared/**/*.ts";
-
+@source "../**/*.vue";
+@source "../../../shared/**/*.vue";
+@source "../../../shared/**/*.js";
+@source "../../../shared/**/*.ts";

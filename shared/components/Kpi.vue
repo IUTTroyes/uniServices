@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { SimpleSkeleton } from '@components';
+import SimpleSkeleton from './loader/SimpleSkeleton.vue';
 
 const props = withDefaults(defineProps<{
   label: string;
@@ -10,7 +10,12 @@ const props = withDefaults(defineProps<{
   description?: string;
   loading?: boolean;
   to?: string | object;
+  /** Tuile compacte : libellé discret, valeur, et une alerte facultative en rouge. */
+  compact?: boolean;
+  alerte?: string;
 }>(), {
+  compact: false,
+  alerte: '',
   icon: null,
   color: 'blue',
   loading: false,
@@ -101,7 +106,13 @@ function handleClick(event: MouseEvent) {
 </script>
 
 <template>
+  <div v-if="props.compact" class="card p-3 m-0 flex flex-col">
+    <span class="text-sm text-muted-color">{{ props.label }}</span>
+    <span class="text-2xl font-semibold">{{ props.value }}</span>
+    <span v-if="props.alerte" class="text-xs text-red-600">{{ props.alerte }}</span>
+  </div>
   <component
+    v-else
     :is="props.to ? 'router-link' : 'div'"
     :to="props.to"
     :class="[

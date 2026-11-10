@@ -1,0 +1,146 @@
+{
+  "version": 1,
+  "limites": { "profondeur": 4, "blocs": 300, "taille": 262144 },
+  "groupes": [
+    { "cle": "texte", "libelle": "Texte" },
+    { "cle": "medias", "libelle": "Médias" },
+    { "cle": "mise_en_page", "libelle": "Mise en page" },
+    { "cle": "portfolio", "libelle": "Portfolio" }
+  ],
+  "types": {
+    "heading": {
+      "libelle": "Titre", "groupe": "texte", "icone": "pi pi-hashtag",
+      "attrs": {
+        "niveau": { "type": "entier", "libelle": "Niveau", "min": 1, "max": 4, "defaut": 2 },
+        "texte": { "type": "texte", "libelle": "Titre", "max": 200, "requis": true, "defaut": "" }
+      }
+    },
+    "paragraph": {
+      "libelle": "Paragraphe", "groupe": "texte", "icone": "pi pi-align-left",
+      "attrs": { "texte": { "type": "markdown", "libelle": "Texte", "max": 5000, "defaut": "" } }
+    },
+    "quote": {
+      "libelle": "Citation", "groupe": "texte", "icone": "pi pi-comment",
+      "attrs": {
+        "texte": { "type": "markdown", "libelle": "Citation", "max": 1000, "defaut": "" },
+        "auteur": { "type": "texte", "libelle": "Auteur", "max": 120, "defaut": "" }
+      }
+    },
+    "list": {
+      "libelle": "Liste", "groupe": "texte", "icone": "pi pi-list",
+      "attrs": {
+        "style": { "type": "enum", "libelle": "Style", "valeurs": { "bullet": "Puces", "number": "Numérotée" }, "defaut": "bullet" },
+        "elements": { "type": "liste_texte", "libelle": "Éléments", "max": 300, "max_items": 50, "defaut": [""] }
+      }
+    },
+    "callout": {
+      "libelle": "Encadré", "groupe": "texte", "icone": "pi pi-info-circle",
+      "attrs": {
+        "ton": { "type": "enum", "libelle": "Ton", "valeurs": { "info": "Information", "success": "Réussite", "warning": "Attention", "neutre": "Neutre" }, "defaut": "info" },
+        "texte": { "type": "markdown", "libelle": "Texte", "max": 2000, "defaut": "" }
+      }
+    },
+    "divider": { "libelle": "Séparateur", "groupe": "texte", "icone": "pi pi-minus", "attrs": {} },
+    "button": {
+      "libelle": "Bouton", "groupe": "texte", "icone": "pi pi-external-link",
+      "attrs": {
+        "libelle": { "type": "texte", "libelle": "Libellé", "max": 80, "requis": true, "defaut": "En savoir plus" },
+        "url": { "type": "url", "libelle": "Adresse", "requis": true, "defaut": "" }
+      }
+    },
+
+    "image": {
+      "libelle": "Image", "groupe": "medias", "icone": "pi pi-image",
+      "attrs": {
+        "source": { "type": "media", "libelle": "Image", "filtre": "image", "requis": true },
+        "legende": { "type": "texte", "libelle": "Légende", "max": 200, "defaut": "" },
+        "alt": { "type": "texte", "libelle": "Texte alternatif", "max": 200, "defaut": "" }
+      }
+    },
+    "gallery": {
+      "libelle": "Galerie", "groupe": "medias", "icone": "pi pi-images",
+      "attrs": {
+        "images": { "type": "liste_media", "libelle": "Images", "filtre": "image", "max_items": 24, "defaut": [] },
+        "colonnes": { "type": "enum", "libelle": "Colonnes", "valeurs": { "2": "2", "3": "3", "4": "4" }, "defaut": "3" }
+      }
+    },
+    "embed": {
+      "libelle": "Contenu intégré", "groupe": "medias", "icone": "pi pi-video",
+      "attrs": {
+        "url": { "type": "url", "libelle": "Adresse (YouTube, Vimeo, Figma…)", "embed": true, "requis": true, "defaut": "" },
+        "titre": { "type": "texte", "libelle": "Titre", "max": 120, "defaut": "" }
+      }
+    },
+    "file": {
+      "libelle": "Fichier", "groupe": "medias", "icone": "pi pi-file",
+      "attrs": {
+        "source": { "type": "media", "libelle": "Fichier", "filtre": "fichier", "requis": true },
+        "libelle": { "type": "texte", "libelle": "Libellé", "max": 120, "defaut": "" }
+      }
+    },
+
+    "columns": {
+      "libelle": "Colonnes", "groupe": "mise_en_page", "icone": "pi pi-table",
+      "attrs": { "ratio": { "type": "enum", "libelle": "Répartition", "valeurs": { "1-1": "2 colonnes égales", "1-2": "1/3 – 2/3", "2-1": "2/3 – 1/3", "1-1-1": "3 colonnes" }, "defaut": "1-1" } },
+      "enfants": ["column"], "enfants_initiaux": ["column", "column"]
+    },
+    "column": {
+      "libelle": "Colonne", "groupe": null, "icone": "pi pi-stop", "attrs": {},
+      "enfants": "*", "seulement_dans": ["columns"]
+    },
+    "group": {
+      "libelle": "Section", "groupe": "mise_en_page", "icone": "pi pi-objects-column",
+      "attrs": { "fond": { "type": "enum", "libelle": "Fond", "valeurs": { "aucun": "Aucun", "doux": "Doux", "accent": "Accentué" }, "defaut": "aucun" } },
+      "enfants": "*"
+    },
+    "accordion": {
+      "libelle": "Accordéon", "groupe": "mise_en_page", "icone": "pi pi-bars",
+      "attrs": {}, "enfants": ["panel"], "enfants_initiaux": ["panel"]
+    },
+    "panel": {
+      "libelle": "Volet", "groupe": null, "icone": "pi pi-chevron-down",
+      "attrs": {
+        "titre": { "type": "texte", "libelle": "Titre du volet", "max": 120, "requis": true, "defaut": "Volet" },
+        "ouvert": { "type": "bool", "libelle": "Ouvert par défaut", "defaut": false }
+      },
+      "enfants": "*", "seulement_dans": ["accordion"]
+    },
+
+    "trace": {
+      "libelle": "Une trace", "groupe": "portfolio", "icone": "pi pi-images", "reference": true,
+      "attrs": {
+        "trace": { "type": "trace", "libelle": "Trace", "requis": true },
+        "affichage": { "type": "enum", "libelle": "Affichage", "valeurs": { "carte": "Carte", "detail": "Détaillé" }, "defaut": "carte" }
+      }
+    },
+    "traces": {
+      "libelle": "Liste de traces", "groupe": "portfolio", "icone": "pi pi-th-large",
+      "attrs": {
+        "competence": { "type": "competence", "libelle": "Filtrer par compétence", "defaut": null },
+        "maximum": { "type": "entier", "libelle": "Nombre maximum", "min": 1, "max": 24, "defaut": 6 },
+        "affichage": { "type": "enum", "libelle": "Affichage", "valeurs": { "cartes": "Cartes", "liste": "Liste" }, "defaut": "cartes" }
+      }
+    },
+    "progression": {
+      "libelle": "Progression par compétence", "groupe": "portfolio", "icone": "pi pi-chart-bar",
+      "attrs": { "affichage": { "type": "enum", "libelle": "Affichage", "valeurs": { "barres": "Barres", "liste": "Liste" }, "defaut": "barres" } }
+    },
+    "cv": {
+      "libelle": "Curriculum vitæ", "groupe": "portfolio", "icone": "pi pi-id-card",
+      "attrs": {
+        "experiences": { "type": "bool", "libelle": "Expériences", "defaut": true },
+        "formations": { "type": "bool", "libelle": "Formations", "defaut": true },
+        "competences": { "type": "bool", "libelle": "Compétences", "defaut": true },
+        "langues": { "type": "bool", "libelle": "Langues", "defaut": true }
+      }
+    },
+    "parcours": { "libelle": "Parcours", "groupe": "portfolio", "icone": "pi pi-history", "attrs": {} },
+    "reflexion": {
+      "libelle": "Réflexion personnelle", "groupe": "portfolio", "icone": "pi pi-lightbulb",
+      "attrs": {
+        "titre": { "type": "texte", "libelle": "Titre", "max": 120, "defaut": "Ma réflexion" },
+        "texte": { "type": "markdown", "libelle": "Réflexion", "max": 5000, "defaut": "" }
+      }
+    }
+  }
+}

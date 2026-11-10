@@ -1,0 +1,28 @@
+{% extends 'emails/layout.html.twig' %}
+
+{% block subject %}Évaluation de votre stagiaire {{ etudiant_nom }}{% endblock %}
+
+{% block preheader %}{{ etablissement }} vous demande d'évaluer le stage de {{ etudiant_nom }}.{% endblock %}
+
+{% block body %}
+    <h1>Évaluation de votre stagiaire</h1>
+
+    <p>Bonjour{% if tuteur_nom %} {{ tuteur_nom }}{% endif %},</p>
+
+    <p>
+        Vous accueillez <strong>{{ etudiant_nom }}</strong> en stage{% if entreprise %} chez {{ entreprise }}{% endif %}
+        ({{ periode }}). {{ expediteur }}, pour {{ etablissement }}, vous remercie de bien vouloir évaluer son stage.
+    </p>
+
+    <p>Le formulaire ne demande pas de compte et prend quelques minutes.</p>
+
+    <p>
+        <a href="{{ url }}" class="btn">Évaluer le stage</a>
+    </p>
+
+    <p style="font-size: 13px; color: #64748b;">
+        Ce lien est personnel et utilisable une seule fois, jusqu'au {{ expire_le }}. Ne le transférez pas.
+        Si le bouton ne fonctionne pas, copiez cette adresse dans votre navigateur :<br>
+        <span style="word-break: break-all;">{{ url }}</span>
+    </p>
+{% endblock %}

@@ -51,3 +51,24 @@ export function parseApiDate(dateStr) {
     const day = parseInt(parts[2], 10);
     return new Date(year, month, day);
 };
+
+/** Présentations de date en français, communes aux écrans. */
+export const STYLES_DATE = {
+    moyenne: { day: 'numeric', month: 'short', year: 'numeric' },
+    longue: { day: 'numeric', month: 'long', year: 'numeric' },
+    jourMois: { weekday: 'long', day: 'numeric', month: 'long' },
+    moisAnnee: { month: 'short', year: 'numeric' },
+    moisAnneeLong: { month: 'long', year: 'numeric' },
+    jourMoisHeure: { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' },
+    moyenneHeure: { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' },
+};
+
+/**
+ * Date lisible en français selon un style prédéfini (voir STYLES_DATE).
+ * Renvoie `vide` (null par défaut) si la date est absente.
+ */
+export function formatDateFr(date, style = 'moyenne', vide = null) {
+    if (!date) return vide;
+
+    return new Date(date).toLocaleDateString('fr-FR', STYLES_DATE[style] ?? STYLES_DATE.moyenne);
+}

@@ -52,6 +52,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
 )]
 class Etablissement
 {
+    public function __construct()
+    {
+        $this->universite = new Universite();
+    }
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -76,6 +81,26 @@ class Etablissement
 
     #[ORM\Column(nullable: true)]
     private ?bool $isMain = null;
+
+    /** Directeur(trice) de l'établissement (prénom et nom). */
+    #[ORM\Column(length: 150, nullable: true)]
+    #[Groups(['etablissement:read', 'etablissement:write'])]
+    private ?string $directeurNom = null;
+
+    /** Université de rattachement (colonnes universite_*). */
+    #[ORM\Embedded(class: Universite::class, columnPrefix: 'universite_')]
+    #[Groups(['etablissement:read', 'etablissement:write'])]
+    private Universite $universite;
+
+    /** Signataire des conventions de stage (souvent le directeur, par délégation du président de l'université). */
+    #[ORM\Column(length: 150, nullable: true)]
+    #[Groups(['etablissement:read', 'etablissement:write'])]
+    private ?string $signataireNom = null;
+
+    /** Qualité du signataire (ex. « Directeur de l'IUT, par délégation du Président »). */
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['etablissement:read', 'etablissement:write'])]
+    private ?string $signataireQualite = null;
 
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $telephone = null;
@@ -165,6 +190,54 @@ class Etablissement
         return $this;
     }
 
+    public function getDirecteurNom(): ?string
+    {
+        return $this->directeurNom;
+    }
+
+    public function setDirecteurNom(?string $directeurNom): static
+    {
+        $this->directeurNom = $directeurNom !== null && trim($directeurNom) !== '' ? trim($directeurNom) : null;
+
+        return $this;
+    }
+
+    public function getUniversite(): Universite
+    {
+        return $this->universite;
+    }
+
+    public function setUniversite(Universite $universite): static
+    {
+        $this->universite = $universite;
+
+        return $this;
+    }
+
+    public function getSignataireNom(): ?string
+    {
+        return $this->signataireNom;
+    }
+
+    public function setSignataireNom(?string $signataireNom): static
+    {
+        $this->signataireNom = $signataireNom !== null && trim($signataireNom) !== '' ? trim($signataireNom) : null;
+
+        return $this;
+    }
+
+    public function getSignataireQualite(): ?string
+    {
+        return $this->signataireQualite;
+    }
+
+    public function setSignataireQualite(?string $signataireQualite): static
+    {
+        $this->signataireQualite = $signataireQualite !== null && trim($signataireQualite) !== '' ? trim($signataireQualite) : null;
+
+        return $this;
+    }
+
     public function getSettings(): array
     {
         return $this->resolveSettings($this->settings ?? []);
@@ -230,6 +303,20 @@ class Etablissement
             return $resolvedIntegrations;
         });
 
+        $resolver->setAllowedTypes('emails', 'array');
+        $resolver->setNormalizer('emails', function ($options, array $emails): array {
+            $emailsResolver = new OptionsResolver();
+            $emailsResolver->setDefaults(self::HABILLAGE_EMAILS_DEFAUT);
+            $emailsResolver->setAllowedTypes('couleur', 'string');
+            $emailsResolver->setAllowedTypes('expediteur_nom', ['null', 'string']);
+            $emailsResolver->setAllowedTypes('reply_to', ['null', 'string']);
+            $emailsResolver->setAllowedTypes('signature', 'string');
+            $emailsResolver->setAllowedTypes('mentions_legales', 'string');
+            $emailsResolver->setAllowedTypes('contact_rgpd', ['null', 'string']);
+
+            return $emailsResolver->resolve($emails);
+        });
+
         $resolver->setAllowedTypes('stage', 'array');
         $resolver->setNormalizer('stage', function ($options, array $stage): array {
             $stageResolver = new OptionsResolver();
@@ -261,7 +348,36 @@ class Etablissement
             'stage' => [
                 'gratification_minimale' => 4.35,
             ],
+            'emails' => self::HABILLAGE_EMAILS_DEFAUT,
         ];
+    }
+
+    /**
+     * Habillage des e-mails de l'établissement (écran « Habillage des e-mails ») : couleur, expéditeur, signature et
+     * mentions imposées dans le pied de page de tous les e-mails (non modifiables par l'éditeur des modèles).
+     */
+    public const HABILLAGE_EMAILS_DEFAUT = [
+        'couleur' => '#1a3a5c',
+        'expediteur_nom' => null,
+        'reply_to' => null,
+        'signature' => '',
+        'mentions_legales' => '',
+        'contact_rgpd' => null,
+    ];
+
+    /** @return array{couleur: string, expediteur_nom: ?string, reply_to: ?string, signature: string, mentions_legales: string, contact_rgpd: ?string} */
+    public function getHabillageEmails(): array
+    {
+        return $this->getSettings()['emails'];
+    }
+
+    /** @param array<string, mixed> $habillage */
+    public function setHabillageEmails(array $habillage): static
+    {
+        $settings = $this->getSettings();
+        $settings['emails'] = array_merge($settings['emails'], array_intersect_key($habillage, self::HABILLAGE_EMAILS_DEFAUT));
+
+        return $this->setSettings($settings);
     }
 
     #[Groups(['etablissement:read'])]

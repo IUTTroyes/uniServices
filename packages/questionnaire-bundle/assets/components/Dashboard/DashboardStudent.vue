@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import {
   ClockIcon,
   CheckCircleIcon,
@@ -8,13 +8,16 @@ import {
   CheckIcon,
   ChartBarIcon
 } from '@heroicons/vue/24/outline';
-import { getStudentInvitations } from '@/requests/questionnaire_services/questionnaireService';
+import { getMesInvitationsService, getMesResultatsService } from '@/requests/questionnaire_service';
+import { EmptyState, ListSkeleton } from '@components';
+import { hasPermission } from '@utils/permissions';
 import { formatDate } from '@/utils/date';
 
 const isLoading = ref(false);
 const studentPendingSurveys = ref<any[]>([]);
 const studentCompletedSurveys = ref<any[]>([]);
 const publishedAnalytics = ref<any[]>([]);
+const estPersonnel = computed(() => hasPermission('isPersonnel'));
 
 onMounted(() => {
   loadData();
@@ -23,18 +26,23 @@ onMounted(() => {
 async function loadData() {
   isLoading.value = true;
   try {
-    const res = await getStudentInvitations();
+    const res = await getMesInvitationsService();
     const items = res?.member || res || [];
 
-    studentPendingSurveys.value = items.filter((item: any) => item.status !== 'submitted').map((item: any) => ({
+    // À remplir : non envoyés et encore ouverts aux réponses.
+    studentPendingSurveys.value = items.filter((item: any) => item.status !== 'submitted' && item.ouvert).map((item: any) => ({
       ...item,
-      duration: item.estimatedTime ? Math.ceil(item.estimatedTime / 60) + ' min' : '5 min'
+      duration: item.estimatedTime ? Math.ceil(item.estimatedTime / 60) + ' min' : ''
     }));
 
     studentCompletedSurveys.value = items.filter((item: any) => item.status === 'submitted').map((item: any) => ({
       ...item,
-      submittedAt: item.submittedAt ? formatDate(item.submittedAt) : (item.deadline ? formatDate(item.deadline) : 'Récemment')
+      submittedAt: item.submittedAt ? formatDate(item.submittedAt) : ''
     }));
+    if (estPersonnel.value) {
+      const resultats = await getMesResultatsService();
+      publishedAnalytics.value = resultats?.member || resultats || [];
+    }
   } catch (error) {
     console.error('Failed to load student invitations:', error);
   } finally {
@@ -58,20 +66,16 @@ async function loadData() {
       <div class="flex items-center gap-4 z-10 shrink-0">
         <div class="text-center bg-white/10 px-4 py-3 rounded-xl backdrop-blur-md">
           <p class="text-2xl font-bold">{{ studentPendingSurveys.length }}</p>
-          <p class="text-xs text-blue-100">À remplir</p>
+          <p class="text-sm text-blue-100">À remplir</p>
         </div>
         <div class="text-center bg-white/10 px-4 py-3 rounded-xl backdrop-blur-md">
           <p class="text-2xl font-bold">{{ studentCompletedSurveys.length }}</p>
-          <p class="text-xs text-blue-100">Complétés</p>
+          <p class="text-sm text-blue-100">Complétés</p>
         </div>
       </div>
     </div>
 
-    <div v-if="isLoading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-primary-500 border-t-transparent">
-      </div>
-      <p class="text-gray-500 dark:text-gray-400 mt-2 text-sm">Chargement de vos enquêtes...</p>
-    </div>
+    <ListSkeleton v-if="isLoading" />
 
     <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Pending Surveys -->
@@ -81,11 +85,7 @@ async function loadData() {
           Questionnaires en attente
         </h3>
 
-        <div v-if="studentPendingSurveys.length === 0" class="card text-center py-8">
-          <CheckCircleIcon class="w-12 h-12 text-green-500 mx-auto mb-2" />
-          <p class="text-gray-700 dark:text-gray-300 font-medium">Félicitations, vous êtes à jour !</p>
-          <p class="text-gray-500 dark:text-gray-400 text-sm">Aucun questionnaire en attente.</p>
-        </div>
+        <EmptyState v-if="studentPendingSurveys.length === 0" :icon="CheckCircleIcon" color="emerald" title="Vous êtes à jour" description="Aucun questionnaire en attente de votre réponse." />
 
         <div v-else class="space-y-4">
           <div v-for="survey in studentPendingSurveys" :key="survey.uuid"
@@ -93,17 +93,17 @@ async function loadData() {
             <div>
               <h4 class="font-bold text-gray-900 dark:text-white text-lg">{{ survey.title }}</h4>
               <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">{{ survey.description }}</p>
-              <p class="text-xs mt-2 italic flex items-center gap-1.5" :class="survey.anonymous ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'">
+              <p class="text-sm mt-2 italic flex items-center gap-1.5" :class="survey.anonymous ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'">
                 <span class="w-1.5 h-1.5 rounded-full shrink-0" :class="survey.anonymous ? 'bg-green-500' : 'bg-amber-500'"></span>
                 <span v-if="survey.anonymous">L'accès est authentifié pour le suivi mais les réponses resteront anonymes.</span>
                 <span v-else>Les réponses à ce questionnaire ne sont pas anonymes.</span>
               </p>
               <div class="flex items-center gap-4 mt-3 flex-wrap">
-                <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 dark:text-gray-400">
                   <ClockIcon class="w-3.5 h-3.5" /> Environ {{ survey.duration }}
                 </span>
                 <span v-if="survey.deadline"
-                  class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-500">
+                  class="inline-flex items-center gap-1.5 text-sm font-semibold text-red-500">
                   <ExclamationCircleIcon class="w-3.5 h-3.5" /> Clôture : {{ survey.deadline }}
                 </span>
                
@@ -124,82 +124,53 @@ async function loadData() {
             Questionnaires répondus
           </h3>
 
-          <div v-if="studentCompletedSurveys.length === 0" class="card text-center py-8">
-            <CheckCircleIcon class="w-12 h-12 text-green-500 mx-auto mb-2" />
-            <p class="text-gray-700 dark:text-gray-300 font-medium">Félicitations, vous êtes à jour !</p>
-            <p class="text-gray-500 dark:text-gray-400 text-sm">Aucun questionnaire complété pour le moment.</p>
-          </div>
+          <EmptyState v-if="studentCompletedSurveys.length === 0" compact title="Aucun questionnaire rempli pour le moment" />
 
           <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div v-for="survey in studentCompletedSurveys" :key="survey.uuid"
               class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-750/30 transition-colors">
               <div class="truncate">
                 <h4 class="font-bold text-gray-900 dark:text-white truncate">{{ survey.title }}</h4>
-                <p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Soumis : {{ survey.submittedAt }}</p>
+                <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Soumis : {{ survey.submittedAt }}</p>
               </div>
-              <span
-                class="bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300 text-xs px-2.5 py-1 rounded-full font-bold flex items-center gap-1 shrink-0">
-                <CheckIcon class="w-3.5 h-3.5" /> Complété
-              </span>
+              <div class="flex items-center gap-2 shrink-0">
+                <router-link v-if="survey.modifiable" :to="{ name: 'questionnaire_take-survey', params: { token: survey.token } }">
+                  <Button icon="pi pi-pencil" label="Modifier" size="small" text severity="secondary" />
+                </router-link>
+                <Tag value="Complété" severity="success" icon="pi pi-check" />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Published Analytics / Actions -->
-      <div class="space-y-4">
+      <!-- Mes résultats : questionnaires dont les résultats sont publiés pour moi (diffusion ciblée) -->
+      <div v-if="estPersonnel" class="space-y-4">
         <h3 class="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
           <ChartBarIcon class="w-5 h-5 text-purple-500" />
-          Retours & Actions
+          Mes résultats
         </h3>
-
-        <div class="space-y-4">
-          <div v-if="publishedAnalytics.length === 0" class="card text-center py-8">
-            <ChartBarIcon class="w-12 h-12 text-gray-400 mx-auto mb-2" />
-            <p class="text-gray-700 dark:text-gray-300 font-medium">Aucun retour publié</p>
-            <p class="text-gray-500 dark:text-gray-400 text-sm">Les bilans et plans d'actions publiés apparaîtront ici.</p>
-          </div>
-
-          <div v-for="analysis in publishedAnalytics" :key="analysis.id"
-            class="card overflow-hidden hover:scale-101 transition-transform border border-gray-200 dark:border-gray-700 shadow-sm">
-            <div class="p-5 border-b border-gray-150 dark:border-gray-700 bg-gray-55 dark:bg-gray-800/40">
-              <span
-                class="text-xs text-purple-600 dark:text-purple-400 font-bold tracking-wider uppercase bg-purple-100 dark:bg-purple-950 px-2 py-0.5 rounded">Rapport
-                de Synthèse</span>
-              <h4 class="font-bold text-gray-900 dark:text-white mt-2">{{ analysis.title }}</h4>
-              <p class="text-gray-500 dark:text-gray-400 text-xs mt-0.5">Publié le {{ analysis.date }}</p>
+        <EmptyState
+          v-if="publishedAnalytics.length === 0"
+          compact
+          icon="pi pi-chart-bar"
+          title="Aucun résultat publié pour vous"
+          description="Les résultats des questionnaires qui concernent vos enseignements apparaîtront ici après leur publication."
+        />
+        <ul v-else class="space-y-2">
+          <li v-for="analysis in publishedAnalytics" :key="analysis.uuid"
+            class="flex items-center justify-between gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-white">{{ analysis.title }}</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                {{ analysis.sections.length }} section(s)<span v-if="analysis.anneeUniversitaire"> · {{ analysis.anneeUniversitaire }}</span>
+              </p>
             </div>
-
-            <div class="p-5 space-y-4">
-              <!-- Custom Mini Stat Cards -->
-              <div class="grid grid-cols-2 gap-2">
-                <div class="bg-gray-100 dark:bg-gray-700 p-2.5 rounded-lg text-center">
-                  <p class="text-xl font-extrabold text-indigo-600 dark:text-indigo-400">{{ analysis.stats.satisfaction
-                    }}%</p>
-                  <p class="text-2xs text-gray-600 dark:text-gray-400 uppercase tracking-tight">Satisfaction globale</p>
-                </div>
-                <div class="bg-gray-100 dark:bg-gray-700 p-2.5 rounded-lg text-center">
-                  <p class="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">{{
-                    analysis.stats.participation }}%</p>
-                  <p class="text-2xs text-gray-600 dark:text-gray-400 uppercase tracking-tight">Participation</p>
-                </div>
-              </div>
-
-              <!-- Actions Decided -->
-              <div>
-                <h5 class="text-xs font-bold text-gray-750 dark:text-gray-300 uppercase tracking-wider mb-2">Actions
-                  décidées :</h5>
-                <ul class="space-y-2">
-                  <li v-for="(action, idx) in analysis.actions" :key="idx"
-                    class="text-sm text-gray-750 dark:text-gray-300 flex items-start gap-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0"></span>
-                    {{ action }}
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
+            <router-link :to="{ name: 'questionnaire_mes_resultats', params: { id: analysis.uuid } }">
+              <Button label="Consulter" icon="pi pi-chart-bar" size="small" text />
+            </router-link>
+          </li>
+        </ul>
       </div>
     </div>
   </div>

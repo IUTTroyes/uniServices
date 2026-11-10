@@ -1,4 +1,7 @@
 <script setup>
+import { useConfirmation } from '@composables/useConfirmation';
+import { aUneDemande, dateFr, etatDepuisStatut, statutConvention } from '@/utils/stage';
+import { messageErreurApi } from '@/utils/erreurApi';
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
@@ -53,9 +56,10 @@ import {
   Cog6ToothIcon,
 } from '@heroicons/vue/24/outline';
 
-import { HeaderComponent, ActionButtonVertical, Kpi, SimpleSkeleton, Card } from '@components';
+import { HeaderComponent, ActionButtonVertical, Kpi, SimpleSkeleton, Card, EmptyState } from '@components';
 
 const toast = useToast();
+const { confirmer } = useConfirmation();
 const route = useRoute();
 const router = useRouter();
 
@@ -63,23 +67,28 @@ const activeTab = ref('students'); // 'students' | 'info' | 'stats'
 const selectedPeriodId = ref(null); // Default null, will set after load
 const viewMode = ref('dashboard'); // 'dashboard' | 'period'
 
-const periods = ref([]);
+// Périodes gérées par l'utilisateur (API : geres=1), tous départements confondus…
+const allPeriods = ref([]);
+// …et le département affiché : celui de l'utilisateur par défaut, modifiable avec le sélecteur.
+const selectedDepartementId = ref(null);
+const departementOptions = computed(() => {
+  const options = new Map();
+  allPeriods.value.forEach(p => {
+    if (p.departementId && !options.has(p.departementId)) {
+      options.set(p.departementId, { id: p.departementId, libelle: p.departementLibelle || `Département ${p.departementId}` });
+    }
+  });
+  return [...options.values()].sort((a, b) => a.libelle.localeCompare(b.libelle));
+});
+const periods = computed(() => (selectedDepartementId.value
+  ? allPeriods.value.filter(p => p.departementId === selectedDepartementId.value)
+  : allPeriods.value));
+const periodIds = computed(() => new Set(periods.value.map(p => p.id)));
 const students = ref([]);
 const semesterStudentsMap = ref({});
 const isLoadingSemesterStudents = ref(false);
 
-const mapVueStatusToBackend = (status, inputAuthorized) => {
-  switch (status) {
-    case 'En attente': return 'ETAT_STAGE_DEPOSE';
-    case 'Validée': return 'ETAT_STAGE_VALIDE';
-    case 'En cours de signature': return 'ETAT_STAGE_CONVENTION_ENVOYEE';
-    case 'Signée': return 'ETAT_STAGE_CONVENTION_RECUE';
-    case 'Rejetée': return 'ETAT_STAGE_REFUS';
-    case 'Aucune':
-    default:
-      return inputAuthorized ? 'ETAT_STAGE_AUTORISE' : 'ETAT_STAGE_INCOMPLET';
-  }
-};
+const mapVueStatusToBackend = etatDepuisStatut;
 
 const mapStageEtudiantToVue = (se) => {
   const etu = se.etudiant || {};
@@ -88,28 +97,9 @@ const mapStageEtudiantToVue = (se) => {
   const tut = se.tuteur || {};
   const tutUniv = se.tuteurUniversitaire || {};
 
-  const hasStage = se.etatStage !== 'ETAT_STAGE_AUTORISE' && se.etatStage !== 'ETAT_STAGE_INCOMPLET';
-  let conventionStatus = 'Aucune';
-  if (se.etatStage === 'ETAT_STAGE_DEPOSE') {
-    conventionStatus = 'En attente';
-  } else if (se.etatStage === 'ETAT_STAGE_VALIDE') {
-    conventionStatus = 'Validée';
-  } else if (se.etatStage === 'ETAT_STAGE_CONVENTION_IMPRIMEE' || se.etatStage === 'ETAT_STAGE_CONVENTION_ENVOYEE') {
-    conventionStatus = 'En cours de signature';
-  } else if (se.etatStage === 'ETAT_STAGE_CONVENTION_RECUE') {
-    conventionStatus = 'Signée';
-  } else if (se.etatStage === 'ETAT_STAGE_REFUS') {
-    conventionStatus = 'Rejetée';
-  }
-
-  const formatDate = (isoStr) => {
-    if (!isoStr) return '';
-    const parts = isoStr.substring(0, 10).split('-');
-    if (parts.length === 3) {
-      return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
-    return isoStr;
-  };
+  const hasStage = aUneDemande(se.etatStage);
+  const conventionStatus = statutConvention(se.etatStage);
+  const formatDate = dateFr;
 
   const datesStr = (se.dateDebutStage && se.dateFinStage)
     ? `${formatDate(se.dateDebutStage)} au ${formatDate(se.dateFinStage)}`
@@ -141,8 +131,8 @@ const mapStageEtudiantToVue = (se) => {
     tutor: academicTutorName,
     tutorIri: tutUniv['@id'] || '',
     inputAuthorized: se.etatStage !== 'ETAT_STAGE_INCOMPLET',
-    reportUploaded: false,
-    reportName: '',
+    reportUploaded: !!se.reportUploaded,
+    reportName: se.reportName || '',
 
     studentPhone: etu.tel1 || '',
     studentEmail: etu.mailPerso || etu.mailUniv || '',
@@ -173,7 +163,13 @@ const mapStageEtudiantToVue = (se) => {
 
 const fetchAllStudents = async () => {
   try {
-    const data = await getStageEtudiantsService();
+    // Dossiers du seul département affiché (le serveur filtre déjà selon les droits).
+    // Sans « pagination: false », l'API ne renvoie que les 30 premiers dossiers.
+    const params = { pagination: false };
+    if (selectedDepartementId.value) {
+      params.departement = selectedDepartementId.value;
+    }
+    const data = await getStageEtudiantsService(params);
     students.value = (data || []).map(mapStageEtudiantToVue);
   } catch (error) {
     console.error('Erreur lors du chargement des étudiants:', error);
@@ -238,6 +234,19 @@ const syncRouteState = async () => {
   } else {
     viewMode.value = 'dashboard';
     selectedPeriodId.value = null;
+  }
+};
+
+// Changement de département : on revient au tableau de bord de ce département.
+const changeDepartement = async (deptId) => {
+  selectedDepartementId.value = deptId;
+  if (viewMode.value === 'period') {
+    router.push({ name: 'ResponsableDashboard' });
+  }
+  selectedPeriodId.value = periods.value[0]?.id ?? null;
+  await fetchAllStudents();
+  if (deptId) {
+    await loadPersonnelsForDepartment(deptId);
   }
 };
 
@@ -521,23 +530,20 @@ const loadAllData = async () => {
     const semestres = await getSemestresService(semestresParams);
     dbSemestres.value = semestres || [];
 
-    const backendPeriods = await getStagePeriodesService();
-    if (backendPeriods && backendPeriods.length > 0) {
-      let mapped = backendPeriods.map(mapPeriodToVue);
-      if (!userStore.isSuperAdmin) {
-        const semesterIris = dbSemestres.value.map(s => s['@id']);
-        mapped = mapped.filter(p => semesterIris.includes(p.semestreProgrammeIri));
-      }
-      periods.value = mapped;
-      if (periods.value.length > 0) {
-        selectedPeriodId.value = periods.value[0].id;
-      }
-    } else {
-      periods.value = [];
+    // Le serveur ne renvoie que les périodes que l'utilisateur gère (toutes pour le super administrateur).
+    const backendPeriods = await getStagePeriodesService({ geres: 1, pagination: false });
+    allPeriods.value = (backendPeriods || []).map(mapPeriodToVue);
+
+    // Département affiché : celui de la période demandée dans l'URL, sinon celui de l'utilisateur, sinon le premier.
+    const routePeriodId = route.params.id ? parseInt(route.params.id, 10) : null;
+    const routePeriod = routePeriodId ? allPeriods.value.find(p => p.id === routePeriodId) : null;
+    const defautId = userStore.departementDefaut?.id;
+    selectedDepartementId.value = routePeriod?.departementId
+      ?? (departementOptions.value.some(d => d.id === defautId) ? defautId : (departementOptions.value[0]?.id ?? null));
+    if (periods.value.length > 0) {
+      selectedPeriodId.value = periods.value[0].id;
     }
 
-    // Determine target department from route period or user default
-    const routePeriodId = route.params.id ? parseInt(route.params.id, 10) : null;
     const activePeriod = periods.value.find(p => p.id === (routePeriodId || selectedPeriodId.value));
     const activeDeptId = activePeriod?.departementId || userStore.departementDefaut?.id;
     await loadPersonnelsForDepartment(activeDeptId);
@@ -688,9 +694,12 @@ const kpis = computed(() => {
   };
 });
 
+// Dossiers du département affiché (KPIs et demandes en attente du tableau de bord).
+const departementStudents = computed(() => students.value.filter(s => periodIds.value.has(s.periodId)));
+
 const globalKpis = computed(() => {
   const totalEnrolled = Object.values(semesterStudentsMap.value).flat().length;
-  const list = students.value;
+  const list = departementStudents.value;
   const placed = list.filter(s => s.hasStage).length;
   const pending = list.filter(s => s.conventionStatus === 'En attente').length;
   const reports = list.filter(s => s.reportUploaded).length;
@@ -707,7 +716,7 @@ const globalKpis = computed(() => {
 });
 
 const pendingConventions = computed(() => {
-  return students.value.filter(s => s.conventionStatus === 'En attente');
+  return departementStudents.value.filter(s => s.conventionStatus === 'En attente');
 });
 
 const activePeriodDatesAndInfo = computed(() => {
@@ -760,17 +769,13 @@ const handleUpdateStudent = async ({ id, changes }) => {
     if (changes.conventionStatus !== undefined) {
       const isAuth = changes.inputAuthorized !== undefined ? changes.inputAuthorized : student.inputAuthorized;
       const backendStatus = mapVueStatusToBackend(changes.conventionStatus, isAuth);
+      // Les dates de traitement (validation, envoi, réception…) sont posées par le serveur.
       patchPayload.etatStage = backendStatus;
+    }
 
-      // Set timestamp dates based on status transit
-      if (backendStatus === 'ETAT_STAGE_VALIDE') {
-        patchPayload.dateValidation = new Date().toISOString();
-      } else if (backendStatus === 'ETAT_STAGE_CONVENTION_ENVOYEE') {
-        patchPayload.dateConventionEnvoyee = new Date().toISOString();
-        patchPayload.dateImprime = new Date().toISOString();
-      } else if (backendStatus === 'ETAT_STAGE_CONVENTION_RECUE') {
-        patchPayload.dateConventionRecu = new Date().toISOString();
-      }
+    // Motif communiqué à l'étudiant en cas de refus
+    if (changes.motifRefus !== undefined) {
+      patchPayload.motifRefus = changes.motifRefus;
     }
 
     // Map input authorization toggling
@@ -898,7 +903,9 @@ const handleUpdateStudent = async ({ id, changes }) => {
 
   } catch (error) {
     console.error('Erreur lors de la mise à jour de l\'étudiant:', error);
-    toast.add({ severity: 'error', summary: 'Erreur de sauvegarde', detail: 'Impossible de synchroniser les modifications avec le serveur.', life: 4000 });
+    toast.add({ severity: 'error', summary: 'Modification refusée', detail: messageErreurApi(error, 'Impossible de synchroniser les modifications avec le serveur.'), life: 6000 });
+    // L'écran a pu afficher le changement par avance : on recharge l'état réel.
+    await fetchAllStudents();
   }
 };
 
@@ -908,9 +915,9 @@ const savePeriod = async (formValue) => {
   try {
     if (isEditing.value) {
       const updated = await updateStagePeriodeService(editingPeriodId.value, payload);
-      const index = periods.value.findIndex(p => p.id === editingPeriodId.value);
+      const index = allPeriods.value.findIndex(p => p.id === editingPeriodId.value);
       if (index !== -1 && updated) {
-        periods.value[index] = mapPeriodToVue(updated);
+        allPeriods.value[index] = mapPeriodToVue(updated);
         toast.add({
           severity: 'success',
           summary: 'Période mise à jour',
@@ -921,7 +928,12 @@ const savePeriod = async (formValue) => {
     } else {
       const created = await createStagePeriodeService(payload);
       if (created) {
-        periods.value.push(mapPeriodToVue(created));
+        const nouvelle = mapPeriodToVue(created);
+        allPeriods.value.push(nouvelle);
+        if (nouvelle.departementId && nouvelle.departementId !== selectedDepartementId.value) {
+          selectedDepartementId.value = nouvelle.departementId;
+          await fetchAllStudents();
+        }
         if (periods.value.length === 1) {
           selectedPeriodId.value = periods.value[0].id;
         }
@@ -941,10 +953,10 @@ const savePeriod = async (formValue) => {
 };
 
 const confirmDeletePeriod = async (p) => {
-  if (confirm(`Êtes-vous sûr de vouloir supprimer la période "${p.name}" ?`)) {
+  if (await confirmer({ message: `Supprimer la période « ${p.name} » ?`, titre: 'Supprimer la période', libelle: 'Supprimer', danger: true })) {
     try {
       await deleteStagePeriodeService(p.id);
-      periods.value = periods.value.filter(item => item.id !== p.id);
+      allPeriods.value = allPeriods.value.filter(item => item.id !== p.id);
       if (selectedPeriodId.value === p.id && periods.value.length > 0) {
         selectedPeriodId.value = periods.value[0].id;
       }
@@ -959,7 +971,6 @@ const confirmDeletePeriod = async (p) => {
 
 <template>
   <div class="space-y-6">
-    <Toast />
 
     <!-- 1. Header component for General Dashboard -->
     <HeaderComponent v-if="viewMode === 'dashboard'" :icon="ChartBarIcon" color="indigo"
@@ -978,6 +989,16 @@ const confirmDeletePeriod = async (p) => {
     <div v-else>
       <!-- TABLEAU DE BORD GÉNÉRAL (viewMode === 'dashboard') -->
       <div v-if="viewMode === 'dashboard'" class="space-y-6 animate-fade-in">
+        <!-- Département affiché (sélecteur si l'utilisateur gère plusieurs départements, ou super administrateur) -->
+        <div v-if="departementOptions.length > 1"
+          class="bg-white dark:bg-slate-800 p-4 border border-slate-100 dark:border-slate-700/60 rounded-3xl shadow-sm flex flex-wrap items-center gap-3">
+          <label for="stage-departement" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Département</label>
+          <Select inputId="stage-departement" :modelValue="selectedDepartementId" @update:modelValue="changeDepartement"
+            :options="departementOptions" optionLabel="libelle" optionValue="id" filter
+            class="w-64 text-xs font-semibold" />
+          <span class="text-[10px] text-slate-400 italic">{{ periods.length }} période(s) dans ce département</span>
+        </div>
+
         <!-- KPIs Globaux -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Kpi :value="globalKpis.total" label="Total Étudiants" :icon="UsersIcon" color="indigo" />
@@ -1015,9 +1036,8 @@ const confirmDeletePeriod = async (p) => {
                 </button>
               </div>
             </div>
-            <div v-else class="text-center py-8 text-xs text-slate-400 italic">
-              Aucune demande de convention en attente d'instruction. Tout est à jour !
-            </div>
+            <EmptyState v-else compact color="emerald" icon="pi pi-check-circle" title="Tout est à jour"
+              description="Aucune demande de convention en attente d'instruction." />
           </div>
         </Card>
 

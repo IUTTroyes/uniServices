@@ -12,6 +12,7 @@ use Doctrine\Persistence\ObjectManager;
 use FinanceBundle\Entity\FinanceBonCommande;
 use FinanceBundle\Entity\FinanceFournisseur;
 use FinanceBundle\Entity\FinanceReception;
+use FinanceBundle\Entity\FinanceTauxTva;
 use FinanceBundle\Enum\AvisDirecteurEnum;
 use FinanceBundle\Enum\StatutCommandeEnum;
 use FinanceBundle\Enum\TypePrestationEnum;
@@ -42,6 +43,12 @@ class FinanceFixtures extends Fixture implements OrderedFixtureInterface, Fixtur
 
         $deptMmi = $deptRepo->findOneBy(['libelle' => 'MMI']);
         $serviceFinancier = $serviceRepo->findOneBy(['libelle' => 'Service Financier']);
+
+        // Taux de TVA
+        foreach (FinanceTauxTva::TAUX_PAR_DEFAUT as $ordre => $defaut) {
+            $manager->persist((new FinanceTauxTva())->setTaux($defaut['taux'])->setLibelle($defaut['libelle'])
+                ->setParDefaut($defaut['parDefaut'])->setOrdre($ordre));
+        }
 
         // Fournisseurs
         $f1 = new FinanceFournisseur();

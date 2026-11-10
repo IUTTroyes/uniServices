@@ -111,3 +111,24 @@ Les exceptions explicites couvrent la connexion, le renouvellement de session, l
 - Les opérations globales d’import CSV d’étudiants sont réservées à `SUPER_ADMIN`.
 
 Pour une route de contrôleur qui reçoit un identifiant, autoriser l’accès sur l’objet chargé avant l’export ou la mutation. Une route de lot doit vérifier chaque cible avant d’effectuer la première écriture.
+
+## Intégration des packages (fusion novembre 2026)
+
+Les règles locales des voters restent la référence. Les attributs `FINANCE_BC_*`, `QUESTIONNAIRE_*` et
+`STAGE_ETUDIANT_*` sont traduits vers les décisions `CAN_*` correspondantes ; ils ne définissent pas une seconde
+politique. Les services `FinanceAccess`, `QuestionnaireAccess` et `StageAccess` appellent directement la même
+méthode `allows()` que Symfony. Être auteur, responsable désigné ou tuteur ne donne pas de dérogation aux rôles locaux.
+
+Les expressions de sécurité des opérations existantes, notamment les contrôles avant et après dénormalisation,
+sont conservées. Deux adaptations concernent la création : le demandeur d'une commande est imposé par le serveur
+(et cette identité est utilisée pour le vote), et le parent d'une question/section est chargé depuis l'URL avant
+le contrôle local dans `QuestionnaireStructureProcessor`, avant toute persistance.
+
+Le circuit financier, les notifications, les exports et les nouveaux processeurs restent actifs. Les validations,
+réceptions et décisions portées par un document exigent la gestion financière locale. Les contraintes métier
+(de statut, contenu, anonymat, dates) s'ajoutent aux permissions sans les remplacer. Les filtres entrants fondés
+sur la propriété ont été retirés au profit des règles de collection locales, en particulier
+`DepartmentCollectionAccessExtension` pour les finances, stages et invitations.
+
+Validation de non-régression : `tests/Security/MergePermissionsTest.php`, tests d'accès Questionnaire/Stage et tests
+du processeur Stage. Les tests API nécessitent la base de test configurée ; leur absence ne valide pas les parcours HTTP.

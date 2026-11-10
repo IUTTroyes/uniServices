@@ -21,6 +21,12 @@ class EtablissementRepository extends ServiceEntityRepository
         return $this->findOneBy([]);
     }
 
+    /** Établissement principal (isMain), à défaut le premier enregistré. */
+    public function findPrincipal(): ?Etablissement
+    {
+        return $this->findOneBy(['isMain' => true]) ?? $this->findOneBy([], ['id' => 'ASC']);
+    }
+
     //    /**
     //     * @return Etablissement[] Returns an array of Etablissement objects
     //     */

@@ -1,0 +1,17 @@
+{% extends 'emails/layout.html.twig' %}
+
+{% block subject %}[{{ source }}] {{ titre }}{% endblock %}
+
+{% block preheader %}{{ texte }}{% endblock %}
+
+{% block body %}
+    <h1>{{ titre }}</h1>
+
+    <p>Bonjour {{ destinataire_nom }},</p>
+
+    <p>{{ texte }}</p>
+
+    <p>
+        <a href="{{ urlNotification|default('/app') }}" class="btn">Ouvrir dans l'application</a>
+    </p>
+{% endblock %}

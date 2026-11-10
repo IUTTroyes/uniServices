@@ -11,6 +11,7 @@ use App\Entity\Traits\OptionTrait;
 use QuestionnaireBundle\Enum\QuestTypeRepeatEnum;
 use QuestionnaireBundle\Enum\QuestTypeSectionEnum;
 use QuestionnaireBundle\Repository\Questionnaires\QuestionnaireSectionRepository;
+use QuestionnaireBundle\State\QuestionnaireStructureProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -25,11 +26,12 @@ use Symfony\Component\Uid\Uuid;
 #[ApiResource(
     uriTemplate: '/questionnaires/{questionnaireId}/questionnaire_sections',
     operations: [
+        // Accès défini par les règles locales ; invitations filtrées par DepartmentCollectionAccessExtension.
         new GetCollection(normalizationContext: ['groups' => ['questionnaire_section:read']]),
-        new Post(
-            read: false, securityPostDenormalize: "is_granted('CAN_EDIT_QUESTION_SECTION', object)",
-            normalizationContext: ['groups' => ['questionnaire_section:read']]
-        ),
+        // Le questionnaire parent (URL) et le droit de le gérer sont contrôlés par le processeur.
+        new Post(security: "is_granted('IS_PERSONNEL')", read: false,
+            normalizationContext: ['groups' => ['questionnaire_section:read']],
+            processor: QuestionnaireStructureProcessor::class),
     ],
     uriVariables: [
         'questionnaireId' => new Link(toProperty: 'questionnaire', fromClass: Questionnaire::class),
@@ -38,8 +40,9 @@ use Symfony\Component\Uid\Uuid;
 #[ApiResource(
     uriTemplate: '/questionnaires/{questionnaireId}/questionnaire_sections/{uuid}',
     operations: [
-        new Patch(security: "is_granted('CAN_EDIT_QUESTION_SECTION', object)", securityPostDenormalize: "is_granted('CAN_EDIT_QUESTION_SECTION', object)", normalizationContext: ['groups' => ['questionnaire_section:read']]),
-        new Delete(security: "is_granted('CAN_DELETE_QUESTION_SECTION', object)"),
+        new Patch(security: "is_granted('CAN_EDIT_QUESTION_SECTION', object)", securityPostDenormalize: "is_granted('CAN_EDIT_QUESTION_SECTION', object)", normalizationContext: ['groups' => ['questionnaire_section:read']],
+            processor: QuestionnaireStructureProcessor::class),
+        new Delete(security: "is_granted('CAN_DELETE_QUESTION_SECTION', object)", processor: QuestionnaireStructureProcessor::class),
     ],
     uriVariables: [
         'questionnaireId' => new Link(toProperty: 'questionnaire', fromClass: Questionnaire::class),
@@ -87,13 +90,14 @@ class QuestionnaireSection
      * @var Collection<int, QuestionnaireQuestion>
      */
     #[ORM\OneToMany(targetEntity: QuestionnaireQuestion::class, mappedBy: 'section', cascade: ['persist', 'remove'])]
+    #[ORM\OrderBy(['sortOrder' => 'ASC'])]
     #[Groups(['questionnaire_section:read'])]
     private Collection $questions;
 
     /**
      * @var Collection<int, QuestionnaireSectionInstance>
      */
-    #[ORM\OneToMany(targetEntity: QuestionnaireSectionInstance::class, mappedBy: 'section', cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(targetEntity: QuestionnaireSectionInstance::class, mappedBy: 'section')]
     private Collection $sectionInstances;
 
 

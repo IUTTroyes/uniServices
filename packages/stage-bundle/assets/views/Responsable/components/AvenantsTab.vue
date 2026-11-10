@@ -1,7 +1,10 @@
 <script setup>
+import { EmptyState } from '@components';
+import Tag from 'primevue/tag';
+import Button from 'primevue/button';
+import { validateStageAvenantService } from '@/requests/stage_service';
 import { computed, ref } from 'vue';
 import { useToast } from 'primevue/usetoast';
-import api from '@helpers/axios';
 
 const props = defineProps({
   periodStudents: {
@@ -40,7 +43,7 @@ const allAvenants = computed(() => {
 const validateAvenant = async (av) => {
   isValidating.value[av.id] = true;
   try {
-    await api.post(`/api/stage_avenants/${av.id}/validate`);
+    await validateStageAvenantService(av.id);
     toast.add({
       severity: 'success',
       summary: 'Avenant validé',
@@ -110,27 +113,12 @@ const validateAvenant = async (av) => {
                 {{ new Date(av.dateCreation).toLocaleDateString('fr-FR') }}
               </td>
               <td class="p-4 text-center">
-                <span :class="[
-                  'px-2 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider',
-                  av.valide 
-                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300' 
-                    : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300'
-                ]">
-                  {{ av.valide ? 'Validé' : 'En attente' }}
-                </span>
+                <Tag :value="av.valide ? 'Validé' : 'En attente'" :severity="av.valide ? 'success' : 'warn'" />
               </td>
               <td class="p-4 text-right">
                 <div class="flex justify-end gap-2">
-                  <button 
-                    v-if="!av.valide" 
-                    @click="validateAvenant(av)" 
-                    :disabled="isValidating[av.id]"
-                    class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-sm border-0 cursor-pointer flex items-center gap-1"
-                  >
-                    <i v-if="isValidating[av.id]" class="pi pi-spin pi-spinner"></i>
-                    <i v-else class="pi pi-check"></i>
-                    <span>Valider</span>
-                  </button>
+                  <Button v-if="!av.valide" label="Valider" icon="pi pi-check" severity="success" size="small"
+                    :loading="isValidating[av.id]" @click="validateAvenant(av)" />
                   <a 
                     v-if="av.valide"
                     :href="'/api/stage_avenants/' + av.id + '/pdf'"
@@ -146,11 +134,7 @@ const validateAvenant = async (av) => {
           </tbody>
         </table>
       </div>
-      <div v-else class="p-12 text-center text-slate-400">
-        <i class="pi pi-file-excel text-4xl text-slate-350 block mb-3"></i>
-        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-300">Aucun avenant</h3>
-        <p class="text-xs text-slate-400 mt-1">Aucune demande d'avenant n'a été formulée par les étudiants pour cette période.</p>
-      </div>
+      <EmptyState v-else icon="pi pi-file" title="Aucun avenant" description="Aucune demande d'avenant n'a été formulée par les étudiants pour cette période." />
     </div>
   </div>
 </template>

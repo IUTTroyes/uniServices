@@ -18,11 +18,16 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: FinanceReceptionRepository::class)]
 #[ApiResource(
     operations: [
-        new GetCollection(normalizationContext: ['groups' => ['reception:read']]),
+        // Liste restreinte par DepartmentCollectionAccessExtension (visibilité de la demande).
+        new GetCollection(normalizationContext: ['groups' => ['reception:read']],
+            paginationClientItemsPerPage: true,
+            paginationMaximumItemsPerPage: 100),
         new Get(security: "is_granted('CAN_VIEW_FINANCE', object)", normalizationContext: ['groups' => ['reception:read']]),
-        new Post(securityPostDenormalize: "is_granted('CAN_MANAGE_FINANCE', object)", denormalizationContext: ['groups' => ['reception:write', 'finance:write']]),
-        new Patch(security: "is_granted('CAN_MANAGE_FINANCE', object)", securityPostDenormalize: "is_granted('CAN_MANAGE_FINANCE', object)", denormalizationContext: ['groups' => ['reception:write', 'finance:write']]),
-        new Delete(security: "is_granted('CAN_MANAGE_FINANCE', object)")
+        // Le service fait se constate par la transition « constater_service_fait » ; le service financier complète ou
+        // corrige ensuite les réceptions (numéros MIGO, bon de livraison). La demande n'est choisie qu'à la création.
+        new Post(securityPostDenormalize: "is_granted('CAN_MANAGE_FINANCE', object)", denormalizationContext: ['groups' => ['reception:write', 'reception:create']]),
+        new Patch(security: "is_granted('CAN_MANAGE_FINANCE', object)", securityPostDenormalize: "is_granted('CAN_MANAGE_FINANCE', object)", denormalizationContext: ['groups' => ['reception:write']]),
+        new Delete(security: "is_granted('CAN_MANAGE_FINANCE', object)"),
     ]
 )]
 class FinanceReception
@@ -35,54 +40,54 @@ class FinanceReception
 
     #[ORM\ManyToOne(inversedBy: 'receptions')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    #[Groups(['reception:read', 'reception:write'])]
+    #[Groups(['reception:read', 'reception:create'])]
     private ?FinanceBonCommande $bonCommande = null;
 
     // Date effective de réception / livraison
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list', 'finance:write'])]
+    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list'])]
     private ?\DateTimeInterface $dateEffectiveReception = null;
 
     #[ORM\Column(length: 20, enumType: TypeReceptionEnum::class)]
-    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list', 'finance:write'])]
+    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list'])]
     private TypeReceptionEnum $typeReception = TypeReceptionEnum::TOTALE;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
-    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list', 'finance:write'])]
+    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list'])]
     private ?string $montantTtcConstate = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
-    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list', 'finance:write'])]
+    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list'])]
     private bool $prestationsConformes = true;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list', 'finance:write'])]
+    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list'])]
     private ?string $detailsReceptionPartielle = null;
 
     // Numéros MIGO (SIFAC)
     #[ORM\Column(type: Types::JSON, nullable: true)]
-    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list', 'finance:write'])]
+    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list'])]
     private ?array $numerosMigo = [];
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list', 'finance:write'])]
+    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list'])]
     private ?\DateTimeInterface $dateMigo103 = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list', 'finance:write'])]
+    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list'])]
     private ?\DateTimeInterface $dateMigo105 = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
-    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list', 'finance:write'])]
+    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list'])]
     private bool $blRattacheSifac = false;
 
     // Demandeur de l'achat ou personne désignée pour réceptionner le bien/service
     #[ORM\ManyToOne]
-    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list', 'finance:write'])]
+    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:list'])]
     private ?Personnel $receptionnaire = null;
 
     #[ORM\Column(length: 100, nullable: true)]
-    #[Groups(['reception:read', 'reception:write', 'finance:read', 'finance:write'])]
+    #[Groups(['reception:read', 'reception:write', 'finance:read'])]
     private ?string $qualiteReceptionnaire = null; // Ex: Technicien d'atelier, Enseignant, etc.
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]

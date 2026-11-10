@@ -84,7 +84,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, Tim
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['etudiant:detail', 'etudiant:light', 'etudiant:write'])]
-    private ?string $mailPerso;
+    private ?string $mailPerso = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $password = null;
@@ -102,7 +102,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, Tim
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['etudiant:detail', 'etudiant:scolarite'])]
+    #[Groups(['etudiant:detail', 'etudiant:scolarite', 'etudiant:light'])]
     private ?string $photoName = null;
 
     /**
@@ -130,7 +130,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, Tim
     private ?string $site_univ = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['etudiant:detail', 'scolarite-semestre:manage-groupes', 'etudiant:scolarite'])]
+    #[Groups(['etudiant:detail', 'scolarite-semestre:manage-groupes', 'etudiant:scolarite', 'etudiant:light'])]
     private ?string $num_etudiant = null;
 
     #[ORM\Column(length: 20, nullable: true)]
@@ -173,8 +173,8 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, Tim
     #[Groups(['etudiant:detail'])]
     private ?string $lieu_naissance = null;
 
-    #[ORM\Column(nullable: true)]
-    #[Groups(['etudiant:detail', 'etudiant:write'])]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    #[Groups(['etudiant:detail', 'etudiant:write', 'etudiant:light'])]
     private ?array $applications = null;
 
     /**
@@ -315,6 +315,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, Tim
         return $this;
     }
 
+    #[Groups(['etudiant:detail', 'etudiant:light'])]
     public function getPhotoName(): ?string
     {
         return $this->photoName;
@@ -393,9 +394,20 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, Tim
         return Adresse::fromArray($this->adresseParentale);
     }
 
+    #[Groups(['etudiant:detail', 'etudiant:light'])]
     public function getApplications(): ?array
     {
-        return $this->applications ?? ['Intranet'];
+        $apps = $this->applications;
+        if (is_string($apps)) {
+            $apps = json_decode($apps, true);
+        }
+        if (!is_array($apps) || empty($apps)) {
+            return ['intranet'];
+        }
+        return array_values(array_unique(array_map(function ($app) {
+            $low = strtolower(trim((string) $app));
+            return $low === 'intranet' ? 'intranet' : $low;
+        }, $apps)));
     }
 
     public function setApplications(?array $applications): static
@@ -429,6 +441,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, Tim
         return $this;
     }
 
+    #[Groups(['etudiant:detail', 'etudiant:light'])]
     public function getNumEtudiant(): ?string
     {
         return $this->num_etudiant;

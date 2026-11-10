@@ -2,122 +2,83 @@
 
 namespace QuestionnaireBundle\Controller;
 
-use App\Service\Email\EmailService;
 use Doctrine\ORM\EntityManagerInterface;
-use QuestionnaireBundle\Entity\Questionnaires\Questionnaire;
 use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireInvitation;
-use QuestionnaireBundle\Repository\Questionnaires\QuestionnaireInvitationRepository;
-use QuestionnaireBundle\Repository\Questionnaires\QuestionnaireRepository;
-use Psr\Log\LoggerInterface;
+use QuestionnaireBundle\Security\QuestionnaireResolver;
+use QuestionnaireBundle\Security\QuestionnaireVoter;
+use QuestionnaireBundle\Services\Notification\QuestionnaireNotifier;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+/**
+ * Relance manuelle de participants qui n'ont pas encore envoyé leurs réponses.
+ * Corps : {"invitations": [id, …], "subject"?: "…", "message"?: "…"}.
+ */
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('IS_AUTHENTICATED_FULLY')]
 class QuestionnaireReminderController extends AbstractController
 {
     public function __construct(
         private readonly EntityManagerInterface $em,
-        private readonly EmailService $emailService,
-        private readonly QuestionnaireRepository $questionnaireRepository,
-        private readonly QuestionnaireInvitationRepository $invitationRepository,
-        private readonly ?LoggerInterface $logger = null,
+        private readonly QuestionnaireResolver $questionnaires,
+        private readonly QuestionnaireNotifier $notifier,
     ) {
     }
 
     #[Route('/api/questionnaires/{uuid}/reminders', name: 'api_questionnaire_send_reminders', methods: ['POST'])]
     public function sendReminders(string $uuid, Request $request): JsonResponse
     {
-        $questionnaire = $this->questionnaireRepository->findOneBy(['uuid' => $uuid]);
-        if (!$questionnaire) {
-            throw new NotFoundHttpException('Questionnaire introuvable.');
-        }
-        $this->denyAccessUnlessGranted('CAN_PUBLISH_QUESTIONNAIRE', $questionnaire);
-
-
-        $data = json_decode($request->getContent(), true) ?? [];
-        $tokens = $data['tokens'] ?? [];
-        $subject = trim((string) ($data['subject'] ?? ''));
-        $message = trim((string) ($data['message'] ?? ''));
-
-        if (empty($tokens) || !is_array($tokens)) {
-            return new JsonResponse([
-                'error' => 'Aucun participant spécifié.',
-            ], Response::HTTP_BAD_REQUEST);
+        $questionnaire = $this->questionnaires->charger($uuid, QuestionnaireVoter::CAN_PUBLISH_QUESTIONNAIRE);
+        if (!$questionnaire->estOuvert()) {
+            return new JsonResponse(['error' => 'Ce questionnaire n\'est pas ouvert aux réponses : aucune relance possible.'], Response::HTTP_CONFLICT);
         }
 
-        if ($subject === '') {
-            $subject = sprintf('Rappel : questionnaire "%s" en attente', $questionnaire->getTitle());
+        $data = json_decode($request->getContent(), true);
+        $data = is_array($data) ? $data : [];
+        // Invitations désignées par leur identifiant (le jeton, clé d'accès du répondant, n'est jamais exposé).
+        $ids = array_values(array_filter(array_map('intval', is_array($data['invitations'] ?? null) ? $data['invitations'] : [])));
+        if ($ids === []) {
+            return new JsonResponse(['error' => 'Aucun participant spécifié.'], Response::HTTP_BAD_REQUEST);
         }
+        $objet = mb_substr(trim((string) ($data['subject'] ?? '')), 0, 255);
+        $message = mb_substr(trim((string) ($data['message'] ?? '')), 0, 5000);
 
-        $invitations = $this->em->getRepository(QuestionnaireInvitation::class)->findBy([
-            'questionnaire' => $questionnaire,
-            'token' => $tokens,
-        ]);
-
+        $invitations = $this->em->getRepository(QuestionnaireInvitation::class)->findBy(['questionnaire' => $questionnaire, 'id' => $ids]);
         $type = count($invitations) > 1 ? 'bulk' : 'manual';
-        $sentCount = 0;
-        $baseUrl = $request->getSchemeAndHttpHost();
 
-        $updatedInvitations = [];
-
+        $envoyees = 0;
+        $echecs = 0;
+        $misesAJour = [];
         foreach ($invitations as $invitation) {
             if ($invitation->isSubmitted()) {
                 continue;
             }
-
-            // Enregistrer l'historique de relance
-            $invitation->addReminder(
-                subject: $subject,
-                message: $message !== '' ? $message : null,
-                type: $type
-            );
-
-            // Envoi de l'email si adresse présente
-            $email = $invitation->getEmail();
-            if ($email !== null && trim($email) !== '') {
-                $surveyUrl = sprintf('%s/take/%s', $baseUrl, $invitation->getToken());
-                try {
-                    $this->emailService->send(
-                        emailKey: 'questionnaire.reminder',
-                        to: $email,
-                        context: [
-                            'invitation'    => $invitation,
-                            'questionnaire' => $questionnaire,
-                            'surveyUrl'     => $surveyUrl,
-                            'expiresAt'     => $questionnaire->getClosingDate(),
-                            'customSubject' => $subject,
-                            'customMessage' => $message,
-                        ]
-                    );
-                } catch (\Throwable $e) {
-                    $this->logger?->warning(sprintf('Échec envoi email relance questionnaire à %s: %s', $email, $e->getMessage()));
-                }
+            if (!$this->notifier->relance($invitation, $objet ?: null, $message ?: null)) {
+                ++$echecs;
+                continue;
             }
-
-            $this->em->persist($invitation);
-            $sentCount++;
-
-            $updatedInvitations[] = [
-                'token' => $invitation->getToken(),
+            $invitation->addReminder(
+                subject: $objet !== '' ? $objet : sprintf('Rappel : questionnaire « %s » en attente', $questionnaire->getTitle()),
+                message: $message !== '' ? $message : null,
+                type: $type,
+            );
+            ++$envoyees;
+            $misesAJour[] = [
+                'id' => $invitation->getId(),
                 'remindedAt' => $invitation->getRemindedAt()?->format(\DateTimeInterface::ATOM),
                 'remindersCount' => $invitation->getRemindersCount(),
                 'remindersHistory' => $invitation->getRemindersHistory(),
             ];
         }
-
-        if ($sentCount > 0) {
-            $this->em->flush();
-        }
+        $this->em->flush();
 
         return new JsonResponse([
-            'success' => true,
-            'sentCount' => $sentCount,
-            'invitations' => $updatedInvitations,
+            'success' => $echecs === 0,
+            'sentCount' => $envoyees,
+            'failedCount' => $echecs,
+            'invitations' => $misesAJour,
         ]);
     }
 }

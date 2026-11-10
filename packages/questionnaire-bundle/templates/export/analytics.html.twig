@@ -77,8 +77,11 @@
             {{ section.sectionTitle }}
             {% if section.sectionType == 'configurable' %}<span class="tag">Instance répétable</span>{% endif %}
         </h2>
-        {% if section.repeatItemType %}
-            <div class="subtitle">Sujet évalué : {{ section.repeatItemType }} (ID : {{ section.repeatItemId }})</div>
+        {% if section.enseignement or section.intervenant %}
+            <div class="subtitle">Évalué : {{ section.enseignement }}{% if section.intervenant %} — {{ section.intervenant }}{% endif %} · {{ section.reponses }} répondant(s)</div>
+        {% endif %}
+        {% if section.masquee %}
+            <p class="subtitle">Résultats masqués : moins de {{ analytics.seuilMinReponses }} réponses pour cette section (anonymat).</p>
         {% endif %}
 
         <div class="grid">

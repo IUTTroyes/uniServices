@@ -1,42 +1,30 @@
 {% extends 'emails/layout.html.twig' %}
 
-{% block subject %}Invitation au questionnaire : {{ questionnaire.title }}{% endblock %}
-
-{% block preheader %}{{ questionnaire.title }} – Cliquez pour répondre au questionnaire.{% endblock %}
+{% block preheader %}Vous êtes invité(e) à répondre au questionnaire « {{ questionnaire_titre }} ».{% endblock %}
 
 {% block body %}
-    <h1>Vous avez reçu une invitation</h1>
+    <h1>Votre avis est attendu</h1>
 
     <p>Bonjour,</p>
 
-    <p>
-        Vous avez été invité(e) à répondre au questionnaire suivant :
-    </p>
+    <p>Vous êtes invité(e) à répondre au questionnaire <strong>{{ questionnaire_titre }}</strong>.</p>
 
-    <h2 style="color:#1a3a5c;">{{ questionnaire.title }}</h2>
-
-    {% if questionnaire.description %}
-    <p style="color:#718096;font-style:italic;">{{ questionnaire.description }}</p>
+    {% if questionnaire_description %}
+    <p><em>{{ questionnaire_description }}</em></p>
     {% endif %}
 
     <p>
-        <a href="{{ surveyUrl }}" class="btn">Répondre au questionnaire</a>
+        {% if duree_estimee %}Cela vous prendra environ {{ duree_estimee }} minute(s). {% endif %}
+        {% if anonyme %}Vos réponses sont anonymes.{% endif %}
     </p>
 
-    {% if expiresAt is defined and expiresAt %}
-    <div class="alert">
-        Cette invitation est valide jusqu'au <strong>{{ expiresAt|date('d/m/Y') }}</strong>.
-    </div>
+    <p><a href="{{ lien }}" class="btn">Répondre au questionnaire</a></p>
+
+    {% if date_cloture %}
+    <div class="alert">Le questionnaire est ouvert jusqu'au <strong>{{ date_cloture }}</strong>.</div>
     {% endif %}
 
     <hr class="divider">
 
-    <p style="font-size:13px;color:#718096;">
-        Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :<br>
-        <a href="{{ surveyUrl }}" style="word-break:break-all;">{{ surveyUrl }}</a>
-    </p>
-
-    <p style="font-size:13px;color:#718096;">
-        Si vous pensez avoir reçu cet email par erreur, vous pouvez l'ignorer.
-    </p>
+    <p>Ce lien vous est personnel : ne le transférez pas. S'il ne s'ouvre pas, copiez-le dans votre navigateur :<br>{{ lien }}</p>
 {% endblock %}

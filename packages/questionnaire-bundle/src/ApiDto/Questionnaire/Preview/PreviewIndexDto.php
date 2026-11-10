@@ -14,6 +14,8 @@ use QuestionnaireBundle\State\Provider\Questionnaire\Preview\PreviewIndexProvide
 #[ApiResource(
     operations: [
         new Get(
+            // Droit sur le questionnaire vérifié par le provider / processeur (QuestionnaireResolver).
+            security: "is_granted('IS_PERSONNEL')",
             uriTemplate: '/questionnaires/{questionnaireUuid}/preview',
             uriVariables: [
                 'questionnaireUuid' => new Link(

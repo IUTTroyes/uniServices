@@ -1,3 +1,35 @@
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { BoltIcon, DocumentDuplicateIcon } from '@heroicons/vue/24/outline';
+import type { Question } from '@/types/survey';
+import { DialogHeader, FormField, FormSection } from '../Form';
+
+interface Props {
+  question: Question;
+}
+
+interface Emits {
+  close: [];
+  confirm: [payload: { newLabel: string; copyRulesMode: 'copy_adapt' | 'none' }];
+}
+
+const props = defineProps<Props>();
+const emit = defineEmits<Emits>();
+
+const newLabel = ref(`${props.question.label} (Copie)`);
+const copyRulesMode = ref<'copy_adapt' | 'none'>('copy_adapt');
+
+const conditionalRules = computed(() => props.question.conditionalRules || []);
+const hasConditionalRules = computed(() => conditionalRules.value.length > 0);
+
+function confirmDuplicate() {
+  if (!newLabel.value.trim()) return;
+  emit('confirm', {
+    newLabel: newLabel.value.trim(),
+    copyRulesMode: copyRulesMode.value
+  });
+}
+</script>
 <template>
   <Dialog
     :visible="true"
@@ -61,36 +93,3 @@
     </div>
   </Dialog>
 </template>
-
-<script setup lang="ts">
-import { ref, computed } from 'vue';
-import { BoltIcon, DocumentDuplicateIcon } from '@heroicons/vue/24/outline';
-import type { Question } from '@/types/survey';
-import { DialogHeader, FormField, FormSection } from '../Form';
-
-interface Props {
-  question: Question;
-}
-
-interface Emits {
-  close: [];
-  confirm: [payload: { newLabel: string; copyRulesMode: 'copy_adapt' | 'none' }];
-}
-
-const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
-
-const newLabel = ref(`${props.question.label} (Copie)`);
-const copyRulesMode = ref<'copy_adapt' | 'none'>('copy_adapt');
-
-const conditionalRules = computed(() => props.question.conditionalRules || []);
-const hasConditionalRules = computed(() => conditionalRules.value.length > 0);
-
-function confirmDuplicate() {
-  if (!newLabel.value.trim()) return;
-  emit('confirm', {
-    newLabel: newLabel.value.trim(),
-    copyRulesMode: copyRulesMode.value
-  });
-}
-</script>

@@ -1,7 +1,29 @@
+parameters:
+  # Médias UniFolio stockés hors webroot : servis uniquement via les contrôleurs (voters).
+  unifolio.media_dir: '%kernel.project_dir%/var/unifolio/media'
+  unifolio.media_max_size: 52428800 # 50 Mo
+  # Publications (HTML statique généré + médias copiés) : hors webroot, servies par PublicPortfolioController.
+  unifolio.publications_dir: '%kernel.project_dir%/var/unifolio/publications'
+  # Service de rendu Node (construit par `npm run build:unifolio-renderer`).
+  unifolio.renderer_dir: '%kernel.project_dir%/../packages/unifolio-bundle/renderer'
+  unifolio.renderer_node_defaut: 'node'
+  # Variable d'environnement UNIFOLIO_NODE (chemin absolu de Node en production), sinon `node` du PATH.
+  unifolio.renderer_node: '%env(default:unifolio.renderer_node_defaut:UNIFOLIO_NODE)%'
+  unifolio.renderer_timeout: 60
+  unifolio.publications_conservees: 5
+
 services:
   _defaults:
     autowire: true
     autoconfigure: true
+    bind:
+      string $unifolioMediaDir: '%unifolio.media_dir%'
+      int $unifolioMediaMaxSize: '%unifolio.media_max_size%'
+      string $unifolioPublicationsDir: '%unifolio.publications_dir%'
+      string $unifolioRendererDir: '%unifolio.renderer_dir%'
+      string $unifolioRendererNode: '%unifolio.renderer_node%'
+      int $unifolioRendererTimeout: '%unifolio.renderer_timeout%'
+      int $unifolioPublicationsConservees: '%unifolio.publications_conservees%'
 
   _instanceof:
     App\Domain\Dashboard\WidgetProviderInterface:
@@ -17,5 +39,19 @@ services:
     resource: '../../'
     exclude:
       - '../../Entity/'
+      - '../../Enum/'
       - '../../DependencyInjection/'
+      - '../../Service/Media/StoredMedia.php'
+      - '../../Service/Media/MediaValidationException.php'
+      - '../../Service/Media/EmbedPolicy.php'
+      - '../../Service/Trace/UnifolioValidationException.php'
+      - '../../Service/Grille/GrillesParDefaut.php'
+      - '../../Service/Portfolio/ContexteModele.php'
+      - '../../Service/Portfolio/ContexteEtudiant.php'
+      - '../../Service/Portfolio/ModeleParDefaut.php'
+      - '../../Service/Evaluation/CibleLot.php'
+      - '../../Message/GenererPublication.php'
+      - '../../Service/Migration/V1/RapportMigration.php'
       - '../../UnifolioBundle.php'
+
+  UnifolioBundle\Service\Media\MediaStorageInterface: '@UnifolioBundle\Service\Media\LocalMediaStorage'

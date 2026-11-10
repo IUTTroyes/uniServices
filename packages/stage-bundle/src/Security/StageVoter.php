@@ -34,6 +34,14 @@ class StageVoter extends Voter
 
     public const CAN_MANAGE_STAGE_PERIODE = 'CAN_MANAGE_STAGE_PERIODE';
 
+    // Permissions sur un dossier de stage précis (sujet : StageEtudiant), voir StageAccess
+    public const STAGE_ETUDIANT_VIEW = 'STAGE_ETUDIANT_VIEW';
+    /** Écriture selon CAN_EDIT_STAGE ; le processeur contrôle ensuite les champs et les transitions. */
+    public const STAGE_ETUDIANT_EDIT = 'STAGE_ETUDIANT_EDIT';
+    public const STAGE_ETUDIANT_MANAGE = 'STAGE_ETUDIANT_MANAGE';
+    /** Gestion d'une période (et de ses dossiers, créneaux, interruptions) : responsable des stages de SON département. */
+    public const STAGE_PERIODE_MANAGE = 'STAGE_PERIODE_MANAGE';
+
     private const SUPPORTED_ATTRIBUTES = [
         self::CAN_MANAGE_STAGE_PERIODE,
         self::CAN_VIEW_STAGE_PERIODE,
@@ -54,7 +62,7 @@ class StageVoter extends Voter
      */
     public function supportsAttribute(string $attribute): bool
     {
-        return in_array($attribute, self::SUPPORTED_ATTRIBUTES, true);
+        return in_array($attribute, [...self::SUPPORTED_ATTRIBUTES, self::STAGE_ETUDIANT_VIEW, self::STAGE_ETUDIANT_EDIT, self::STAGE_ETUDIANT_MANAGE, self::STAGE_PERIODE_MANAGE], true);
     }
 
     protected function supports(string $attribute, mixed $subject): bool
@@ -67,11 +75,23 @@ class StageVoter extends Voter
      */
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
     {
-        $user = $token->getUser();
+        return $this->allows($attribute, $subject, $token->getUser());
+    }
+
+    /** Même décision pour les opérations API et les services métier. */
+    public function allows(string $attribute, mixed $subject, mixed $user): bool
+    {
+        $attribute = match ($attribute) {
+            self::STAGE_ETUDIANT_VIEW => self::CAN_VIEW_STAGE,
+            self::STAGE_ETUDIANT_EDIT => self::CAN_EDIT_STAGE,
+            self::STAGE_ETUDIANT_MANAGE => self::CAN_VALIDATE_STAGE,
+            self::STAGE_PERIODE_MANAGE => self::CAN_MANAGE_STAGE_PERIODE,
+            default => $attribute,
+        };
+
 
         // L'utilisateur doit être connecté
         if (!($user instanceof Etudiant || $user instanceof Personnel)) {
-            $vote?->addReason('L\'utilisateur n\'est pas connecté.');
             return false;
         }
 

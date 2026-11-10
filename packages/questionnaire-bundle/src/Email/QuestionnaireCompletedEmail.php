@@ -5,7 +5,8 @@ namespace QuestionnaireBundle\Email;
 use App\Service\Email\AbstractEmailDefinition;
 
 /**
- * Définition de l'email envoyé à l'auteur lors de la complétion / clôture d'un questionnaire.
+ * Envoyé à l'auteur quand son questionnaire est clôturé (date limite atteinte ou tous les participants ont répondu).
+ * Contexte fourni par QuestionnaireMailer (valeurs simples).
  */
 final class QuestionnaireCompletedEmail extends AbstractEmailDefinition
 {
@@ -16,12 +17,17 @@ final class QuestionnaireCompletedEmail extends AbstractEmailDefinition
 
     public function getLabel(): string
     {
-        return 'Notification de clôture / questionnaire complété';
+        return 'Questionnaires — bilan de clôture';
+    }
+
+    public function getDescription(): string
+    {
+        return 'Envoyé à l\'auteur quand son questionnaire est clôturé (date limite atteinte ou tous les participants ont répondu).';
     }
 
     public function getDefaultSubject(): string
     {
-        return 'Votre questionnaire est terminé : {{ questionnaire.title }}';
+        return 'Questionnaire « {{ questionnaire_titre }} » terminé : {{ reponses }} réponse(s) sur {{ invites }}';
     }
 
     public function getHtmlTemplatePath(): string
@@ -29,7 +35,7 @@ final class QuestionnaireCompletedEmail extends AbstractEmailDefinition
         return '@Questionnaire/emails/questionnaire/completed.html.twig';
     }
 
-    public function getTxtTemplatePath(): ?string
+    public function getTxtTemplatePath(): string
     {
         return '@Questionnaire/emails/questionnaire/completed.txt.twig';
     }
@@ -37,15 +43,22 @@ final class QuestionnaireCompletedEmail extends AbstractEmailDefinition
     public function getAvailableVariables(): array
     {
         return [
-            'questionnaire' => 'Objet Questionnaire (titre, dates, etc.)',
-            'authorName'    => 'Nom complet de l\'auteur ou null',
-            'stats'         => 'Tableau de statistiques (total, submitted, pending, rate, isDateExpired, isFullyCompleted)',
-            'analyticsUrl'  => 'URL directe vers la page des statistiques/résultats',
+            'destinataire_nom' => 'Nom de l\'auteur (peut être vide)',
+            'questionnaire_titre' => 'Titre du questionnaire',
+            'questionnaire_description' => 'Description du questionnaire (peut être vide)',
+            'date_cloture' => 'Date et heure de clôture (vide si aucune)',
+            'reponses' => 'Nombre de réponses envoyées',
+            'invites' => 'Nombre de participants invités',
+            'taux' => 'Taux de participation (%)',
+            'complet' => 'Tous les participants ont répondu (booléen)',
+            'date_atteinte' => 'La date limite est atteinte (booléen)',
+            'lien' => 'Lien vers les résultats',
         ];
     }
 
-    public function getDescription(): string
+    /** Envoyé comme notification : réception réglée par le destinataire (préférences). */
+    public function getCategorie(): string
     {
-        return 'Envoyé à l\'auteur du questionnaire lorsque celui-ci est clôturé ou que 100% des réponses ont été reçues.';
+        return self::CATEGORIE_NOTIFICATION;
     }
 }

@@ -12,6 +12,7 @@ use ApiPlatform\Metadata\Post;
 use App\Entity\Traits\OptionTrait;
 use QuestionnaireBundle\Enum\QuestTypeQuestionEnum;
 use QuestionnaireBundle\Repository\Questionnaires\QuestionnaireQuestionRepository;
+use QuestionnaireBundle\State\QuestionnaireStructureProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -24,8 +25,10 @@ use Symfony\Component\Uid\Uuid;
 #[ApiResource(
     uriTemplate: '/questionnaire_sections/{questionnaireSectionId}/questionnaire_questions',
     operations: [
+        // Accès défini par les règles locales ; invitations filtrées par DepartmentCollectionAccessExtension.
         new GetCollection(),
-        new Post(read: false, securityPostDenormalize: "is_granted('CAN_EDIT_QUESTION', object)"),
+        // La section parente (URL) et le droit de gérer le questionnaire sont contrôlés par le processeur.
+        new Post(security: "is_granted('IS_PERSONNEL')", read: false,  processor: QuestionnaireStructureProcessor::class),
     ],
     uriVariables: [
         'questionnaireSectionId' => new Link(toProperty: 'section', fromClass: QuestionnaireSection::class),
@@ -33,8 +36,8 @@ use Symfony\Component\Uid\Uuid;
 )]
 #[ApiResource(
     operations: [
-        new Patch(security: "is_granted('CAN_EDIT_QUESTION', object)", securityPostDenormalize: "is_granted('CAN_EDIT_QUESTION', object)"),
-        new Delete(security: "is_granted('CAN_DELETE_QUESTION', object)")
+        new Patch(security: "is_granted('CAN_EDIT_QUESTION', object)", securityPostDenormalize: "is_granted('CAN_EDIT_QUESTION', object)", processor: QuestionnaireStructureProcessor::class),
+        new Delete(security: "is_granted('CAN_DELETE_QUESTION', object)", processor: QuestionnaireStructureProcessor::class),
     ]
 )]
 #[ORM\Index(name: 'idx_question_section_ordre', columns: ['section_id', 'sort_order'])]
@@ -85,11 +88,33 @@ class QuestionnaireQuestion
     #[Groups(['questionnaire_section:read'])]
     private ?array $conditionalRules = null;
 
+    /** Question d'origine (UUID de la première version) : même question d'une campagne à l'autre, pour comparer. */
+    #[ORM\Column(length: 36, nullable: true)]
+    private ?string $origine = null;
+
     /**
      * @var Collection<int, QuestionnaireAnswer>
      */
     #[ORM\OneToMany(targetEntity: QuestionnaireAnswer::class, mappedBy: 'question')]
     private Collection $answers;
+
+    public function getOrigine(): ?string
+    {
+        return $this->origine;
+    }
+
+    public function setOrigine(?string $origine): static
+    {
+        $this->origine = $origine;
+
+        return $this;
+    }
+
+    /** Clé de comparaison : la question d'origine, ou celle-ci si elle n'a pas été dupliquée. */
+    public function cleComparaison(): string
+    {
+        return $this->origine ?? (string) $this->uuid;
+    }
 
     public function getUuidString(): string
     {

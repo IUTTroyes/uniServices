@@ -297,12 +297,15 @@ class StructureDepartement implements TimestampableInterface
             'edt' => false,
             'stage' => false,
             'resp_ri' => '',
+            // Réglages du package questionnaire (politique du département), gérés par QuestionnaireBundle\Services\QuestionnaireReglages.
+            'questionnaire' => [],
         ]);
 
         $resolver->setAllowedTypes('materiel', 'bool');
         $resolver->setAllowedTypes('edt', 'bool');
         $resolver->setAllowedTypes('stage', 'bool');
-        $resolver->setAllowedTypes('resp_ri', ['string', 'int', 'null']); //todo: sauvegarder l'IRI de la personne ? pour faire le lien en front ?
+        $resolver->setAllowedTypes('resp_ri', ['string', 'int', 'null']);
+        $resolver->setAllowedTypes('questionnaire', 'array'); //todo: sauvegarder l'IRI de la personne ? pour faire le lien en front ?
     }
 
     /**

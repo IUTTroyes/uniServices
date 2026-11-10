@@ -1,10 +1,13 @@
 <script setup>
+import { adresseLigne, dateFr, nomContact } from '@/utils/stage';
+import EvaluationEntreprisePanel from '@/components/EvaluationEntreprisePanel.vue';
+import { messageErreurApi } from '@/utils/erreurApi';
 import { ref, computed, onMounted } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { FilterMatchMode } from '@primevue/core/api';
 import { useUsersStore, useAnneeUnivStore } from '@stores';
-import { getStageEtudiantsService, updateStageEtudiantService, getStagePeriodesService } from '@/requests/stage_service';
-import { EmptyState, HeaderComponent, Card, Kpi } from '@components';
+import { getStageEtudiantsService, updateStageEtudiantService, getStagePeriodesService, rapportStageUrl } from '@/requests/stage_service';
+import { HeaderComponent, Card, Kpi, EmptyState } from '@components';
 import {
   UserIcon,
   UsersIcon,
@@ -78,36 +81,27 @@ const mapStageEtudiantToVue = (se) => {
   const tut = se.tuteur || {};
   const p = se.stagePeriode || {};
 
-  const formatDate = (isoStr) => {
-    if (!isoStr) return '';
-    const parts = isoStr.substring(0, 10).split('-');
-    if (parts.length === 3) {
-      return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
-    return isoStr;
-  };
+  const formatDate = dateFr;
 
   const datesStr = (se.dateDebutStage && se.dateFinStage)
     ? `${formatDate(se.dateDebutStage)} au ${formatDate(se.dateFinStage)}`
     : '-';
 
-  const supervisorName = tut.prenom ? `${tut.civilite || 'M.'} ${tut.prenom} ${tut.nom}` : '-';
+  const supervisorName = nomContact(tut);
 
   const dateDebutDiff = se.dateDebutStage && p.dateDebut && se.dateDebutStage.substring(0, 10) !== p.dateDebut.substring(0, 10);
   const dateFinDiff = se.dateFinStage && p.dateFin && se.dateFinStage.substring(0, 10) !== p.dateFin.substring(0, 10);
   const isDatesDiff = !!(dateDebutDiff || dateFinDiff);
 
   const address = ent.adresse || {};
-  const formattedAddress = address.adresse 
-    ? `${address.adresse}${address.complement1 ? ', ' + address.complement1 : ''}${address.complement2 ? ', ' + address.complement2 : ''} - ${address.codePostal} ${address.ville} (${address.pays || 'France'})`
-    : '-';
+  const formattedAddress = adresseLigne(address);
 
   const tuteurUniv = se.tuteurUniversitaire || {};
-  const academicTutorName = tuteurUniv.prenom ? `${tuteurUniv.civilite || 'M.'} ${tuteurUniv.prenom} ${tuteurUniv.nom}` : 'Non affecté';
+  const academicTutorName = nomContact(tuteurUniv, 'Non affecté');
 
   // Signatory (Responsable de l'entreprise)
   const resp = ent.responsable || {};
-  const signatoryName = resp.prenom ? `${resp.civilite || 'M.'} ${resp.prenom} ${resp.nom}` : '-';
+  const signatoryName = nomContact(resp);
 
   const anneeUniv = p.anneeUniversitaire || {};
   const anneeUnivLibelle = (typeof anneeUniv === 'object' && anneeUniv !== null)
@@ -324,7 +318,7 @@ const addFollowup = async () => {
     });
   } catch (error) {
     console.error('Erreur lors de la sauvegarde du suivi:', error);
-    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible d\'enregistrer le suivi.', life: 3000 });
+    toast.add({ severity: 'error', summary: 'Erreur', detail: messageErreurApi(error, 'Impossible d\'enregistrer le suivi.'), life: 5000 });
   }
 };
 
@@ -358,7 +352,7 @@ const saveGrading = async () => {
     });
   } catch (error) {
     console.error('Erreur lors de la sauvegarde de la note:', error);
-    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de sauvegarder l\'évaluation.', life: 3000 });
+    toast.add({ severity: 'error', summary: 'Erreur', detail: messageErreurApi(error, 'Impossible de sauvegarder l\'évaluation.'), life: 5000 });
   }
 };
 
@@ -369,7 +363,6 @@ const getInitials = (name) => {
 
 <template>
   <div class="space-y-6">
-    <Toast />
 
 
     <!-- Top Header -->
@@ -533,7 +526,7 @@ const getInitials = (name) => {
               </Column>
 
               <template #empty>
-                <EmptyState compact><template #title>Aucun étudiant en stage pour l'année universitaire {{ currentAnneeUnivLibelle }}.</template></EmptyState>
+                <EmptyState compact :icon="UsersIcon" title="Aucun étudiant en stage" :description="`Aucun stagiaire suivi pour l'année universitaire ${currentAnneeUnivLibelle}.`" />
               </template>
             </DataTable>
           </Card>
@@ -655,7 +648,7 @@ const getInitials = (name) => {
               </Column>
 
               <template #empty>
-                <EmptyState compact title="Aucun stage archivé pour les années précédentes." />
+                <EmptyState compact :icon="ArchiveBoxIcon" title="Aucun stage archivé" description="Aucun stage suivi les années précédentes." />
               </template>
             </DataTable>
           </Card>
@@ -707,8 +700,7 @@ const getInitials = (name) => {
                 <DocumentTextIcon class="w-4 h-4 text-rose-500" />
                 {{ selectedStudent.reportName }}
               </span>
-              <a href="#"
-                @click.prevent="toast.add({ severity: 'success', summary: 'Téléchargement', detail: 'Le rapport de stage a été téléchargé.', life: 2000 })"
+              <a :href="rapportStageUrl(selectedStudent.id)"
                 class="text-[10px] font-bold text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1">
                 <ArrowUpTrayIcon class="w-3.5 h-3.5" />
                 <span>Télécharger</span>
@@ -738,9 +730,7 @@ const getInitials = (name) => {
                 </p>
               </div>
 
-              <div v-if="selectedStudent.followups.length === 0" class="text-center py-6 text-slate-400">
-                Aucun entretien de suivi saisi pour le moment.
-              </div>
+              <EmptyState v-if="selectedStudent.followups.length === 0" compact icon="pi pi-comments" title="Aucun entretien de suivi" description="Ajoutez le compte rendu de votre premier échange avec le stagiaire." />
             </div>
           </div>
 
@@ -785,6 +775,12 @@ const getInitials = (name) => {
               <CheckIcon class="w-3.5 h-3.5" />
               <span>Enregistrer le suivi</span>
             </button>
+          </div>
+
+          <!-- Évaluation par le tuteur en entreprise -->
+          <div class="pt-4 border-t border-slate-100 dark:border-slate-700/50 space-y-2">
+            <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100">Évaluation par l'entreprise</h4>
+            <EvaluationEntreprisePanel :stage-id="selectedStudent.id" />
           </div>
 
           <!-- Grading Evaluation Panel -->

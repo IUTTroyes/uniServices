@@ -1,23 +1,24 @@
 import {defineStore} from 'pinia';
+import { useUsersStore } from '@stores';
 import {computed, ref} from 'vue';
 import type {Question, QuestionType, Section, Survey} from '@types';
 import {v4 as uuidv4} from 'uuid';
 import {
-    createQuestionInSection,
-    createQuestionnaire,
-    duplicateQuestionnaire,
-    createSectionQuestionnaire,
-    deleteQuestionInSection,
-    deleteQuestionnaire,
-    deleteSectionQuestionnaire,
-    getAllQuestionnaires,
-    getQuestionnaire,
-    getQuestionnaireSections,
-    updateQuestionInSection,
-    updateQuestionnaire,
-    updateSectionQuestionnaire,
-    publishQuestionnaire
-} from '@/requests/questionnaire_services/questionnaireService'
+    createQuestionService,
+    createQuestionnaireService,
+    duplicateQuestionnaireService,
+    createSectionService,
+    deleteQuestionService,
+    deleteQuestionnaireService,
+    deleteSectionService,
+    getQuestionnairesService,
+    getQuestionnaireService,
+    getQuestionnaireSectionsService,
+    updateQuestionService,
+    updateQuestionnaireService,
+    updateSectionService,
+    publishQuestionnaireService
+} from '@/requests/questionnaire_service'
 
 
 export const useSurveyStore = defineStore('survey', () => {
@@ -37,24 +38,19 @@ export const useSurveyStore = defineStore('survey', () => {
 
     // Survey Management
     async function createSurvey(title: string, description?: string, departement?: any): Promise<Survey> {
-        const survey: Survey = {
-            uuid: uuidv4(),
+        // Par défaut : le département actif (un questionnaire sans département est réservé au super administrateur).
+        if (departement === undefined) {
+            departement = useUsersStore().departementDefaut?.id ?? null;
+        }
+        // Statut, auteur et identifiant sont fixés par le serveur ; l'anonymat, la modification des réponses et le seuil
+        // viennent des réglages du département (configuration des questionnaires).
+        const survey: Partial<Survey> = {
             title,
             description,
             departement: departement ? (typeof departement === 'number' ? `/api/structure_departements/${departement}` : departement) : null,
-            sections: [],
-            opt: {
-                anonymous: false,
-                autoSave: true,
-                allowBack: true,
-                showProgress: true,
-                requireCompletion: false
-            },
-            status: 'draft',
-            createdBy: 'current-user'
         };
 
-        const saved = await saveQuestionnaire(survey);
+        const saved = await saveQuestionnaire(survey as Survey);
         currentSurvey.value = saved || survey;
 
         // Create an initial section
@@ -66,14 +62,14 @@ export const useSurveyStore = defineStore('survey', () => {
     }
 
     async function saveQuestionnaire(survey: Survey): Promise<Survey> {
-        return await createQuestionnaire(survey, true)
+        return await createQuestionnaireService(survey, true)
     }
 
     async function duplicateSurvey(surveyId: string, newTitle?: string): Promise<Survey | null> {
         const original = surveys.value.find(s => s.uuid === surveyId || s.id === surveyId);
         const targetUuid = original ? (original.uuid || original.id) : surveyId;
 
-        const res = await duplicateQuestionnaire(targetUuid, newTitle, true);
+        const res = await duplicateQuestionnaireService(targetUuid, newTitle, true);
         if (res && res.uuid) {
             await loadQuestionnaires();
             return surveys.value.find(s => s.uuid === res.uuid) || null;
@@ -83,7 +79,7 @@ export const useSurveyStore = defineStore('survey', () => {
 
     async function updateSurvey(updates: Partial<Survey>) {
         if (!currentSurvey.value) return;
-        const res = await updateQuestionnaire(currentSurvey.value.uuid, updates, true);
+        const res = await updateQuestionnaireService(currentSurvey.value.uuid, updates, true);
         if (res) {
             currentSurvey.value = { ...currentSurvey.value, ...res };
             const idx = surveys.value.findIndex(s => s.uuid === currentSurvey.value.uuid || s.id === currentSurvey.value.uuid);
@@ -97,19 +93,17 @@ export const useSurveyStore = defineStore('survey', () => {
         }
     }
 
-    function deleteSurvey(surveyId: string) {
-        const index = surveys.value.findIndex(s => s.uuid === surveyId);
-        if (index !== -1) {
-            surveys.value.splice(index, 1);
-            if (currentSurvey.value?.uuid === surveyId) {
-                currentSurvey.value = null;
-            }
-            deleteQuestionnaire(surveyId, true)
+    /** Supprime côté serveur d'abord : en cas de refus (droits, erreur), la liste reste inchangée. */
+    async function deleteSurvey(surveyId: string) {
+        await deleteQuestionnaireService(surveyId, true);
+        surveys.value = surveys.value.filter(s => s.uuid !== surveyId);
+        if (currentSurvey.value?.uuid === surveyId) {
+            currentSurvey.value = null;
         }
     }
 
     async function publishSurvey(surveyId: string, recipients: string[]): Promise<any> {
-        const result = await publishQuestionnaire(surveyId, { recipients }, true);
+        const result = await publishQuestionnaireService(surveyId, { recipients }, true);
         if (currentSurvey.value && currentSurvey.value.uuid === surveyId) {
             currentSurvey.value.status = 'published';
             currentSurvey.value.publishedAt = result.publishedAt;
@@ -132,17 +126,17 @@ export const useSurveyStore = defineStore('survey', () => {
     async function addSection(title: string, description?: string, typeSection: 'normal' | 'configurable' = 'normal', opt?: any): Promise<Section> {
         if (!currentSurvey.value) throw new Error('No current survey');
 
-        const section: Section = {
+        // Les questions sont créées ensuite, une par une (jamais imbriquées dans la section).
+        const section: Partial<Section> = {
             uuid: uuidv4(),
             sortOrder: currentSections.value.length + 1,
             title,
             description,
             typeSection,
-            questions: [],
             opt
         };
 
-        const newSection = await createSectionQuestionnaire(section, currentSurvey.value.uuid)
+        const newSection = await createSectionService(section, currentSurvey.value.uuid)
         currentSections.value.push(newSection);
         currentSection.value = newSection;
 
@@ -238,7 +232,12 @@ export const useSurveyStore = defineStore('survey', () => {
             if ('id' in updates) {
                 delete updates.id;
             }
-            await updateSectionQuestionnaire(section.uuid, updates, currentSurvey.value.uuid, true)
+            // Seuls les champs éditables de la section sont envoyés (pas les questions imbriquées, ni l'identifiant).
+            const payload: Record<string, any> = {};
+            for (const champ of ['title', 'description', 'typeSection', 'sortOrder', 'opt']) {
+                if (champ in updates) payload[champ] = (updates as any)[champ];
+            }
+            await updateSectionService(section.uuid, payload, currentSurvey.value.uuid, true)
             // mettre à jour la section dans le store
             Object.assign(section, updates);
             if (currentSection.value?.uuid === sectionId) {
@@ -255,19 +254,16 @@ export const useSurveyStore = defineStore('survey', () => {
         }
     }
 
+    /** Supprime côté serveur d'abord : en cas de refus, la section reste affichée. */
     async function deleteSection(sectionId: string) {
-        console.log('deleteSection', sectionId);
         if (!currentSurvey.value) return;
-
         const index = currentSections.value.findIndex(s => s.uuid === sectionId || s.id === sectionId);
-        if (index !== -1) {
-            const sectionToDelete = currentSections.value[index];
-            currentSections.value.splice(index, 1);
-            if (currentSection.value?.uuid === sectionId || currentSection.value?.id === sectionId) {
-                currentSection.value = currentSections.value[0] || null;
-            }
-            await deleteSectionQuestionnaire(sectionToDelete.uuid, true);
-            updateSurvey({});
+        if (index === -1) return;
+        const sectionToDelete = currentSections.value[index];
+        await deleteSectionService(sectionToDelete.uuid, currentSurvey.value.uuid, true);
+        currentSections.value.splice(index, 1);
+        if (currentSection.value?.uuid === sectionId || currentSection.value?.id === sectionId) {
+            currentSection.value = currentSections.value[0] || null;
         }
     }
 
@@ -303,9 +299,9 @@ export const useSurveyStore = defineStore('survey', () => {
                     : undefined
             };
             //todo: passer uuid ? gérer côté back
-            _newQuestion = await createQuestionInSection(currentSection.value.uuid, question, true)
+            _newQuestion = await createQuestionService(currentSection.value.uuid, question, true)
         } else {
-            _newQuestion = await createQuestionInSection(currentSection.value.uuid, newQuestion, true)
+            _newQuestion = await createQuestionService(currentSection.value.uuid, newQuestion, true)
         }
 
         currentSection.value.questions.push(_newQuestion);
@@ -349,7 +345,7 @@ export const useSurveyStore = defineStore('survey', () => {
             opt: question.opt ? JSON.parse(JSON.stringify(question.opt)) : undefined
         };
 
-        const newQuestion = await createQuestionInSection(sectionId, _newQuestion, true);
+        const newQuestion = await createQuestionService(sectionId, _newQuestion, true);
         currentSection.value.questions.push(newQuestion);
 
         return newQuestion;
@@ -371,7 +367,7 @@ export const useSurveyStore = defineStore('survey', () => {
 
         if (question) {
             Object.assign(question, updates);
-            await updateQuestionInSection(questionId, updates, true)
+            await updateQuestionService(questionId, updates, true)
         }
     }
 
@@ -383,7 +379,7 @@ console.log(questionId)
         if (index !== -1) {
             console.log('delete')
             section.questions.splice(index, 1);
-            deleteQuestionInSection(questionId, true);
+            deleteQuestionService(questionId, true);
         }
     }
 
@@ -400,10 +396,10 @@ console.log(questionId)
     // Utility functions
     async function selectSurvey(surveyId: string) {
         console.log('selectSurvey', surveyId)
-        const survey = await getQuestionnaire(surveyId);
+        const survey = await getQuestionnaireService(surveyId);
         if (survey) {
             currentSurvey.value = survey;
-            currentSections.value = await getQuestionnaireSections(surveyId);
+            currentSections.value = await getQuestionnaireSectionsService(surveyId);
             console.log('section', currentSections.value)
             currentSection.value = currentSections.value[0] || null;
         }
@@ -423,7 +419,8 @@ console.log(questionId)
 
     async function loadQuestionnaires() {
         try {
-            const _questionnaires = await getAllQuestionnaires();
+            // Tous les questionnaires visibles (la liste est filtrée côté serveur) : pas de troncature à 30.
+            const _questionnaires = await getQuestionnairesService(1, { pagination: false, estModele: false });
             if (_questionnaires) {
                 const parsed = _questionnaires['member'] || _questionnaires['hydra:member'] || _questionnaires['items'] || (Array.isArray(_questionnaires) ? _questionnaires : []);
                 surveyCount.value = _questionnaires['totalItems'] ?? _questionnaires['totalRecords'] ?? _questionnaires['hydra:totalItems'] ?? (Array.isArray(parsed) ? parsed.length : 0);

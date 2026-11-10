@@ -1,6 +1,6 @@
 # Système d'emails – Guide complet
 
-Ce document décrit l'architecture du système d'emails d'UniServices, comment créer un nouvel email dans un package, déclarer ses variables, utiliser les templates, et comment l'interface d'administration permet aux départements de personnaliser les messages.
+Ce document décrit l'architecture du système d'emails d'UniServices, comment créer un nouvel email dans un package, déclarer ses variables, utiliser les templates, et comment l'éditeur d'administration permet de personnaliser **tous** les messages de l'application (packages et notifications), pour l'établissement ou un département.
 
 ---
 
@@ -381,35 +381,80 @@ final class AbsenceService
 
 ---
 
-## Personnalisation par département (interface admin)
+## Personnalisation (éditeur d'administration)
 
-L'interface d'administration est accessible dans :  
-**Portail → Configuration → Communication → Modèles de mails**
+L'éditeur est accessible dans **Portail → Configuration → Communication → Modèles de mails** (`/auth/configuration/emails`).
 
-> Accès requis : permission `SUPER_ADMIN` (portée département actif)
+> Accès requis : `SUPER_ADMIN`.
 
-### Fonctionnement
+### Ce qui est paramétrable
 
-1. La page liste tous les emails enregistrés, **groupés par bundle**.
-2. Un sélecteur de département permet de voir quels emails ont été personnalisés pour un département donné.
-3. En cliquant sur un email, on accède à l'éditeur.
+- Tous les e-mails déclarés par le cœur et les packages (`AbstractEmailDefinition`).
+- **Chaque type de notification** : l'`EmailRegistry` crée automatiquement une `NotificationEmailDefinition` (même clé
+  que le type, ex. `stage.convention_validee`) pour tout type qui n'a pas d'e-mail dédié. Elle utilise le gabarit
+  générique `notification.immediate` et **hérite de sa personnalisation** tant qu'elle n'est pas personnalisée elle-même
+  (`getParentKey()`). Un package n'a donc rien à écrire pour que ses notifications soient paramétrables.
+- Les e-mails sont regroupés par application (clé du package : « Stage », « Unifolio »… ; « Core » pour les modèles communs).
 
-### Éditeur de template
+### Niveaux
 
-L'éditeur permet de modifier :
-- **L'objet du mail** — supporte les variables Twig (`{{ variable }}`)
-- **Le corps HTML** — HTML complet, intégré automatiquement dans le layout commun
+- **Établissement** (aucun département sélectionné) : vaut pour tout l'établissement.
+- **Département** : prime sur l'établissement, pour les envois qui fournissent `departement` à `EmailService::send()`
+  (les notifications n'en fournissent pas : elles utilisent le niveau établissement).
 
-Le panneau latéral affiche :
-- Les **variables disponibles** déclarées dans `getAvailableVariables()` — cliquer pour copier
-- Les **filtres Twig autorisés** (voir section sandbox)
-- Des exemples de conditions et boucles
+### Éditeur
 
-### Réinitialisation
+- On part du **message réellement envoyé** : personnalisation du niveau, sinon le contenu du bloc `body` du gabarit du
+  package (`EmailService::corpsParDefaut()`).
+- Insertion des variables déclarées et de fragments (paragraphe, bouton, encadré, condition) à la position du curseur.
+- **Vérification à l'enregistrement** : le modèle est rendu dans le sandbox avec des valeurs d'exemple ; une construction
+  interdite ou une erreur de syntaxe est refusée (422) avec un message indiquant la ligne.
+- **Aperçu** (valeurs d'exemple `[nom_variable]`, dates et liens fictifs) et **envoi d'un test** à soi-même.
+- **Réinitialiser** supprime la personnalisation du niveau : le niveau supérieur reprend la main.
 
-Le bouton "Réinitialiser au modèle par défaut" supprime la personnalisation en BDD — le package reprend la main.
+API (`EmailTemplateController`, `shared/requests/emailTemplateService.js`) :
+
+| Méthode | Route | Rôle |
+|---|---|---|
+| GET | `/api/email/definitions?departement=` | E-mails groupés, avec `personnalisation` : `departement`, `etablissement`, `parent`, `defaut` |
+| GET | `/api/email/templates/{key}?departement=` | Modèle du niveau + `defaultSubject`, `defaultBodyHtml`, `parentKey`, variables |
+| POST | `/api/email/templates` | Enregistre (après vérification) |
+| POST | `/api/email/apercu` | `{ subject, html }` avec des valeurs d'exemple |
+| POST | `/api/email/test` | Envoie l'aperçu à l'administrateur connecté |
+| DELETE | `/api/email/templates/{id}` | Supprime la personnalisation |
 
 ---
+
+### Habillage de l'établissement et mentions imposées
+
+Les gabarits par défaut sont des fichiers Twig versionnés : `back/templates/emails/` (layout commun `layout.html.twig`
+/ `layout.txt.twig`, modèles du cœur dans `core/`) et `packages/<package>/templates/emails/`. Chaque e-mail ne définit
+que son bloc `body` ; **l'en-tête, la signature et le pied de page appartiennent au layout** et sont toujours imposés :
+une personnalisation ne remplace que le corps (`EmailTemplate::useLayout` est ignoré).
+
+L'écran **Habillage des e-mails** (`/auth/configuration/emails/habillage`, API `GET|PUT /api/email/habillage`,
+`POST /api/email/habillage/apercu`) règle, pour l'établissement (`Etablissement::getHabillageEmails()`, dans `settings`) :
+
+| Réglage | Effet |
+|---|---|
+| `couleur` | Couleur principale (un département qui a sa propre couleur l'utilise pour ses e-mails) |
+| `expediteur_nom`, `reply_to` | Nom de l'expéditeur, adresse de réponse par défaut |
+| `signature` | Ajoutée sous le corps de chaque e-mail |
+| `mentions_legales`, `contact_rgpd` | Pied de page : mentions de l'établissement, exercice des droits RGPD |
+
+`EmailService::habiller()` fournit ces valeurs au layout (`habillage`, `couleur_principale`) et **écrase** toute variable
+du même nom passée par un package. Le logo et le nom viennent des données de l'établissement.
+
+### Catégories : ce que le destinataire peut couper
+
+`AbstractEmailDefinition::getCategorie()` :
+
+- `notification` : réception réglée par le destinataire ; le pied de page porte **toujours** le lien « gérer mes
+  préférences de notification ». Un type de notification peut interdire « Jamais » (`modesAutorises`, ex.
+  `stage.convention_refusee`) : l'éditeur l'affiche comme « ne peut pas être désactivée ».
+- `transactionnel` (défaut) : mot de passe, invitations, liens à usage unique… toujours envoyé, sans lien de
+  désabonnement, mais avec les mentions légales.
+
 
 ## Priorité de résolution des templates
 
@@ -418,10 +463,18 @@ Lors d'un envoi avec un `$departement` fourni, la résolution suit cet ordre :
 ```
 1. EmailTemplate en BDD pour ce département + cette clé
         ↓ (si absent)
-2. EmailTemplate en BDD global (sans département) pour cette clé
+2. EmailTemplate en BDD de l'établissement (sans département) pour cette clé
         ↓ (si absent)
-3. Fichier Twig du package (getHtmlTemplatePath())
+3. Personnalisation (département, puis établissement) de l'e-mail parent (getParentKey(), ex. notification.immediate)
+        ↓ (si absent)
+4. Fichier Twig du package (getHtmlTemplatePath())
 ```
+
+Une personnalisation qui échoue au rendu (modèle invalide écrit hors de l'éditeur…) **n'empêche jamais l'envoi** :
+l'erreur est journalisée et le gabarit du package est utilisé.
+
+À l'envoi, les liens et images relatifs (`href="/app/…"`) sont rendus **absolus** avec `URL_FRONTEND` : un package peut
+passer des chemins internes (`/app/stage/etudiant`).
 
 Le rendu diffère selon la source :
 
@@ -434,7 +487,10 @@ Le rendu diffère selon la source :
 
 ## Sandbox Twig (sécurité)
 
-Les templates stockés en base de données (personnalisations) sont rendus dans un **environnement Twig sandboxé** pour éviter que les utilisateurs n'exécutent du code arbitraire.
+Les templates stockés en base de données (personnalisations) — **objet compris** — sont rendus dans un **environnement Twig sandboxé** pour éviter que les utilisateurs n'exécutent du code arbitraire. L'objet est ensuite converti en texte brut (pas d'entités HTML).
+
+Conséquence pour les packages : **passer des valeurs simples** (chaînes, nombres, dates) dans le `context`, pas des
+entités — le sandbox n'autorise aucun appel de méthode, et un modèle personnalisé ne pourrait pas lire `{{ etudiant.nom }}`.
 
 ### Ce qui est autorisé
 

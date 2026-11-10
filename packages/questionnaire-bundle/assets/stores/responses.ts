@@ -1,19 +1,22 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { Response, Participant, SurveyInvitation, SurveyAnalytics } from '@/types/survey';
-import { v4 as uuidv4 } from 'uuid';
-import { faker } from '@faker-js/faker';
-import { getQuestionnaireInvitations, getQuestionnaireAnalytics, exportQuestionnaireExcel, sendQuestionnaireReminders } from '@/requests/questionnaire_services/questionnaireService';
+import type { Response, Participant, SurveyAnalytics } from '@/types/survey';
+import {
+  getQuestionnaireInvitationsService,
+  getAnalyticsService,
+  exportExcelService,
+  sendRemindersService,
+  inviteParticipantsService,
+} from '@/requests/questionnaire_service';
 
+/**
+ * Suivi des participants d'un questionnaire : uniquement des données du serveur (invitations, relances, statistiques).
+ * Une « réponse » correspond à une invitation (identifiant de l'invitation ; le jeton n'est jamais exposé).
+ */
 export const useResponseStore = defineStore('responses', () => {
   const responses = ref<Response[]>([]);
   const participants = ref<Participant[]>([]);
-  const invitations = ref<SurveyInvitation[]>([]);
-  const currentResponse = ref<Response | null>(null);
   const detailedAnalytics = ref<any>(null);
-
-  // Getters
-  const totalResponses = computed(() => responses.value.length);
 
   const responsesBySurvey = computed(() => (surveyId: string) =>
     responses.value.filter(r => r.surveyId === surveyId)
@@ -25,515 +28,132 @@ export const useResponseStore = defineStore('responses', () => {
 
   const completionRate = computed(() => (surveyId: string) => {
     const total = responsesBySurvey.value(surveyId).length;
-    const completed = completedResponses.value(surveyId).length;
-    return total > 0 ? (completed / total) * 100 : 0;
+    return total > 0 ? (completedResponses.value(surveyId).length / total) * 100 : 0;
   });
 
-  // Response Management
-  function createResponse(surveyId: string, participantId?: string): Response {
-    const response: Response = {
-      id: uuidv4(),
-      surveyId,
-      participantId,
-      answers: {},
-      completed: false,
-      startedAt: new Date(),
-      lastActivity: new Date()
-    };
-
-    responses.value.push(response);
-    currentResponse.value = response;
-
-    return response;
-  }
-
-  function updateResponse(responseId: string, updates: Partial<Response>) {
-    const response = responses.value.find(r => r.id === responseId);
-    if (response) {
-      Object.assign(response, updates, {
-        lastActivity: new Date()
-      });
-      saveToLocalStorage();
-    }
-  }
-
-  function submitResponse(responseId: string) {
-    const response = responses.value.find(r => r.id === responseId);
-    if (response) {
-      response.completed = true;
-      response.submittedAt = new Date();
-      response.lastActivity = new Date();
-      saveToLocalStorage();
-    }
-  }
-
-  function saveAnswer(responseId: string, questionId: string, answer: any) {
-    const response = responses.value.find(r => r.id === responseId);
-    if (response) {
-      response.answers[questionId] = answer;
-      response.lastActivity = new Date();
-      saveToLocalStorage();
-    }
-  }
-
-  // Participant Management
-  function createParticipant(email?: string, name?: string, group?: string): Participant {
-    const participant: Participant = {
-      id: uuidv4(),
-      email,
-      name,
-      group,
-      inviteToken: uuidv4(),
-      invitedAt: new Date()
-    };
-
-    participants.value.push(participant);
-    return participant;
-  }
-
-  function importParticipants(csvData: string, surveyId: string): Participant[] {
-    const lines = csvData.split('\n').filter(line => line.trim());
-    const headers = lines[0].split(',').map(h => h.trim());
-    const imported: Participant[] = [];
-
-    for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(',').map(v => v.trim());
-      const participant: Participant = {
-        id: uuidv4(),
-        inviteToken: uuidv4(),
-        invitedAt: new Date()
-      };
-
-      headers.forEach((header, index) => {
-        const value = values[index];
-        if (header.toLowerCase() === 'email') {
-          participant.email = value;
-        } else if (header.toLowerCase() === 'name') {
-          participant.name = value;
-        } else if (header.toLowerCase() === 'group') {
-          participant.group = value;
-        } else {
-          if (!participant.customFields) participant.customFields = {};
-          participant.customFields[header] = value;
-        }
-      });
-
-      participants.value.push(participant);
-      imported.push(participant);
-    }
-
-    return imported;
-  }
-
-  // Analytics
+  /** Indicateurs calculés à partir des invitations chargées (fetchSurveyResponses). */
   function getSurveyAnalytics(surveyId: string): SurveyAnalytics {
     const surveyResponses = responsesBySurvey.value(surveyId);
-    const completedCount = completedResponses.value(surveyId).length;
-    const surveyParticipants = participants.value.filter(p =>
-      surveyResponses.some(r => r.participantId === p.id)
-    );
+    const completed = surveyResponses.filter(r => r.completed);
 
     const responsesByDate: Record<string, number> = {};
-    surveyResponses.forEach(response => {
-      // Prioritize submittedAt, fallback to startedAt for in-progress responses
-      const dateSource = response.submittedAt || response.startedAt;
-      if (dateSource) {
-        const date = dateSource.toISOString().split('T')[0];
+    completed.forEach(r => {
+      if (r.submittedAt) {
+        const date = r.submittedAt.toISOString().split('T')[0];
         responsesByDate[date] = (responsesByDate[date] || 0) + 1;
       }
     });
 
-    // Compute real average time from startedAt/submittedAt
-    const timedResponses = surveyResponses.filter(r => r.completed && r.submittedAt && r.startedAt);
-    const totalTimeSpent = timedResponses.reduce((sum, r) => {
-      const duration = r.submittedAt!.getTime() - r.startedAt.getTime();
-      return duration > 0 ? sum + duration : sum;
-    }, 0);
-    const realAvg = timedResponses.length > 0 ? totalTimeSpent / timedResponses.length : 0;
+    const durations = completed
+      .filter(r => r.submittedAt && r.startedAt)
+      .map(r => r.submittedAt!.getTime() - r.startedAt.getTime())
+      .filter(d => d > 0);
 
     return {
       surveyId,
-      totalInvited: surveyParticipants.length,
-      totalResponses: completedCount,
+      totalInvited: surveyResponses.length,
+      totalResponses: completed.length,
       completionRate: completionRate.value(surveyId),
-      averageTimeSpent: realAvg,
+      averageTimeSpent: durations.length ? durations.reduce((a, b) => a + b, 0) / durations.length : 0,
       responsesByDate,
-      questionAnalytics: {}
+      questionAnalytics: {},
     };
-  }
-
-  // Demo Data Generation
-  function generateDemoData(surveyId: string, count: number = 50) {
-    const demoParticipants: Participant[] = [];
-    const demoResponses: Response[] = [];
-
-    // Clear existing demo data for this survey
-    participants.value = participants.value.filter(p =>
-      !responses.value.some(r => r.surveyId === surveyId && r.participantId === p.id)
-    );
-    responses.value = responses.value.filter(r => r.surveyId !== surveyId);
-
-    for (let i = 0; i < count; i++) {
-      const participant: Participant = {
-        id: uuidv4(),
-        email: faker.internet.email(),
-        name: faker.person.fullName(),
-        group: faker.helpers.arrayElement(['Groupe A', 'Groupe B', 'Groupe C']),
-        inviteToken: uuidv4(),
-        invitedAt: faker.date.recent({ days: 30 }),
-        respondedAt: faker.datatype.boolean(0.7) ? faker.date.recent({ days: 20 }) : undefined
-      };
-
-      demoParticipants.push(participant);
-
-      if (participant.respondedAt) {
-        const completed = faker.datatype.boolean(0.8);
-        const hasReminders = !completed && faker.datatype.boolean(0.5);
-        const remindersCount = hasReminders ? faker.number.int({ min: 1, max: 2 }) : 0;
-        const remindersHistory = [];
-        let remindedAt: Date | undefined;
-        if (remindersCount > 0) {
-          for (let r = 0; r < remindersCount; r++) {
-            const rDate = faker.date.recent({ days: 10 - r * 3 });
-            remindersHistory.push({
-              id: uuidv4(),
-              sentAt: rDate,
-              subject: `Rappel : questionnaire en attente`,
-              message: `Bonjour,\n\nNous vous rappelons que le questionnaire est toujours en attente de votre réponse.\n\nMerci de bien vouloir y répondre.`,
-              type: (r === 0 ? 'bulk' : 'manual') as 'bulk' | 'manual'
-            });
-            remindedAt = rDate;
-          }
-          remindersHistory.sort((a, b) => a.sentAt.getTime() - b.sentAt.getTime());
-        }
-
-        const response: Response = {
-          id: uuidv4(),
-          surveyId,
-          participantId: participant.id,
-          answers: generateDemoAnswers(),
-          completed,
-          startedAt: participant.respondedAt,
-          lastActivity: faker.date.recent({ days: 1 }),
-          submittedAt: completed ? faker.date.recent({ days: 1 }) : undefined,
-          remindedAt,
-          remindersCount,
-          remindersHistory
-        };
-
-        demoResponses.push(response);
-      } else {
-        const hasReminders = faker.datatype.boolean(0.4);
-        const remindersCount = hasReminders ? faker.number.int({ min: 1, max: 2 }) : 0;
-        const remindersHistory = [];
-        let remindedAt: Date | undefined;
-        if (remindersCount > 0) {
-          for (let r = 0; r < remindersCount; r++) {
-            const rDate = faker.date.recent({ days: 8 - r * 3 });
-            remindersHistory.push({
-              id: uuidv4(),
-              sentAt: rDate,
-              subject: `Rappel : votre avis nous intéresse`,
-              message: `Bonjour,\n\nVous n'avez pas encore commencé à répondre au questionnaire. Votre participation est importante.\n\nMerci de prendre quelques minutes.`,
-              type: 'manual' as const
-            });
-            remindedAt = rDate;
-          }
-          remindersHistory.sort((a, b) => a.sentAt.getTime() - b.sentAt.getTime());
-        }
-
-        const response: Response = {
-          id: participant.inviteToken,
-          surveyId,
-          participantId: participant.id,
-          answers: {},
-          completed: false,
-          startedAt: participant.invitedAt || new Date(),
-          lastActivity: participant.invitedAt || new Date(),
-          remindedAt,
-          remindersCount,
-          remindersHistory
-        };
-
-        demoResponses.push(response);
-      }
-    }
-
-    participants.value.push(...demoParticipants);
-    responses.value.push(...demoResponses);
-    saveToLocalStorage();
-  }
-
-  function generateDemoAnswers(): Record<string, any> {
-    // Generate more realistic demo answers
-    return {
-      // Satisfaction générale
-      'satisfaction_generale': faker.helpers.arrayElement([
-        'Très satisfait', 'Satisfait', 'Neutre', 'Insatisfait', 'Très insatisfait'
-      ]),
-
-      // Services utilisés (choix multiples)
-      'services_utilises': faker.helpers.arrayElements([
-        'Support client', 'Documentation', 'Formation', 'Consultation', 'Maintenance'
-      ], { min: 1, max: 3 }),
-
-      // Note sur 10
-      'note_service': faker.number.int({ min: 1, max: 10 }),
-
-      // Commentaires
-      'commentaires': faker.helpers.arrayElement([
-        'Service excellent, très professionnel',
-        'Quelques améliorations possibles mais globalement satisfait',
-        'Réponse rapide et efficace à mes questions',
-        'Interface intuitive et facile à utiliser',
-        'Support technique très réactif',
-        'Documentation claire et complète',
-        'Tarifs compétitifs pour la qualité offerte',
-        'Équipe à l\'écoute de nos besoins',
-        ''
-      ]),
-
-      // Recommandation
-      'recommandation': faker.helpers.arrayElement(['Oui', 'Non', 'Peut-être']),
-
-      // Fréquence d'utilisation
-      'frequence': faker.helpers.arrayElement([
-        'Quotidienne', 'Hebdomadaire', 'Mensuelle', 'Occasionnelle'
-      ]),
-
-      // Âge
-      'age': faker.number.int({ min: 18, max: 75 }),
-
-      // Secteur d'activité
-      'secteur': faker.helpers.arrayElement([
-        'Technologie', 'Santé', 'Éducation', 'Finance', 'Commerce', 'Industrie', 'Services'
-      ])
-    };
-  }
-
-  // Persistence
-  function saveToLocalStorage() {
-    localStorage.setItem('survey_responses', JSON.stringify(responses.value));
-    localStorage.setItem('survey_participants', JSON.stringify(participants.value));
-    localStorage.setItem('survey_invitations', JSON.stringify(invitations.value));
-  }
-
-  function loadFromLocalStorage() {
-    try {
-      const savedResponses = localStorage.getItem('survey_responses');
-      if (savedResponses) {
-        responses.value = JSON.parse(savedResponses).map((r: any) => ({
-          ...r,
-          startedAt: new Date(r.startedAt),
-          lastActivity: new Date(r.lastActivity),
-          submittedAt: r.submittedAt ? new Date(r.submittedAt) : undefined,
-          remindedAt: r.remindedAt ? new Date(r.remindedAt) : undefined,
-          remindersCount: r.remindersCount ?? (r.remindersHistory?.length || 0),
-          remindersHistory: Array.isArray(r.remindersHistory)
-            ? r.remindersHistory.map((rem: any) => ({
-                ...rem,
-                sentAt: new Date(rem.sentAt),
-              }))
-            : [],
-        }));
-      }
-
-      const savedParticipants = localStorage.getItem('survey_participants');
-      if (savedParticipants) {
-        participants.value = JSON.parse(savedParticipants).map((p: any) => ({
-          ...p,
-          invitedAt: p.invitedAt ? new Date(p.invitedAt) : undefined,
-          respondedAt: p.respondedAt ? new Date(p.respondedAt) : undefined
-        }));
-      }
-
-      const savedInvitations = localStorage.getItem('survey_invitations');
-      if (savedInvitations) {
-        invitations.value = JSON.parse(savedInvitations).map((i: any) => ({
-          ...i,
-          sentAt: i.sentAt ? new Date(i.sentAt) : undefined
-        }));
-      }
-    } catch (e) {
-      console.error('Failed to load response data from localStorage:', e);
-    }
   }
 
   async function fetchSurveyResponses(surveyUuid: string) {
-    try {
-      const data = await getQuestionnaireInvitations(surveyUuid);
-      const members = data.member || data['hydra:member'] || [];
+    const data = await getQuestionnaireInvitationsService(surveyUuid);
+    const members = data?.member || data?.['hydra:member'] || (Array.isArray(data) ? data : []);
 
-      const mappedResponses: Response[] = [];
-      const mappedParticipants: Participant[] = [];
+    const mappedResponses: Response[] = [];
+    const mappedParticipants: Participant[] = [];
 
-      members.forEach((invitation: any) => {
-        const pId = invitation.id.toString();
-
-        const answersMap: Record<string, any> = {};
-        if (Array.isArray(invitation.questionnaireReponses)) {
-          invitation.questionnaireReponses.forEach((ans: any) => {
-            if (ans.question && ans.question.id !== undefined) {
-              answersMap[ans.question.id] = ans.value;
-            }
-          });
+    members.forEach((invitation: any) => {
+      const id = String(invitation.id);
+      const answers: Record<string, any> = {};
+      (invitation.questionnaireReponses || []).forEach((ans: any) => {
+        if (ans.question?.id !== undefined) {
+          answers[ans.question.id] = ans.value;
         }
-
-        const createdDate = invitation.createdAt ? new Date(invitation.createdAt) : new Date();
-        const startedDate = invitation.startedAt ? new Date(invitation.startedAt) : undefined;
-        const submittedDate = invitation.submittedAt ? new Date(invitation.submittedAt) : undefined;
-        const lastActivityDate = submittedDate || startedDate || createdDate;
-
-        const remindedDate = invitation.remindedAt ? new Date(invitation.remindedAt) : undefined;
-        const remindersCount = invitation.remindersCount ?? (invitation.remindedAt ? 1 : 0);
-
-        // Preserve client-recorded history from local state if present
-        const existing = responses.value.find(r => r.id === invitation.token);
-        const existingHistory = existing?.remindersHistory || [];
-
-        mappedResponses.push({
-          id: invitation.token,
-          surveyId: surveyUuid,
-          participantId: pId,
-          completed: invitation.status === 'submitted',
-          submittedAt: submittedDate,
-          startedAt: startedDate ?? createdDate,
-          lastActivity: lastActivityDate,
-          answers: answersMap,
-          remindedAt: remindedDate || (existingHistory.length > 0 ? existingHistory[existingHistory.length - 1].sentAt : undefined),
-          remindersCount: remindersCount || existingHistory.length,
-          remindersHistory: existingHistory.length > 0
-            ? existingHistory
-            : (remindedDate ? [{
-                id: `rem-${invitation.token}-1`,
-                sentAt: remindedDate,
-                subject: 'Rappel pour le questionnaire',
-                type: 'automatic',
-              }] : []),
-        });
-
-        mappedParticipants.push({
-          id: pId,
-          email: invitation.email || 'Participant anonyme',
-          name: invitation.email ? invitation.email.split('@')[0].split('.').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ') : 'Participant anonyme',
-          group: 'Tous',
-          inviteToken: invitation.token,
-          invitedAt: createdDate,
-          respondedAt: submittedDate
-        });
       });
 
-      responses.value = [
-        ...responses.value.filter(r => r.surveyId !== surveyUuid),
-        ...mappedResponses
-      ];
+      const createdAt = invitation.createdAt ? new Date(invitation.createdAt) : new Date();
+      const startedAt = invitation.startedAt ? new Date(invitation.startedAt) : undefined;
+      const submittedAt = invitation.submittedAt ? new Date(invitation.submittedAt) : undefined;
+      const history = (invitation.remindersHistory || []).map((h: any) => ({ ...h, sentAt: new Date(h.sentAt) }));
 
-      participants.value = [
-        ...participants.value.filter(p => !mappedParticipants.some(mp => mp.id === p.id)),
-        ...mappedParticipants
-      ];
-    } catch (e) {
-      console.error('Failed to fetch survey responses:', e);
-    }
+      mappedResponses.push({
+        id,
+        surveyId: surveyUuid,
+        participantId: id,
+        completed: invitation.status === 'submitted',
+        submittedAt,
+        startedAt: startedAt ?? createdAt,
+        lastActivity: submittedAt || startedAt || createdAt,
+        answers,
+        remindedAt: invitation.remindedAt ? new Date(invitation.remindedAt) : undefined,
+        remindersCount: invitation.remindersCount ?? history.length,
+        remindersHistory: history,
+        metadata: { status: invitation.status, started: !!startedAt },
+      });
+
+      mappedParticipants.push({
+        id,
+        email: invitation.email || undefined,
+        name: invitation.email || 'Participant',
+        invitedAt: createdAt,
+        respondedAt: submittedAt,
+      });
+    });
+
+    responses.value = [...responses.value.filter(r => r.surveyId !== surveyUuid), ...mappedResponses];
+    participants.value = [
+      ...participants.value.filter(p => !mappedParticipants.some(mp => mp.id === p.id)),
+      ...mappedParticipants,
+    ];
   }
 
-  function recordReminders(
-    responseIds: string[],
-    details: { subject?: string; message?: string; type?: 'manual' | 'bulk' } = {}
-  ) {
-    const now = new Date();
-    responseIds.forEach(id => {
-      const resp = responses.value.find(r => r.id === id);
+  /** Invite de nouveaux participants (e-mails envoyés par le serveur), puis recharge la liste. */
+  async function inviteParticipants(surveyUuid: string, emails: string[]) {
+    const result = await inviteParticipantsService(surveyUuid, emails);
+    await fetchSurveyResponses(surveyUuid);
+    return result;
+  }
+
+  /** Relance (e-mails envoyés par le serveur) ; l'historique renvoyé par le serveur fait foi. */
+  async function sendReminders(surveyUuid: string, invitationIds: string[], subject?: string, message?: string) {
+    const res = await sendRemindersService(surveyUuid, invitationIds.map(id => Number(id)), subject, message);
+    (res?.invitations || []).forEach((inv: any) => {
+      const resp = responses.value.find(r => r.id === String(inv.id));
       if (resp) {
-        if (!resp.remindersHistory) {
-          resp.remindersHistory = [];
-        }
-        resp.remindersHistory.push({
-          id: uuidv4(),
-          sentAt: now,
-          subject: details.subject || 'Rappel : questionnaire en attente',
-          message: details.message || '',
-          type: details.type || (responseIds.length === 1 ? 'manual' : 'bulk'),
-        });
-        resp.remindedAt = now;
-        resp.remindersCount = resp.remindersHistory.length;
+        resp.remindedAt = inv.remindedAt ? new Date(inv.remindedAt) : new Date();
+        resp.remindersCount = inv.remindersCount;
+        resp.remindersHistory = (inv.remindersHistory || []).map((h: any) => ({ ...h, sentAt: new Date(h.sentAt) }));
       }
     });
-    saveToLocalStorage();
+    return res;
   }
 
   async function fetchDetailedAnalytics(surveyUuid: string) {
-    try {
-      const data = await getQuestionnaireAnalytics(surveyUuid);
-      detailedAnalytics.value = data;
-      return data;
-    } catch (e) {
-      console.error('Failed to fetch detailed analytics:', e);
-    }
+    detailedAnalytics.value = await getAnalyticsService(surveyUuid);
+    return detailedAnalytics.value;
   }
 
   async function triggerExcelExport(surveyUuid: string) {
-    try {
-      await exportQuestionnaireExcel(surveyUuid);
-    } catch (e) {
-      console.error('Failed to export to Excel:', e);
-    }
-  }
-
-  async function sendReminders(surveyUuid: string, tokens: string[], subject?: string, message?: string) {
-    try {
-      const res = await sendQuestionnaireReminders(surveyUuid, tokens, subject, message);
-      if (res && res.invitations && Array.isArray(res.invitations)) {
-        res.invitations.forEach((inv: any) => {
-          const resp = responses.value.find(r => r.id === inv.token);
-          if (resp) {
-            resp.remindedAt = inv.remindedAt ? new Date(inv.remindedAt) : new Date();
-            resp.remindersCount = inv.remindersCount;
-            resp.remindersHistory = (inv.remindersHistory || []).map((h: any) => ({
-              ...h,
-              sentAt: new Date(h.sentAt)
-            }));
-          }
-        });
-        saveToLocalStorage();
-      }
-      return res;
-    } catch (e) {
-      console.warn('Backend send failed or running offline, using local reminder fallback:', e);
-      recordReminders(tokens, { subject, message, type: tokens.length > 1 ? 'bulk' : 'manual' });
-      return null;
-    }
+    await exportExcelService(surveyUuid);
   }
 
   return {
-    // State
     responses,
     participants,
-    invitations,
-    currentResponse,
     detailedAnalytics,
-
-    // Getters
-    totalResponses,
     responsesBySurvey,
     completedResponses,
     completionRate,
-
-    // Actions
-    createResponse,
-    updateResponse,
-    submitResponse,
-    saveAnswer,
-    createParticipant,
-    importParticipants,
     getSurveyAnalytics,
-    generateDemoData,
     fetchSurveyResponses,
-    recordReminders,
+    inviteParticipants,
     sendReminders,
     fetchDetailedAnalytics,
     triggerExcelExport,
-    saveToLocalStorage,
-    loadFromLocalStorage
   };
 });

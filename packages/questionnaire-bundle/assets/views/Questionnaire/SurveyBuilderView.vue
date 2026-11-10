@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useConfirmation } from '@composables/useConfirmation';
+import { showDanger, showSuccess, showWarn } from '@helpers/toast.js';
+import { useEtablissement } from '@/composables/useEtablissement';
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
@@ -12,11 +15,10 @@ import {
   ClockIcon
 } from '@heroicons/vue/24/outline';
 import ActionDropdown from '@components/components/ActionDropdown.vue';
-import {HeaderComponent} from '@components';
+import { EmptyState, HeaderComponent } from '@components';
 import { VueDraggableNext as draggable } from 'vue-draggable-next';
 
 import { useSurveyStore } from '@/stores/survey';
-import { useUIStore } from '@/stores/ui';
 import type { Section, Question, QuestionType } from '@types';
 
 // Components (these would be separate files)
@@ -31,11 +33,11 @@ import { FormField } from '@/components/Form';
 import { calculateEstimatedTime, formatEstimatedTime } from '@/utils/survey';
 import { getAllDepartementsService } from '@requests';
 import { useUsersStore } from '@stores';
+const { libelleGlobal } = useEtablissement();
 
 const route = useRoute();
 const router = useRouter();
 const surveyStore = useSurveyStore();
-const uiStore = useUIStore();
 const userStore = useUsersStore();
 
 const showSettings = ref(false);
@@ -52,7 +54,7 @@ const departements = ref<{ id: number; libelle: string; couleur?: string }[]>([]
 const surveyDepartementId = ref<number | null>(null);
 
 const departementOptions = computed(() => [
-  { label: 'IUT (Global)', value: null, couleur: '#64748b' },
+  { label: libelleGlobal.value, value: null, couleur: '#64748b' },
   ...departements.value.map(d => ({
     label: d.libelle || `Département ${d.id}`,
     value: d.id,
@@ -67,7 +69,7 @@ function getDeptColor(deptId: number | null) {
 }
 
 function getDeptLabel(deptId: number | null) {
-  if (!deptId) return 'IUT (Global)';
+  if (!deptId) return libelleGlobal.value;
   const found = departements.value.find(d => d.id === deptId);
   return found?.libelle || `Département ${deptId}`;
 }
@@ -159,7 +161,7 @@ function updateSurveySettings(payload: any) {
     surveyStore.updateSurvey({ opt: payload });
   }
   showSettings.value = false;
-  uiStore.addNotification('success', 'Paramètres enregistrés', 'Les paramètres du questionnaire ont été mis à jour.');
+  showSuccess('Les paramètres du questionnaire ont été mis à jour.', 'Paramètres enregistrés');
 }
 
 // Section management
@@ -173,7 +175,7 @@ async function saveSection(section: Section) {
   }
 
   closeSectionModal();
-  uiStore.addNotification('success', 'Section sauvegardée', 'La section a été sauvegardée avec succès.');
+  showSuccess('La section a été sauvegardée avec succès.', 'Section sauvegardée');
 }
 
 function closeSectionModal() {
@@ -202,17 +204,28 @@ async function confirmDuplicateSection(payload: { newTitle: string; duplicateQue
     await surveyStore.duplicateSection(duplicatingSection.value.uuid, payload);
     showDuplicateSectionModal.value = false;
     duplicatingSection.value = null;
-    uiStore.addNotification('success', 'Section dupliquée', 'La section et sa logique conditionnelle ont été dupliquées avec succès.');
+    showSuccess('La section et sa logique conditionnelle ont été dupliquées avec succès.', 'Section dupliquée');
   } catch (error) {
     console.error('Failed to duplicate section:', error);
-    uiStore.addNotification('danger', 'Erreur de duplication', 'Une erreur est survenue lors de la duplication.');
+    showDanger('Une erreur est survenue lors de la duplication.', 'Erreur de duplication');
   }
 }
 
-function deleteSection(section: Section) {
-  if (confirm('Êtes-vous sûr de vouloir supprimer cette section ?')) {
-    surveyStore.deleteSection(section.uuid);
-    uiStore.addNotification('success', 'Section supprimée', 'La section a été supprimée avec succès.');
+const { confirmer } = useConfirmation();
+
+async function deleteSection(section: Section) {
+  const ok = await confirmer({
+    titre: 'Supprimer la section',
+    message: `Supprimer la section « ${section.title} » et ses questions ?`,
+    libelle: 'Supprimer',
+    danger: true,
+  });
+  if (!ok) return;
+  try {
+    await surveyStore.deleteSection(section.uuid);
+    showSuccess('La section a été supprimée.', 'Section supprimée');
+  } catch (e) {
+    // apiCall a affiché l'erreur du serveur (structure figée après publication…).
   }
 }
 
@@ -252,10 +265,10 @@ async function confirmDuplicateQuestion(payload: { newLabel: string; copyRulesMo
     await surveyStore.duplicateQuestion(currentSection.value.uuid, duplicatingQuestion.value, payload);
     showDuplicateQuestionModal.value = false;
     duplicatingQuestion.value = null;
-    uiStore.addNotification('success', 'Question dupliquée', 'La question a été dupliquée avec succès.');
+    showSuccess('La question a été dupliquée avec succès.', 'Question dupliquée');
   } catch (error) {
     console.error('Failed to duplicate question:', error);
-    uiStore.addNotification('danger', 'Erreur de duplication', 'Une erreur est survenue lors de la duplication.');
+    showDanger('Une erreur est survenue lors de la duplication.', 'Erreur de duplication');
   }
 }
 
@@ -287,18 +300,23 @@ async function confirmPublish(payload: string[] | { recipients: string[]; openin
       });
     }
 
-    await surveyStore.publishSurvey(currentSurvey.value.uuid, recipients);
+    const result = await surveyStore.publishSurvey(currentSurvey.value.uuid, recipients);
     showPublishModal.value = false;
-    uiStore.addNotification('success', 'Questionnaire publié', 'Le questionnaire a été publié avec succès.');
+    const invites = result?.invitationsCount ?? 0;
+    const envoyes = result?.emailsCount ?? 0;
+    if (envoyes < invites) {
+      showWarn(`${invites} invitation(s) créée(s), mais seulement ${envoyes} e-mail(s) envoyé(s) : relancez les participants depuis le suivi.`, 'Questionnaire publié');
+    } else {
+      showSuccess(`${invites} invitation(s) envoyée(s) par e-mail.`, 'Questionnaire publié');
+    }
 
     // Redirect to responses view
     router.push({
       name: 'questionnaire_responses',
       params: { id: currentSurvey.value.uuid }
     });
-  } catch (error) {
-    console.error('Failed to publish survey:', error);
-    uiStore.addNotification('danger', 'Erreur de publication', 'Une erreur est survenue lors de la publication.');
+  } catch (error: any) {
+    showDanger(error?.response?.data?.detail || 'Une erreur est survenue lors de la publication.', 'Erreur de publication');
   }
 }
 
@@ -353,7 +371,7 @@ onMounted(async () => {
       description="Concevez, configurez et publiez vos enquêtes d'évaluation"
     />
 
-  <div class="flex  dark:bg-gray-900">
+  <div class="flex dark:bg-gray-900">
     <!-- Left Panel - Survey Structure -->
     <div class="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col me-3">
       <!-- Survey Info -->
@@ -372,20 +390,20 @@ onMounted(async () => {
             <textarea
               v-model="surveyDescription"
               @blur="updateSurveyDescription"
-              class="q-input text-xs resize-none"
+              class="q-input text-sm resize-none"
               placeholder="Description ou consignes (optionnelle)..."
               rows="2"
             />
           </FormField>
 
-          <FormField label="Département ou portée" hint="Associez un département ou laissez global pour tout l'IUT">
+          <FormField label="Département ou portée" hint="Associez un département ou laissez vide pour tout l'établissement (réservé au super administrateur)">
             <Select
               v-model="surveyDepartementId"
               :options="departementOptions"
               optionLabel="label"
               optionValue="value"
               placeholder="Sélectionner..."
-              class="w-full text-xs"
+              class="w-full text-sm"
               @change="updateSurveyDepartement"
             >
               <template #value="slotProps">
@@ -394,15 +412,15 @@ onMounted(async () => {
                     class="w-2.5 h-2.5 rounded-full shrink-0"
                     :style="{ backgroundColor: getDeptColor(slotProps.value) }"
                   ></span>
-                  <span class="truncate text-xs font-semibold">{{ getDeptLabel(slotProps.value) }}</span>
+                  <span class="truncate text-sm font-semibold">{{ getDeptLabel(slotProps.value) }}</span>
                 </div>
-                <div v-else class="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <div v-else class="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
                   <span class="w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0"></span>
-                  <span>IUT (Global)</span>
+                  <span>{{ libelleGlobal }}</span>
                 </div>
               </template>
               <template #option="slotProps">
-                <div class="flex items-center gap-2 text-xs py-0.5">
+                <div class="flex items-center gap-2 text-sm py-0.5">
                   <span
                     class="w-2.5 h-2.5 rounded-full shrink-0"
                     :style="{ backgroundColor: slotProps.option.couleur || '#64748b' }"
@@ -416,7 +434,7 @@ onMounted(async () => {
           </FormField>
         </div>
 
-        <div class="pt-1 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+        <div class="pt-1 flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
           <ClockIcon class="w-3.5 h-3.5 text-slate-400 shrink-0" />
           <span>Temps estimé : <strong class="text-slate-700 dark:text-slate-300 font-semibold">{{ formatEstimatedTime(estimatedTime) }}</strong></span>
         </div>
@@ -429,7 +447,7 @@ onMounted(async () => {
         <div class="p-4">
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Sections</h3>
-            <Button @click="showSectionModal = true" severity="primary" class="text-xs">
+            <Button @click="showSectionModal = true" severity="primary" class="text-sm">
               <PlusIcon class="w-3 h-3" />
             </Button>
           </div>
@@ -450,7 +468,7 @@ onMounted(async () => {
                     <h4 class="text-sm font-medium text-gray-900 dark:text-white">
                       {{ section.title }}
                     </h4>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
                       {{ section.questions.length }} question{{ section.questions.length > 1 ? 's' : '' }}
                     </p>
                   </div>
@@ -463,7 +481,7 @@ onMounted(async () => {
               <!-- Section Type Indicator -->
               <div v-if="section.typeSection === 'configurable' && section.opt" class="mt-2 flex items-center space-x-1">
                 <Cog6ToothIcon class="w-3 h-3 text-blue-500" />
-                <span class="text-xs text-blue-600 dark:text-blue-400">
+                <span class="text-sm text-blue-600 dark:text-blue-400">
                   {{ section.opt.elements?.length || 0 }} {{ section.opt.sourceLabel?.toLowerCase() }}
                 </span>
               </div>
@@ -478,7 +496,8 @@ onMounted(async () => {
           <Cog6ToothIcon class="w-4 h-4" />
           Paramètres du questionnaire
         </Button>
-        <Button v-if="currentSurvey && currentSurvey.status === 'draft'" @click="publishSurvey" severity="primary"
+        <Tag v-if="currentSurvey?.estModele" severity="info" value="Modèle" icon="pi pi-bookmark" />
+        <Button v-if="currentSurvey && currentSurvey.status === 'draft' && !currentSurvey.estModele" @click="publishSurvey" severity="primary"
           class="w-full mt-2 text-sm">
           <RocketLaunchIcon class="w-4 h-4" />
           <span class="hidden sm:inline">Publier</span>
@@ -513,24 +532,12 @@ onMounted(async () => {
 
       <!-- Questions Area -->
       <div class="flex-1 overflow-y-auto mt-3">
-        <div v-if="!currentSection" class="text-center py-12">
-          <DocumentTextIcon class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            Sélectionnez une section
-          </h3>
-          <p class="text-gray-600 dark:text-gray-400">
-            Choisissez une section dans le panneau de gauche pour commencer à ajouter des questions.
-          </p>
-        </div>
+        <EmptyState v-if="!currentSection" :icon="DocumentTextIcon" title="Sélectionnez une section"
+          description="Choisissez une section dans le panneau de gauche pour commencer à ajouter des questions." />
 
-        <div v-else-if="currentSection.questions.length === 0" class="text-center py-12">
-          <QuestionMarkCircleIcon class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            Aucune question
-          </h3>
-          <p class="text-gray-600 dark:text-gray-400 mb-4">
-            Commencez par ajouter votre première question à cette section.
-          </p>
+        <div v-else-if="currentSection.questions.length === 0" class="text-center py-6">
+          <EmptyState :icon="QuestionMarkCircleIcon" title="Aucune question"
+            description="Commencez par ajouter votre première question à cette section." />
           <ActionDropdown :actions="questionTypes" button-label="Ajouter une question" button-icon="pi pi-plus"
             button-severity="primary" size="small" />
         </div>

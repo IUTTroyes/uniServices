@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { TopbarComponent, WidgetCard, GlobalLoader, HeaderComponent, PermissionGuard } from '@components';
-import { getApplicationMeta } from '@utils';
+import { getApplicationMeta, normalizeAppSlug } from '@utils';
 import { tools } from '@config/uniServices.js';
 import { getWidgetDataByCodeService, getWidgetsCatalogService, updateDashboardWidgetLayoutService, getActualitesService } from '@requests';
 import { useUsersStore, useAnneeUnivStore, useEtablissementStore } from "@stores";
@@ -39,11 +39,16 @@ const bundleColorClasses = {
   rose: 'border-rose-400 hover:bg-rose-400/10',
 };
 
-const activatedBundles = computed(() => tools
-    .filter((bundle) => userStore.applications.includes(bundle.urlSlug))
+const activatedBundles = computed(() => {
+  const userApps = (userStore.applications || []).map(normalizeAppSlug);
+  return (tools || [])
+    .filter((bundle) => {
+      const slug = normalizeAppSlug(bundle.urlSlug || bundle.name);
+      return userApps.includes(slug);
+    })
     .map((bundle) => ({ ...bundle, meta: getApplicationMeta(bundle.urlSlug) }))
-    .sort((a, b) => Number(b.urlSlug === 'intranet') - Number(a.urlSlug === 'intranet'))
-);
+    .sort((a, b) => Number(b.urlSlug === 'intranet') - Number(a.urlSlug === 'intranet'));
+});
 const isLoadingBundles = ref(false);
 const widgets = ref([]);
 const isLoadingWidgets = ref(false);
@@ -54,6 +59,7 @@ const etablissement = ref([]);
 onMounted(async () => {
   isLoadingBundles.value = true;
   try {
+    await userStore.getUser(true);
     etablissement.value = await etablissementStore.etablissement;
     await getWidgets();
   } finally {

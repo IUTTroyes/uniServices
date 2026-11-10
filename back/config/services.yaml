@@ -25,6 +25,18 @@ parameters:
       ville: "%env(default::ETABLISSEMENT_VILLE)%"
       codePostal: "%env(default::ETABLISSEMENT_CODE_POSTAL)%"
       pays: "%env(default:default_etablissement_pays:ETABLISSEMENT_PAYS)%"
+    directeur: "%env(default::ETABLISSEMENT_DIRECTEUR)%"
+    universite:
+      libelle: "%env(default::UNIVERSITE_LIBELLE)%"
+      telephone: "%env(default::UNIVERSITE_TELEPHONE)%"
+      president: "%env(default::UNIVERSITE_PRESIDENT)%"
+      adresse:
+        adresse: "%env(default::UNIVERSITE_ADRESSE)%"
+        complement1: ""
+        complement2: ""
+        ville: "%env(default::UNIVERSITE_VILLE)%"
+        codePostal: "%env(default::UNIVERSITE_CODE_POSTAL)%"
+        pays: "%env(default:default_etablissement_pays:UNIVERSITE_PAYS)%"
 
 services:
   # default configuration for services in *this* file
@@ -68,6 +80,8 @@ services:
       - "../src/Entity/"
       - "../src/Kernel.php"
       - "../src/Services/Dashboard/Provider/"
+      - "../src/Notification/NotificationType.php"
+      - "../src/Notification/NotificationEmailDefinition.php"
 
   App\DataProvider\SingleRecordDataProvider:
     arguments:
@@ -114,3 +128,4 @@ services:
     arguments:
       $defaultFromEmail: '%email_from_address%'
       $defaultFromName: '%email_from_name%'
+      $urlFrontend: '%env(default::URL_FRONTEND)%'

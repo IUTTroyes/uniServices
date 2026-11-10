@@ -79,6 +79,12 @@ export interface ConfigurableElement {
     id: string;
     name: string;
     code?: string;
+    semesters?: number[];
+    /** Enseignement évalué (matière, ressource, SAÉ, ligne de prévisionnel) : sert à la diffusion des résultats. */
+    enseignementId?: number | null;
+    /** Intervenant évalué (ligne de prévisionnel). */
+    personnelId?: number | null;
+    isCustom?: boolean;
     description?: string;
     metadata?: Record<string, any>;
 }
@@ -115,6 +121,10 @@ export interface SurveySettings {
     allowBack: boolean;
     showProgress: boolean;
     requireCompletion: boolean;
+    /** Modifier ses réponses envoyées tant que le questionnaire est ouvert (réglage du département par défaut). */
+    modificationReponses?: boolean;
+    /** Questionnaire anonyme : résultats masqués sous ce nombre de réponses (0 = aucun seuil). */
+    seuilMinReponses?: number;
 }
 
 export interface ReminderHistoryItem {
@@ -147,7 +157,8 @@ export interface Participant {
     name?: string;
     group?: string;
     customFields?: Record<string, any>;
-    inviteToken: string;
+    /** Jamais exposé à l'équipe : clé d'accès personnelle du répondant. */
+    inviteToken?: string;
     invitedAt?: Date;
     respondedAt?: Date;
 }

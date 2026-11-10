@@ -2,12 +2,14 @@
 
 namespace StageBundle\Entity\Stages;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\QueryParameter;
 use App\Entity\Contracts\TimestampableInterface;
 use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Users\Personnel;
@@ -20,19 +22,17 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Get(security: "is_granted('CAN_VIEW_STAGE', object)", normalizationContext: ['groups' => ['stage_soutenance:read']]),
+        // Liste restreinte aux départements gérés : DepartmentCollectionAccessExtension
         new GetCollection(normalizationContext: ['groups' => ['stage_soutenance:read']]),
-        new Post(
-            securityPostDenormalize: "is_granted('CAN_EDIT_STAGE', object)",
-            normalizationContext: ['groups' => ['stage_soutenance:read']],
-            denormalizationContext: ['groups' => ['stage_soutenance:write']]
-        ),
-        new Patch(
-            security: "is_granted('CAN_EDIT_STAGE', object)",
-            securityPostDenormalize: "is_granted('CAN_EDIT_STAGE', object)",
-            normalizationContext: ['groups' => ['stage_soutenance:read']],
-            denormalizationContext: ['groups' => ['stage_soutenance:write']]
-        ),
+        // La planification passe par StageSoutenanceController (contrôle des conflits + notifications).
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_STAGE', object)", normalizationContext: ['groups' => ['stage_soutenance:read']],
+            denormalizationContext: ['groups' => ['stage_soutenance:write']]),
+        new Patch(security: "is_granted('CAN_EDIT_STAGE', object)", securityPostDenormalize: "is_granted('CAN_EDIT_STAGE', object)", normalizationContext: ['groups' => ['stage_soutenance:read']],
+            denormalizationContext: ['groups' => ['stage_soutenance:write']]),
         new Delete(security: "is_granted('CAN_DELETE_STAGE', object)")
+    ],
+    parameters: [
+        'stagePeriode' => new QueryParameter(filter: SearchFilter::class),
     ]
 )]
 class StageSoutenance implements TimestampableInterface

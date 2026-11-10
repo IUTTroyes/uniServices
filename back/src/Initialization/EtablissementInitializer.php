@@ -46,6 +46,22 @@ final class EtablissementInitializer implements InitializerInterface
             ->setAdresse($this->configuration['adresse'] ?? null);
         $etablissement->setIsMain((bool) ($this->configuration['is_main'] ?? true));
 
+        // Nouveaux champs : renseignés seulement s'ils sont configurés, pour ne pas effacer une saisie faite dans l'écran.
+        if (null !== ($directeur = $this->nullableString('directeur'))) {
+            $etablissement->setDirecteurNom($directeur);
+        }
+        $universite = \is_array($this->configuration['universite'] ?? null) ? $this->configuration['universite'] : [];
+        foreach (['libelle' => 'setLibelle', 'telephone' => 'setTelephone', 'president' => 'setPresident'] as $cle => $setter) {
+            $valeur = trim((string) ($universite[$cle] ?? ''));
+            if ('' !== $valeur) {
+                $etablissement->getUniversite()->{$setter}($valeur);
+            }
+        }
+        $adresseUniversite = \is_array($universite['adresse'] ?? null) ? $universite['adresse'] : [];
+        if ('' !== trim((string) ($adresseUniversite['ville'] ?? '')) || '' !== trim((string) ($adresseUniversite['adresse'] ?? ''))) {
+            $etablissement->getUniversite()->setAdresse($adresseUniversite);
+        }
+
         if ($isNew) {
             $this->entityManager->persist($etablissement);
         }

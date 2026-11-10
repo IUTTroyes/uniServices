@@ -5,9 +5,10 @@ namespace QuestionnaireBundle\Email;
 use App\Service\Email\AbstractEmailDefinition;
 
 /**
- * Définition de l'email de rappel pour répondre à un questionnaire.
+ * Envoyé aux participants qui n'ont pas encore envoyé leurs réponses (relance manuelle de l'équipe ou relance automatique).
+ * Contexte fourni par QuestionnaireMailer (valeurs simples).
  */
-final class QuestionnaireReminderEmail extends AbstractEmailDefinition
+class QuestionnaireReminderEmail extends AbstractEmailDefinition
 {
     public function getKey(): string
     {
@@ -16,12 +17,17 @@ final class QuestionnaireReminderEmail extends AbstractEmailDefinition
 
     public function getLabel(): string
     {
-        return 'Rappel de questionnaire en attente';
+        return 'Questionnaires — relance d\'un participant (adresse extérieure)';
+    }
+
+    public function getDescription(): string
+    {
+        return 'Envoyé aux participants qui n\'ont pas encore envoyé leurs réponses (relance manuelle de l\'équipe ou relance automatique).';
     }
 
     public function getDefaultSubject(): string
     {
-        return 'Rappel : Répondre au questionnaire : {{ questionnaire.title }}';
+        return '{% if objet %}{{ objet }}{% else %}Rappel : questionnaire « {{ questionnaire_titre }} » en attente{% endif %}';
     }
 
     public function getHtmlTemplatePath(): string
@@ -29,7 +35,7 @@ final class QuestionnaireReminderEmail extends AbstractEmailDefinition
         return '@Questionnaire/emails/questionnaire/reminder.html.twig';
     }
 
-    public function getTxtTemplatePath(): ?string
+    public function getTxtTemplatePath(): string
     {
         return '@Questionnaire/emails/questionnaire/reminder.txt.twig';
     }
@@ -37,15 +43,14 @@ final class QuestionnaireReminderEmail extends AbstractEmailDefinition
     public function getAvailableVariables(): array
     {
         return [
-            'invitation'    => 'Objet QuestionnaireInvitation (token, email)',
-            'questionnaire' => 'Objet Questionnaire (titre, description)',
-            'surveyUrl'     => 'URL directe pour accéder au questionnaire',
-            'expiresAt'     => 'Date de fermeture du questionnaire (si définie)',
+            'questionnaire_titre' => 'Titre du questionnaire',
+            'questionnaire_description' => 'Description du questionnaire (peut être vide)',
+            'date_cloture' => 'Date de clôture (jj/mm/aaaa, vide si aucune)',
+            'duree_estimee' => 'Durée estimée en minutes (0 si inconnue)',
+            'anonyme' => 'Les réponses sont anonymes (booléen)',
+            'lien' => 'Lien personnel pour répondre',
+            'objet' => 'Objet saisi par l\'équipe pour une relance manuelle (vide sinon)',
+            'message' => 'Message saisi par l\'équipe pour une relance manuelle (vide sinon)',
         ];
-    }
-
-    public function getDescription(): string
-    {
-        return 'Envoyé pour rappeler aux participants de répondre à un questionnaire.';
     }
 }

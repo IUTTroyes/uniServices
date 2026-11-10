@@ -13,6 +13,8 @@ use QuestionnaireBundle\Enum\QuestStatutEnum;
 #[ApiResource(
     operations: [
         new Post(
+            // Droit sur le questionnaire vérifié par le provider / processeur (QuestionnaireResolver).
+            security: "is_granted('IS_PERSONNEL')",
             uriTemplate: '/questionnaires/{questionnaireUuid}/publish',
             openapi: new Operation(
                 tags: ['Questionnaire Aperçu et Publication'],
@@ -39,7 +41,9 @@ final class PublishOutputDto
         public QuestStatutEnum    $status,
         public \DateTimeImmutable $publishedAt,
         public int                $sectionsCount,
-        public int                $invitationsCount
+        public int                $invitationsCount,
+        /** Invitations dont l'e-mail est parti (les autres pourront être relancées). */
+        public int                $emailsCount = 0,
     )
     {
     }

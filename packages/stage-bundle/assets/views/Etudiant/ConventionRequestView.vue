@@ -1,12 +1,13 @@
 <script setup>
+import { updateEtudiantService } from '@requests/user_services/etudiantService';
+import { messageErreurApi } from '@/utils/erreurApi';
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
 import { getStagePeriodesService } from '../../requests/stage_service';
 import { getStageEtudiantsService, createStageEtudiantService, updateStageEtudiantService } from '../../requests/stage_etudiant';
 import { useUsersStore, useEtablissementStore } from '@stores';
-import api from '@helpers/axios';
-import { ValidatedInput, validationRules } from '@components';
+import { HeaderComponent, ValidatedInput, validationRules } from '@components';
 import { FormSection, ToggleCard } from '../../components/Form';
 import {
   UserIcon,
@@ -493,10 +494,7 @@ const submitRequest = async () => {
   isSubmitting.value = true;
   try {
     // 1. Mise à jour du profil étudiant
-    await api.patch(`/api/etudiants/${userStore.userId}`, {
-      tel1:      form.value.phone,
-      mailPerso: form.value.emailPerso,
-    }, { headers: { 'Content-Type': 'application/merge-patch+json' } });
+    await updateEtudiantService(userStore.userId, { tel1: form.value.phone, mailPerso: form.value.emailPerso }, '', false);
 
     // 2. Résolution du maître de stage
     const tuteur = form.value.tuteurSameAsSignatory
@@ -540,7 +538,6 @@ const submitRequest = async () => {
       gratificationPeriode:  'H',
       assuranceCompagnie:    form.value.insuranceCompany       || null,
       assuranceNumero:       form.value.insurancePolicyNumber  || null,
-      dateDepotFormulaire:   new Date().toISOString(),
       etatStage:             'ETAT_STAGE_DEPOSE',
       entreprise: {
         raisonSociale: form.value.companyName,
@@ -581,37 +578,23 @@ const submitRequest = async () => {
 
   } catch (error) {
     console.error('Erreur lors de la soumission:', error);
-    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de soumettre la demande. Veuillez vérifier vos saisies.', life: 5000 });
+    toast.add({ severity: 'error', summary: 'Demande non déposée', detail: messageErreurApi(error, 'Impossible de soumettre la demande. Veuillez vérifier vos saisies.'), life: 8000 });
   } finally {
     isSubmitting.value = false;
   }
 };
 
-const cancelRequest = () => { router.push({ name: 'EtudiantDashboard' }); };
 </script>
 
 <template>
   <div class="mx-auto space-y-6">
-    <Toast />
 
     <!-- ── En-tête ─────────────────────────────────────────────────────────── -->
-    <div class="flex items-center gap-4 justify-between border-b border-slate-200 dark:border-slate-800 pb-5">
-      <div>
-        <h1 class="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-          <i class="pi pi-file-edit text-teal-600"></i>
-          <span>{{ existingStageId ? 'Compléter / Modifier ma convention' : 'Demande de Convention de Stage' }}</span>
-        </h1>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-          {{ existingStageId ? 'Modifiez et déposez à nouveau votre convention de stage auprès du responsable pédagogique.' : 'Remplissez les informations nécessaires pour la validation et l\'édition de votre convention de stage.' }}
-        </p>
-      </div>
-      <button
-        @click="cancelRequest"
-        class="text-xs font-semibold px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
-      >
-        Annuler
-      </button>
-    </div>
+    <HeaderComponent icon="pi pi-file-edit" color="teal" :back-url="{ name: 'EtudiantDashboard' }"
+      :titre="existingStageId ? 'Compléter / Modifier ma convention' : 'Demande de convention de stage'"
+      :description="existingStageId
+        ? 'Modifiez et déposez à nouveau votre convention de stage auprès du responsable pédagogique.'
+        : 'Remplissez les informations nécessaires pour la validation et l\'édition de votre convention de stage.'" />
 
     <!-- ── Stepper ─────────────────────────────────────────────────────────── -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -1249,8 +1232,7 @@ const cancelRequest = () => { router.push({ name: 'EtudiantDashboard' }); };
             :disabled="isSubmitting || stepHasErrors"
             class="text-xs font-bold px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-all flex items-center gap-2 cursor-pointer shadow-xs"
           >
-            <i v-if="isSubmitting" class="pi pi-spin pi-spinner"></i>
-            <i v-else class="pi pi-check"></i>
+            <i class="pi pi-check" aria-hidden="true"></i>
             <span>{{ isSubmitting ? 'Dépôt en cours…' : (existingStageId ? 'Mettre à jour et déposer ma convention' : 'Déposer ma demande de convention') }}</span>
           </button>
         </div>

@@ -6,6 +6,7 @@ use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use App\Security\UserEffectivePermissionService;
 use QuestionnaireBundle\Entity\Questionnaires\Questionnaire;
+use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireInvitation;
 use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireQuestion;
 use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireSection;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -18,6 +19,18 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
  */
 class QuestionnaireVoter extends Voter
 {
+    /** Consulter le questionnaire, sa structure, ses invitations et ses résultats. */
+    public const VIEW = 'QUESTIONNAIRE_VIEW';
+    /** Modifier les paramètres et la structure, publier, inviter, relancer. */
+    public const MANAGE = 'QUESTIONNAIRE_MANAGE';
+    public const DELETE = 'QUESTIONNAIRE_DELETE';
+    /** Lire les résultats agrégés (statistiques, exports) : y compris les destinataires de la synthèse partagée. */
+    public const SYNTHESE = 'QUESTIONNAIRE_SYNTHESE';
+    /** Créer le questionnaire dans son département (ou l'y déplacer). */
+    public const CREATE = 'QUESTIONNAIRE_CREATE';
+
+    private const ATTRIBUTS = [self::VIEW, self::MANAGE, self::DELETE, self::CREATE, self::SYNTHESE];
+
     // Permissions Questionnaire
     public const CAN_VIEW_QUESTIONNAIRE = 'CAN_VIEW_QUESTIONNAIRE';
     public const CAN_EDIT_QUESTIONNAIRE = 'CAN_EDIT_QUESTIONNAIRE';
@@ -70,7 +83,7 @@ class QuestionnaireVoter extends Voter
      */
     public function supportsAttribute(string $attribute): bool
     {
-        return in_array($attribute, self::SUPPORTED_ATTRIBUTES, true);
+        return in_array($attribute, [...self::SUPPORTED_ATTRIBUTES, ...self::ATTRIBUTS], true);
     }
 
     protected function supports(string $attribute, mixed $subject): bool
@@ -83,11 +96,32 @@ class QuestionnaireVoter extends Voter
      */
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
     {
-        $user = $token->getUser();
+        return $this->allows($attribute, $subject, $token->getUser());
+    }
+
+    /** Même décision pour les opérations API et les services métier. */
+    public function allows(string $attribute, mixed $subject, mixed $user): bool
+    {
+        $attribute = match ($attribute) {
+            self::VIEW => $subject instanceof QuestionnaireInvitation ? self::CAN_EDIT_QUESTIONNAIRE : self::CAN_VIEW_QUESTIONNAIRE,
+            self::MANAGE => match (true) {
+                $subject instanceof QuestionnaireQuestion => self::CAN_EDIT_QUESTION,
+                $subject instanceof QuestionnaireSection => self::CAN_EDIT_QUESTION_SECTION,
+                default => self::CAN_EDIT_QUESTIONNAIRE,
+            },
+            self::DELETE => match (true) {
+                $subject instanceof QuestionnaireQuestion => self::CAN_DELETE_QUESTION,
+                $subject instanceof QuestionnaireSection => self::CAN_DELETE_QUESTION_SECTION,
+                default => self::CAN_DELETE_QUESTIONNAIRE,
+            },
+            self::CREATE, self::SYNTHESE => self::CAN_EDIT_QUESTIONNAIRE,
+            default => $attribute,
+        };
+        if ($subject instanceof QuestionnaireInvitation) $subject = $subject->getQuestionnaire();
+
 
         // L'utilisateur doit être connecté
         if (!($user instanceof Etudiant || $user instanceof Personnel)) {
-            $vote?->addReason('L\'utilisateur n\'est pas connecté.');
             return false;
         }
 
@@ -328,6 +362,14 @@ class QuestionnaireVoter extends Voter
         // Le personnel peut aussi répondre aux questionnaires s'ils y sont invités
         return $user instanceof Personnel;
     }
+    public static function questionnaire(mixed $subject): ?Questionnaire
+    {
+        return match (true) {
+            $subject instanceof Questionnaire => $subject,
+            $subject instanceof QuestionnaireSection => $subject->getQuestionnaire(),
+            $subject instanceof QuestionnaireQuestion => $subject->getSection()?->getQuestionnaire(),
+            $subject instanceof QuestionnaireInvitation => $subject->getQuestionnaire(),
+            default => null,
+        };
+    }
 }
-
-

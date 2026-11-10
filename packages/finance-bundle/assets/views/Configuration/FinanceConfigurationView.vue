@@ -1,254 +1,172 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { HeaderComponent, Kpi, Card, ConfigOptionItem, GlobalLoader, ErrorState } from '@components';
-import { useUsersStore } from '@stores';
-import { getDepartementService, updateDepartementService, getPersonnelsService } from '@requests';
+import { ref, computed, onMounted } from 'vue';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Button from 'primevue/button';
+import Tag from 'primevue/tag';
+import Dialog from 'primevue/dialog';
 import { useToast } from 'primevue/usetoast';
+import { HeaderComponent, Card, EmptyState, ListSkeleton, ErrorState } from '@components';
+import { useConfirmation } from '@composables/useConfirmation';
+import {
+    getFinanceTauxTvaService,
+    createFinanceTauxTvaService,
+    updateFinanceTauxTvaService,
+    deleteFinanceTauxTvaService,
+} from '@/requests/financeService';
+import { messageErreurApi } from '@/utils/finance';
 
-const userStore = useUsersStore();
+/**
+ * Configuration du package : taux de TVA proposés à la saisie d'une demande (gérés par le service financier).
+ * Une demande recopie le taux choisi : modifier, désactiver ou supprimer un taux ne change pas les demandes existantes.
+ */
 const toast = useToast();
+const { confirmer } = useConfirmation();
 
-const isLoading = ref(true);
-const hasError = ref(false);
-const errorMessage = ref('');
-const departement = ref(null);
-const personnels = ref([]);
-const loadingKeys = ref({});
+const chargement = ref(true);
+const erreur = ref('');
+const taux = ref([]);
+const dialogue = ref(false);
+const enregistrement = ref(false);
+const edition = ref(null); // taux en cours de modification (null : création)
+const form = ref({ taux: null, libelle: '', actif: true, parDefaut: false });
 
-const currentDeptId = computed(() => userStore.departementDefaut?.id);
-const deptOpt = computed(() => departement.value?.opt || {});
+const valide = computed(() => form.value.taux !== null && form.value.taux !== '' && form.value.libelle.trim() !== '');
+const formatTaux = (t) => `${Number(t).toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} %`;
 
-const personnelOptions = computed(() => {
-  const list = (personnels.value || []).map(p => ({
-    label: `${p.nom || ''} ${p.prenom || ''}`.trim() || p.display || `Personnel #${p.id}`,
-    value: String(p.id)
-  }));
-  return [{ label: 'Non défini / Chef de département', value: '' }, ...list];
-});
-
-const loadData = async () => {
-  if (!currentDeptId.value) {
-    isLoading.value = false;
-    return;
-  }
-
-  isLoading.value = true;
-  hasError.value = false;
-
-  try {
-    const [deptData, personnelsData] = await Promise.all([
-      getDepartementService(currentDeptId.value),
-      getPersonnelsService({ departement: currentDeptId.value, pagination: false }).catch(() => [])
-    ]);
-
-    departement.value = deptData;
-    personnels.value = personnelsData || [];
-  } catch (error) {
-    console.error('Erreur chargement configuration finance:', error);
-    hasError.value = true;
-    errorMessage.value = error?.message || 'Impossible de charger la configuration financière.';
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-const updateOption = async (key, value) => {
-  if (!departement.value?.id) return;
-  loadingKeys.value[key] = true;
-
-  try {
-    const currentOpt = { ...deptOpt.value, [key]: value };
-
-    await updateDepartementService(departement.value.id, {
-      opt: currentOpt
-    }, false);
-
-    if (departement.value) {
-      if (!departement.value.opt) departement.value.opt = {};
-      departement.value.opt = { ...departement.value.opt, [key]: value };
+async function charger() {
+    erreur.value = '';
+    chargement.value = true;
+    try {
+        taux.value = await getFinanceTauxTvaService();
+    } catch (e) {
+        erreur.value = messageErreurApi(e, 'Impossible de charger les taux de TVA.');
+    } finally {
+        chargement.value = false;
     }
+}
 
-    toast.add({
-      severity: 'success',
-      summary: 'Configuration enregistrée',
-      detail: `L'option a été mise à jour avec succès.`,
-      life: 2500
-    });
-  } catch (error) {
-    console.error(`Erreur mise à jour option ${key}:`, error);
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible de sauvegarder l\'option.',
-      life: 3500
-    });
-  } finally {
-    loadingKeys.value[key] = false;
-  }
-};
+function ouvrir(t = null) {
+    edition.value = t;
+    form.value = t
+        ? { taux: Number(t.taux), libelle: t.libelle, actif: t.actif, parDefaut: t.parDefaut }
+        : { taux: null, libelle: '', actif: true, parDefaut: taux.value.length === 0 };
+    dialogue.value = true;
+}
 
-onMounted(() => {
-  loadData();
-});
+async function enregistrer() {
+    if (!valide.value) return;
+    enregistrement.value = true;
+    const donnees = { taux: String(form.value.taux), libelle: form.value.libelle.trim(), actif: form.value.actif, parDefaut: form.value.parDefaut };
+    try {
+        if (edition.value) await updateFinanceTauxTvaService(edition.value.id, donnees);
+        else await createFinanceTauxTvaService(donnees);
+        toast.add({ severity: 'success', summary: 'Taux enregistré', life: 2500 });
+        dialogue.value = false;
+        await charger();
+    } catch (e) {
+        toast.add({ severity: 'error', summary: 'Enregistrement impossible', detail: messageErreurApi(e), life: 6000 });
+    } finally {
+        enregistrement.value = false;
+    }
+}
+
+async function basculer(t) {
+    try {
+        await updateFinanceTauxTvaService(t.id, { actif: !t.actif });
+        await charger();
+    } catch (e) {
+        toast.add({ severity: 'error', summary: 'Modification impossible', detail: messageErreurApi(e), life: 6000 });
+    }
+}
+
+async function supprimer(t) {
+    if (!(await confirmer({
+        titre: 'Supprimer le taux',
+        message: `Supprimer le taux « ${t.libelle} » ? Les demandes déjà saisies gardent leur taux.`,
+        libelle: 'Supprimer',
+        danger: true,
+    }))) return;
+    try {
+        await deleteFinanceTauxTvaService(t.id);
+        toast.add({ severity: 'success', summary: 'Taux supprimé', life: 2500 });
+        await charger();
+    } catch (e) {
+        toast.add({ severity: 'error', summary: 'Suppression impossible', detail: messageErreurApi(e), life: 6000 });
+    }
+}
+
+onMounted(charger);
 </script>
 
 <template>
-  <div class="space-y-6">
-    <HeaderComponent
-      title="Configuration — Finances & Achats"
-      subtitle="Gestion des plafonds budgétaires, circuits d'approbation et référents financiers"
-      icon="pi pi-wallet"
-    />
-
-    <GlobalLoader v-if="isLoading" />
-    <ErrorState v-else-if="hasError" :message="errorMessage" />
-
-    <div v-else class="space-y-6">
-      <!-- Cartes KPI supérieures -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Kpi
-          label="Département"
-          :value="departement?.libelle || 'N/A'"
-          icon="pi pi-building"
-          color="emerald"
-          description="Centre de coûts rattaché"
+    <div class="space-y-6">
+        <HeaderComponent
+            icon="pi pi-sliders-h"
+            color="emerald"
+            titre="Configuration — Finances & Achats"
+            description="Taux de TVA proposés à la saisie d'une demande d'achat."
+            :back-url="{ name: 'finance_dashboard' }"
         />
-        <Kpi
-          label="Seuil achat direct"
-          :value="`${deptOpt.finance_seuil_achat_direct ?? 1500} €`"
-          icon="pi pi-tag"
-          color="green"
-          description="Montant maximum sans mise en concurrence"
-        />
-        <Kpi
-          label="Double validation"
-          :value="`${deptOpt.finance_seuil_double_validation ?? 4000} €`"
-          icon="pi pi-shield"
-          color="blue"
-          description="Seuil de visa obligatoire direction"
-        />
-      </div>
 
-      <!-- Card 1: Seuils & Circuit de Validation -->
-      <Card
-        title="Seuils d'Achat & Approbations"
-        subtitle="Règles financières appliquées aux demandes d'achat et commandes"
-        icon="pi pi-sliders-h"
-        color="emerald"
-      >
-        <div class="flex flex-col divide-y divide-slate-100 dark:divide-slate-800/60">
-          <ConfigOptionItem
-            title="Plafond pour achat direct sans mise en concurrence"
-            description="Montant HT maximum en deçà duquel un seul devis fournisseur est suffisant."
-            icon="pi pi-tag"
-            icon-color-class="text-emerald-500"
-            icon-bg-class="bg-emerald-500/10"
-            type="number"
-            :model-value="deptOpt.finance_seuil_achat_direct ?? 1500"
-            :min="100"
-            :max="10000"
-            :step="50"
-            suffix="€ HT"
-            :loading="loadingKeys['finance_seuil_achat_direct']"
-            @change="(val) => updateOption('finance_seuil_achat_direct', Number(val))"
-          />
+        <ListSkeleton v-if="chargement" />
+        <ErrorState v-else-if="erreur" :message="erreur" />
 
-          <ConfigOptionItem
-            title="Seuil de validation automatique pour menues dépenses"
-            description="Montant TTC sous lequel la validation du chef de département est automatique (ex: papeterie d'urgence)."
-            icon="pi pi-bolt"
-            icon-color-class="text-amber-500"
-            icon-bg-class="bg-amber-500/10"
-            type="number"
-            :model-value="deptOpt.finance_seuil_auto_validation ?? 100"
-            :min="0"
-            :max="500"
-            :step="10"
-            suffix="€ TTC"
-            :loading="loadingKeys['finance_seuil_auto_validation']"
-            @change="(val) => updateOption('finance_seuil_auto_validation', Number(val))"
-          />
+        <Card v-else title="Taux de TVA" subtitle="Seuls les taux actifs sont proposés ; le taux par défaut est présélectionné" icon="pi pi-percentage" color="emerald">
+            <template #header-actions>
+                <Button label="Ajouter un taux" icon="pi pi-plus" size="small" @click="ouvrir()" />
+            </template>
+            <DataTable :value="taux" data-key="id" class="ui-table-compact">
+                <template #empty>
+                    <EmptyState title="Aucun taux de TVA" description="Ajoutez les taux applicables (20 %, 10 %, 5,5 %…)." icon="pi pi-percentage" compact action-label="Ajouter un taux" action-icon="pi pi-plus" @action="ouvrir()" />
+                </template>
+                <Column field="libelle" header="Libellé" />
+                <Column field="taux" header="Taux" body-class="text-right" header-class="text-right">
+                    <template #body="{ data }">{{ formatTaux(data.taux) }}</template>
+                </Column>
+                <Column header="État">
+                    <template #body="{ data }">
+                        <div class="flex gap-2">
+                            <Tag :value="data.actif ? 'Actif' : 'Désactivé'" :severity="data.actif ? 'success' : 'secondary'" />
+                            <Tag v-if="data.parDefaut" value="Par défaut" severity="info" />
+                        </div>
+                    </template>
+                </Column>
+                <Column header="Actions" body-class="text-right" header-class="text-right">
+                    <template #body="{ data }">
+                        <div class="flex justify-end gap-1">
+                            <Button :label="data.actif ? 'Désactiver' : 'Activer'" severity="secondary" text size="small" @click="basculer(data)" />
+                            <Button icon="pi pi-pencil" severity="secondary" text rounded :aria-label="`Modifier ${data.libelle}`" @click="ouvrir(data)" />
+                            <Button icon="pi pi-trash" severity="danger" text rounded :aria-label="`Supprimer ${data.libelle}`" @click="supprimer(data)" />
+                        </div>
+                    </template>
+                </Column>
+            </DataTable>
+        </Card>
 
-          <ConfigOptionItem
-            title="Exiger systématiquement 3 devis comparatifs au-delà du seuil"
-            description="Bloque la transmission au service financier si moins de 3 offres concurrentes sont attachées."
-            icon="pi pi-copy"
-            icon-color-class="text-blue-500"
-            icon-bg-class="bg-blue-500/10"
-            type="switch"
-            :model-value="deptOpt.finance_exiger_devis_comparatif ?? true"
-            :loading="loadingKeys['finance_exiger_devis_comparatif']"
-            @change="(val) => updateOption('finance_exiger_devis_comparatif', val)"
-          />
-
-          <ConfigOptionItem
-            title="Seuil de double validation requise"
-            description="Montant nécessitant le visa conjoint du chef de département et du responsable financier."
-            icon="pi pi-shield"
-            icon-color-class="text-rose-500"
-            icon-bg-class="bg-rose-500/10"
-            type="number"
-            :model-value="deptOpt.finance_seuil_double_validation ?? 4000"
-            :min="1000"
-            :max="50000"
-            :step="500"
-            suffix="€ HT"
-            :loading="loadingKeys['finance_seuil_double_validation']"
-            @change="(val) => updateOption('finance_seuil_double_validation', Number(val))"
-          />
-        </div>
-      </Card>
-
-      <!-- Card 2: Responsables & Notifications -->
-      <Card
-        title="Responsabilités & Alertes Mails"
-        subtitle="Gestionnaires des lignes de crédits et notifications automatiques"
-        icon="pi pi-bell"
-        color="teal"
-      >
-        <div class="flex flex-col divide-y divide-slate-100 dark:divide-slate-800/60">
-          <ConfigOptionItem
-            title="Référent financier du département"
-            description="Personnel désigné comme premier valideur des engagements budgétaires du département."
-            icon="pi pi-user"
-            icon-color-class="text-emerald-500"
-            icon-bg-class="bg-emerald-500/10"
-            type="select"
-            :model-value="deptOpt.finance_responsable_budget ? String(deptOpt.finance_responsable_budget) : ''"
-            :options="personnelOptions"
-            :loading="loadingKeys['finance_responsable_budget']"
-            @change="(val) => updateOption('finance_responsable_budget', val)"
-          />
-
-          <ConfigOptionItem
-            title="Alerte mail lors d'une nouvelle demande d'achat"
-            description="Notifie par courrier électronique le responsable de ligne dès qu'un agent soumet un besoin."
-            icon="pi pi-envelope"
-            icon-color-class="text-blue-500"
-            icon-bg-class="bg-blue-500/10"
-            type="switch"
-            :model-value="deptOpt.finance_mail_nouvelle_demande ?? true"
-            :loading="loadingKeys['finance_mail_nouvelle_demande']"
-            @change="(val) => updateOption('finance_mail_nouvelle_demande', val)"
-          />
-
-          <ConfigOptionItem
-            title="Alerte de dépassement du budget prévisionnel"
-            description="Avertit le chef de département lorsque les engagements atteignent 90% du budget alloué."
-            icon="pi pi-exclamation-triangle"
-            icon-color-class="text-amber-500"
-            icon-bg-class="bg-amber-500/10"
-            type="switch"
-            :model-value="deptOpt.finance_alerte_depassement_budget ?? true"
-            :loading="loadingKeys['finance_alerte_depassement_budget']"
-            @change="(val) => updateOption('finance_alerte_depassement_budget', val)"
-          />
-        </div>
-      </Card>
+        <Dialog v-model:visible="dialogue" :header="edition ? 'Modifier le taux' : 'Nouveau taux de TVA'" modal class="w-full max-w-md">
+            <form id="form-taux" class="q-form" @submit.prevent="enregistrer">
+                <div class="flex flex-col gap-1">
+                    <label for="taux-valeur" class="q-label q-label-required">Taux (%)</label>
+                    <input id="taux-valeur" v-model.number="form.taux" type="number" min="0" max="100" step="0.01" required class="q-input" />
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label for="taux-libelle" class="q-label q-label-required">Libellé</label>
+                    <input id="taux-libelle" v-model="form.libelle" type="text" maxlength="100" required class="q-input" placeholder="Ex. : Taux normal (20 %)" />
+                </div>
+                <label for="taux-actif" class="flex items-center gap-2 text-sm">
+                    <input id="taux-actif" v-model="form.actif" type="checkbox" class="q-check" />
+                    <span>Proposé à la saisie</span>
+                </label>
+                <label for="taux-defaut" class="flex items-center gap-2 text-sm">
+                    <input id="taux-defaut" v-model="form.parDefaut" type="checkbox" class="q-check" />
+                    <span>Taux par défaut d'une nouvelle demande</span>
+                </label>
+            </form>
+            <template #footer>
+                <Button label="Annuler" severity="secondary" outlined @click="dialogue = false" />
+                <Button type="submit" form="form-taux" label="Enregistrer" :disabled="!valide" :loading="enregistrement" />
+            </template>
+        </Dialog>
     </div>
-  </div>
 </template>
-
-<style scoped>
-</style>
-

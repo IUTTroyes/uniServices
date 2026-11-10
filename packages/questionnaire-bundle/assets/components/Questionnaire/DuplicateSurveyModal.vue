@@ -1,64 +1,3 @@
-<template>
-  <Dialog
-    :visible="true"
-    :modal="true"
-    :closable="true"
-    :draggable="false"
-    :style="{ width: '92vw', maxWidth: '520px' }"
-    @update:visible="$emit('close')"
-  >
-    <template #header>
-      <DialogHeader :icon="DocumentDuplicateIcon" title="Dupliquer le questionnaire" />
-    </template>
-
-    <div class="q-form">
-      <FormField label="Titre du nouveau questionnaire" for="dup-survey-title" required>
-        <input
-          id="dup-survey-title"
-          v-model="newTitle"
-          type="text"
-          class="q-input"
-          placeholder="Titre du questionnaire"
-          autofocus
-        />
-      </FormField>
-
-      <FormSection :icon="ClipboardDocumentListIcon" tone="slate" title="Contenu qui sera dupliqué">
-        <div class="grid grid-cols-2 gap-3">
-          <div class="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 text-center">
-            <span class="block text-xl font-bold text-primary-600 dark:text-primary-400">{{ totalSections }}</span>
-            <span class="text-[11px] text-slate-500 dark:text-slate-400">section(s)</span>
-          </div>
-          <div class="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 text-center">
-            <span class="block text-xl font-bold text-primary-600 dark:text-primary-400">{{ totalQuestions }}</span>
-            <span class="text-[11px] text-slate-500 dark:text-slate-400">question(s)</span>
-          </div>
-        </div>
-      </FormSection>
-
-      <div class="q-callout q-callout-warning">
-        <BoltIcon class="w-4 h-4 shrink-0 mt-0.5" />
-        <div>
-          <p class="font-semibold">Logique conditionnelle automatiquement transposée</p>
-          <p class="mt-0.5 opacity-90">
-            Toutes les règles conditionnelles (déclencheurs, masquages/affichages, sauts de section) seront automatiquement ré-associées aux nouvelles questions et sections dupliquées.
-          </p>
-        </div>
-      </div>
-
-      <div class="q-actions">
-        <Button severity="secondary" outlined label="Annuler" @click="$emit('close')" />
-        <Button
-          icon="pi pi-copy"
-          label="Dupliquer le questionnaire"
-          :disabled="!newTitle.trim()"
-          @click="confirmDuplicate"
-        />
-      </div>
-    </div>
-  </Dialog>
-</template>
-
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import Button from 'primevue/button';
@@ -94,3 +33,63 @@ function confirmDuplicate() {
   });
 }
 </script>
+<template>
+  <Dialog
+    :visible="true"
+    :modal="true"
+    :closable="true"
+    :draggable="false"
+    :style="{ width: '92vw', maxWidth: '520px' }"
+    @update:visible="$emit('close')"
+  >
+    <template #header>
+      <DialogHeader :icon="DocumentDuplicateIcon" title="Dupliquer le questionnaire" />
+    </template>
+
+    <div class="q-form">
+      <FormField label="Titre du nouveau questionnaire" for="dup-survey-title" required>
+        <input
+          id="dup-survey-title"
+          v-model="newTitle"
+          type="text"
+          class="q-input"
+          placeholder="Titre du questionnaire"
+          autofocus
+        />
+      </FormField>
+
+      <FormSection :icon="ClipboardDocumentListIcon" tone="slate" title="Contenu qui sera dupliqué">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 text-center">
+            <span class="block text-xl font-bold text-primary-600 dark:text-primary-400">{{ totalSections }}</span>
+            <span class="text-sm text-slate-500 dark:text-slate-400">section(s)</span>
+          </div>
+          <div class="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 text-center">
+            <span class="block text-xl font-bold text-primary-600 dark:text-primary-400">{{ totalQuestions }}</span>
+            <span class="text-sm text-slate-500 dark:text-slate-400">question(s)</span>
+          </div>
+        </div>
+      </FormSection>
+
+      <div class="q-callout q-callout-warning">
+        <BoltIcon class="w-4 h-4 shrink-0 mt-0.5" />
+        <div>
+          <p class="font-semibold">Logique conditionnelle automatiquement transposée</p>
+          <p class="mt-0.5 opacity-90">
+            Toutes les règles conditionnelles (déclencheurs, masquages/affichages, sauts de section) seront automatiquement ré-associées aux nouvelles questions et sections dupliquées.
+          </p>
+        </div>
+      </div>
+
+      <div class="q-actions">
+        <Button severity="secondary" outlined label="Annuler" @click="$emit('close')" />
+        <Button
+          icon="pi pi-copy"
+          label="Dupliquer le questionnaire"
+          :disabled="!newTitle.trim()"
+          @click="confirmDuplicate"
+        />
+      </div>
+    </div>
+  </Dialog>
+</template>

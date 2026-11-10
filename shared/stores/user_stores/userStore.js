@@ -165,7 +165,7 @@ export const useUsersStore = defineStore('users', () => {
                         if (!departement.departementPersonnels) return departement;
 
                         const targetUserId = Number(userId.value);
-                        const personnelDepartements = departement.departementPersonnels.filter(dp => 
+                        const personnelDepartements = departement.departementPersonnels.filter(dp =>
                             dp?.personnel && (
                                 Number(dp.personnel.id) === targetUserId ||
                                 dp.personnel['@id'] === `/api/personnels/${targetUserId}`

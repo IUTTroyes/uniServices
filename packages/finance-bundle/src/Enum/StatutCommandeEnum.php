@@ -37,16 +37,4 @@ enum StatutCommandeEnum: string
         };
     }
 
-    public function getBadgeSeverity(): string
-    {
-        return match ($this) {
-            self::BROUILLON => 'secondary',
-            self::SOUMIS, self::AVIS_DIRECTION, self::VERIFICATION_FINANCIERE => 'info',
-            self::VISA_ENGAGEMENT, self::COMMANDE_VALIDEE, self::COMMANDE_TRANSMISE => 'warn',
-            self::SERVICE_FAIT_CONSTATE => 'help',
-            self::SERVICE_FAIT_CERTIFIE, self::PAYE, self::CLOTURE => 'success',
-            self::REJETE => 'danger',
-            default => 'info',
-        };
-    }
 }

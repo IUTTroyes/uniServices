@@ -8,11 +8,6 @@
 /var/
 /vendor/
 /migrations/*
-!/migrations/Version20261027144343.php
-!/migrations/Version20261027160000.php
-!/migrations/Version20261102120000.php
-!/migrations/Version20261102140000.php
-!/migrations/Version20261109120000.php
 ###< symfony/framework-bundle ###
 
 ###> lexik/jwt-authentication-bundle ###

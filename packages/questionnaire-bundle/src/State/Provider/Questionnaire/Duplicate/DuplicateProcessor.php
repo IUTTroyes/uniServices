@@ -2,39 +2,37 @@
 
 namespace QuestionnaireBundle\State\Provider\Questionnaire\Duplicate;
 
-use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use Doctrine\ORM\EntityManagerInterface;
+use QuestionnaireBundle\Security\QuestionnaireResolver;
+use QuestionnaireBundle\Security\QuestionnaireVoter;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use QuestionnaireBundle\ApiDto\Questionnaire\Duplicate\DuplicateInputDto;
 use QuestionnaireBundle\ApiDto\Questionnaire\Duplicate\DuplicateOutputDto;
 use QuestionnaireBundle\Domain\Questionnaire\Duplicate\DuplicateQuestionnaireService;
+use App\Entity\Users\Personnel;
 use QuestionnaireBundle\Entity\Questionnaires\Questionnaire;
 
 final class DuplicateProcessor implements ProcessorInterface
 {
     public function __construct(
+        private readonly QuestionnaireResolver $questionnaires,
         private readonly Security $security,
-        private readonly EntityManagerInterface $em,
         private readonly DuplicateQuestionnaireService $service
     ) {}
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): DuplicateOutputDto
     {
         /** @var DuplicateInputDto $data */
-        $uuidStr = $uriVariables['questionnaireUuid'];
-
-        $q = $this->em->getRepository(Questionnaire::class)->findOneBy(['uuid' => $uuidStr]);
-        if (!$q) {
-            throw new \RuntimeException('Questionnaire not found');
-        }
-        if (!$this->security->isGranted('CAN_EDIT_QUESTIONNAIRE', $q)) {
-            throw new AccessDeniedException();
+        $q = $this->questionnaires->charger($uriVariables['questionnaireUuid'] ?? '', QuestionnaireVoter::CAN_EDIT_QUESTIONNAIRE);
+        // La copie reste dans le département de l'original : il faut pouvoir y créer un questionnaire.
+        if (!$this->security->isGranted(QuestionnaireVoter::CREATE, $q)) {
+            throw new AccessDeniedHttpException('Vous ne pouvez pas créer de questionnaire dans ce département.');
         }
 
-
-        $result = $this->service->duplicate($q, $data->newTitle ?? null);
+        $user = $this->security->getUser();
+        $result = $this->service->duplicate($q, $data->newTitle ?? null, $user instanceof Personnel ? $user : null);
 
         /** @var Questionnaire $duplicate */
         $duplicate = $result['questionnaire'];

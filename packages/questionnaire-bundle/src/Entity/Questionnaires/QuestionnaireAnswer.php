@@ -22,13 +22,17 @@ class QuestionnaireAnswer implements TimestampableInterface
     #[Groups(['invitation:read'])]
     private ?int $id = null;
 
+    // Suppression en base (ON DELETE CASCADE) : les réponses suivent leur invitation, leur section publiée et leur question.
     #[ORM\ManyToOne(inversedBy: 'questionnaireReponses')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?QuestionnaireInvitation $invitation = null;
 
     #[ORM\ManyToOne(inversedBy: 'answers')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?QuestionnaireSectionInstance $section = null;
 
     #[ORM\ManyToOne(inversedBy: 'answers')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     #[Groups(['invitation:read'])]
     private ?QuestionnaireQuestion $question = null;
 
