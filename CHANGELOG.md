@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.11.0](https://github.com/IUTTroyes/uniServices/compare/v0.10.0...v0.11.0) (2026-11-10)
+
+
+### ✨ Fonctionnalités
+
+* export excel + customdatatable sur finance ([21023c0](https://github.com/IUTTroyes/uniServices/commit/21023c01a788d921dc4d4baa9e040ae17efe0be3))
+* **finance:** imputation département ou service, service fait en deux temps, droits du service financier ([155284c](https://github.com/IUTTroyes/uniServices/commit/155284c60d41af8bda5633a3af9089c84ce7499e))
+* **intranet:** Refactor absence components and enhance semester handling ([2437d0e](https://github.com/IUTTroyes/uniServices/commit/2437d0e840e726676b4c8551143604518d995dd2))
+* ldap et ajout d'un utilisateur ([a00067b](https://github.com/IUTTroyes/uniServices/commit/a00067b8898bd6290b06f93c04ef8e64d16538f6))
+
+
+### 🐛 Corrections
+
+* **intranet:** Component for emptyData and error ([faeeb4f](https://github.com/IUTTroyes/uniServices/commit/faeeb4ffd6cbf3afa0da6661bb926ff1a9ae85b3))
+* **intranet:** Component for emptyData and error ([015186a](https://github.com/IUTTroyes/uniServices/commit/015186abd448375a3fd63f0df7af49bd7d191689))
+* **intranet:** Pédagogie -&gt; Déplacement de l'onglet enseignements ([479007f](https://github.com/IUTTroyes/uniServices/commit/479007fc6114d8054b8716974722bfb8aab5b234))
+* **Navigation:** Bandeau commun département ([dd967f8](https://github.com/IUTTroyes/uniServices/commit/dd967f8f0e941e983f20cf42350e9eb674cad4d4))
+* **Navigation:** Bandeau commun département ([253a81f](https://github.com/IUTTroyes/uniServices/commit/253a81f59882cacc8c24b9ded2c15e9d31e40f9e))
+* **Navigation:** Bandeau commun département ([b2142ad](https://github.com/IUTTroyes/uniServices/commit/b2142ade09468f167cbfe01a51a651078694c6fd))
+* **Sécurité:** Révision des accès ([73489f2](https://github.com/IUTTroyes/uniServices/commit/73489f21fb2599d5db4be0f5b14ad93f3e090a22))
+
 ## [0.10.0](https://github.com/IUTTroyes/uniServices/compare/v0.9.0...v0.10.0) (2026-11-09)
 
 
