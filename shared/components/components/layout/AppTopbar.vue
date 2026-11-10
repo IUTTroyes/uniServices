@@ -1,6 +1,6 @@
 <script setup>
 import { useLayout } from './composables/layout.js';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import { AVAILABLE_ROLES } from "@utils/permissions";
 import Logo from '@components/components/Logo.vue';
 import { useAnneeUnivStore, useUsersStore } from "@stores";
@@ -20,8 +20,30 @@ const router = useRouter();
 
 const hasError = ref(false);
 
-const deptItems = ref([]);
-const departementLabel = ref('');
+const header = ref(null);
+let headerObserver;
+const departementLabel = computed(() => userStore.departementDefaut?.libelle || 'Aucun département sélectionné');
+const canChangeDepartement = computed(() => userStore.userType === 'personnels' && userStore.departementsNotDefaut?.length > 0);
+const deptItems = computed(() => (Array.isArray(userStore.departements) ? userStore.departements : []).map(departement => ({
+  label: departement.libelle,
+  icon: departement.id === userStore.departementDefaut?.id ? 'pi pi-check' : 'pi pi-building',
+  disabled: departement.id === userStore.departementDefaut?.id,
+  command: () => changeDepartement(departement.id)
+})));
+
+onMounted(() => {
+  // Include wrapped department names when positioning content below the header.
+  const updateHeaderHeight = () => {
+    document.documentElement.style.setProperty('--layout-header-height', `${header.value.getBoundingClientRect().height}px`);
+  };
+  updateHeaderHeight();
+  headerObserver = new ResizeObserver(updateHeaderHeight);
+  headerObserver.observe(header.value);
+});
+onBeforeUnmount(() => {
+  headerObserver?.disconnect();
+  document.documentElement.style.removeProperty('--layout-header-height');
+});
 const anneesUniv = ref([]);
 const anneeItems = ref([
   {
@@ -99,26 +121,6 @@ const fetchData = async () => {
       }
     }
 
-    // Gérer les données des départements pour l'interface utilisateur
-    if (userStore.user) {
-      if (userStore.userType === 'personnels') {
-        // Mapper les départements pour le menu déroulant
-        deptItems.value = Array.isArray(userStore.departementsNotDefaut)
-          ? userStore.departementsNotDefaut.map(departement => ({
-            label: departement.libelle,
-            id: departement.id,
-            command: () => changeDepartement(departement.id)
-          }))
-          : [];
-
-        // Définir le libellé du département par défaut
-        departementLabel.value = userStore.departementDefaut?.libelle || '';
-      } else {
-        // Pour les utilisateurs non-personnel
-        deptItems.value = [];
-        departementLabel.value = userStore.departementDefaut?.libelle || '';
-      }
-    }
   } catch (error) {
     hasError.value = true;
     console.error('Error fetching data:', error);
@@ -205,12 +207,6 @@ const toggleRolesMenu = (event) => {
 const changeDepartement = async (departementId) => {
   try {
     await userStore.changeDepartement(departementId);
-    deptItems.value = userStore.departementsNotDefaut.map(departementPersonnel => ({
-      label: departementPersonnel.libelle,
-      id: departementPersonnel.id,
-      command: () => changeDepartement(departementPersonnel.id)
-    }));
-    departementLabel.value = userStore.departementDefaut.libelle;
   } catch (error) {
     hasError.value = true;
     console.error('Error changing department:', error);
@@ -251,6 +247,7 @@ const selectAnneeUniversitaire = (annee) => {
 </script>
 
 <template>
+  <header ref="header" class="layout-header">
   <div class="layout-topbar">
     <div class="layout-topbar-logo-container">
       <button v-if="route.name !== 'portail'" class="layout-menu-button layout-topbar-action" @click="onMenuToggle">
@@ -303,17 +300,6 @@ const selectAnneeUniversitaire = (annee) => {
             </template>
           </Menu>
 
-          <button v-if="userStore.userType === 'personnels'" type="button"
-            class="layout-topbar-action layout-topbar-action-text" @click="toggleDeptMenu" aria-haspopup="true"
-            aria-controls="dept_menu">
-            <i class="pi pi-arrow-right-arrow-left text-primary"></i>
-            <span>{{ departementLabel }}</span>
-          </button>
-          <div v-else-if="userStore.userType === 'etudiants'" class="hidden lg:inline-flex">
-            <span>{{ departementLabel }}</span>
-          </div>
-          <Menu ref="deptMenu" id="dept_menu" :model="deptItems" :popup="true" />
-
           <button v-if="showRolesMenu" type="button" class="layout-topbar-action layout-topbar-action-text"
             @click="toggleRolesMenu" aria-haspopup="true" aria-controls="roles_menu">
             <i class="pi pi-shield text-primary"></i>
@@ -336,15 +322,6 @@ const selectAnneeUniversitaire = (annee) => {
               <Button label="Rétablir mes droits réels" icon="pi pi-refresh" severity="secondary" size="small" :disabled="!userStore.isSimulatingRoles" @click="userStore.clearTemporaryRole()" />
             </div>
           </Popover>
-
-          <PermissionGuard permission="isPersonnel">
-            <button type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleAnneeMenu"
-              aria-haspopup="true" aria-controls="annee_menu">
-              <i class="pi pi-calendar text-primary"></i>
-              <span>{{ selectedAnneeUniversitaire?.label }}</span>
-            </button>
-            <Menu ref="anneeMenu" id="annee_menu" :model="anneeItems" :popup="true" />
-          </PermissionGuard>
 
           <button
             type="button"
@@ -382,4 +359,30 @@ const selectAnneeUniversitaire = (annee) => {
 
     </div>
   </div>
+  <section class="layout-context" aria-label="Contexte de travail">
+    <div class="layout-context-department">
+      <span class="layout-context-label">Département actif</span>
+      <button v-if="canChangeDepartement" type="button" class="layout-context-switch"
+        @click="toggleDeptMenu" aria-haspopup="true" aria-controls="dept_menu"
+        :aria-label="`Département actif : ${departementLabel}. Changer de département`">
+        <i class="pi pi-building" aria-hidden="true"></i>
+        <span>{{ departementLabel }}</span>
+        <i class="pi pi-chevron-down" aria-hidden="true"></i>
+      </button>
+      <div v-else class="layout-context-name">
+        <i class="pi pi-building" aria-hidden="true"></i>
+        <span>{{ departementLabel }}</span>
+      </div>
+      <Menu ref="deptMenu" id="dept_menu" :model="deptItems" :popup="true" class="layout-department-menu" />
+    </div>
+    <PermissionGuard permission="isPersonnel">
+      <button type="button" class="layout-context-year" @click="toggleAnneeMenu"
+        aria-haspopup="true" aria-controls="annee_menu">
+        <i class="pi pi-calendar text-primary"></i>
+        <span>Année {{ selectedAnneeUniversitaire?.label }}</span>
+      </button>
+      <Menu ref="anneeMenu" id="annee_menu" :model="anneeItems" :popup="true" />
+    </PermissionGuard>
+  </section>
+  </header>
 </template>

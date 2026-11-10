@@ -1,7 +1,8 @@
 .layout-main-container {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 4rem);
+    height: calc(100dvh - var(--layout-header-height, 4rem));
+    margin-top: var(--layout-header-height, 4rem);
     justify-content: space-between;
     padding: var(--ui-space-3);
     transition: margin-left var(--layout-section-transition-duration);
