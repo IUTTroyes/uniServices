@@ -103,7 +103,7 @@ L’accès anonyme aux opérations API Platform est bloqué dans le pare-feu ava
 
 Les exceptions explicites couvrent la connexion, le renouvellement de session, la déconnexion, la réinitialisation du mot de passe, les flux RSS et les routes d’invitation qui vérifient leur jeton. Conserver ces exceptions avant la règle générale lors du passage à une API authentifiée.
 
-- Les bons de commande sont modifiables par leur demandeur ou un gestionnaire finance du département. Le demandeur peut déposer le PDF signé depuis la route dédiée. Les écritures sur les fournisseurs et les réceptions exigent le rôle de gestionnaire. Les nouveaux PDF signés sont écrits sous `var/uploads/finance`. Les configurations web fournies bloquent l’accès statique aux anciens PDF, qui restent lisibles par le contrôleur autorisé.
+- Finances : une demande est imputée à un département **ou** à un service (jamais les deux). Le gestionnaire (`ROLE_FINANCE_MANAGER` dans au moins un département) est le service financier : il voit et gère toutes les demandes de l’établissement, y compris celles d’un service, et le référentiel. Le valideur lit et donne son avis sur les demandes de ses départements ; le demandeur crée dans ses départements (pour un service, dans n’importe lequel) et suit les siennes, sans le rôle l’auteur n’a aucun droit d’écriture. La suppression est ouverte au demandeur sur son brouillon, au-delà au service financier seul. Le demandeur peut déposer le PDF signé tant que l’avis n’est pas rendu, et constater le service fait en déposant le bon de livraison ; le service financier vise ensuite chaque réception. Les écritures sur les fournisseurs et les réceptions exigent le rôle de gestionnaire. Les nouveaux PDF signés sont écrits sous `var/uploads/finance`. Les configurations web fournies bloquent l’accès statique aux anciens PDF, qui restent lisibles par le contrôleur autorisé.
 - Les actualités sont gérées par les administrateurs, chefs de département et relais communication du département.
 - Un étudiant peut créer et modifier son propre dossier de stage et ses propres avenants. La validation et la gestion des soutenances restent réservées aux gestionnaires autorisés sur le département.
 - Les responsables de plan de cours, les enseignants affectés dans le prévisionnel et les gestionnaires de l’enseignement peuvent écrire sur les plans et leurs éléments associés.
@@ -128,7 +128,9 @@ Le circuit financier, les notifications, les exports et les nouveaux processeurs
 réceptions et décisions portées par un document exigent la gestion financière locale. Les contraintes métier
 (de statut, contenu, anonymat, dates) s'ajoutent aux permissions sans les remplacer. Les filtres entrants fondés
 sur la propriété ont été retirés au profit des règles de collection locales, en particulier
-`DepartmentCollectionAccessExtension` pour les finances, stages et invitations.
+`DepartmentCollectionAccessExtension` pour les stages et invitations ; les finances ont leur propre
+`FinanceVisibiliteExtension` (le service financier voit tout l’établissement, les demandes de service n’ont pas de
+département).
 
 Validation de non-régression : `tests/Security/MergePermissionsTest.php`, tests d'accès Questionnaire/Stage et tests
 du processeur Stage. Les tests API nécessitent la base de test configurée ; leur absence ne valide pas les parcours HTTP.

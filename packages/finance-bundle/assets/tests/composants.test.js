@@ -39,6 +39,9 @@ import StatutTag from '../components/StatutTag.vue';
 import { estFinalisee } from '../utils/finance';
 import FinanceDashboardView from '../views/FinanceDashboardView.vue';
 import FinanceConfigurationView from '../views/Configuration/FinanceConfigurationView.vue';
+import EtapeServiceFait from '../components/demande/EtapeServiceFait.vue';
+import EtapeFacture from '../components/demande/EtapeFacture.vue';
+import ActionWorkflowDialog from '../components/ActionWorkflowDialog.vue';
 
 // jsdom ne fournit pas ResizeObserver (onglets PrimeVue) ni matchMedia (tableaux paginés).
 globalThis.matchMedia ??= (query) => ({ matches: false, media: query, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} });
@@ -182,6 +185,165 @@ describe('DemandeAchatDetailView', () => {
     });
 });
 
+describe('EtapeDemande : PDF à faire signer', () => {
+    const monterSoumise = (surcharge, ecouteurs = {}) => monter(EtapeDemande, {
+        form: reactive({ prestation: 'Fournitures', objetDemande: 'x', montantHt: '100', montantTtc: '120', tauxTva: '20.00', departement: 1, service: null }),
+        commande: commande({ statut: 'SOUMIS', ...surcharge }), modifiable: () => false, tauxTva: TAUX, peutDeposer: true,
+    }, ecouteurs);
+
+    it('met en avant le PDF à signer tant que la demande soumise n\'a pas de document signé', async () => {
+        const telecharger = vi.fn();
+        const el = await monterSoumise({ pdfSigne: false }, { onTelechargerPdf: telecharger });
+        expect(el.querySelector('#pdf-a-signer-titre')?.textContent).toContain('faire signer la demande');
+        bouton(el, 'Télécharger le PDF à signer').click();
+        expect(telecharger).toHaveBeenCalledWith(1);
+        expect(bouton(el, 'Déposer le PDF signé')).toBeTruthy();
+    });
+
+    it('disparaît une fois le document déposé, ou en brouillon', async () => {
+        expect((await monterSoumise({ pdfSigne: true })).querySelector('#pdf-a-signer-titre')).toBeNull();
+        expect((await monterSoumise({ statut: 'BROUILLON' })).querySelector('#pdf-a-signer-titre')).toBeNull();
+    });
+});
+
+describe('EtapeDemande : imputation département ou service', () => {
+    const vierge = () => reactive({ prestation: 'Fournitures', objetDemande: '', montantHt: null, montantTtc: null, tauxTva: '20.00', departement: 1, service: null, fournisseur: null, fournisseurPropose: null });
+    const choisir = async (el, valeur) => {
+        const radio = el.querySelector(`input[name="demande-imputation"][value="${valeur}"]`);
+        radio.checked = true;
+        radio.dispatchEvent(new Event('change'));
+        await attendre();
+    };
+
+    it('pré-remplit le département et bascule sur un service sans garder les deux', async () => {
+        const form = vierge();
+        const el = await monter(EtapeDemande, {
+            form, nouvelle: true, modifiable: () => true, tauxTva: TAUX,
+            departements: [{ id: 1, libelle: 'MMI' }], services: [{ id: 7, libelle: 'Informatique' }],
+        });
+        expect(el.querySelector('#demande-departement').textContent).toContain('MMI');
+        expect(el.querySelector('#demande-service')).toBeNull();
+
+        await choisir(el, 'service');
+        expect(form.departement).toBeNull();
+        const select = el.querySelector('#demande-service');
+        select.value = '7';
+        select.dispatchEvent(new Event('change'));
+        await attendre();
+        expect(form.service).toBe(7);
+        expect(el.textContent).toContain('validée par le service financier');
+
+        await choisir(el, 'departement');
+        expect(form.service).toBeNull();
+        expect(form.departement).toBe(1);
+    });
+
+    it('sans département, impose un service', async () => {
+        const form = reactive({ ...vierge(), departement: null });
+        const el = await monter(EtapeDemande, { form, nouvelle: true, modifiable: () => true, tauxTva: TAUX, departements: [], services: [{ id: 7, libelle: 'Informatique' }] });
+        expect(el.querySelector('#demande-service')).not.toBeNull();
+        expect(el.querySelector('input[value="departement"]').disabled).toBe(true);
+    });
+});
+
+describe('Service fait : bons de livraison et visa par réception', () => {
+    const reception = (surcharge = {}) => ({
+        id: 31, typeReception: 'TOTALE', prestationsConformes: true, dateEffectiveReception: '2026-11-03', montantTtcConstate: '1200.00',
+        receptionnaire: { id: 5, prenom: 'Alice', nom: 'DUPONT' }, numerosMigo: [], visee: false, dateVisa: null, viseur: null,
+        documents: [{ id: 7, nomFichier: 'BL-2026-118.pdf', dateDepot: '2026-11-03T10:00:00+01:00' }],
+        ...surcharge,
+    });
+    const monterEtape = (receptions, droits = {}) => monter(EtapeServiceFait, {
+        commande: commande({ statut: 'SERVICE_FAIT_CONSTATE', receptions }), atteinte: true, ...droits,
+    });
+
+    it('le service financier vise une réception avec ses numéros MIGO', async () => {
+        api.post.mockResolvedValue({ data: { certifie: true, statut: 'SERVICE_FAIT_CERTIFIE' } });
+        const el = await monterEtape([reception()], { gererReceptions: true, viserReceptions: true });
+        expect(el.textContent).toContain('BL-2026-118.pdf');
+        expect(el.textContent).toContain('1 réception(s) à viser');
+
+        await saisir(el.querySelector('#migo-31'), '5000412345');
+        bouton(el, 'Ajouter').click();
+        await attendre();
+        bouton(el, 'Viser cette réception').click();
+        await attendre();
+        expect(api.post).toHaveBeenCalledWith('/api/finance_receptions/31/viser', { numerosMigo: ['5000412345'] });
+    });
+
+    it('pas de visa sans bon de livraison', async () => {
+        const el = await monterEtape([reception({ documents: [] })], { gererReceptions: true, viserReceptions: true });
+        expect(el.textContent).toContain('doit être déposé avant le visa');
+        expect(bouton(el, 'Viser cette réception').disabled).toBe(true);
+    });
+
+    it('le demandeur ajoute un bon de livraison tant que la réception n\'est pas visée', async () => {
+        const el = await monterEtape([reception(), reception({ id: 32, visee: true, dateVisa: '2026-11-04', viseur: { id: 9, prenom: 'Max', nom: 'MAISTRE' } })], { bonsLivraison: true });
+        expect(el.querySelector('#bl-ajout-31')).not.toBeNull();
+        expect(el.querySelector('#bl-ajout-32')).toBeNull();
+        expect(bouton(el, 'Viser cette réception')).toBeUndefined();
+        expect(el.textContent).toContain('MAISTRE');
+    });
+});
+
+describe('EtapeFacture : dates saisies dans l\'étape', () => {
+    const ACTIONS = {
+        recevoir_facture: { action: 'recevoir_facture', libelle: 'Facture reçue', severite: 'primary' },
+        rejeter_facture: { action: 'rejeter_facture', libelle: 'Rejeter la facture', severite: 'danger', commentaire: true },
+        payer: { action: 'payer', libelle: 'Paiement effectué', severite: 'primary' },
+    };
+    const monterFacture = (statut, actions, ecouteurs = {}) => monter(EtapeFacture, {
+        form: reactive({ dateArriveeFacture: '', datePaiement: '', factureFinale: true }),
+        commande: commande({ statut }), modifiable: () => false, atteinte: true, actions,
+    }, ecouteurs);
+
+    it('enregistre l\'arrivée de la facture avec sa date', async () => {
+        const envoyer = vi.fn();
+        const el = await monterFacture('SERVICE_FAIT_CERTIFIE', [ACTIONS.recevoir_facture], { onEnvoyer: envoyer });
+        expect(el.querySelector('#facture-arrivee').tagName).toBe('SPAN');
+        await saisir(el.querySelector('#facture-arrivee-saisie'), '2026-11-02');
+        el.querySelector('#facture-arrivee-saisie').form.dispatchEvent(new Event('submit'));
+        await attendre();
+        expect(envoyer).toHaveBeenCalledWith(ACTIONS.recevoir_facture, { date: '2026-11-02' });
+        expect(bouton(el, 'Facture reçue')).toBeUndefined();
+    });
+
+    it('enregistre le paiement ; le rejet de facture reste un bouton', async () => {
+        const envoyer = vi.fn();
+        const el = await monterFacture('FACTURE_RECUE', [ACTIONS.rejeter_facture, ACTIONS.payer], { onEnvoyer: envoyer });
+        expect(bouton(el, 'Rejeter la facture')).toBeTruthy();
+        await saisir(el.querySelector('#facture-paiement-saisie'), '2026-11-05');
+        const finale = el.querySelector('#facture-finale-saisie');
+        finale.checked = false;
+        finale.dispatchEvent(new Event('change'));
+        bouton(el, 'Enregistrer le paiement').click();
+        await attendre();
+        expect(envoyer).toHaveBeenCalledWith(ACTIONS.payer, { date: '2026-11-05', factureFinale: false });
+    });
+});
+
+describe('ActionWorkflowDialog : constatation du service fait', () => {
+    it('exige au moins un bon de livraison en PDF', async () => {
+        const valider = vi.fn();
+        await monter(ActionWorkflowDialog, { visible: true, action: { action: 'constater_service_fait', libelle: 'Constater le service fait' }, montantTtc: '1200.00' }, { onValider: valider });
+        const envoyer = [...document.querySelectorAll('button[type="submit"]')].find(b => b.textContent.includes('Constater'));
+        expect(envoyer.disabled).toBe(true);
+
+        const champ = document.querySelector('#sf-bl');
+        const pdf = new File(['%PDF-1.4'], 'BL.pdf', { type: 'application/pdf' });
+        const image = new File(['x'], 'photo.png', { type: 'image/png' });
+        Object.defineProperty(champ, 'files', { value: [pdf, image], configurable: true });
+        champ.dispatchEvent(new Event('change'));
+        await attendre();
+        expect(document.body.textContent).toContain('« photo.png » n\'est pas un PDF.');
+        expect(envoyer.disabled).toBe(false);
+
+        document.querySelector('#form-action-workflow').dispatchEvent(new Event('submit'));
+        await attendre();
+        expect(valider).toHaveBeenCalledWith(expect.objectContaining({ typeReception: 'TOTALE', bonsLivraison: [pdf] }));
+    });
+});
+
 describe('FinanceDashboardView', () => {
     const liste = [
         commande({ id: 1, statut: 'SOUMIS', demandeur: { id: 5, prenom: 'Alice', nom: 'DUPONT' }, montantTtc: '120.00', montantHt: '100.00' }),
@@ -220,6 +382,21 @@ describe('FinanceDashboardView', () => {
         expect(blocs.map(b => b.querySelector('i').className.match(/text-(\w+)-600/)[1])).toEqual(['blue', 'amber', 'purple', 'teal', 'pink']);
         expect(el.textContent).toContain('Facture finale');
         expect(bouton(el, 'Ouvrir la demande')).toBeTruthy();
+    });
+
+    it('affiche le département ou le service d\'imputation, filtrable', async () => {
+        api.get.mockResolvedValue({ data: { member: [
+            commande({ id: 1, objetDemande: 'Papier' }),
+            commande({ id: 2, objetDemande: 'Serveur', departement: null, service: { id: 7, libelle: 'Informatique' } }),
+        ], totalItems: 2 } });
+        const el = await monter(FinanceDashboardView);
+        expect([...el.querySelectorAll('thead th')].map(th => th.textContent.trim())).toContain('Département / Service');
+        expect(el.textContent).toContain('MMI');
+        expect(el.textContent).toContain('Informatique');
+
+        await saisir(el.querySelector('input[aria-label="Filtrer par Département / Service"]'), 'info');
+        expect(el.textContent).toContain('Serveur');
+        expect(el.textContent).not.toContain('Papier');
     });
 
     it('affiche une colonne Fournisseur filtrable depuis l\'en-tête', async () => {

@@ -24,6 +24,7 @@ import {
     getFinanceSignedPdfBlobService,
     getFinancePdfBlobService,
     getFinanceTauxTvaService,
+    getStructureServicesService,
     telechargerBlob,
 } from '@/requests/financeService';
 import { ETAPES, etapeCourante, etapeTerminee, montantApi, iri, dateSaisie, messageErreurApi } from '@/utils/finance';
@@ -48,7 +49,7 @@ const { confirmer } = useConfirmation();
 const userStore = useUsersStore();
 
 /** Champs saisissables à la création (identique à FinanceWorkflow::champsCreation côté serveur). */
-const CHAMPS_CREATION = ['prestation', 'objetDemande', 'montantHt', 'montantTtc', 'tauxTva', 'noteExplicative', 'centreFinancier', 'fournisseur', 'fournisseurPropose', 'departement'];
+const CHAMPS_CREATION = ['prestation', 'objetDemande', 'montantHt', 'montantTtc', 'tauxTva', 'noteExplicative', 'centreFinancier', 'fournisseur', 'fournisseurPropose', 'departement', 'service'];
 const CHAMPS_DATE = ['dateBonCommande', 'dateArriveeFacture', 'datePaiement'];
 const ROLES_CREATION = ['ROLE_FINANCE_DEMANDEUR', 'ROLE_FINANCE_MANAGER', 'SUPER_ADMIN'];
 
@@ -63,13 +64,14 @@ const commande = ref(null);
 const form = ref({});
 const tauxTva = ref([]);
 const departements = ref([]);
+const services = ref([]);
 const onglet = ref('1');
 const apercu = ref(false);
 const etapePdf = ref(5);
 const actionEnCours = ref(null);
 const dialogueAction = ref(false);
 
-const droits = computed(() => commande.value?.droits ?? { actions: [], champs: [], supprimer: false, deposerDocument: false, gererReceptions: false, decisionDocument: false });
+const droits = computed(() => commande.value?.droits ?? { actions: [], champs: [], supprimer: false, deposerDocument: false, gererReceptions: false, decisionDocument: false, bonsLivraison: false, viserReceptions: false });
 const champsModifiables = computed(() => (nouvelle.value ? CHAMPS_CREATION : droits.value.champs));
 const modifiable = (champ) => champsModifiables.value.includes(champ);
 const statut = computed(() => commande.value?.statut ?? 'BROUILLON');
@@ -90,6 +92,7 @@ function formulaireDepuis(c) {
         fournisseur: c?.fournisseur ?? null,
         fournisseurPropose: c?.fournisseurPropose ?? null,
         departement: c ? (c.departement?.id ?? null) : (departements.value.length === 1 ? departements.value[0].id : (userStore.departementDefaut?.id ?? null)),
+        service: c?.service?.id ?? null,
         commandeSurMarche: Boolean(c?.commandeSurMarche),
         numeroBonCommande: c?.numeroBonCommande ?? '',
         dateBonCommande: dateSaisie(c?.dateBonCommande),
@@ -106,6 +109,7 @@ function formulaireDepuis(c) {
 function valeurApi(champ, valeur) {
     if (champ === 'fournisseur') return iri('finance_fournisseurs', valeur);
     if (champ === 'departement') return iri('structure_departements', valeur);
+    if (champ === 'service') return iri('structure_services', valeur);
     if (champ === 'montantHt' || champ === 'montantTtc') return montantApi(valeur);
     if (champ === 'tauxTva') return valeur === null || valeur === '' ? null : String(valeur);
     if (CHAMPS_DATE.includes(champ)) return valeur || null;
@@ -291,6 +295,11 @@ onMounted(async () => {
     }
     if (nouvelle.value) await chargerDepartements();
     await charger();
+    try {
+        services.value = await getStructureServicesService();
+    } catch {
+        services.value = [];
+    }
 });
 </script>
 
@@ -334,6 +343,7 @@ onMounted(async () => {
                 :modifiable="modifiable"
                 :taux-tva="tauxTva"
                 :departements="departements"
+                :services="services"
             />
 
             <div v-else-if="commande" class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_18rem] gap-6 items-start">
@@ -358,6 +368,7 @@ onMounted(async () => {
                             :commande="commande"
                             :modifiable="modifiable"
                             :taux-tva="tauxTva"
+                            :services="services"
                             :actions="droits.actions"
                             :envoi="envoi"
                             :peut-deposer="droits.deposerDocument"
@@ -377,10 +388,10 @@ onMounted(async () => {
                         <EtapeEngagement :form="form" :commande="commande" :modifiable="modifiable" :atteinte="atteinte(3)" :actions="droits.actions" :envoi="envoi" @executer="executer" />
                     </TabPanel>
                     <TabPanel value="4">
-                        <EtapeServiceFait :commande="commande" :atteinte="atteinte(4)" :gerer-receptions="droits.gererReceptions" :actions="droits.actions" :envoi="envoi" :reception-enregistree="receptionEnregistree" @executer="executer" @enregistrer-reception="enregistrerReception" />
+                        <EtapeServiceFait :commande="commande" :atteinte="atteinte(4)" :gerer-receptions="droits.gererReceptions" :bons-livraison="droits.bonsLivraison" :viser-receptions="droits.viserReceptions" :actions="droits.actions" :envoi="envoi" :reception-enregistree="receptionEnregistree" @executer="executer" @enregistrer-reception="enregistrerReception" @recharger="charger" />
                     </TabPanel>
                     <TabPanel value="5">
-                        <EtapeFacture :form="form" :commande="commande" :modifiable="modifiable" :atteinte="atteinte(5)" :actions="droits.actions" :envoi="envoi" @executer="executer" />
+                        <EtapeFacture :form="form" :commande="commande" :modifiable="modifiable" :atteinte="atteinte(5)" :actions="droits.actions" :envoi="envoi" @executer="executer" @envoyer="envoyerAction" />
                     </TabPanel>
                 </TabPanels>
             </Tabs>

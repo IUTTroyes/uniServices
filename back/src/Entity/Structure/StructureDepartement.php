@@ -83,7 +83,7 @@ class StructureDepartement implements TimestampableInterface
     private ?string $telContact = null;
 
     #[ORM\Column(length: 16, nullable: true)]
-    #[Groups(groups: ['departement:administration', 'departement:read', 'departement:write', 'questionnaire:read', 'finance:read'])]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'departement:write', 'questionnaire:read', 'finance:read', 'departement_personnel:read'])]
     private ?string $couleur = null;
 
     #[ORM\Column(length: 255, nullable: true)]

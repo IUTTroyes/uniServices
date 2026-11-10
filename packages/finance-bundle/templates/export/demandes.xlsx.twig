@@ -8,7 +8,7 @@
 {# Export du tableau de bord Finances : une ligne par demande, dans l'ordre affiché (filtres et tri appliqués). #}
 {# Les textes saisis sont écrits en type « string » : jamais interprétés comme formules. #}
 {% set entete = 'data-xls-border="thin" data-xls-bg-color="#047857" data-xls-font-color="#FFFFFF" data-xls-font-bold="true"' %}
-<table data-xls-sheet="Demandes d'achat" data-xls-autosize="true" data-xls-freeze="A2" data-xls-autofilter="A1:K{{ max(commandes|length + 1, 2) }}">
+<table data-xls-sheet="Demandes d'achat" data-xls-autosize="true" data-xls-freeze="A2" data-xls-autofilter="A1:L{{ max(commandes|length + 1, 2) }}">
     <thead>
         <tr>
             <th {{ entete|raw }}>Référence</th>
@@ -16,7 +16,8 @@
             <th {{ entete|raw }}>Objet</th>
             <th {{ entete|raw }}>Prestation</th>
             <th {{ entete|raw }}>Fournisseur</th>
-            <th {{ entete|raw }}>Département</th>
+            <th {{ entete|raw }}>Imputation</th>
+            <th {{ entete|raw }}>Type</th>
             <th {{ entete|raw }}>Demandeur</th>
             <th {{ entete|raw }}>Montant HT</th>
             <th {{ entete|raw }}>Montant TTC</th>
@@ -33,7 +34,8 @@
             <td data-xls-border="thin" data-xls-type="string">{{ c.objetDemande }}</td>
             <td data-xls-border="thin" data-xls-type="string">{{ c.prestation.label }}</td>
             <td data-xls-border="thin" data-xls-type="string">{{ fournisseur }}</td>
-            <td data-xls-border="thin" data-xls-type="string">{{ c.departement ? c.departement.libelle : '' }}</td>
+            <td data-xls-border="thin" data-xls-type="string">{{ c.imputationLibelle }}</td>
+            <td data-xls-border="thin" data-xls-type="string">{{ c.service ? 'Service' : (c.departement ? 'Département' : '') }}</td>
             <td data-xls-border="thin" data-xls-type="string">{{ c.demandeur ? (c.demandeur.prenom ~ ' ' ~ c.demandeur.nom)|trim : '' }}</td>
             <td data-xls-border="thin" data-xls-type="number" data-xls-format="#,##0.00 €">{{ c.montantHt }}</td>
             <td data-xls-border="thin" data-xls-type="number" data-xls-format="#,##0.00 €">{{ c.montantTtc ?? c.montantHt }}</td>

@@ -2,6 +2,7 @@
 
 namespace FinanceBundle\Tests\Api;
 
+use App\Entity\Structure\StructureService;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -17,6 +18,9 @@ final class FinanceExportApiTest extends FinanceApiTestCase
         $demandeur = $this->personnel($dept, ['ROLE_FINANCE_DEMANDEUR']);
         $avecFournisseur = $this->commande($dept, $demandeur);
         $avecFournisseur->setFournisseur($this->fournisseur('BUREAU'));
+        $service = (new StructureService())->setLibelle('Informatique');
+        $this->em->persist($service);
+        $avecFournisseur->setDepartement(null)->setService($service);
         $propose = $this->commande($dept, $demandeur);
         $propose->setFournisseurPropose('=HYPERLINK("http://exemple.test")');
         $this->em->flush();
@@ -30,7 +34,11 @@ final class FinanceExportApiTest extends FinanceApiTestCase
         self::assertSame('=HYPERLINK("http://exemple.test") (proposé)', $feuille->getCell('E2')->getValue(), 'texte saisi jamais interprété comme formule');
         self::assertSame('s', $feuille->getCell('E2')->getDataType());
         self::assertSame($avecFournisseur->getFournisseur()->getNomFournisseur(), $feuille->getCell('E3')->getValue());
-        self::assertEquals(100.0, $feuille->getCell('H3')->getValue());
+        self::assertSame('Imputation', $feuille->getCell('F1')->getValue());
+        self::assertSame('Informatique', $feuille->getCell('F3')->getValue());
+        self::assertSame('Service', $feuille->getCell('G3')->getValue());
+        self::assertSame('Département', $feuille->getCell('G2')->getValue());
+        self::assertEquals(100.0, $feuille->getCell('I3')->getValue());
         self::assertNull($feuille->getCell('A4')->getValue());
     }
 

@@ -54,14 +54,16 @@ final class FinanceSecuriteApiTest extends FinanceApiTestCase
         $voit = fn ($user): array => $this->ids($this->requete('GET', '/api/finance_bon_commandes?itemsPerPage=100', $user));
 
         self::assertEqualsCanonicalizing([$mienne->getId()], array_intersect($voit($demandeur), [$mienne->getId(), $autre->getId(), $dansB->getId()]));
-        self::assertEqualsCanonicalizing([$mienne->getId(), $autre->getId()], array_values(array_intersect($voit($gestionnaireA), [$mienne->getId(), $autre->getId(), $dansB->getId()])));
+        self::assertEqualsCanonicalizing([$mienne->getId(), $autre->getId(), $dansB->getId()], array_values(array_intersect($voit($gestionnaireA), [$mienne->getId(), $autre->getId(), $dansB->getId()])));
         self::assertEqualsCanonicalizing([$mienne->getId(), $autre->getId()], array_values(array_intersect($voit($valideurA), [$mienne->getId(), $autre->getId(), $dansB->getId()])));
-        self::assertEqualsCanonicalizing([$dansB->getId()], array_values(array_intersect($voit($gestionnaireB), [$mienne->getId(), $autre->getId(), $dansB->getId()])));
+        // Service financier : toutes les demandes de l'établissement, quel que soit le département de son rôle.
+        self::assertEqualsCanonicalizing([$mienne->getId(), $autre->getId(), $dansB->getId()], array_values(array_intersect($voit($gestionnaireB), [$mienne->getId(), $autre->getId(), $dansB->getId()])));
         self::assertEqualsCanonicalizing([$autre->getId()], array_values(array_intersect($voit($responsable), [$mienne->getId(), $autre->getId(), $dansB->getId()])));
         self::assertEqualsCanonicalizing([$mienne->getId(), $autre->getId(), $dansB->getId()], array_values(array_intersect($voit($admin), [$mienne->getId(), $autre->getId(), $dansB->getId()])));
 
-        // Lecture d'une demande hors périmètre
-        self::assertSame(403, $this->requete('GET', $this->iri('finance_bon_commandes', $mienne->getId()), $gestionnaireB)->getStatusCode());
+        // Lecture d'une demande hors périmètre (le valideur reste limité à ses départements)
+        self::assertSame(200, $this->requete('GET', $this->iri('finance_bon_commandes', $mienne->getId()), $gestionnaireB)->getStatusCode());
+        self::assertSame(403, $this->requete('GET', $this->iri('finance_bon_commandes', $dansB->getId()), $valideurA)->getStatusCode());
         self::assertSame(403, $this->requete('GET', $this->iri('finance_bon_commandes', $mienne->getId()), $collegue)->getStatusCode());
         self::assertSame(200, $this->requete('GET', $this->iri('finance_bon_commandes', $mienne->getId()), $gestionnaireA)->getStatusCode());
     }
@@ -165,7 +167,7 @@ final class FinanceSecuriteApiTest extends FinanceApiTestCase
         $gestionnaireB = $this->personnel($this->em->find($b::class, $b->getId()), ['ROLE_FINANCE_MANAGER']);
         $collegue = $this->personnel($this->em->find($a::class, $a->getId()), ['ROLE_FINANCE_DEMANDEUR']);
         $this->em->flush();
-        self::assertSame(403, $this->requete('PATCH', $this->iri('finance_bon_commandes', $id), $gestionnaireB, ['objetDemande' => 'x'])->getStatusCode());
+        self::assertSame(200, $this->requete('PATCH', $this->iri('finance_bon_commandes', $id), $gestionnaireB, ['objetDemande' => 'x'])->getStatusCode(), 'service financier : tout l\'établissement');
         self::assertSame(403, $this->requete('PATCH', $this->iri('finance_bon_commandes', $id), $collegue, ['objetDemande' => 'x'])->getStatusCode());
     }
 
@@ -178,6 +180,9 @@ final class FinanceSecuriteApiTest extends FinanceApiTestCase
         $this->em->flush();
 
         self::assertSame(403, $this->requete('DELETE', $this->iri('finance_bon_commandes', $soumise->getId()), $demandeur)->getStatusCode());
+        // Le bouton « Supprimer » suit le droit calculé par le serveur : brouillon seulement pour le demandeur
+        self::assertFalse($this->json($this->requete('GET', $this->iri('finance_bon_commandes', $soumise->getId()), $demandeur))['droits']['supprimer']);
+        self::assertTrue($this->json($this->requete('GET', $this->iri('finance_bon_commandes', $brouillon->getId()), $demandeur))['droits']['supprimer']);
         self::assertSame(204, $this->requete('DELETE', $this->iri('finance_bon_commandes', $brouillon->getId()), $demandeur)->getStatusCode());
         $gestionnaire = $this->personnel($this->em->find($dept::class, $dept->getId()), ['ROLE_FINANCE_MANAGER']);
         $this->em->flush();
@@ -188,7 +193,7 @@ final class FinanceSecuriteApiTest extends FinanceApiTestCase
     {
         $dept = $this->departement();
         $demandeur = $this->personnel($dept, ['ROLE_FINANCE_DEMANDEUR']);
-        $etranger = $this->personnel($this->departement('Autre'), ['ROLE_FINANCE_MANAGER']);
+        $etranger = $this->personnel($this->departement('Autre'), ['ROLE_FINANCE_DEMANDEUR']);
         $c = $this->commande($dept, $demandeur);
         $this->em->flush();
         $id = $c->getId();

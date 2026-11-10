@@ -86,14 +86,20 @@ final class FinanceWorkflowApiTest extends FinanceApiTestCase
         }
         self::assertSame(StatutCommandeEnum::COMMANDE_TRANSMISE, $this->statut($id));
 
-        // Réception partielle puis totale par le demandeur
-        self::assertSame(422, $this->action($id, 'constater_service_fait', $this->demandeur, ['typeReception' => 'PARTIELLE'])->getStatusCode());
-        self::assertSame(200, $this->action($id, 'constater_service_fait', $this->demandeur, ['typeReception' => 'PARTIELLE', 'detailsReceptionPartielle' => '1 sur 2', 'montantTtcConstate' => '600'])->getStatusCode());
+        // Réception partielle puis totale par le demandeur, chacune avec son bon de livraison
+        self::assertSame(422, $this->constater($id, $this->demandeur, ['typeReception' => 'PARTIELLE'])->getStatusCode());
+        self::assertSame(200, $this->constater($id, $this->demandeur, ['typeReception' => 'PARTIELLE', 'detailsReceptionPartielle' => '1 sur 2', 'montantTtcConstate' => '600'])->getStatusCode());
         self::assertContains('constater_service_fait', $this->actions($id, $this->demandeur));
-        self::assertSame(200, $this->action($id, 'constater_service_fait', $this->demandeur, ['qualiteReceptionnaire' => 'Enseignant'])->getStatusCode());
+        self::assertSame(200, $this->constater($id, $this->demandeur, ['qualiteReceptionnaire' => 'Enseignant'])->getStatusCode());
         self::assertNotContains('constater_service_fait', $this->actions($id, $this->demandeur));
 
-        self::assertSame(200, $this->action($id, 'certifier_service_fait', $this->gestionnaire)->getStatusCode());
+        // Visa du service financier sur chaque réception : le dernier certifie le service fait
+        self::assertNotContains('certifier_service_fait', $this->actions($id, $this->gestionnaire), 'pas avant les visas');
+        [$premiere, $seconde] = $this->receptions($id);
+        self::assertSame(200, $this->viser($premiere, $this->gestionnaire, ['5000412345'])->getStatusCode());
+        self::assertSame(StatutCommandeEnum::SERVICE_FAIT_CONSTATE, $this->statut($id));
+        self::assertSame(200, $this->viser($seconde, $this->gestionnaire)->getStatusCode());
+        self::assertSame(StatutCommandeEnum::SERVICE_FAIT_CERTIFIE, $this->statut($id));
         self::assertSame(200, $this->action($id, 'recevoir_facture', $this->gestionnaire, ['date' => '2026-11-02'])->getStatusCode());
         self::assertSame(422, $this->action($id, 'rejeter_facture', $this->gestionnaire)->getStatusCode());
         self::assertSame(200, $this->action($id, 'rejeter_facture', $this->gestionnaire, ['commentaire' => 'Montant erroné'])->getStatusCode());

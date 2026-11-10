@@ -136,6 +136,32 @@ abstract class FinanceApiTestCase extends TestCase
         return $this->fichier("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF", 'signe.pdf');
     }
 
+    /**
+     * Constatation du service fait (formulaire multipart) avec `$pdf` bons de livraison.
+     *
+     * @param array<string, scalar> $champs
+     */
+    protected function constater(int $commande, UserInterface $user, array $champs = [], int $pdf = 1): Response
+    {
+        $fichiers = $pdf > 0 ? ['bonsLivraison' => array_map(fn (): UploadedFile => $this->fichier("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF", 'BL.pdf'), range(1, $pdf))] : [];
+
+        return $this->requete('POST', sprintf('/api/finance_bon_commandes/%d/transitions/constater_service_fait', $commande), $user, null, $fichiers, array_map('strval', $champs));
+    }
+
+    /** @param list<string>|null $numerosMigo */
+    protected function viser(int $reception, UserInterface $user, ?array $numerosMigo = null): Response
+    {
+        return $this->requete('POST', sprintf('/api/finance_receptions/%d/viser', $reception), $user, $numerosMigo === null ? [] : ['numerosMigo' => $numerosMigo]);
+    }
+
+    /** @return list<int> réceptions de la demande, dans l'ordre */
+    protected function receptions(int $commande): array
+    {
+        $this->em->clear();
+
+        return array_values(array_map(static fn ($r): int => (int) $r->getId(), $this->em->find(FinanceBonCommande::class, $commande)->getReceptions()->toArray()));
+    }
+
     // ---------- Jeux de données ----------
 
     protected function unique(string $prefixe): string

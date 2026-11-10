@@ -4,6 +4,7 @@ namespace FinanceBundle\Serializer;
 
 use FinanceBundle\Entity\FinanceBonCommande;
 use FinanceBundle\Enum\ActionWorkflowEnum;
+use FinanceBundle\Enum\StatutCommandeEnum;
 use FinanceBundle\Security\FinanceAccess;
 use FinanceBundle\Workflow\FinanceWorkflow;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -16,7 +17,8 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  * le front affiche boutons et champs d'après eux au lieu de recopier les règles.
  *
  *   "droits": { "actions": [{ "action", "libelle", "severite", "commentaire", "confirmer" }], "champs": [...],
- *               "supprimer": bool, "deposerDocument": bool, "gererReceptions": bool, "decisionDocument": bool }
+ *               "supprimer": bool, "deposerDocument": bool, "gererReceptions": bool, "decisionDocument": bool,
+ *               "bonsLivraison": bool, "viserReceptions": bool }
  */
 final class FinanceBonCommandeNormalizer implements NormalizerInterface, NormalizerAwareInterface
 {
@@ -51,6 +53,11 @@ final class FinanceBonCommandeNormalizer implements NormalizerInterface, Normali
                 'deposerDocument' => $this->access->peutDeposerDocument($user, $data),
                 'gererReceptions' => $this->access->estGestionnaire($user, $data),
                 'decisionDocument' => $this->workflow->peutDecider($user, $data),
+                // Service fait : dépôt des bons de livraison (réceptions non visées) et visa du service financier.
+                'bonsLivraison' => $data->getStatut() === StatutCommandeEnum::SERVICE_FAIT_CONSTATE
+                    && ($this->access->estGestionnaire($user, $data) || $this->access->estDemandeur($user, $data)
+                        || FinanceAccess::memePersonne($data->getResponsable(), $user)),
+                'viserReceptions' => $data->getStatut() === StatutCommandeEnum::SERVICE_FAIT_CONSTATE && $this->access->estGestionnaire($user, $data),
             ];
         }
 

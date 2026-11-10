@@ -3,14 +3,21 @@
 namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use App\State\Processor\Structure\StructureServiceDeleteProcessor;
 use App\Entity\Users\Personnel;
 use App\Repository\Structure\StructureServiceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use HelpdeskBundle\Entity\HelpdeskCategorie;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: StructureServiceRepository::class)]
 #[ApiResource(
@@ -25,20 +32,42 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(
             uriTemplate: '/form_ticket/structure_services',
             normalizationContext: ['groups' => ['service:form_ticket']],
-        )
+        ),
+        // Lecture d'un service : nécessaire pour l'IRI /api/structure_services/{id} (ex. service d'une demande d'achat).
+        new Get(
+            normalizationContext: ['groups' => ['service:light']],
+        ),
+        // Gestion de la liste (Configuration du portail) : super administrateur uniquement.
+        new Post(
+            normalizationContext: ['groups' => ['service:light']],
+            denormalizationContext: ['groups' => ['service:write']],
+            security: "is_granted('SUPER_ADMIN')",
+        ),
+        new Patch(
+            normalizationContext: ['groups' => ['service:light']],
+            denormalizationContext: ['groups' => ['service:write']],
+            security: "is_granted('SUPER_ADMIN')",
+        ),
+        new Delete(
+            security: "is_granted('SUPER_ADMIN')",
+            processor: StructureServiceDeleteProcessor::class,
+        ),
     ]
 )]
+#[UniqueEntity(fields: ['libelle'], message: 'Ce service existe déjà.')]
 
 class StructureService
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['service:read','service:light','service:form_ticket'])]
+    #[Groups(['service:read','service:light','service:form_ticket','finance:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
-    #[Groups(['service:read','service:light','service:form_ticket'])]
+    #[Groups(['service:read','service:light','service:form_ticket','finance:read','service:write'])]
+    #[Assert\NotBlank(message: 'Le libellé est obligatoire.')]
+    #[Assert\Length(max: 50, maxMessage: 'Le libellé ne doit pas dépasser {{ limit }} caractères.')]
     private ?string $libelle = null;
 
     /**

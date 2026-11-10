@@ -44,6 +44,12 @@ final class DepartmentCollectionAccessExtension implements QueryCollectionExtens
             return;
         }
 
+        // Finances : visibilité propre au package (service financier sur tout l'établissement, demandes de service),
+        // cf. FinanceBundle\Doctrine\FinanceVisibiliteExtension.
+        if ($finance) {
+            return;
+        }
+
         $user = $this->security->getUser();
         if ($user instanceof Personnel && $this->permissions->isSuperAdmin($user)) {
             return;

@@ -9,6 +9,8 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
 use App\Entity\Users\Personnel;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use FinanceBundle\Enum\TypeReceptionEnum;
@@ -18,13 +20,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: FinanceReceptionRepository::class)]
 #[ApiResource(
     operations: [
-        // Liste restreinte par DepartmentCollectionAccessExtension (visibilité de la demande).
+        // Liste restreinte par FinanceVisibiliteExtension (visibilité de la demande).
         new GetCollection(normalizationContext: ['groups' => ['reception:read']],
             paginationClientItemsPerPage: true,
             paginationMaximumItemsPerPage: 100),
         new Get(security: "is_granted('CAN_VIEW_FINANCE', object)", normalizationContext: ['groups' => ['reception:read']]),
-        // Le service fait se constate par la transition « constater_service_fait » ; le service financier complète ou
-        // corrige ensuite les réceptions (numéros MIGO, bon de livraison). La demande n'est choisie qu'à la création.
+        // Le service fait se constate par la transition « constater_service_fait » (avec le ou les bons de livraison) ;
+        // le service financier vise ensuite chaque réception (POST /api/finance_receptions/{id}/viser) et complète les
+        // informations SIFAC (numéros MIGO…). La demande n'est choisie qu'à la création.
         new Post(securityPostDenormalize: "is_granted('CAN_MANAGE_FINANCE', object)", denormalizationContext: ['groups' => ['reception:write', 'reception:create']]),
         new Patch(security: "is_granted('CAN_MANAGE_FINANCE', object)", securityPostDenormalize: "is_granted('CAN_MANAGE_FINANCE', object)", denormalizationContext: ['groups' => ['reception:write']]),
         new Delete(security: "is_granted('CAN_MANAGE_FINANCE', object)"),
@@ -93,6 +96,74 @@ class FinanceReception
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[Groups(['reception:read', 'finance:read', 'finance:list'])]
     private ?\DateTimeInterface $dateSignatureServiceFait = null;
+
+    /** Bons de livraison (PDF) déposés à la constatation, ou ajoutés tant que la réception n'est pas visée. */
+    #[ORM\OneToMany(targetEntity: FinanceReceptionDocument::class, mappedBy: 'reception', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['id' => 'ASC'])]
+    #[Groups(['reception:read', 'finance:read'])]
+    private Collection $documents;
+
+    /** Visa du service financier sur cette réception (second temps du service fait). */
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Groups(['reception:read', 'finance:read', 'finance:list'])]
+    private ?\DateTimeInterface $dateVisa = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    #[Groups(['reception:read', 'finance:read'])]
+    private ?Personnel $viseur = null;
+
+    public function __construct()
+    {
+        $this->documents = new ArrayCollection();
+    }
+
+    /** @return Collection<int, FinanceReceptionDocument> */
+    public function getDocuments(): Collection
+    {
+        return $this->documents;
+    }
+
+    public function addDocument(FinanceReceptionDocument $document): static
+    {
+        if (!$this->documents->contains($document)) {
+            $this->documents->add($document);
+            $document->setReception($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDocument(FinanceReceptionDocument $document): static
+    {
+        $this->documents->removeElement($document);
+
+        return $this;
+    }
+
+    public function getDateVisa(): ?\DateTimeInterface
+    {
+        return $this->dateVisa;
+    }
+
+    public function getViseur(): ?Personnel
+    {
+        return $this->viseur;
+    }
+
+    public function viser(Personnel $viseur, \DateTimeInterface $date): static
+    {
+        $this->viseur = $viseur;
+        $this->dateVisa = $date;
+
+        return $this;
+    }
+
+    #[Groups(['reception:read', 'finance:read', 'finance:list'])]
+    public function isVisee(): bool
+    {
+        return $this->dateVisa !== null;
+    }
 
     public function getId(): ?int
     {

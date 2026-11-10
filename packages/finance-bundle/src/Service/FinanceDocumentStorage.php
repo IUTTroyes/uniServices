@@ -62,6 +62,46 @@ class FinanceDocumentStorage
         return $chemin;
     }
 
+    /** Nombre maximal de fichiers déposés en une fois (bons de livraison). */
+    public const FICHIERS_MAX = 10;
+
+    /**
+     * Enregistre plusieurs PDF d'un coup : tout ou rien (en cas de refus, les fichiers déjà enregistrés sont supprimés).
+     *
+     * @param iterable<mixed> $fichiers
+     *
+     * @return list<array{chemin: string, nom: string}>
+     *
+     * @throws \InvalidArgumentException fichier refusé (message affichable)
+     */
+    public function enregistrerTous(iterable $fichiers): array
+    {
+        $liste = [];
+        foreach ($fichiers as $fichier) {
+            if (!$fichier instanceof UploadedFile) {
+                throw new \InvalidArgumentException('Fichier invalide.');
+            }
+            $liste[] = $fichier;
+        }
+        if (\count($liste) > self::FICHIERS_MAX) {
+            throw new \InvalidArgumentException(sprintf('%d fichiers au plus par dépôt.', self::FICHIERS_MAX));
+        }
+        $enregistres = [];
+        try {
+            foreach ($liste as $fichier) {
+                $nom = $fichier->getClientOriginalName();
+                $enregistres[] = ['chemin' => $this->enregistrer($fichier), 'nom' => $nom];
+            }
+        } catch (\InvalidArgumentException $e) {
+            foreach ($enregistres as $document) {
+                $this->supprimer($document['chemin']);
+            }
+            throw new \InvalidArgumentException(sprintf('%s (%s)', $e->getMessage(), $nom ?? 'fichier'), 0, $e);
+        }
+
+        return $enregistres;
+    }
+
     public function supprimer(?string $chemin): void
     {
         $absolu = $this->localiser($chemin);

@@ -47,7 +47,7 @@ class FinanceNotifier
                 $this->notifierTous(
                     $this->destinataires->avecRole($departement, FinanceAccess::ROLE_GESTIONNAIRE),
                     Type::DEMANDE_A_VERIFIER,
-                    sprintf('La demande d\'achat « %s » (%s, %s) a reçu un avis favorable : elle est à vérifier.', $objet, $departement?->getLibelle() ?? '—', $this->montant($commande)),
+                    sprintf('La demande d\'achat « %s » (%s, %s) a reçu un avis favorable : elle est à vérifier.', $objet, $commande->getImputationLibelle() ?? '—', $this->montant($commande)),
                     $commande,
                     $auteur,
                 );

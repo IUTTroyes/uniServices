@@ -53,11 +53,47 @@ export async function deleteFinanceBonCommandeService(id) {
 
 /** Action du circuit (soumettre, avis_favorable, verifier…) ; `donnees` : commentaire, date, réception… */
 export async function transitionFinanceBonCommandeService(id, action, donnees = {}) {
-    const { data } = await api.post(`/api/finance_bon_commandes/${id}/transitions/${action}`, donnees);
+    const url = `/api/finance_bon_commandes/${id}/transitions/${action}`;
+    // Constatation du service fait : formulaire multipart avec les bons de livraison (PDF).
+    if (Array.isArray(donnees.bonsLivraison)) {
+        const { bonsLivraison, ...champs } = donnees;
+        const formulaire = new FormData();
+        Object.entries(champs).forEach(([cle, valeur]) => {
+            if (valeur !== null && valeur !== undefined) formulaire.append(cle, typeof valeur === 'boolean' ? (valeur ? '1' : '0') : String(valeur));
+        });
+        bonsLivraison.forEach(f => formulaire.append('bonsLivraison[]', f));
+        const { data } = await api.post(url, formulaire, { headers: { 'Content-Type': 'multipart/form-data' } });
+        return data;
+    }
+    const { data } = await api.post(url, donnees);
     return data;
 }
 
 // ---------- Réceptions ----------
+
+/** Ajoute un ou plusieurs bons de livraison (PDF) à une réception non visée. */
+export async function ajouterBonsLivraisonService(receptionId, fichiers) {
+    const formulaire = new FormData();
+    fichiers.forEach(f => formulaire.append('fichiers[]', f));
+    const { data } = await api.post(`/api/finance_receptions/${receptionId}/bons-livraison`, formulaire, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return data;
+}
+
+/** Bon de livraison sous forme de Blob (PDF). */
+export async function getBonLivraisonBlobService(receptionId, documentId) {
+    const { data } = await api.get(`/api/finance_receptions/${receptionId}/bons-livraison/${documentId}`, { responseType: 'blob' });
+    return new Blob([data], { type: 'application/pdf' });
+}
+
+export async function supprimerBonLivraisonService(receptionId, documentId) {
+    return api.delete(`/api/finance_receptions/${receptionId}/bons-livraison/${documentId}`);
+}
+
+/** Visa du service financier sur une réception ; renvoie { certifie, statut, statutLibelle }. */
+export async function viserReceptionService(receptionId, numerosMigo) {
+    const { data } = await api.post(`/api/finance_receptions/${receptionId}/viser`, { numerosMigo });
+    return data;
+}
 
 export async function updateFinanceReceptionService(id, payload) {
     const { data } = await api.patch(`/api/finance_receptions/${id}`, payload, MERGE_PATCH);
@@ -130,6 +166,12 @@ export async function exportFinanceBonsCommandeExcelService(ids) {
         blob: new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
         nom: trouve ? decodeURIComponent(trouve[1]) : 'demandes_achat.xlsx',
     };
+}
+
+/** Services de l'établissement (liste courte : id, libelle), triés par libellé. */
+export async function getStructureServicesService() {
+    const { data } = await api.get('/api/mini/structure_services', { params: { pagination: false } });
+    return elements(data).slice().sort((a, b) => (a.libelle || '').localeCompare(b.libelle || '', 'fr'));
 }
 
 /** Télécharge un Blob sous le nom donné. */

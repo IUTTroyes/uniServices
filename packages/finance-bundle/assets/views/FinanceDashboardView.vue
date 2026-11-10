@@ -69,20 +69,22 @@ const lignes = computed(() => visibles.value.map(d => ({
     fournisseurLibelle: libelleFournisseur(d),
     demandeurNom: nomPersonne(d.demandeur),
     departementLibelle: d.departement?.libelle || '',
+    serviceLibelle: d.service?.libelle || '',
+    structureLibelle: d.service?.libelle || d.departement?.libelle || '',
 })));
 
 const colonnes = computed(() => [
     { field: 'numeroBonCommande', key: 'reference', filterField: 'reference', header: 'Référence', sortable: true, filter: { type: 'text', placeholder: 'BC, n°, CF…' } },
     { field: 'objetDemande', header: 'Objet', sortable: true, filter: { type: 'text', placeholder: 'Objet…' } },
     { field: 'fournisseurLibelle', header: 'Fournisseur', sortable: true, filter: { type: 'text', placeholder: 'Fournisseur…' } },
-    ...(departements.value.length > 1 ? [{ field: 'departementLibelle', header: 'Département', sortable: true }] : []),
+    { field: 'structureLibelle', key: 'structure', header: 'Département / Service', sortable: true, filter: { type: 'text', placeholder: 'Dpt, service…' } },
     { field: 'demandeurNom', header: 'Demandeur', sortable: true, filter: { type: 'text', placeholder: 'Nom…' } },
     { field: 'montantTtc', header: 'Montant TTC', sortable: true, bodyClass: 'text-right', headerClass: 'text-right' },
     { field: 'statut', header: 'Statut', filter: { type: 'select', options: statutOptions, optionLabel: 'libelle', optionValue: 'valeur', placeholder: 'Tous' } },
     { field: 'dateDemande', header: 'Demandée le', sortable: true },
     { field: null, key: 'actions', header: 'Actions', bodyClass: 'text-center' },
 ]);
-const champsRecherche = ['reference', 'objetDemande', 'prestation', 'fournisseurLibelle', 'demandeurNom'];
+const champsRecherche = ['reference', 'objetDemande', 'prestation', 'fournisseurLibelle', 'demandeurNom', 'structureLibelle'];
 
 const nombreAvec = (statuts) => visibles.value.filter(d => statuts.includes(d.statut)).length;
 const montantEngage = computed(() => visibles.value
@@ -214,7 +216,12 @@ onMounted(charger);
                     <span v-else-if="data.fournisseurPropose" class="italic text-gray-600 dark:text-gray-300" :title="'Fournisseur proposé, non encore référencé'">{{ data.fournisseurPropose }} <span class="text-xs">(proposé)</span></span>
                     <span v-else class="text-gray-400">—</span>
                 </template>
-                <template #body-departementLibelle="{ data }">{{ data.departementLibelle || '—' }}</template>
+                <template #body-structure="{ data }">
+                    <div class="flex flex-col">
+                        <span>{{ data.structureLibelle || '—' }}</span>
+                        <span v-if="data.structureLibelle" class="text-sm text-gray-500 dark:text-gray-400">{{ data.service ? 'Service' : 'Département' }}</span>
+                    </div>
+                </template>
                 <template #body-montantTtc="{ data }">
                     <div class="flex flex-col items-end">
                         <span class="font-semibold">{{ formatMontant(data.montantTtc ?? data.montantHt) }}</span>

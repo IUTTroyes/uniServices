@@ -53,21 +53,52 @@ final class MergePermissionsTest extends TestCase
         return $user;
     }
 
-    public function testFinanceNouveauxAttributsEtServicesRespectentLeDepartement(): void
+    public function testFinanceLeServiceFinancierCouvreToutEtablissementLesAutresRolesRestentParDepartement(): void
     {
         $voter = new FinanceVoter($this->permissions);
         $access = new FinanceAccess($this->permissions, $this->createMock(DepartmentPermissionChecker::class), $voter);
         $user = $this->user(['ROLE_FINANCE_MANAGER']);
         $a = (new FinanceBonCommande())->setDepartement($this->a);
         $b = (new FinanceBonCommande())->setDepartement($this->b)->setResponsable($user);
+        // Gestionnaire (service financier) : toutes les demandes de l'établissement, quel que soit leur département.
         foreach ([FinanceVoter::MANAGE, FinanceVoter::BC_GERER, FinanceVoter::BC_MODIFIER, FinanceVoter::BC_SUPPRIMER] as $attribute) {
             self::assertTrue($voter->supportsAttribute($attribute));
             self::assertSame(VoterInterface::ACCESS_GRANTED, $voter->vote(new UsernamePasswordToken($user, 'main'), $a, [$attribute]));
-            self::assertSame(VoterInterface::ACCESS_DENIED, $voter->vote(new UsernamePasswordToken($user, 'main'), $b, [$attribute]));
+            self::assertSame(VoterInterface::ACCESS_GRANTED, $voter->vote(new UsernamePasswordToken($user, 'main'), $b, [$attribute]), 'service financier');
         }
-        self::assertTrue($access->estValideur($user, $a));
-        self::assertFalse($access->peutVoir($user, $b));
-        self::assertFalse($access->peutModifier($user, $b));
+        self::assertTrue($access->peutVoir($user, $b));
+        self::assertTrue($access->peutModifier($user, $b));
+
+        // Valideur et demandeur : limités à leur département.
+        $valideur = $this->user(['ROLE_FINANCE_VALIDEUR']);
+        self::assertTrue($access->estValideur($valideur, $a));
+        self::assertTrue($access->peutVoir($valideur, $a));
+        self::assertFalse($access->estValideur($valideur, $b));
+        self::assertFalse($access->peutVoir($valideur, $b));
+        self::assertFalse($access->peutModifier($valideur, $a), 'le valideur agit par les transitions, pas par PATCH');
+        $demandeur = $this->user(['ROLE_FINANCE_DEMANDEUR']);
+        self::assertTrue($voter->allows(FinanceVoter::BC_CREER, $a, $demandeur));
+        self::assertFalse($voter->allows(FinanceVoter::BC_CREER, $b, $demandeur));
+        self::assertFalse($voter->allows(FinanceVoter::BC_GERER, $a, $demandeur));
+    }
+
+    public function testFinanceDemandeDeServiceDeposeeParUnDemandeurInstruiteParLeServiceFinancier(): void
+    {
+        $voter = new FinanceVoter($this->permissions);
+        $access = new FinanceAccess($this->permissions, $this->createMock(DepartmentPermissionChecker::class), $voter);
+        $service = (new \App\Entity\Structure\StructureService())->setLibelle('Informatique');
+        $demandeur = $this->user(['ROLE_FINANCE_DEMANDEUR']);
+        $sansRole = $this->user([], ['intranet']);
+        $valideur = $this->user(['ROLE_FINANCE_VALIDEUR']);
+        $gestionnaire = $this->user(['ROLE_FINANCE_MANAGER']);
+        $commande = (new FinanceBonCommande())->setService($service)->setDemandeur($demandeur);
+
+        self::assertTrue($voter->allows(FinanceVoter::BC_CREER, $commande, $demandeur));
+        self::assertFalse($voter->allows(FinanceVoter::BC_CREER, $commande, $sansRole));
+        self::assertTrue($access->estValideur($gestionnaire, $commande), 'avis par le service financier');
+        self::assertFalse($access->estValideur($valideur, $commande), 'un valideur de département n\'a pas d\'avis sur un service');
+        self::assertFalse($access->peutVoir($valideur, $commande));
+        self::assertTrue($access->peutVoir($gestionnaire, $commande));
     }
 
     public function testProprieteFinanceSansRoleNeDonnePasDEcriture(): void
@@ -155,13 +186,17 @@ final class MergePermissionsTest extends TestCase
         $access = new FinanceAccess($this->permissions, $this->createMock(DepartmentPermissionChecker::class), new FinanceVoter($this->permissions));
         $workflow = new \FinanceBundle\Workflow\FinanceWorkflow($access);
         self::assertTrue($workflow->peut($demandeur, $commande, \FinanceBundle\Enum\ActionWorkflowEnum::SOUMETTRE));
-        self::assertFalse($workflow->peutDecider($demandeur, $commande));
+        // Le document signé déposé par le demandeur peut porter la décision (avis favorable ou refus).
+        self::assertTrue($workflow->peutDecider($demandeur, $commande));
         self::assertTrue($workflow->peutDecider($gestionnaire, $commande));
         $commande->setStatut(\FinanceBundle\Enum\StatutCommandeEnum::SOUMIS);
         self::assertFalse($workflow->peut($demandeur, $commande, \FinanceBundle\Enum\ActionWorkflowEnum::AVIS_FAVORABLE));
-        self::assertTrue($workflow->peut($gestionnaire, $commande, \FinanceBundle\Enum\ActionWorkflowEnum::AVIS_FAVORABLE));
+        // L'avis de l'étape 1 est rendu par le valideur du département (le service financier passe par le document signé).
+        self::assertFalse($workflow->peut($gestionnaire, $commande, \FinanceBundle\Enum\ActionWorkflowEnum::AVIS_FAVORABLE));
+        self::assertTrue($workflow->peut($this->user(['ROLE_FINANCE_VALIDEUR']), $commande, \FinanceBundle\Enum\ActionWorkflowEnum::AVIS_FAVORABLE));
         $commande->setStatut(\FinanceBundle\Enum\StatutCommandeEnum::COMMANDE_TRANSMISE);
-        self::assertFalse($workflow->peut($demandeur, $commande, \FinanceBundle\Enum\ActionWorkflowEnum::CONSTATER_SERVICE_FAIT));
+        // Service fait en deux temps : le demandeur constate (avec le bon de livraison), le service financier vise.
+        self::assertTrue($workflow->peut($demandeur, $commande, \FinanceBundle\Enum\ActionWorkflowEnum::CONSTATER_SERVICE_FAIT));
         self::assertTrue($workflow->peut($gestionnaire, $commande, \FinanceBundle\Enum\ActionWorkflowEnum::CONSTATER_SERVICE_FAIT));
     }
 

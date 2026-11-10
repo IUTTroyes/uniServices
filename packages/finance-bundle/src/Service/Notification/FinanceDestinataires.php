@@ -7,6 +7,7 @@ use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Users\Personnel;
 use App\Security\PermissionResolver;
 use Doctrine\ORM\EntityManagerInterface;
+use FinanceBundle\Security\FinanceAccess;
 
 /**
  * Destinataires des notifications du package : personnels qui ont EXPLICITEMENT un rôle du package dans un département
@@ -21,11 +22,20 @@ class FinanceDestinataires
     ) {
     }
 
-    /** @return list<Personnel> */
+    /**
+     * Personnels ayant ce rôle dans le département. Le service financier (ROLE_FINANCE_MANAGER) couvre tout
+     * l'établissement : ses gestionnaires sont destinataires quel que soit le département. Sans département (demande
+     * imputée à un service), c'est aussi lui qui instruit, quel que soit le rôle demandé.
+     *
+     * @return list<Personnel>
+     */
     public function avecRole(?StructureDepartement $departement, string $role): array
     {
-        if ($departement === null) {
-            return [];
+        if ($departement === null || $role === FinanceAccess::ROLE_GESTIONNAIRE) {
+            return array_values(array_map(
+                static fn (array $e): Personnel => $e['personnel'],
+                $this->parRole([FinanceAccess::ROLE_GESTIONNAIRE]),
+            ));
         }
         $personnels = [];
         foreach ($this->em->getRepository(StructureDepartementPersonnel::class)->findBy(['departement' => $departement]) as $affectation) {

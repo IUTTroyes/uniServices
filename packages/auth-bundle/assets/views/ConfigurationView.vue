@@ -9,6 +9,9 @@ const panelMenuEtablissementItems = computed(() => {
   const items = [
     { label: 'Informations générales', icon: 'pi pi-info-circle', route: '/auth/configuration/etablissement' },
   ];
+  if (isSuperAdmin.value) {
+    items.push({ label: 'Services de l\'établissement', icon: 'pi pi-sitemap', route: '/auth/configuration/services' });
+  }
   return items;
 });
 

@@ -35,19 +35,20 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 #[ORM\Entity(repositoryClass: FinanceBonCommandeRepository::class)]
 #[ApiResource(
     operations: [
-        // Liste restreinte par DepartmentCollectionAccessExtension ; paginée (le client peut demander jusqu'à 100 éléments).
+        // Liste restreinte par FinanceVisibiliteExtension ; paginée (le client peut demander jusqu'à 100 éléments).
         new GetCollection(normalizationContext: ['groups' => ['finance:read', 'finance:list']],
             paginationClientItemsPerPage: true,
             paginationMaximumItemsPerPage: 100),
         new Get(security: "is_granted('CAN_VIEW_FINANCE', object)", normalizationContext: ['groups' => ['finance:read', 'finance:detail']]),
         // Demandeur, statut et date de demande sont fixés par le serveur (FinanceBonCommandeProcessor).
-        new Post(securityPostDenormalize: "is_granted('CAN_MANAGE_FINANCE', object) or (is_granted('FINANCE_BC_CREER', object) and object.getStatut().value == 'BROUILLON' and object.getDateSignatureResponsable() == null)", denormalizationContext: ['groups' => ['finance:write', 'finance:create']],
+        new Post(securityPostDenormalize: "is_granted('FINANCE_BC_CREER', object) and object.getStatut().value == 'BROUILLON' and object.getDateSignatureResponsable() == null", denormalizationContext: ['groups' => ['finance:write', 'finance:create']],
             processor: FinanceBonCommandeProcessor::class),
         // Le département et le demandeur ne changent plus après la création.
         new Patch(security: "is_granted('CAN_EDIT_FINANCE', object)", securityPostDenormalize: "is_granted('CAN_MANAGE_FINANCE', object) or (is_granted('CAN_EDIT_FINANCE', object) and object.getDepartement() == previous_object.getDepartement() and object.getStatut() == previous_object.getStatut() and object.getDateSignatureResponsable() == previous_object.getDateSignatureResponsable())", denormalizationContext: ['groups' => ['finance:write']],
 
             processor: FinanceBonCommandeProcessor::class),
-        new Delete(security: "is_granted('CAN_MANAGE_FINANCE', object)"),
+        // Le demandeur supprime son brouillon ; au-delà, seul le service financier (cf. FinanceAccess::peutSupprimer).
+        new Delete(security: "is_granted('FINANCE_BC_SUPPRIMER', object)"),
     ]
 )]
 #[ApiFilter(SearchFilter::class, properties: [
@@ -84,13 +85,16 @@ class FinanceBonCommande implements TimestampableInterface
     #[Groups(['finance:read', 'finance:list', 'finance:write'])]
     private ?Personnel $responsable = null;
 
+    /**
+     * Imputation : un département (MMI, GMP…) OU un service (Informatique, Patrimoine…), jamais les deux (cf. validerImputation).
+     * Fixée à la création. Une demande de service est validée et gérée par le service financier (cf. FinanceAccess).
+     */
     #[ORM\ManyToOne]
     #[Groups(['finance:read', 'finance:list', 'finance:create'])]
-    #[Assert\NotNull(message: 'Le département d\'imputation est obligatoire.')]
     private ?StructureDepartement $departement = null;
 
     #[ORM\ManyToOne]
-    #[Groups(['finance:read', 'finance:list', 'finance:write'])]
+    #[Groups(['finance:read', 'finance:list', 'finance:create'])]
     private ?StructureService $service = null;
 
     #[ORM\Column(length: 20, enumType: TypePrestationEnum::class)]
@@ -284,6 +288,23 @@ class FinanceBonCommande implements TimestampableInterface
     }
 
     /** Montants : HT ou (TTC et taux) obligatoires ; le montant manquant est calculé par completerMontants(). */
+    #[Assert\Callback]
+    public function validerImputation(ExecutionContextInterface $context): void
+    {
+        if ($this->departement === null && $this->service === null) {
+            $context->buildViolation('Le département ou le service d\'imputation est obligatoire.')->atPath('departement')->addViolation();
+        } elseif ($this->departement !== null && $this->service !== null) {
+            $context->buildViolation('Une demande est imputée à un département ou à un service, pas aux deux.')->atPath('service')->addViolation();
+        }
+    }
+
+    /** Libellé de l'imputation (service ou département). */
+    #[Ignore]
+    public function getImputationLibelle(): ?string
+    {
+        return $this->service?->getLibelle() ?? $this->departement?->getLibelle();
+    }
+
     #[Assert\Callback]
     public function validerMontants(ExecutionContextInterface $context): void
     {

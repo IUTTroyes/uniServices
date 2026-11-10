@@ -22,6 +22,7 @@ const blocs = computed(() => {
     const lignes = {
         1: [
             ['Demandeur', nomPersonne(c.demandeur)],
+            [c.service ? 'Service' : 'Département', c.service?.libelle || c.departement?.libelle || '—'],
             ['Demandée le', formatDate(c.dateDemande)],
             ['Avis', AVIS[c.avisDirecteur] ?? 'En attente'],
             ['Document signé', oui(c.pdfSigne, 'Déposé')],

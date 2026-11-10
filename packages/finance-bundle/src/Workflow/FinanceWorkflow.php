@@ -5,6 +5,7 @@ namespace FinanceBundle\Workflow;
 use App\Entity\Users\Personnel;
 use FinanceBundle\Entity\FinanceBonCommande;
 use FinanceBundle\Entity\FinanceReception;
+use FinanceBundle\Entity\FinanceReceptionDocument;
 use FinanceBundle\Enum\ActionWorkflowEnum as Action;
 use FinanceBundle\Enum\AvisDirecteurEnum;
 use FinanceBundle\Enum\StatutCommandeEnum as Statut;
@@ -24,7 +25,7 @@ use FinanceBundle\Security\FinanceAccess;
 class FinanceWorkflow
 {
     /** Champs de la demande proprement dite (étape 1). */
-    public const CHAMPS_DEMANDE = ['prestation', 'objetDemande', 'montantHt', 'montantTtc', 'tauxTva', 'noteExplicative', 'centreFinancier', 'fournisseur', 'fournisseurPropose', 'responsable', 'service'];
+    public const CHAMPS_DEMANDE = ['prestation', 'objetDemande', 'montantHt', 'montantTtc', 'tauxTva', 'noteExplicative', 'centreFinancier', 'fournisseur', 'fournisseurPropose', 'responsable'];
     /** Champs de la vérification et du suivi SIFAC (service financier). */
     public const CHAMPS_SIFAC = ['centreFinancier', 'fournisseur', 'commandeSurMarche', 'numeroBonCommande', 'dateBonCommande', 'dateLivraisonRenseignee', 'pjSurSifac', 'colisAttendu'];
     /** Corrections de la facturation après coup (service financier). */
@@ -68,13 +69,17 @@ class FinanceWorkflow
             && $commande->getDerniereReception()?->getTypeReception() !== TypeReceptionEnum::PARTIELLE) {
             return false; // nouvelle réception seulement après une réception partielle
         }
+        if ($action === Action::CERTIFIER_SERVICE_FAIT && !$this->receptionsToutesVisees($commande)) {
+            return false; // le service financier vise d'abord chaque réception
+        }
 
         $gestionnaire = $this->access->estGestionnaire($user, $commande);
 
         return match ($action) {
-            Action::SOUMETTRE => $gestionnaire || $this->access->estDemandeur($user, $commande),
+            Action::SOUMETTRE, Action::REOUVRIR => $gestionnaire || $this->access->estDemandeur($user, $commande),
             Action::AVIS_FAVORABLE, Action::AVIS_DEFAVORABLE, Action::DEMANDER_INFORMATION => $this->access->estValideur($user, $commande),
-            Action::CONSTATER_SERVICE_FAIT => $gestionnaire,
+            Action::CONSTATER_SERVICE_FAIT => $gestionnaire || $this->access->estDemandeur($user, $commande)
+                || FinanceAccess::memePersonne($commande->getResponsable(), $user),
             default => $gestionnaire,
         };
     }
@@ -90,7 +95,7 @@ class FinanceWorkflow
     public function peutDecider(mixed $user, FinanceBonCommande $commande): bool
     {
         return \in_array($commande->getStatut(), [Statut::BROUILLON, Statut::SOUMIS], true)
-            && $this->access->estGestionnaire($user, $commande);
+            && ($this->access->estDemandeur($user, $commande) || $this->access->estGestionnaire($user, $commande));
     }
 
     /**
@@ -147,12 +152,14 @@ class FinanceWorkflow
     /**
      * Applique l'action (sans flush).
      *
-     * @param array<string, mixed> $donnees commentaire, dates, constatation…
+     * @param array<string, mixed>                       $donnees    commentaire, dates, constatation…
+     * @param list<array{chemin: string, nom: string}>   $documents  bons de livraison déjà stockés (constatation), jamais
+     *                                                               fournis par le client
      *
      * @throws ActionRefuseeException action impossible depuis ce statut, ou interdite à cette personne
      * @throws \DomainException       données manquantes ou invalides (message affichable)
      */
-    public function appliquer(Personnel $user, FinanceBonCommande $commande, Action $action, array $donnees = []): void
+    public function appliquer(Personnel $user, FinanceBonCommande $commande, Action $action, array $donnees = [], array $documents = []): void
     {
         if (!\in_array($commande->getStatut(), self::TRANSITIONS[$action->value]['depuis'], true)) {
             throw new ActionRefuseeException(sprintf('« %s » est impossible au statut « %s ».', $action->getLibelle(), $commande->getStatut()->getLabel()), false);
@@ -209,7 +216,15 @@ class FinanceWorkflow
                 }
                 break;
             case Action::CONSTATER_SERVICE_FAIT:
-                $commande->addReception($this->reception($user, $commande, $donnees, $maintenant));
+                if ($documents === []) {
+                    throw new \DomainException('Déposez le bon de livraison (un ou plusieurs PDF).');
+                }
+                $reception = $this->reception($user, $commande, $donnees, $maintenant);
+                foreach ($documents as $document) {
+                    $reception->addDocument((new FinanceReceptionDocument())
+                        ->setChemin($document['chemin'])->setNomFichier($document['nom'])->setDeposePar($user));
+                }
+                $commande->addReception($reception);
                 break;
             case Action::CERTIFIER_SERVICE_FAIT:
                 $commande->setDateCertificationServiceFait($maintenant)->setCertificateurServiceFait($user);
@@ -261,10 +276,91 @@ class FinanceWorkflow
         return array_values(array_unique($champs));
     }
 
+    /** Au moins une réception, et toutes visées par le service financier. */
+    public function receptionsToutesVisees(FinanceBonCommande $commande): bool
+    {
+        $receptions = $commande->getReceptions();
+
+        return !$receptions->isEmpty() && $receptions->forAll(static fn (int $i, FinanceReception $r): bool => $r->isVisee());
+    }
+
+    /** Ajout / retrait de bons de livraison : tant que la réception n'est pas visée ; demandeur, responsable ou service financier. */
+    public function peutGererBonsLivraison(mixed $user, FinanceReception $reception): bool
+    {
+        $commande = $reception->getBonCommande();
+
+        return $commande !== null && !$reception->isVisee()
+            && $commande->getStatut() === Statut::SERVICE_FAIT_CONSTATE
+            && ($this->access->estGestionnaire($user, $commande) || $this->access->estDemandeur($user, $commande)
+                || FinanceAccess::memePersonne($commande->getResponsable(), $user));
+    }
+
+    /**
+     * Visa du service financier sur une réception (sans flush), avec les numéros MIGO éventuels. Quand toutes les
+     * réceptions sont visées et que la dernière n'est pas partielle, le service fait est certifié dans la foulée.
+     *
+     * @param list<string>|null $numerosMigo null : inchangés
+     *
+     * @return bool le service fait vient d'être certifié
+     *
+     * @throws ActionRefuseeException
+     * @throws \DomainException
+     */
+    public function viserReception(Personnel $user, FinanceReception $reception, ?array $numerosMigo = null): bool
+    {
+        $commande = $reception->getBonCommande();
+        if ($commande === null || !$this->access->estGestionnaire($user, $commande)) {
+            throw new ActionRefuseeException('Seul le service financier vise les réceptions.');
+        }
+        if ($commande->getStatut() !== Statut::SERVICE_FAIT_CONSTATE) {
+            throw new ActionRefuseeException(sprintf('Visa impossible au statut « %s ».', $commande->getStatut()->getLabel()), false);
+        }
+        if ($reception->isVisee()) {
+            throw new ActionRefuseeException('Cette réception est déjà visée.', false);
+        }
+        if ($reception->getDocuments()->isEmpty()) {
+            throw new \DomainException('Le bon de livraison doit être déposé avant le visa.');
+        }
+        if ($numerosMigo !== null) {
+            $reception->setNumerosMigo(self::numerosMigo($numerosMigo));
+        }
+        $reception->viser($user, new \DateTime());
+
+        if ($this->receptionsToutesVisees($commande) && $commande->getDerniereReception()?->getTypeReception() !== TypeReceptionEnum::PARTIELLE) {
+            $this->appliquer($user, $commande, Action::CERTIFIER_SERVICE_FAIT);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param list<mixed> $valeurs
+     *
+     * @return list<string>
+     */
+    public static function numerosMigo(array $valeurs): array
+    {
+        $numeros = [];
+        foreach ($valeurs as $valeur) {
+            $numero = trim((string) (\is_scalar($valeur) ? $valeur : ''));
+            if ($numero === '') {
+                continue;
+            }
+            if (!preg_match('/^[A-Za-z0-9-]{1,30}$/', $numero)) {
+                throw new \DomainException(sprintf('Numéro MIGO invalide : « %s » (lettres, chiffres et tirets, 30 caractères au plus).', mb_strimwidth($numero, 0, 40, '…')));
+            }
+            $numeros[$numero] = $numero;
+        }
+
+        return array_values($numeros);
+    }
+
     /** Champs autorisés à la création (la demande naît en brouillon). */
     public static function champsCreation(): array
     {
-        return [...self::CHAMPS_DEMANDE, 'departement'];
+        return [...self::CHAMPS_DEMANDE, 'departement', 'service'];
     }
 
     /** @param array<string, mixed> $donnees */

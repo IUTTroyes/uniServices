@@ -9,7 +9,7 @@ use FinanceBundle\Security\FinanceAccess;
 
 /**
  * Contenu du récapitulatif des demandes en attente (finance:recapitulatif), en valeurs simples pour l'e-mail :
- *  - service financier (ROLE_FINANCE_MANAGER) : toutes les demandes en cours de ses départements, par statut ;
+ *  - service financier (ROLE_FINANCE_MANAGER) : toutes les demandes en cours de l'établissement, par statut ;
  *  - valideur (ROLE_FINANCE_VALIDEUR) : les demandes soumises de ses départements, qui attendent son avis.
  */
 class FinanceRecapitulatif
@@ -38,22 +38,27 @@ class FinanceRecapitulatif
     {
         $maintenant ??= new \DateTimeImmutable();
         $parStatut = [];
-        foreach ([[FinanceAccess::ROLE_GESTIONNAIRE, self::STATUTS_GESTIONNAIRE], [FinanceAccess::ROLE_VALIDEUR, self::STATUTS_VALIDEUR]] as [$role, $statuts]) {
-            $departements = $roles[$role] ?? [];
-            if ($departements === []) {
-                continue;
-            }
-            $commandes = $this->em->getRepository(FinanceBonCommande::class)->createQueryBuilder('c')
+        // Service financier : toutes les demandes en cours de l'établissement.
+        if (($roles[FinanceAccess::ROLE_GESTIONNAIRE] ?? []) !== []) {
+            $this->ajouter($parStatut, $this->em->getRepository(FinanceBonCommande::class)->createQueryBuilder('c')
+                ->leftJoin('c.departement', 'd')->addSelect('d')
+                ->leftJoin('c.service', 's')->addSelect('s')
+                ->where('c.statut IN (:statuts)')
+                ->setParameter('statuts', array_map(static fn (Statut $s): string => $s->value, self::STATUTS_GESTIONNAIRE))
+                ->orderBy('c.updatedAt', 'ASC')
+                ->getQuery()->getResult());
+        }
+        // Valideur : les demandes soumises de ses départements.
+        $departements = $roles[FinanceAccess::ROLE_VALIDEUR] ?? [];
+        if ($departements !== []) {
+            $this->ajouter($parStatut, $this->em->getRepository(FinanceBonCommande::class)->createQueryBuilder('c')
                 ->leftJoin('c.departement', 'd')->addSelect('d')
                 ->where('IDENTITY(c.departement) IN (:departements)')
                 ->andWhere('c.statut IN (:statuts)')
                 ->setParameter('departements', array_values(array_unique($departements)))
-                ->setParameter('statuts', array_map(static fn (Statut $s): string => $s->value, $statuts))
+                ->setParameter('statuts', array_map(static fn (Statut $s): string => $s->value, self::STATUTS_VALIDEUR))
                 ->orderBy('c.updatedAt', 'ASC')
-                ->getQuery()->getResult();
-            foreach ($commandes as $c) {
-                $parStatut[$c->getStatut()->value][$c->getId()] = $c;
-            }
+                ->getQuery()->getResult());
         }
         if ($parStatut === []) {
             return null;
@@ -80,6 +85,17 @@ class FinanceRecapitulatif
         return ['total' => $total, 'resume' => implode(', ', $resume), 'groupes' => $groupes];
     }
 
+    /**
+     * @param array<string, array<int, FinanceBonCommande>> $parStatut
+     * @param iterable<FinanceBonCommande> $commandes
+     */
+    private function ajouter(array &$parStatut, iterable $commandes): void
+    {
+        foreach ($commandes as $c) {
+            $parStatut[$c->getStatut()->value][$c->getId()] = $c;
+        }
+    }
+
     /** @return array<string, string> */
     private function ligne(FinanceBonCommande $c, \DateTimeImmutable $maintenant): array
     {
@@ -89,7 +105,7 @@ class FinanceRecapitulatif
 
         return [
             'objet' => mb_strimwidth((string) $c->getObjetDemande(), 0, 90, '…'),
-            'departement' => (string) ($c->getDepartement()?->getLibelle() ?? '—'),
+            'departement' => (string) ($c->getImputationLibelle() ?? '—'),
             'demandeur' => (string) ($c->getDemandeur()?->getDisplay() ?? '—'),
             'montant' => $montant === null ? '—' : number_format((float) $montant, 2, ',', ' ').' €',
             'numero' => (string) ($c->getNumeroBonCommande() ?? ''),

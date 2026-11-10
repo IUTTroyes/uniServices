@@ -35,7 +35,7 @@ const taux = computed(() => (props.commande.tauxTva === null || props.commande.t
                     <div><dt class="q-label">HT</dt><dd>{{ formatMontant(commande.montantHt) }}</dd></div>
                     <div><dt class="q-label">TVA</dt><dd>{{ taux || '—' }}</dd></div>
                 </div>
-                <div><dt class="q-label">Département</dt><dd>{{ commande.departement?.libelle || '—' }}</dd></div>
+                <div><dt class="q-label">{{ commande.service ? 'Service' : 'Département' }}</dt><dd>{{ commande.service?.libelle || commande.departement?.libelle || '—' }}</dd></div>
                 <div><dt class="q-label">Demandeur</dt><dd>{{ nomPersonne(commande.demandeur) }}</dd></div>
                 <div><dt class="q-label">Fournisseur</dt><dd class="break-words">{{ fournisseur }}</dd></div>
                 <div class="grid grid-cols-2 gap-2">

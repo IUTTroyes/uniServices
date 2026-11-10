@@ -80,10 +80,11 @@ final class FinanceNotificationsApiTest extends FinanceApiTestCase
         self::assertSame(200, $this->action($id, 'transmettre', $this->gestionnaire));
         self::assertContains('service_fait_a_constater', $this->recues($this->demandeur));
 
-        self::assertSame(200, $this->action($id, 'constater_service_fait', $this->demandeur));
+        self::assertSame(200, $this->constater($id, $this->demandeur)->getStatusCode());
         self::assertContains('service_fait_a_certifier', $this->recues($this->gestionnaire));
 
-        foreach (['certifier_service_fait', 'recevoir_facture', 'payer'] as $action) {
+        self::assertSame(200, $this->viser($this->receptions($id)[0], $this->gestionnaire)->getStatusCode());
+        foreach (['recevoir_facture', 'payer'] as $action) {
             self::assertSame(200, $this->action($id, $action, $this->gestionnaire), $action);
         }
         self::assertContains('commande_payee', $this->recues($this->demandeur));
@@ -133,12 +134,13 @@ final class FinanceNotificationsApiTest extends FinanceApiTestCase
         /** @var FinanceRecapitulatif $recap */
         $recap = $this->service(FinanceRecapitulatif::class);
         $gestionnaire = $recap->pour(['ROLE_FINANCE_MANAGER' => [$this->dept->getId()]]);
-        self::assertSame(2, $gestionnaire['total'], 'ni brouillon, ni autre département');
+        self::assertSame(3, $gestionnaire['total'], 'service financier : tous les départements, sans les brouillons');
         self::assertSame(['Demande soumise', 'Vérification financière'], array_column($gestionnaire['groupes'], 'statut'));
+        self::assertSame(2, $gestionnaire['groupes'][0]['nombre']);
         self::assertSame($a->getObjetDemande(), $gestionnaire['groupes'][0]['lignes'][0]['objet']);
 
         $valideur = $recap->pour(['ROLE_FINANCE_VALIDEUR' => [$this->dept->getId()]]);
-        self::assertSame(1, $valideur['total'], 'le valideur ne voit que les demandes à viser');
+        self::assertSame(1, $valideur['total'], 'le valideur ne voit que les demandes à viser de son département');
 
         self::assertNull($recap->pour(['ROLE_FINANCE_VALIDEUR' => [$autre->getId() + 999999]]));
         self::assertNull($recap->pour([]));
