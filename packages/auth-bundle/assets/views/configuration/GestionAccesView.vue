@@ -6,6 +6,7 @@ import { useEtablissementStore, useAnneeUnivStore, useUsersStore } from '@stores
 import api from '@helpers/axios'
 import { normalizeIutDirectionRoles } from '@utils/roleCatalog'
 import AccessPersonnelDialog from "./components/AccessPersonnelDialog.vue";
+import CreatePersonnelDialog from "./components/CreatePersonnelDialog.vue";
 import { usePersonnelFilters } from '@composables/filters/usersFilters/usePersonnelFilters.ts';
 
 const anneeUnivStore = useAnneeUnivStore();
@@ -16,6 +17,7 @@ const personnels = ref([])
 const totalPersonnels = ref(0)
 const selectedPersonnel = ref(null)
 const accessDialogVisible = ref(false)
+const createDialogVisible = ref(false)
 const permissionCatalog = ref({})
 const isLoading = ref(false)
 const isSaving = ref(false)
@@ -153,6 +155,7 @@ watchChanges(async() => {
           <h2 class="mt-0!">Tous les personnels de l'établissement</h2>
         </div>
       </div>
+      <Button label="Nouveau personnel" icon="pi pi-plus" @click="createDialogVisible = true" />
     </div>
 
     <div class="card-body">
@@ -301,6 +304,11 @@ watchChanges(async() => {
       </DataTable>
     </div>
   </div>
+
+  <CreatePersonnelDialog
+    v-model:isVisible="createDialogVisible"
+    @created="getPersonnels"
+  />
 
   <AccessPersonnelDialog
     v-model:isVisible="accessDialogVisible"

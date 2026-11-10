@@ -29,6 +29,7 @@
         "symfony/flex": "^2",
         "symfony/framework-bundle": "8.1.*",
         "symfony/http-client": "8.1.*",
+        "symfony/ldap": "8.1.*",
         "symfony/mailer": "8.1.*",
         "symfony/messenger": "8.1.*",
         "symfony/options-resolver": "8.1.*",

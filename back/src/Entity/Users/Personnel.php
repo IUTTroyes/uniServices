@@ -37,9 +37,13 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: PersonnelRepository::class)]
+#[UniqueEntity(fields: ['username'], message: 'Ce login est déjà utilisé par un autre personnel.')]
+#[UniqueEntity(fields: ['mailUniv'], message: 'Ce mail universitaire est déjà utilisé par un autre personnel.')]
+#[UniqueEntity(fields: ['numeroHarpege'], message: 'Ce code RH est déjà utilisé par un autre personnel.')]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['personnel:detail']]),
@@ -76,6 +80,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
         'enseignement' => new QueryParameter(filter: PersonnelFilter::class),
         'enseignant' => new QueryParameter(filter: PersonnelFilter::class),
         'biatss' => new QueryParameter(filter: PersonnelFilter::class),
+        'nom' => new QueryParameter(filter: PersonnelFilter::class),
+        'prenom' => new QueryParameter(filter: PersonnelFilter::class),
+        'mailUniv' => new QueryParameter(filter: PersonnelFilter::class),
+        'statut' => new QueryParameter(filter: PersonnelFilter::class),
         'username' => new QueryParameter(filter: PersonnelFilter::class),
         'numeroHarpege' => new QueryParameter(filter: PersonnelFilter::class),
         'structureServices' => new QueryParameter(filter: SearchFilter::class),
