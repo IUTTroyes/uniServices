@@ -5,10 +5,8 @@ import LogoIut from '@images/logo/logo_iut.png';
 import axios from 'axios';
 import { tools } from '@config/uniServices.js';
 import {ValidatedInput, validationRules} from "@components";
-import { useEtablissementStore } from '@stores';
 import {resolveLogoEtablissementUrl} from "@helpers";
 
-const etablissementStore = useEtablissementStore();
 const username = ref('');
 const password = ref('');
 const checked = ref(false);
@@ -92,8 +90,13 @@ const handleValidation = (field, result) => {
 
 onMounted(async () => {
   try {
-    const etablissement = await etablissementStore.etablissement;
-    logoUrl.value = resolveLogoEtablissementUrl(etablissement?.logo_name);
+    // Client sans intercepteur d'authentification : un échec conserve le logo local.
+    const { data } = await axios.get('/api/public/login-branding', {
+      baseURL: import.meta.env.VITE_BASE_URL || '',
+    });
+    if (data?.logo_name) {
+      logoUrl.value = resolveLogoEtablissementUrl(data.logo_name) || LogoIut;
+    }
   } catch (e) {
     logoUrl.value = LogoIut;
   }

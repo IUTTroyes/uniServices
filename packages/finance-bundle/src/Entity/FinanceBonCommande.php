@@ -35,15 +35,19 @@ use Symfony\Component\Serializer\Attribute\Groups;
             paginationEnabled: false
         ),
         new Get(
+            security: "is_granted('CAN_VIEW_FINANCE', object)",
             normalizationContext: ['groups' => ['finance:read', 'finance:detail']]
         ),
         new Post(
+            securityPostDenormalize: "is_granted('CAN_MANAGE_FINANCE', object) or (is_granted('CAN_CREATE_FINANCE', object) and object.getStatut().value == 'BROUILLON' and object.getDateSignatureResponsable() == null)",
             denormalizationContext: ['groups' => ['finance:write']]
         ),
         new Patch(
+            security: "is_granted('CAN_EDIT_FINANCE', object)",
+            securityPostDenormalize: "is_granted('CAN_MANAGE_FINANCE', object) or (is_granted('CAN_EDIT_FINANCE', object) and object.getDepartement() == previous_object.getDepartement() and object.getStatut() == previous_object.getStatut() and object.getDateSignatureResponsable() == previous_object.getDateSignatureResponsable())",
             denormalizationContext: ['groups' => ['finance:write', 'finance:update_step']]
         ),
-        new Delete()
+        new Delete(security: "is_granted('CAN_MANAGE_FINANCE', object)")
     ]
 )]
 #[ApiFilter(SearchFilter::class, properties: [
@@ -245,7 +249,7 @@ class FinanceBonCommande implements TimestampableInterface
     private StatutCommandeEnum $statut = StatutCommandeEnum::BROUILLON;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['finance:read', 'finance:detail', 'finance:list', 'finance:write'])]
+    #[Groups(['finance:read', 'finance:detail', 'finance:list'])]
     private ?string $pdfFilePath = null;
 
     public function __construct()

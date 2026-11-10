@@ -2,6 +2,8 @@
 
 namespace QuestionnaireBundle\State\Provider\Questionnaire\Preview;
 
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use QuestionnaireBundle\Domain\Questionnaire\Structure\QuestionnaireStructureService;
@@ -13,6 +15,7 @@ use QuestionnaireBundle\ApiDto\Questionnaire\Preview\PreviewSectionIndexDto;
 final readonly class PreviewIndexProvider implements ProviderInterface
 {
     public function __construct(
+        private Security $security,
         private EntityManagerInterface $em,
         private readonly QuestionnaireStructureService $structureService,
     ) {}
@@ -25,6 +28,10 @@ final readonly class PreviewIndexProvider implements ProviderInterface
         if (!$q) {
             throw new \RuntimeException('Questionnaire not found');
         }
+        if (!$this->security->isGranted('CAN_EDIT_QUESTIONNAIRE', $q)) {
+            throw new AccessDeniedException();
+        }
+
 
         $plan = $this->structureService->buildPlan($q);
 

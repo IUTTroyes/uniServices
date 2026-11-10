@@ -18,9 +18,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Get(
+        security: "is_granted('CAN_VIEW_TICKET', object.getTicket())",
         normalizationContext: ['groups' => ['message:read']],
     ),
         new Post(
+            securityPostDenormalize: "object.getAuteur() === user and is_granted('CAN_EDIT_TICKET', object.getTicket())",
             denormalizationContext: ['groups' => ['message:write']],
         )
         ]

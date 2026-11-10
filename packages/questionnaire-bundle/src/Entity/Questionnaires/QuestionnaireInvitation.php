@@ -20,7 +20,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Index(name: 'idx_invitation_questionnaire', columns: ['questionnaire_id'])]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['invitation:read']]),
+        new Get(security: "is_granted('CAN_EDIT_QUESTIONNAIRE', object.getQuestionnaire())", normalizationContext: ['groups' => ['invitation:read']]),
         new GetCollection(normalizationContext: ['groups' => ['invitation:read']]),
     ],
     normalizationContext: ['groups' => ['invitation:read']],

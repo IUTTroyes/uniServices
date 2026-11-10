@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 class EtudiantApplicationsController extends AbstractController
 {
     public function __construct(
@@ -93,6 +94,11 @@ class EtudiantApplicationsController extends AbstractController
                 'count' => 0,
                 'message' => 'Aucun étudiant concerné par cette mise à jour.'
             ]);
+        }
+
+        // Valider tout le lot avant de modifier le premier compte.
+        foreach ($etudiants as $etudiant) {
+            $this->denyAccessUnlessGranted('CAN_EDIT_ETUDIANT', $etudiant);
         }
 
         foreach ($etudiants as $etudiant) {

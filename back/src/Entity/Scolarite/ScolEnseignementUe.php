@@ -12,7 +12,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: ScolEnseignementUeRepository::class)]
 #[ApiResource(
     operations: [
-        new Delete()
+        new Delete(security: "is_granted('CAN_DELETE_ENSEIGNEMENT_UE', object)")
     ]
 )]
 class ScolEnseignementUe

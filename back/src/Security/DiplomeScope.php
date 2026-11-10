@@ -2,6 +2,8 @@
 
 namespace App\Security;
 
+use App\Entity\Scolarite\ScolEnseignement;
+use App\Entity\Scolarite\ScolEnseignementUe;
 use App\Entity\Structure\StructureDiplome;
 
 /** Resolves a unique diploma; shared or unknown resources deliberately have no scope. */
@@ -14,6 +16,24 @@ final class DiplomeScope
         }
         if (!is_object($subject) || $depth > 6) {
             return null;
+        }
+
+        if ($subject instanceof ScolEnseignementUe) {
+            return $subject->getUe()?->getSemestre()?->getDiplome();
+        }
+
+        if ($subject instanceof ScolEnseignement) {
+            // Les accesseurs getDiplome() et getSemestre() ne suivent que la première UE.
+            $diplome = null;
+            foreach ($subject->getEnseignementUes() as $link) {
+                $candidate = self::fromSubject($link);
+                if ($candidate === null || ($diplome !== null && $diplome !== $candidate)) {
+                    return null;
+                }
+                $diplome = $candidate;
+            }
+
+            return $diplome;
         }
 
         // Only follow the owning academic relationships, never a department's diploma list.

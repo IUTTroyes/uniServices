@@ -30,34 +30,42 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new GetCollection(
+            security: "is_granted('IS_PERSONNEL')",
             uriTemplate: '/administration/etudiant_absences',
             normalizationContext: ['groups' => ['absence:administration']],
             provider: AbsenceEpisodeProvider::class,
         ),
         new GetCollection(
+            security: "is_granted('IS_PERSONNEL')",
             uriTemplate: '/administration/last/etudiant_absences',
             normalizationContext: ['groups' => ['absence:administration']],
         ),
         new GetCollection(
+            security: "is_granted('IS_PERSONNEL')",
             uriTemplate: '/administration/stats/etudiant_absences',
             paginationEnabled: false,
             normalizationContext: ['groups' => ['absence:administration']],
             provider: AbsenceStatsProvider::class
         ),
         new GetCollection(
+            security: "is_granted('IS_PERSONNEL')",
             uriTemplate: '/administration/repartition/etudiant_absences',
             normalizationContext: ['groups' => ['absence:administration']],
         ),
         new Post(
+            securityPostDenormalize: "is_granted('CAN_EDIT_ABSENCE', object)",
             uriTemplate: '/administration/etudiant_absences',
             denormalizationContext: ['groups' => ['absence:write:administration']],
             processor: EtudiantAbsenceCreateProcessor::class,
         ),
         new Patch(
+            security: "is_granted('CAN_EDIT_ABSENCE', object)",
+            securityPostDenormalize: "is_granted('CAN_EDIT_ABSENCE', object)",
             uriTemplate: '/administration/etudiant_absences/{id}',
             denormalizationContext: ['groups' => ['absence:write:administration']],
         ),
         new Delete(
+            security: "is_granted('CAN_DELETE_ABSENCE', object)",
             uriTemplate: '/administration/etudiant_absences/{id}',
         )
     ],

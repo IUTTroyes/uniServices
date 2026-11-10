@@ -25,7 +25,7 @@ const isEtudiant = computed(() => store.userType === 'etudiants');
 
 <template>
   <TopbarComponent :app-name :logo-url/>
-  <div class="layout-main-container mt-16">
+  <div class="layout-main-container">
     <main class="layout-main">
       <ProfilPersonnel v-if="isPersonnel" />
       <ProfilEtudiant  v-if="isEtudiant" />

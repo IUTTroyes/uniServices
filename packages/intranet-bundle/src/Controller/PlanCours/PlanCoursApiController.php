@@ -17,8 +17,10 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api')]
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 class PlanCoursApiController extends AbstractController
 {
     public function __construct(
@@ -50,6 +52,8 @@ class PlanCoursApiController extends AbstractController
         } else {
             $anneeUniversitaire = $this->entityManager->getRepository(StructureAnneeUniversitaire::class)->findOneBy(['actif' => true]);
         }
+
+        $this->denyAccessUnlessGranted('CAN_EDIT_DIPLOME', $diplome);
 
         $semestres = $diplome->getSemestres();
         $enseignementsData = [];
@@ -202,6 +206,10 @@ class PlanCoursApiController extends AbstractController
             return new JsonResponse(['message' => 'Année universitaire non trouvée.'], Response::HTTP_NOT_FOUND);
         }
 
+        if ($personnel !== $user) {
+            $this->denyAccessUnlessGranted('IS_SUPER_ADMIN');
+        }
+
         // Récupérer tous les prévisionnels de l'enseignant pour cette année
         $previsionnels = $this->entityManager->getRepository(Previsionnel::class)->findBy([
             'personnel' => $personnel,
@@ -322,6 +330,9 @@ class PlanCoursApiController extends AbstractController
             return new JsonResponse(['message' => 'Plan de cours source non trouvé.'], Response::HTTP_NOT_FOUND);
         }
 
+        $this->denyAccessUnlessGranted('CAN_MANAGE_PLAN_COURS', $planCours);
+        $this->denyAccessUnlessGranted('CAN_MANAGE_PLAN_COURS', $source);
+
         // Recopie des informations pédagogiques
         $planCours->setCmPrevu($source->getCmPrevu());
         $planCours->setTdPrevu($source->getTdPrevu());
@@ -412,9 +423,12 @@ class PlanCoursApiController extends AbstractController
             $planCours->setLivrables($enseignement->getLivrables());
             $planCours->setEtatPlanCours(PlanCoursEnum::EN_COURS);
 
+            $this->denyAccessUnlessGranted('CAN_MANAGE_PLAN_COURS', $planCours);
             $this->entityManager->persist($planCours);
             $this->entityManager->flush();
         }
+
+        $this->denyAccessUnlessGranted('CAN_MANAGE_PLAN_COURS', $planCours);
 
         return new JsonResponse([
             'id' => $planCours->getId(),

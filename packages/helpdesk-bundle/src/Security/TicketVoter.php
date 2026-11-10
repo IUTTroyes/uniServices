@@ -33,9 +33,14 @@ class TicketVoter extends Voter
         private readonly UserEffectivePermissionService $effectivePermissionService
     ) {}
 
+    public function supportsAttribute(string $attribute): bool
+    {
+        return in_array($attribute, self::SUPPORTED_ATTRIBUTES, true);
+    }
+
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return in_array($attribute, self::SUPPORTED_ATTRIBUTES);
+        return $this->supportsAttribute($attribute) && ($attribute === self::CAN_CREATE_TICKET || $subject instanceof HelpdeskTicket);
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
@@ -52,7 +57,8 @@ class TicketVoter extends Voter
         }
 
         return match($attribute) {
-            self::CAN_VIEW_TICKET => $this->canViewTicket($user),
+            self::CAN_VIEW_TICKET => $this->canEditTicket($user, $subject),
+            self::CAN_CREATE_TICKET => $this->canCreateTicket($user),
             self::CAN_EDIT_TICKET => $this->canEditTicket($user,$subject),
             self::CAN_DELETE_TICKET => $this->canDeleteTicket($user,$subject),
             default => false,
@@ -69,23 +75,18 @@ class TicketVoter extends Voter
         return $this->effectivePermissionService->hasAnyPermission($user, $roles);
     }
 
-    private function canViewTicket(Personnel|Etudiant $user): bool
-    {
-        return  (!$user instanceof Etudiant);
-    }
-
     private function canCreateTicket(Personnel|Etudiant $user):bool
     {
         return (!$user instanceof Etudiant);
     }
 
-    private function canEditTicket(Personnel|Etudiant $user,HelpdeskTicket $subject): bool
+    private function canEditTicket(Personnel|Etudiant $user, HelpdeskTicket $subject): bool
     {
-        if($user instanceof Etudiant){
-            return false;
-        }
-        return $user->getId() === $subject->getAuteur()->getId();
-
+        return $user instanceof Personnel && (
+            $subject->getAuteur() === $user
+            || $subject->getAssigne() === $user
+            || $this->hasAnyRole($user, ['ROLE_HELPDESK_AGENT', 'ROLE_HELPDESK_ADMIN'])
+        );
     }
 
     private function canDeleteTicket(Personnel|Etudiant $user,HelpdeskTicket $subject): bool

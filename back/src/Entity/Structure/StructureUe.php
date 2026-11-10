@@ -27,7 +27,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(normalizationContext: ['groups' => ['ue:read', 'ue:read:full']]),
         new GetCollection(normalizationContext: ['groups' => ['ue:read']]),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_UE', object)"),
-        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_UE', object)"),
+        new Patch(security: "is_granted('CAN_EDIT_UE', object)", securityPostDenormalize: "is_granted('CAN_EDIT_UE', object)"),
         new Delete(security: "is_granted('CAN_DELETE_UE', object)")
     ],
     parameters: [

@@ -162,7 +162,10 @@ SQL;
                     $legacySemestreOldId = (int) ($evaluation->getLegacyContext()['semestre']['oldId'] ?? 0);
                     if ($legacySemestreOldId > 0) {
                         foreach ($scolarite->getScolariteSemestre() as $candidate) {
-                            if ((int) ($candidate->getLegacyContext()['semestre']['oldId'] ?? 0) === $legacySemestreOldId) {
+                            // Une inscription historique peut déjà pointer vers un semestre V4.
+                            $candidateOldId = $candidate->getSemestre()?->getOldId()
+                                ?? $candidate->getLegacyContext()['semestre']['oldId'] ?? null;
+                            if ((int) $candidateOldId === $legacySemestreOldId) {
                                 $scolariteSemestre = $candidate;
                                 break;
                             }

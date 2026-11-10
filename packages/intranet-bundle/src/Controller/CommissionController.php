@@ -9,8 +9,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/intranet/commissions', name: 'api_intranet_commissions_')]
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 class CommissionController extends AbstractController
 {
     public function __construct(
@@ -25,6 +27,12 @@ class CommissionController extends AbstractController
         $semestre = $this->structureSemestreRepository->find($semestreId);
         if (null === $semestre) {
             return new JsonResponse(['error' => 'Semestre introuvable.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $department = $semestre->getDepartement();
+        if (!$this->isGranted('CAN_EDIT_SEMESTRE', $semestre)
+            && ($department === null || !$this->isGranted('ROLE_SCOLARITE', $department))) {
+            throw $this->createAccessDeniedException();
         }
 
         try {

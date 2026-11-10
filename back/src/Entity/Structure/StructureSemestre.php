@@ -69,7 +69,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Patch(
             normalizationContext: ['groups' => ['semestre:detail']],
             denormalizationContext: ['groups' => ['semestre:write']],
-            securityPostDenormalize: "is_granted('CAN_EDIT_SEMESTRE', object)"
+            security: "is_granted('CAN_EDIT_SEMESTRE', object)", securityPostDenormalize: "is_granted('CAN_EDIT_SEMESTRE', object)"
         ),
         new Delete(security: "is_granted('CAN_DELETE_SEMESTRE', object)")
     ],

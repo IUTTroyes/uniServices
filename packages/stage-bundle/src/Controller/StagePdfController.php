@@ -14,8 +14,10 @@ use StageBundle\Services\GotenbergService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 //todo: a déplacer dans le bundle stage
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 class StagePdfController extends AbstractController
 {
     public function __construct(
@@ -32,6 +34,7 @@ class StagePdfController extends AbstractController
         if (!$stage) {
             return new Response('Stage étudiant non trouvé', Response::HTTP_NOT_FOUND);
         }
+        $this->denyAccessUnlessGranted('CAN_VIEW_STAGE', $stage);
 
         // Get main establishment
         $etab = $this->em->getRepository(Etablissement::class)->findOneBy(['isMain' => true])
@@ -112,6 +115,7 @@ class StagePdfController extends AbstractController
         if (!$avenant) {
             return new Response('Avenant non trouvé', Response::HTTP_NOT_FOUND);
         }
+        $this->denyAccessUnlessGranted('CAN_VIEW_STAGE', $avenant);
 
         $stage = $avenant->getStageEtudiant();
         if (!$stage) {
@@ -147,6 +151,7 @@ class StagePdfController extends AbstractController
         if (!$avenant) {
             return new Response('Avenant non trouvé', Response::HTTP_NOT_FOUND);
         }
+        $this->denyAccessUnlessGranted('CAN_VALIDATE_STAGE', $avenant);
 
         $avenant->setValide(true);
         $avenant->setDateValidation(new \DateTime());

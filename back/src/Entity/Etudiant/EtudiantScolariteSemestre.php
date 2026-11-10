@@ -24,7 +24,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: EtudiantScolariteSemestreRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['scolarite-semestre:detail']]),
+        new Get(security: "is_granted('CAN_VIEW_SCOL', object)", normalizationContext: ['groups' => ['scolarite-semestre:detail']]),
         new GetCollection(
             uriTemplate: '/manage-groupes/etudiant_scolarite_semestres',
             normalizationContext: ['groups' => ['scolarite-semestre:manage-groupes']],
@@ -44,7 +44,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
             output: false,
         ),
         new GetCollection(normalizationContext: ['groups' => ['scolarite-semestre:detail', 'semestre:light', 'annee:light', 'groupe:light']]),
-        new Patch(normalizationContext: ['groups' => ['scolarite-semestre:write']], securityPostDenormalize: "is_granted('CAN_EDIT_SCOL', object)"),
+        new Patch(normalizationContext: ['groups' => ['scolarite-semestre:write']], security: "is_granted('CAN_EDIT_SCOL', object)", securityPostDenormalize: "is_granted('CAN_EDIT_SCOL', object)"),
     ],
     parameters: [
         'scolarite' => new QueryParameter(filter: EtudiantScolariteSemestreFilter::class),

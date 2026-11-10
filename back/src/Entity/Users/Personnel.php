@@ -58,8 +58,16 @@ use Symfony\Component\Serializer\Attribute\Groups;
             normalizationContext: ['groups' => ['personnel:config']],
             provider: PersonnelConfigProvider::class
         ),
-        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_PERSONNEL', object)"),
-        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_PERSONNEL', object)"),
+        // Les affectations et leurs permissions ont des opérations dédiées.
+        new Post(
+            denormalizationContext: ['ignored_attributes' => ['departementsPersonnel']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_PERSONNEL', object)",
+        ),
+        new Patch(
+            denormalizationContext: ['ignored_attributes' => ['departementsPersonnel']],
+            security: "is_granted('CAN_EDIT_PERSONNEL', object)",
+            securityPostDenormalize: "is_granted('CAN_EDIT_PERSONNEL', object)",
+        ),
         new Delete(security: "is_granted('CAN_DELETE_PERSONNEL', object)"),
     ],
     order: ['nom' => 'ASC'],

@@ -10,6 +10,7 @@ use QuestionnaireBundle\State\Provider\Questionnaire\Runtime\InvitationIndexProv
     operations: [
         new Get(
             uriTemplate: '/invitations/{token}',
+            security: "is_granted(\'PUBLIC_ACCESS\')",
             provider: InvitationIndexProvider::class
         ),
     ],

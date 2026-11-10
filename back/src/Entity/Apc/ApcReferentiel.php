@@ -27,7 +27,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(normalizationContext: ['groups' => ['referentiel:read', 'departement:read']]),
         new GetCollection(normalizationContext: ['groups' => ['referentiel:read', 'departement:read']]),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_APC_REFERENTIEL', object)"),
-        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_APC_REFERENTIEL', object)"),
+        new Patch(security: "is_granted('CAN_EDIT_APC_REFERENTIEL', object)", securityPostDenormalize: "is_granted('CAN_EDIT_APC_REFERENTIEL', object)"),
         new Delete(security: "is_granted('CAN_DELETE_APC_REFERENTIEL', object)"),
     ],
     parameters: [

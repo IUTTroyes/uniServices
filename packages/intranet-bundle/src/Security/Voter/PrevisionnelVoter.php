@@ -42,9 +42,14 @@ class PrevisionnelVoter extends Voter
     /**
      * @inheritDoc
      */
+    public function supportsAttribute(string $attribute): bool
+    {
+        return in_array($attribute, self::SUPPORTED_ATTRIBUTES, true);
+    }
+
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return in_array($attribute, self::SUPPORTED_ATTRIBUTES);
+        return $this->supportsAttribute($attribute);
     }
 
     /**
@@ -69,7 +74,7 @@ class PrevisionnelVoter extends Voter
             // Prévisionnel
             self::CAN_VIEW_PREVISIONNEL => $this->canViewPrevisionnel($subject, $user),
             self::CAN_EDIT_PREVISIONNEL => $this->canEditPrevisionnel($subject, $user),
-            self::CAN_DELETE_PREVISIONNEL => $this->canDeletePrevisionnel($user),
+            self::CAN_DELETE_PREVISIONNEL => $this->canDeletePrevisionnel($subject, $user),
 
             // Heures complémentaires
             self::CAN_VIEW_HRS => $this->canViewHrs($user, $subject),
@@ -127,36 +132,24 @@ class PrevisionnelVoter extends Voter
 
     private function canEditPrevisionnel(mixed $subject, Personnel|Etudiant $user): bool
     {
-        if (!$user instanceof Personnel) {
-            return false;
-        }
-
-        // Rôles avec accès complet
-        if ($this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN',
-            'ROLE_CHEF_DEPT',
-            'ROLE_DIRECTEUR_ETUDES'
-        ], $subject)) {
-            return true;
-        }
-
-        // Responsable de parcours peut modifier les prévisionnels de son parcours
-        if ($this->hasAnyRole($user, ['ROLE_RESP_PARCOURS'], $subject)) {
-            return true;
-        }
-
-        return false;
+        return $this->hasPrevisionnelPermissions($subject, $user, [
+            'ROLE_ADMIN', 'ROLE_CHEF_DEPT', 'ROLE_DIRECTEUR_ETUDES', 'ROLE_RESP_PARCOURS',
+        ]);
     }
 
-    private function canDeletePrevisionnel(Personnel|Etudiant $user): bool
+    private function canDeletePrevisionnel(mixed $subject, Personnel|Etudiant $user): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN',
-            'ROLE_CHEF_DEPT',
-            'ROLE_DIRECTEUR_ETUDES'
+        return $this->hasPrevisionnelPermissions($subject, $user, [
+            'ROLE_ADMIN', 'ROLE_CHEF_DEPT', 'ROLE_DIRECTEUR_ETUDES',
         ]);
+    }
+
+    /** @param string[] $roles */
+    private function hasPrevisionnelPermissions(mixed $subject, Personnel|Etudiant $user, array $roles): bool
+    {
+        return $user instanceof Personnel && $subject instanceof Previsionnel
+            && $subject->getEnseignement() !== null
+            && $this->effectivePermissionService->hasAnyPermissionForTeaching($user, $subject->getEnseignement(), $roles);
     }
 
     // ========== Heures Complémentaires (HRS) ==========

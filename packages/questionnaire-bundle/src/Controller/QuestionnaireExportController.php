@@ -13,7 +13,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 class QuestionnaireExportController extends AbstractController
 {
     public function __construct(
@@ -86,6 +88,8 @@ class QuestionnaireExportController extends AbstractController
         if (!$q) {
             throw new NotFoundHttpException('Questionnaire not found');
         }
+
+        $this->denyAccessUnlessGranted('CAN_EDIT_QUESTIONNAIRE', $q);
 
         return $q;
     }

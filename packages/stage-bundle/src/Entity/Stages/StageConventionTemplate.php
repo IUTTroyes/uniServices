@@ -21,14 +21,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Post(
             normalizationContext: ['groups' => ['stage_template:read']],
             denormalizationContext: ['groups' => ['stage_template:write']],
-            securityPostDenormalize: "is_granted('ROLE_STAGE_MANAGER')"
+            securityPostDenormalize: "is_granted('IS_SUPER_ADMIN')"
         ),
         new Patch(
             normalizationContext: ['groups' => ['stage_template:read']],
             denormalizationContext: ['groups' => ['stage_template:write']],
-            securityPostDenormalize: "is_granted('ROLE_STAGE_MANAGER')"
+            securityPostDenormalize: "is_granted('IS_SUPER_ADMIN')"
         ),
-        new Delete(security: "is_granted('ROLE_STAGE_MANAGER')"),
+        new Delete(security: "is_granted('IS_SUPER_ADMIN')"),
     ]
 )]
 class StageConventionTemplate

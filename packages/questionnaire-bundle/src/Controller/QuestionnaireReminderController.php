@@ -15,7 +15,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 class QuestionnaireReminderController extends AbstractController
 {
     public function __construct(
@@ -34,6 +36,8 @@ class QuestionnaireReminderController extends AbstractController
         if (!$questionnaire) {
             throw new NotFoundHttpException('Questionnaire introuvable.');
         }
+        $this->denyAccessUnlessGranted('CAN_PUBLISH_QUESTIONNAIRE', $questionnaire);
+
 
         $data = json_decode($request->getContent(), true) ?? [];
         $tokens = $data['tokens'] ?? [];

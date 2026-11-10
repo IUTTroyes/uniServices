@@ -23,14 +23,15 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(normalizationContext: ['groups' => ['document:read']]),
         new Post(
             denormalizationContext: ['groups' => ['document:write']],
-            security: "is_granted('IS_PERSONNEL')"
+            securityPostDenormalize: "is_granted('CAN_MANAGE_DOCUMENT', object)"
         ),
         new Patch(
             denormalizationContext: ['groups' => ['document:write']],
-            security: "is_granted('IS_PERSONNEL')"
+            security: "is_granted('CAN_MANAGE_DOCUMENT', object)",
+            securityPostDenormalize: "is_granted('CAN_MANAGE_DOCUMENT', object)"
         ),
         new Delete(
-            security: "is_granted('IS_PERSONNEL')"
+            security: "is_granted('CAN_MANAGE_DOCUMENT', object)"
         ),
     ],
     normalizationContext: ['groups' => ['document:read']],

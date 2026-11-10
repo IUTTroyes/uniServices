@@ -8,6 +8,8 @@ use HelpdeskBundle\Entity\HelpdeskCategorie;
 use HelpdeskBundle\Entity\HelpdeskTicket;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Users\Personnel;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\String\Slugger\SluggerInterface;
@@ -16,6 +18,7 @@ class TicketProcessor implements ProcessorInterface
 {
     public function __construct(
         private readonly EntityManagerInterface $em,
+        private readonly Security $security,
         private readonly SluggerInterface $slugger,
         #[Autowire('%env(string:HELPDESK_TICKETS_UPLOAD_DIR)%')]
         private readonly string $uploadsDirectory,
@@ -35,7 +38,6 @@ class TicketProcessor implements ProcessorInterface
         $subject      = $request->request->get('subject');
         $description  = $request->request->get('description');
         $categoriePath = $request->request->get('helpdeskCategorie'); // ex: /api/helpdesk_categories/5
-        $auteurPath   = $request->request->get('auteur');             // ex: /api/personnels/3
 
         $ticket->setSubject($subject);
         $ticket->setDescription($description);
@@ -49,14 +51,12 @@ class TicketProcessor implements ProcessorInterface
             }
         }
 
-        // Résolution de l'auteur
-        if ($auteurPath) {
-            $auteurId = basename($auteurPath);
-            $auteur = $this->em->getRepository(Personnel::class)->find($auteurId);
-            if ($auteur) {
-                $ticket->setAuteur($auteur);
-            }
+        // L’auteur provient du compte authentifié, jamais du formulaire multipart.
+        $author = $this->security->getUser();
+        if (!$author instanceof Personnel) {
+            throw new AccessDeniedException();
         }
+        $ticket->setAuteur($author);
 
         // 👇 Gestion des fichiers uploadés
         $savedFiles = [];

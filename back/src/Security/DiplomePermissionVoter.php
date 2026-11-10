@@ -19,9 +19,16 @@ final class DiplomePermissionVoter extends Voter
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
     {
         $user = $token->getUser();
+        $diploma = DiplomeScope::fromSubject($subject);
+
         return $user instanceof Personnel && (
             $this->permissions->isSuperAdmin($user)
-            || $this->permissions->hasPermission($user, $attribute, $subject)
+            || $this->permissions->hasAnyPermissionInDepartment(
+                $user,
+                [$attribute],
+                $diploma?->getDepartement(),
+                $diploma,
+            )
         );
     }
 }

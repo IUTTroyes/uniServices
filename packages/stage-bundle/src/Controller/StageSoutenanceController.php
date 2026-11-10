@@ -12,7 +12,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 class StageSoutenanceController extends AbstractController
 {
     private EntityManagerInterface $em;
@@ -55,6 +57,7 @@ class StageSoutenanceController extends AbstractController
         if (!$stagePeriode) {
             return new JsonResponse(['error' => 'Période de stage non trouvée.'], Response::HTTP_NOT_FOUND);
         }
+        $this->denyAccessUnlessGranted('CAN_MANAGE_STAGE_PERIODE', $stagePeriode);
 
         $enseignantJury = $enseignantJuryId ? $this->em->getRepository(Personnel::class)->find($enseignantJuryId) : null;
         $start = new \DateTime($dateStr);
@@ -90,6 +93,7 @@ class StageSoutenanceController extends AbstractController
         if (!$stagePeriode) {
             return new JsonResponse(['error' => 'Période de stage non trouvée.'], Response::HTTP_NOT_FOUND);
         }
+        $this->denyAccessUnlessGranted('CAN_MANAGE_STAGE_PERIODE', $stagePeriode);
 
         $enseignantJury = $enseignantJuryId ? $this->em->getRepository(Personnel::class)->find($enseignantJuryId) : null;
         $start = new \DateTime($dateStr);
@@ -112,6 +116,13 @@ class StageSoutenanceController extends AbstractController
             }
         } else {
             $soutenance = new StageSoutenance();
+        }
+
+        if ($soutenanceId) {
+            $this->denyAccessUnlessGranted('CAN_EDIT_STAGE', $soutenance);
+        }
+        if ($stageEtudiant !== null) {
+            $this->denyAccessUnlessGranted('CAN_EDIT_STAGE', $stageEtudiant);
         }
 
         // If assigning a student, verify they don't already have another defense
@@ -160,6 +171,7 @@ class StageSoutenanceController extends AbstractController
         if (!$periode) {
             return new JsonResponse(['error' => 'Période de stage non trouvée.'], Response::HTTP_NOT_FOUND);
         }
+        $this->denyAccessUnlessGranted('CAN_MANAGE_STAGE_PERIODE', $periode);
 
         $start = new \DateTime($dateStr . ' ' . $startTimeStr);
         $endLimit = new \DateTime($dateStr . ' ' . $endTimeStr);

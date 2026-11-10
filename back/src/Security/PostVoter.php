@@ -98,12 +98,17 @@ class PostVoter extends Voter
         private readonly UserEffectivePermissionService $effectivePermissionService
     ) {}
 
+    public function supportsAttribute(string $attribute): bool
+    {
+        return in_array($attribute, self::SUPPORTED_ATTRIBUTES, true);
+    }
+
     /**
      * @inheritDoc
      */
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return in_array($attribute, self::SUPPORTED_ATTRIBUTES);
+        return $this->supportsAttribute($attribute);
     }
 
     /**
@@ -133,7 +138,7 @@ class PostVoter extends Voter
             // Scolarité
             self::CAN_VIEW_SCOL => $this->canViewScolarite($subject, $user),
             self::CAN_EDIT_SCOL => $this->canEditScolarite($user, $subject),
-            self::CAN_DELETE_SCOL => $this->canDeleteScolarite($user),
+            self::CAN_DELETE_SCOL => $this->canDeleteScolarite($user, $subject),
 
             // Evaluation
             self::CAN_VIEW_EVAL => $this->canViewEvaluation($subject, $user),
@@ -148,22 +153,23 @@ class PostVoter extends Voter
             // Absences
             self::CAN_VIEW_ABSENCE => $this->canViewAbsence($subject, $user),
             self::CAN_EDIT_ABSENCE => $this->canEditAbsence($subject, $user),
-            self::CAN_DELETE_ABSENCE => $this->canDeleteAbsence($user),
+            self::CAN_DELETE_ABSENCE => $this->canDeleteAbsence($subject, $user),
 
             // Justificatifs d'absence
             self::CAN_VIEW_JUSTIFICATIF => $this->canViewJustificatif($subject, $user),
             self::CAN_EDIT_JUSTIFICATIF => $this->canEditJustificatif($subject, $user),
-            self::CAN_DELETE_JUSTIFICATIF => $this->canDeleteJustificatif($user),
+            self::CAN_DELETE_JUSTIFICATIF => $this->canDeleteJustificatif($subject, $user),
 
             // Scolarité Etudiant
             self::CAN_VIEW_ETUDIANT_SCOLARITE => $this->canViewEtudiantScolarite($subject, $user),
-            self::CAN_EDIT_ETUDIANT_SCOLARITE => $this->canEditEtudiantScolarite($user),
-            self::CAN_DELETE_ETUDIANT_SCOLARITE => $this->canDeleteEtudiantScolarite($user),
+            self::CAN_EDIT_ETUDIANT_SCOLARITE => $this->canEditEtudiantScolarite($user, $subject),
+            self::CAN_DELETE_ETUDIANT_SCOLARITE => $this->canDeleteEtudiantScolarite($user, $subject),
 
             // Année Universitaire
             self::CAN_VIEW_ANNEE_UNIV => $this->canViewAnneeUniv($user),
-            self::CAN_EDIT_ANNEE_UNIV => $this->canEditAnneeUniv($user),
+            self::CAN_EDIT_ANNEE_UNIV => false,
 
+            self::CAN_EDIT_ETABLISSEMENT => false,
             default => false,
         };
     }
@@ -195,13 +201,26 @@ class PostVoter extends Voter
 
     private function canEditEtudiant(mixed $subject, Personnel|Etudiant $user): bool
     {
-        if ($user instanceof Personnel) {
-            return $this->hasAnyRole($user, [
-                'SUPER_ADMIN',
-                'ROLE_ADMIN',
-                'ROLE_SCOLARITE',
-                'ROLE_CHEF_DEPT'
-            ]);
+        if ($user instanceof Personnel && $subject instanceof Etudiant) {
+            $departments = [];
+            foreach ($subject->getScolarites() as $scolarite) {
+                if ($scolarite->isActif()) {
+                    $departments[] = $scolarite->getDepartement();
+                }
+            }
+            if ($departments === []) {
+                return false;
+            }
+
+            foreach ($departments as $department) {
+                if (!$this->effectivePermissionService->hasAnyPermissionInDepartment(
+                    $user, ['ROLE_ADMIN', 'ROLE_SCOLARITE', 'ROLE_CHEF_DEPT'], $department,
+                )) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         // Un étudiant peut modifier son propre profil (certains champs uniquement)
@@ -222,7 +241,7 @@ class PostVoter extends Voter
     {
         // Personnel avec rôles scolarité peut voir
         if ($user instanceof Personnel) {
-            return $this->hasAnyRole($user, [
+            return $this->effectivePermissionService->hasAnyPermissionInDepartment($user, [
                 'SUPER_ADMIN',
                 'ROLE_ADMIN',
                 'ROLE_SCOLARITE',
@@ -231,7 +250,7 @@ class PostVoter extends Voter
                 'ROLE_DIRECTEUR_ETUDES',
                 'ROLE_RESP_PARCOURS',
                 'ROLE_PERMANENT'
-            ], $subject);
+            ], DepartmentScope::fromSubject($subject), $subject);
         }
 
         // Un étudiant peut voir sa propre scolarité
@@ -246,7 +265,7 @@ class PostVoter extends Voter
     private function canEditScolarite(Personnel|Etudiant $user, mixed $subject = null): bool
     {
         if ($user instanceof Personnel) {
-            return $this->hasAnyRole($user, [
+            return $this->effectivePermissionService->hasAnyPermissionForResource($user, [
                 'SUPER_ADMIN',
                 'ROLE_ADMIN',
                 'ROLE_SCOLARITE',
@@ -260,13 +279,13 @@ class PostVoter extends Voter
         return false;
     }
 
-    private function canDeleteScolarite(Personnel|Etudiant $user): bool
+    private function canDeleteScolarite(Personnel|Etudiant $user, mixed $subject): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
+        return $user instanceof Personnel && $this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_SCOLARITE'
-        ]);
+        ], $subject);
     }
 
     // ========== Evaluation ==========
@@ -331,12 +350,12 @@ class PostVoter extends Voter
             return false;
         }
 
-        return $this->hasAnyRole($user, [
+        return $this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_NOTES_MANAGER'
-        ]);
+        ], $subject);
     }
 
     // ========== Notes ==========
@@ -344,14 +363,14 @@ class PostVoter extends Voter
     private function canViewNotes(mixed $subject, Personnel|Etudiant $user): bool
     {
         if ($user instanceof Personnel) {
-            if ($this->hasAnyRole($user, [
+            if ($this->effectivePermissionService->hasAnyPermissionInDepartment($user, [
                 'SUPER_ADMIN',
                 'ROLE_ADMIN',
                 'ROLE_CHEF_DEPT',
                 'ROLE_RESP_PARCOURS',
                 'ROLE_NOTES_MANAGER',
                 'ROLE_PERMANENT'
-            ], $subject)) {
+            ], DepartmentScope::fromSubject($subject), $subject)) {
                 return true;
             }
 
@@ -384,7 +403,7 @@ class PostVoter extends Voter
         }
 
         // Rôles avec accès complet
-        if ($this->hasAnyRole($user, [
+        if ($this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
@@ -407,11 +426,11 @@ class PostVoter extends Voter
 
     private function canDeleteNotes(mixed $subject, Personnel|Etudiant $user): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
+        return $user instanceof Personnel && $this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_NOTES_MANAGER'
-        ]);
+        ], $subject);
     }
 
     // ========== Absences ==========
@@ -444,36 +463,18 @@ class PostVoter extends Voter
 
     private function canEditAbsence(mixed $subject, Personnel|Etudiant $user): bool
     {
-        if (!$user instanceof Personnel) {
-            return false;
-        }
-
-        // Rôles avec accès complet aux absences
-        if ($this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN',
-            'ROLE_SCOLARITE',
-            'ROLE_CHEF_DEPT',
-            'ROLE_DIRECTEUR_ETUDES'
-        ])) {
-            return true;
-        }
-
-        // Personnel peut saisir des absences
-        if ($this->hasAnyRole($user, ['ROLE_PERMANENT'])) {
-            return true;
-        }
-
-        return false;
+        return $user instanceof Personnel && $subject instanceof EtudiantAbsence
+            && $this->effectivePermissionService->hasAnyPermissionForResource($user, [
+                'ROLE_ADMIN', 'ROLE_SCOLARITE', 'ROLE_CHEF_DEPT', 'ROLE_DIRECTEUR_ETUDES', 'ROLE_PERMANENT',
+            ], $subject);
     }
 
-    private function canDeleteAbsence(Personnel|Etudiant $user): bool
+    private function canDeleteAbsence(mixed $subject, Personnel|Etudiant $user): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN',
-            'ROLE_SCOLARITE'
-        ]);
+        return $user instanceof Personnel && $subject instanceof EtudiantAbsence
+            && $this->effectivePermissionService->hasAnyPermissionForResource(
+                $user, ['ROLE_ADMIN', 'ROLE_SCOLARITE'], $subject,
+            );
     }
 
     // ========== Justificatifs d'absence ==========
@@ -510,27 +511,26 @@ class PostVoter extends Voter
 
     private function canEditJustificatif(mixed $subject, Personnel|Etudiant $user): bool
     {
-        if ($user instanceof Personnel) {
-            return $this->hasAnyRole($user, [
-                'SUPER_ADMIN',
-                'ROLE_ADMIN',
-                'ROLE_SCOLARITE',
-                'ROLE_CHEF_DEPT',
-                'ROLE_DIRECTEUR_ETUDES'
-            ]);
+        if (!$subject instanceof EtudiantAbsenceJustificatif) {
+            return false;
         }
 
-        // Un étudiant peut soumettre un justificatif pour ses propres absences
-        return $user instanceof Etudiant;
+        if ($user instanceof Personnel) {
+            return $this->effectivePermissionService->hasAnyPermissionForResource($user, [
+                'ROLE_ADMIN', 'ROLE_SCOLARITE', 'ROLE_CHEF_DEPT', 'ROLE_DIRECTEUR_ETUDES',
+            ], $subject);
+        }
+
+        // L’étudiant soumet un justificatif pour sa propre scolarité.
+        return $subject->getId() === null && $subject->getScolariteSemestre()?->getScolarite()?->getEtudiant() === $user;
     }
 
-    private function canDeleteJustificatif(Personnel|Etudiant $user): bool
+    private function canDeleteJustificatif(mixed $subject, Personnel|Etudiant $user): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN',
-            'ROLE_SCOLARITE'
-        ]);
+        return $user instanceof Personnel && $subject instanceof EtudiantAbsenceJustificatif
+            && $this->effectivePermissionService->hasAnyPermissionForResource(
+                $user, ['ROLE_ADMIN', 'ROLE_SCOLARITE'], $subject,
+            );
     }
 
     // ========== Scolarité Etudiant ==========
@@ -538,7 +538,7 @@ class PostVoter extends Voter
     private function canViewEtudiantScolarite(mixed $subject, Personnel|Etudiant $user): bool
     {
         if ($user instanceof Personnel) {
-            return $this->hasAnyRole($user, [
+            return $this->effectivePermissionService->hasAnyPermissionInDepartment($user, [
                 'SUPER_ADMIN',
                 'ROLE_ADMIN',
                 'ROLE_SCOLARITE',
@@ -547,7 +547,7 @@ class PostVoter extends Voter
                 'ROLE_DIRECTEUR_ETUDES',
                 'ROLE_RESP_PARCOURS',
                 'ROLE_PERMANENT'
-            ], $subject);
+            ], DepartmentScope::fromSubject($subject), $subject);
         }
 
         // Un étudiant peut voir sa propre scolarité
@@ -558,23 +558,23 @@ class PostVoter extends Voter
         return false;
     }
 
-    private function canEditEtudiantScolarite(Personnel|Etudiant $user): bool
+    private function canEditEtudiantScolarite(Personnel|Etudiant $user, mixed $subject): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
+        return $user instanceof Personnel && $this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_SCOLARITE',
             'ROLE_CHEF_DEPT'
-        ]);
+        ], $subject);
     }
 
-    private function canDeleteEtudiantScolarite(Personnel|Etudiant $user): bool
+    private function canDeleteEtudiantScolarite(Personnel|Etudiant $user, mixed $subject): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
+        return $user instanceof Personnel && $this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_SCOLARITE'
-        ]);
+        ], $subject);
     }
 
     // ========== Année Universitaire ==========
@@ -585,10 +585,4 @@ class PostVoter extends Voter
         return true;
     }
 
-    private function canEditAnneeUniv(Personnel|Etudiant $user): bool
-    {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'SUPER_ADMIN'
-        ]);
-    }
 }

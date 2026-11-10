@@ -3,6 +3,7 @@
 namespace App\Migration\IntranetV3\Edt;
 
 use App\Entity\Edt\EdtEvent;
+use App\Enum\TypeEvenementEdt;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureGroupe;
@@ -150,6 +151,7 @@ SQL;
                     ->setEnseignement($enseignement)
                     ->setGroupe($groupe)
                     ->setType($row['type'] ?: null)
+                    ->setTypeEvenement($enseignement === null ? TypeEvenementEdt::Autre : TypeEvenementEdt::Cours)
                     ->setAnneeUniversitaire($anneeUniversitaire)
                     ->setSemestre($semestre)
                     ->setEvaluation((bool) $row['evaluation'])

@@ -39,7 +39,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/init/scol_evaluations/{id}',
             normalizationContext: ['groups' => ['evaluation:mini', 'evaluation:init']],
         ),
-        new Patch(normalizationContext: ['groups' => ['evaluation:write']], security: "is_granted('CAN_EDIT_EVAL', object)", processor: ScolEvaluationInitProcessor::class),
+        new Patch(normalizationContext: ['groups' => ['evaluation:write']], security: "is_granted('CAN_EDIT_EVAL', object)", securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object)", processor: ScolEvaluationInitProcessor::class),
     ],
     parameters: [
         'enseignement' => new QueryParameter(filter: EvaluationFilter::class),

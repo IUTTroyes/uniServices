@@ -23,7 +23,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 class CreateEtudiantController extends AbstractController
 {
     public function __construct(
@@ -64,13 +66,18 @@ class CreateEtudiantController extends AbstractController
             return new JsonResponse(['message' => 'Année pédagogique introuvable'], Response::HTTP_NOT_FOUND);
         }
 
+        $newScolarite = $this->createEtudiantScolariteFromData($etudiant, $anneeUniv, $annee);
+        $this->denyAccessUnlessGranted('CAN_EDIT_ETUDIANT_SCOLARITE', $newScolarite);
+
         $scolarite = $this->etudiantScolariteRepository->findOneBy([
             'etudiant' => $etudiant,
             'anneeUniversitaire' => $anneeUniv,
         ]);
 
-        if (!$scolarite instanceof EtudiantScolarite) {
-            $scolarite = $this->createEtudiantScolariteFromData($etudiant, $anneeUniv, $annee);
+        if ($scolarite instanceof EtudiantScolarite) {
+            $this->denyAccessUnlessGranted('CAN_EDIT_ETUDIANT_SCOLARITE', $scolarite);
+        } else {
+            $scolarite = $newScolarite;
             $this->entityManager->persist($scolarite);
         }
 
@@ -86,6 +93,7 @@ class CreateEtudiantController extends AbstractController
 
     #[Route('/api/etudiants/new', methods: ['POST'], name: 'create_etudiant')]
     #[Route('/api/new/etudiants', methods: ['POST'])]
+    #[IsGranted('IS_SUPER_ADMIN')]
     public function create(Request $request): Response
     {
         // Récupérer les données JSON envoyées dans la requête

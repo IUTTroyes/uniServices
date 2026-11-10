@@ -31,6 +31,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/messages')]
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 class MessageController extends AbstractController
 {
     private const PERMANENTS_STATUTS = ['MCF', 'PU', 'PRCE', 'PRAG', 'CONTRACTUEL', 'CONTRAC', 'PRCACDD', 'CDD'];

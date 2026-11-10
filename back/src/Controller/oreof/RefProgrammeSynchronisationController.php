@@ -4,22 +4,32 @@ namespace App\Controller\oreof;
 
 use App\Service\OReOF\SynchroRefCompetences;
 use App\Service\OReOF\SynchroRefFormation;
+use App\Repository\Structure\StructureDiplomeRepository;
 use App\Utils\JsonRequest;
 use App\Utils\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route(path: '/api/oreof/ref-formation/synchronisation', name: 'oreof_programme_synchronisation')]
+#[Route(path: '/api/oreof/ref-formation/synchronisation', name: 'oreof_programme_synchronisation', methods: ['POST'])]
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 class RefProgrammeSynchronisationController extends AbstractController
 {
     public function __invoke(
         SynchroRefFormation $synchroRefFormation,
-        Request               $request
+        Request               $request,
+        StructureDiplomeRepository $diplomes,
     ): Response
     {
         $data = JsonRequest::getValuesFromString($request->getContent());
+        $diploma = $diplomes->find($data['selectedDiplome']);
+        if ($diploma === null) {
+            throw $this->createNotFoundException();
+        }
+        $this->denyAccessUnlessGranted('CAN_EDIT_DIPLOME', $diploma);
+
         $synchro = $synchroRefFormation->synchroniser($data['selectedDiplome'], $data['anneeUniversitaire'], $data['oreofId']);
 
         return JsonResponse::Success('Synchronisation des compétences terminée', [

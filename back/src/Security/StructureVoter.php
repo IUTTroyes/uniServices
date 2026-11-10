@@ -2,7 +2,9 @@
 
 namespace App\Security;
 
+use App\Entity\DepartementActualite;
 use App\Entity\Structure\StructureDiplome;
+use App\Entity\Structure\StructureGroupe;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -61,12 +63,15 @@ class StructureVoter extends Voter
     public const CAN_EDIT_TYPE_DIPLOME = 'CAN_EDIT_TYPE_DIPLOME';
     public const CAN_DELETE_TYPE_DIPLOME = 'CAN_DELETE_TYPE_DIPLOME';
 
-    // Permissions Département Personnel
-    public const CAN_VIEW_DEPT_PERSONNEL = 'CAN_VIEW_DEPT_PERSONNEL';
-    public const CAN_EDIT_DEPT_PERSONNEL = 'CAN_EDIT_DEPT_PERSONNEL';
-    public const CAN_DELETE_DEPT_PERSONNEL = 'CAN_DELETE_DEPT_PERSONNEL';
+    // Les affectations du personnel sont traitées par PersonnelVoter.
+    public const CAN_VIEW_DEPT_PERSONNEL = PersonnelVoter::CAN_VIEW_DEPT_PERSONNEL;
+    public const CAN_EDIT_DEPT_PERSONNEL = PersonnelVoter::CAN_EDIT_DEPT_PERSONNEL;
+    public const CAN_DELETE_DEPT_PERSONNEL = PersonnelVoter::CAN_DELETE_DEPT_PERSONNEL;
+
+    public const CAN_MANAGE_DEPARTEMENT_ACTUALITE = 'CAN_MANAGE_DEPARTEMENT_ACTUALITE';
 
     private const SUPPORTED_ATTRIBUTES = [
+        self::CAN_MANAGE_DEPARTEMENT_ACTUALITE,
         self::CAN_VIEW_DEPARTEMENT,
         self::CAN_EDIT_DEPARTEMENT,
         self::CAN_DELETE_DEPARTEMENT,
@@ -95,21 +100,23 @@ class StructureVoter extends Voter
         self::CAN_VIEW_TYPE_DIPLOME,
         self::CAN_EDIT_TYPE_DIPLOME,
         self::CAN_DELETE_TYPE_DIPLOME,
-        self::CAN_VIEW_DEPT_PERSONNEL,
-        self::CAN_EDIT_DEPT_PERSONNEL,
-        self::CAN_DELETE_DEPT_PERSONNEL,
     ];
 
     public function __construct(
         private readonly UserEffectivePermissionService $effectivePermissionService
     ) {}
 
+    public function supportsAttribute(string $attribute): bool
+    {
+        return in_array($attribute, self::SUPPORTED_ATTRIBUTES, true);
+    }
+
     /**
      * @inheritDoc
      */
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return in_array($attribute, self::SUPPORTED_ATTRIBUTES);
+        return $this->supportsAttribute($attribute);
     }
 
     /**
@@ -131,56 +138,56 @@ class StructureVoter extends Voter
         }
 
         return match ($attribute) {
+            self::CAN_MANAGE_DEPARTEMENT_ACTUALITE => $user instanceof Personnel && $subject instanceof DepartementActualite
+                && $this->effectivePermissionService->hasAnyPermissionInDepartment(
+                    $user, ['ROLE_ADMIN', 'ROLE_CHEF_DEPT', 'ROLE_RELAI_COMM'], $subject->getDepartement(),
+                ),
             // Département
             self::CAN_VIEW_DEPARTEMENT => $this->canViewDepartement($user),
-            self::CAN_EDIT_DEPARTEMENT => $this->canEditDepartement($user),
-            self::CAN_DELETE_DEPARTEMENT => $this->canDeleteDepartement($user),
+            self::CAN_EDIT_DEPARTEMENT => $this->canEditDepartement($user, $subject),
+            self::CAN_DELETE_DEPARTEMENT => $this->canDeleteDepartement($user, $subject),
 
             // Diplôme
             self::CAN_VIEW_DIPLOME => $this->canViewDiplome($user),
             self::CAN_EDIT_DIPLOME => $this->canEditDiplome($subject, $user),
-            self::CAN_DELETE_DIPLOME => $this->canDeleteDiplome($user),
+            self::CAN_DELETE_DIPLOME => $this->canDeleteDiplome($user, $subject),
 
             // Semestre
             self::CAN_VIEW_SEMESTRE => $this->canViewSemestre($user),
             self::CAN_EDIT_SEMESTRE => $this->canEditSemestre($subject, $user),
-            self::CAN_DELETE_SEMESTRE => $this->canDeleteSemestre($user),
+            self::CAN_DELETE_SEMESTRE => $this->canDeleteSemestre($user, $subject),
 
             // Groupe
             self::CAN_VIEW_GROUPE => $this->canViewGroupe($user),
-            self::CAN_EDIT_GROUPE => $this->canEditGroupe($user),
+            self::CAN_EDIT_GROUPE => $this->canEditGroupe($user, $subject),
             self::CAN_EDIT_GROUPE_STRUCTURE => $this->canEditGroupeStructure($user),
-            self::CAN_DELETE_GROUPE => $this->canDeleteGroupe($user),
+            self::CAN_DELETE_GROUPE => $this->canDeleteGroupe($user, $subject),
 
             // UE
             self::CAN_VIEW_UE => $this->canViewUe($user),
             self::CAN_EDIT_UE => $this->canEditUe($user, $subject),
-            self::CAN_DELETE_UE => $this->canDeleteUe($user),
+            self::CAN_DELETE_UE => $this->canDeleteUe($user, $subject),
 
             // PN
             self::CAN_VIEW_PN => $this->canViewPn($user),
-            self::CAN_EDIT_PN => $this->canEditPn($user),
-            self::CAN_DELETE_PN => $this->canDeletePn($user),
+            self::CAN_EDIT_PN => $this->canEditPn($user, $subject),
+            self::CAN_DELETE_PN => $this->canDeletePn($user, $subject),
 
             // Annee
             self::CAN_VIEW_ANNEE => $this->canViewAnnee($user),
-            self::CAN_EDIT_ANNEE => $this->canEditAnnee($user),
-            self::CAN_DELETE_ANNEE => $this->canDeleteAnnee($user),
+            self::CAN_EDIT_ANNEE => $this->canEditAnnee($user, $subject),
+            self::CAN_DELETE_ANNEE => $this->canDeleteAnnee($user, $subject),
 
             // Calendrier
             self::CAN_VIEW_CALENDRIER => $this->canViewCalendrier($user),
-            self::CAN_EDIT_CALENDRIER => $this->canEditCalendrier($user),
-            self::CAN_DELETE_CALENDRIER => $this->canDeleteCalendrier($user),
+            self::CAN_EDIT_CALENDRIER => false,
+            self::CAN_DELETE_CALENDRIER => false,
 
             // Type Diplôme
             self::CAN_VIEW_TYPE_DIPLOME => $this->canViewTypeDiplome($user),
-            self::CAN_EDIT_TYPE_DIPLOME => $this->canEditTypeDiplome($user),
-            self::CAN_DELETE_TYPE_DIPLOME => $this->canDeleteTypeDiplome($user),
+            self::CAN_EDIT_TYPE_DIPLOME => false,
+            self::CAN_DELETE_TYPE_DIPLOME => false,
 
-            // Département Personnel
-            self::CAN_VIEW_DEPT_PERSONNEL => $this->canViewDeptPersonnel($user),
-            self::CAN_EDIT_DEPT_PERSONNEL => $this->canEditDeptPersonnel($user),
-            self::CAN_DELETE_DEPT_PERSONNEL => $this->canDeleteDeptPersonnel($user),
 
             default => false,
         };
@@ -206,21 +213,21 @@ class StructureVoter extends Voter
         return true;
     }
 
-    private function canEditDepartement(Personnel|Etudiant $user): bool
+    private function canEditDepartement(Personnel|Etudiant $user, mixed $subject): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
+        return $user instanceof Personnel && $this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT'
-        ]);
+        ], $subject);
     }
 
-    private function canDeleteDepartement(Personnel|Etudiant $user): bool
+    private function canDeleteDepartement(Personnel|Etudiant $user, mixed $subject): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
+        return $user instanceof Personnel && $this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN'
-        ]);
+        ], $subject);
     }
 
     // ========== Diplôme ==========
@@ -238,15 +245,15 @@ class StructureVoter extends Voter
         }
 
         // Rôles avec accès complet
-        if ($this->hasAnyRole($user, [
+        if ($this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT'
-        ])) {
+        ], $subject)) {
             return true;
         }
 
-        if ($this->hasAnyRole($user, ['ROLE_RESP_PARCOURS'], $subject)) {
+        if ($this->effectivePermissionService->hasAnyPermissionForResource($user, ['ROLE_RESP_PARCOURS'], $subject)) {
             return true;
         }
 
@@ -259,12 +266,12 @@ class StructureVoter extends Voter
         return false;
     }
 
-    private function canDeleteDiplome(Personnel|Etudiant $user): bool
+    private function canDeleteDiplome(Personnel|Etudiant $user, mixed $subject): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
+        return $user instanceof Personnel && $this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN'
-        ]);
+        ], $subject);
     }
 
     // ========== Semestre ==========
@@ -282,7 +289,7 @@ class StructureVoter extends Voter
         }
 
         // Rôles avec accès complet
-        if ($this->hasAnyRole($user, [
+        if ($this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
@@ -295,12 +302,12 @@ class StructureVoter extends Voter
         return false;
     }
 
-    private function canDeleteSemestre(Personnel|Etudiant $user): bool
+    private function canDeleteSemestre(Personnel|Etudiant $user, mixed $subject): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
+        return $user instanceof Personnel && $this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN'
-        ]);
+        ], $subject);
     }
 
     // ========== Groupe ==========
@@ -311,9 +318,10 @@ class StructureVoter extends Voter
         return true;
     }
 
-    private function canEditGroupe(Personnel|Etudiant $user): bool
+    private function canEditGroupe(Personnel|Etudiant $user, mixed $subject): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
+        return $user instanceof Personnel && $subject instanceof StructureGroupe
+            && $this->hasGroupPermissions($user, $subject, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
@@ -330,13 +338,36 @@ class StructureVoter extends Voter
         ]);
     }
 
-    private function canDeleteGroupe(Personnel|Etudiant $user): bool
+    private function canDeleteGroupe(Personnel|Etudiant $user, mixed $subject): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
+        return $user instanceof Personnel && $subject instanceof StructureGroupe
+            && $this->hasGroupPermissions($user, $subject, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT'
         ]);
+    }
+
+    /** @param string[] $roles */
+    private function hasGroupPermissions(Personnel $user, StructureGroupe $group, array $roles): bool
+    {
+        // Un groupe peut être rattaché à des semestres de plusieurs départements.
+        $semesters = $group->getSemestres();
+        if ($semesters->isEmpty()) {
+            return $group->getId() === null && $this->effectivePermissionService->hasAnyPermissionInDepartment(
+                $user, $roles, $this->effectivePermissionService->getActiveDepartementPersonnel($user)?->getDepartement(),
+            );
+        }
+
+        foreach ($semesters as $semester) {
+            if (!$this->effectivePermissionService->hasAnyPermissionInDepartment(
+                $user, $roles, $semester->getDepartement(), $semester,
+            )) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // ========== UE ==========
@@ -349,7 +380,7 @@ class StructureVoter extends Voter
 
     private function canEditUe(Personnel|Etudiant $user, mixed $subject = null): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
+        return $user instanceof Personnel && $this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
@@ -357,12 +388,12 @@ class StructureVoter extends Voter
         ], $subject);
     }
 
-    private function canDeleteUe(Personnel|Etudiant $user): bool
+    private function canDeleteUe(Personnel|Etudiant $user, mixed $subject): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
+        return $user instanceof Personnel && $this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN'
-        ]);
+        ], $subject);
     }
 
     // ========== PN (Programme National) ==========
@@ -373,21 +404,21 @@ class StructureVoter extends Voter
         return true;
     }
 
-    private function canEditPn(Personnel|Etudiant $user): bool
+    private function canEditPn(Personnel|Etudiant $user, mixed $subject): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
+        return $user instanceof Personnel && $this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT'
-        ]);
+        ], $subject);
     }
 
-    private function canDeletePn(Personnel|Etudiant $user): bool
+    private function canDeletePn(Personnel|Etudiant $user, mixed $subject): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
+        return $user instanceof Personnel && $this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN'
-        ]);
+        ], $subject);
     }
 
     // ========== Annee ==========
@@ -397,22 +428,22 @@ class StructureVoter extends Voter
         return true;
     }
 
-    private function canEditAnnee(Personnel|Etudiant $user): bool
+    private function canEditAnnee(Personnel|Etudiant $user, mixed $subject): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
+        return $user instanceof Personnel && $this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_DIRECTEUR_ETUDES'
-        ]);
+        ], $subject);
     }
 
-    private function canDeleteAnnee(Personnel|Etudiant $user): bool
+    private function canDeleteAnnee(Personnel|Etudiant $user, mixed $subject): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
+        return $user instanceof Personnel && $this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN'
-        ]);
+        ], $subject);
     }
 
     // ========== Calendrier ==========
@@ -422,25 +453,6 @@ class StructureVoter extends Voter
         return true;
     }
 
-    private function canEditCalendrier(Personnel|Etudiant $user): bool
-    {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN',
-            'ROLE_CHEF_DEPT',
-            'ROLE_SCOLARITE',
-            'ROLE_DIRECTEUR_ETUDES'
-        ]);
-    }
-
-    private function canDeleteCalendrier(Personnel|Etudiant $user): bool
-    {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN'
-        ]);
-    }
-
     // ========== Type Diplôme ==========
 
     private function canViewTypeDiplome(Personnel|Etudiant $user): bool
@@ -448,44 +460,4 @@ class StructureVoter extends Voter
         return true;
     }
 
-    private function canEditTypeDiplome(Personnel|Etudiant $user): bool
-    {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN'
-        ]);
-    }
-
-    private function canDeleteTypeDiplome(Personnel|Etudiant $user): bool
-    {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN'
-        ]);
-    }
-
-    // ========== Département Personnel ==========
-
-    private function canViewDeptPersonnel(Personnel|Etudiant $user): bool
-    {
-        return $user instanceof Personnel;
-    }
-
-    private function canEditDeptPersonnel(Personnel|Etudiant $user): bool
-    {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN',
-            'ROLE_CHEF_DEPT'
-        ]);
-    }
-
-    private function canDeleteDeptPersonnel(Personnel|Etudiant $user): bool
-    {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN',
-            'ROLE_CHEF_DEPT'
-        ]);
-    }
 }

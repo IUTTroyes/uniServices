@@ -33,10 +33,10 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\Entity(repositoryClass: QuestionnaireRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['questionnaire:read', 'timestamp:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['questionnaire:read', 'timestamp:read']]),
+        new Get(security: "is_granted('CAN_VIEW_QUESTIONNAIRE', object)", normalizationContext: ['groups' => ['questionnaire:read', 'timestamp:read']]),
+        new GetCollection(security: "is_granted('IS_AUTHENTICATED_FULLY')", normalizationContext: ['groups' => ['questionnaire:read', 'timestamp:read']]),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_QUESTIONNAIRE', object)"),
-        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_QUESTIONNAIRE', object)"),
+        new Patch(security: "is_granted('CAN_EDIT_QUESTIONNAIRE', object)", securityPostDenormalize: "is_granted('CAN_EDIT_QUESTIONNAIRE', object)"),
         new Delete(security: "is_granted('CAN_DELETE_QUESTIONNAIRE', object)"),
     ],
     normalizationContext: ['groups' => ['questionnaire:read', 'timestamp:read']],

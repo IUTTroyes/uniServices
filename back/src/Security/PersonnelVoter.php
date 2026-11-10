@@ -41,12 +41,17 @@ class PersonnelVoter extends Voter
         private readonly UserEffectivePermissionService $effectivePermissionService
     ) {}
 
+    public function supportsAttribute(string $attribute): bool
+    {
+        return in_array($attribute, self::SUPPORTED_ATTRIBUTES, true);
+    }
+
     /**
      * @inheritDoc
      */
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return in_array($attribute, self::SUPPORTED_ATTRIBUTES);
+        return $this->supportsAttribute($attribute);
     }
 
     /**
@@ -71,12 +76,12 @@ class PersonnelVoter extends Voter
             // Personnel
             self::CAN_VIEW_PERSONNEL => $this->canViewPersonnel($subject, $user),
             self::CAN_EDIT_PERSONNEL => $this->canEditPersonnel($subject, $user),
-            self::CAN_DELETE_PERSONNEL => $this->canDeletePersonnel($user),
+            self::CAN_DELETE_PERSONNEL => $this->canDeletePersonnel($subject, $user),
 
             // Département-Personnel
             self::CAN_VIEW_DEPT_PERSONNEL => $this->canViewDeptPersonnel($user),
-            self::CAN_EDIT_DEPT_PERSONNEL => $this->canEditDeptPersonnel($user),
-            self::CAN_DELETE_DEPT_PERSONNEL => $this->canDeleteDeptPersonnel($user),
+            self::CAN_EDIT_DEPT_PERSONNEL => $this->canEditDeptPersonnel($user, $subject),
+            self::CAN_DELETE_DEPT_PERSONNEL => $this->canDeleteDeptPersonnel($user, $subject),
 
             // Rôles
             self::CAN_ASSIGN_ROLES => $this->canAssignRoles($user),
@@ -108,33 +113,36 @@ class PersonnelVoter extends Voter
 
     private function canEditPersonnel(mixed $subject, Personnel|Etudiant $user): bool
     {
-        if (!$user instanceof Personnel) {
-            return false;
-        }
-
-        // Rôles avec accès complet
-        if ($this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN',
-            'ROLE_CHEF_DEPT'
-        ])) {
-            return true;
-        }
-
-        // Un personnel peut modifier son propre profil
-        if ($subject instanceof Personnel && $subject === $user) {
-            return true;
-        }
-
-        return false;
+        return $user instanceof Personnel && $subject instanceof Personnel
+            && ($subject === $user || $this->hasPersonnelPermissions($user, $subject, ['ROLE_ADMIN', 'ROLE_CHEF_DEPT']));
     }
 
-    private function canDeletePersonnel(Personnel|Etudiant $user): bool
+    private function canDeletePersonnel(mixed $subject, Personnel|Etudiant $user): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN'
-        ]);
+        return $user instanceof Personnel && $subject instanceof Personnel
+            && $this->hasPersonnelPermissions($user, $subject, ['ROLE_ADMIN']);
+    }
+
+    /** @param string[] $roles */
+    private function hasPersonnelPermissions(Personnel $user, Personnel $target, array $roles): bool
+    {
+        $assignments = $target->getDepartementsPersonnel();
+        if ($assignments->isEmpty()) {
+            return $target->getId() === null && $this->effectivePermissionService->hasAnyPermissionInDepartment(
+                $user, $roles, $this->effectivePermissionService->getActiveDepartementPersonnel($user)?->getDepartement(),
+            );
+        }
+
+        // Une modification du profil a un effet sur chacune de ses affectations.
+        foreach ($assignments as $assignment) {
+            if (!$this->effectivePermissionService->hasAnyPermissionInDepartment(
+                $user, $roles, $assignment->getDepartement(),
+            )) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // ========== Département-Personnel ==========
@@ -144,22 +152,22 @@ class PersonnelVoter extends Voter
         return $user instanceof Personnel;
     }
 
-    private function canEditDeptPersonnel(Personnel|Etudiant $user): bool
+    private function canEditDeptPersonnel(Personnel|Etudiant $user, mixed $subject): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
+        return $user instanceof Personnel && $this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT'
-        ]);
+        ], $subject);
     }
 
-    private function canDeleteDeptPersonnel(Personnel|Etudiant $user): bool
+    private function canDeleteDeptPersonnel(Personnel|Etudiant $user, mixed $subject): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
+        return $user instanceof Personnel && $this->effectivePermissionService->hasAnyPermissionForResource($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT'
-        ]);
+        ], $subject);
     }
 
     // ========== Rôles ==========

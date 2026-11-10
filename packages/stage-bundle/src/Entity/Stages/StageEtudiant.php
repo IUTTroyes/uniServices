@@ -31,17 +31,20 @@ use App\Filter\StageEtudiantFilter;
 #[ApiFilter(StageEtudiantFilter::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']]),
+        new Get(security: "is_granted('CAN_VIEW_STAGE', object)", normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']]),
         new GetCollection(normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']]),
         new Post(
+            securityPostDenormalize: "is_granted('CAN_EDIT_STAGE', object) and (is_granted('CAN_VALIDATE_STAGE', object) or (object.getEtatStage().value == 'ETAT_STAGE_AUTORISE' and object.getDateValidation() == null))",
             normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']],
             denormalizationContext: ['groups' => ['stage_etudiant:write']]
         ),
         new Patch(
+            security: "is_granted('CAN_EDIT_STAGE', object)",
+            securityPostDenormalize: "is_granted('CAN_EDIT_STAGE', object) and (is_granted('CAN_VALIDATE_STAGE', object) or (object.getStagePeriode() == previous_object.getStagePeriode() and object.getEtatStage() == previous_object.getEtatStage() and object.getDateValidation() == previous_object.getDateValidation()))",
             normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']],
             denormalizationContext: ['groups' => ['stage_etudiant:write']]
         ),
-        new Delete()
+        new Delete(security: "is_granted('CAN_DELETE_STAGE', object)")
     ],
     parameters: [
         'stagePeriode' => new QueryParameter(filter: StageEtudiantFilter::class),

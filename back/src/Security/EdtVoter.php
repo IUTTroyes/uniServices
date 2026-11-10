@@ -4,6 +4,7 @@ namespace App\Security;
 
 
 use App\Entity\Edt\EdtEvent;
+use App\Enum\TypeEvenementEdt;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -55,12 +56,17 @@ class EdtVoter extends Voter
         private readonly UserEffectivePermissionService $effectivePermissionService
     ) {}
 
+    public function supportsAttribute(string $attribute): bool
+    {
+        return in_array($attribute, self::SUPPORTED_ATTRIBUTES, true);
+    }
+
     /**
      * @inheritDoc
      */
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return in_array($attribute, self::SUPPORTED_ATTRIBUTES);
+        return $this->supportsAttribute($attribute);
     }
 
     /**
@@ -85,17 +91,17 @@ class EdtVoter extends Voter
             // EdtEvent
             self::CAN_VIEW_EDT => $this->canViewEdt($subject, $user),
             self::CAN_EDIT_EDT => $this->canEditEdt($subject, $user),
-            self::CAN_DELETE_EDT => $this->canDeleteEdt($user),
+            self::CAN_DELETE_EDT => $this->canDeleteEdt($subject, $user),
 
             // Contraintes
             self::CAN_VIEW_EDT_CONTRAINTES => $this->canViewContraintes($user),
-            self::CAN_EDIT_EDT_CONTRAINTES => $this->canEditContraintes($user),
-            self::CAN_DELETE_EDT_CONTRAINTES => $this->canDeleteContraintes($user),
+            self::CAN_EDIT_EDT_CONTRAINTES => false,
+            self::CAN_DELETE_EDT_CONTRAINTES => false,
 
             // Créneaux Interdits
             self::CAN_VIEW_EDT_CRENEAUX => $this->canViewCreneaux($user),
-            self::CAN_EDIT_EDT_CRENEAUX => $this->canEditCreneaux($user),
-            self::CAN_DELETE_EDT_CRENEAUX => $this->canDeleteCreneaux($user),
+            self::CAN_EDIT_EDT_CRENEAUX => false,
+            self::CAN_DELETE_EDT_CRENEAUX => false,
 
             // Progression
             self::CAN_VIEW_EDT_PROGRESSION => $this->canViewProgression($subject, $user),
@@ -122,43 +128,73 @@ class EdtVoter extends Voter
 
     private function canViewEdt(mixed $subject, Personnel|Etudiant $user): bool
     {
-        // Tout le monde peut voir l'EDT (son propre EDT)
-        return true;
+        if (!$subject instanceof EdtEvent) {
+            return false;
+        }
+
+        if ($subject->getTypeEvenement() === TypeEvenementEdt::Personnel) {
+            return $user instanceof Personnel && $subject->getPersonnel() === $user;
+        }
+
+        $group = $subject->getGroupe();
+
+        // La collection applique le même critère dans EdtEventAccessExtension.
+        return $user instanceof Personnel || ($group !== null && $user->getGroupes()->contains($group));
     }
 
     private function canEditEdt(mixed $subject, Personnel|Etudiant $user): bool
     {
-        if (!$user instanceof Personnel) {
+        if (!$user instanceof Personnel || !$subject instanceof EdtEvent) {
             return false;
         }
 
-        // Rôles avec accès complet à l'EDT
-        if ($this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN',
-            'ROLE_CHEF_DEPT',
-            'ROLE_EDT',
-            'ROLE_ASSISTANT'
-        ])) {
-            return true;
+        if ($subject->getTypeEvenement() === TypeEvenementEdt::Personnel) {
+            // Le type personnel ne peut pas servir à contourner les droits sur un cours.
+            return $subject->getPersonnel() === $user
+                && $subject->getEnseignement() === null
+                && $subject->getSemestre() === null
+                && $subject->getGroupe() === null;
         }
 
-        // Un personnel peut modifier ses propres événements
-        if ($subject instanceof EdtEvent && $subject->getPersonnel() === $user) {
-            return true;
-        }
-
-        return false;
+        return $this->hasSchedulePermission($user, $subject);
     }
 
-    private function canDeleteEdt(Personnel|Etudiant $user): bool
+    private function canDeleteEdt(mixed $subject, Personnel|Etudiant $user): bool
     {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN',
-            'ROLE_CHEF_DEPT',
-            'ROLE_EDT'
-        ]);
+        return $user instanceof Personnel && $subject instanceof EdtEvent
+            && $subject->getTypeEvenement() !== TypeEvenementEdt::Personnel
+            && $this->hasSchedulePermission($user, $subject);
+    }
+
+    private function hasSchedulePermission(Personnel $user, EdtEvent $event): bool
+    {
+        $department = $event->getSemestre()?->getDepartement();
+        $roles = ['ROLE_EDT'];
+        $groupSemesters = $event->getGroupe()?->getSemestres();
+        if ($groupSemesters !== null && !$groupSemesters->isEmpty()) {
+            foreach ($groupSemesters as $semester) {
+                if (!$this->effectivePermissionService->hasAnyPermissionInDepartment($user, $roles, $semester->getDepartement())) {
+                    return false;
+                }
+            }
+
+            if ($department === null) {
+                return true;
+            }
+        }
+
+        if ($department !== null) {
+            return $this->effectivePermissionService->hasAnyPermissionInDepartment($user, $roles, $department);
+        }
+
+        if ($event->getEnseignement() !== null) {
+            return $this->effectivePermissionService->hasAnyPermissionForTeaching($user, $event->getEnseignement(), $roles);
+        }
+
+        // Sans rattachement, seule une création locale peut utiliser le département actif.
+        return $event->getId() === null && $this->effectivePermissionService->hasAnyPermissionInDepartment(
+            $user, $roles, $this->effectivePermissionService->getActiveDepartementPersonnel($user)?->getDepartement(),
+        );
     }
 
     // ========== Contraintes ==========
@@ -169,50 +205,11 @@ class EdtVoter extends Voter
         return $user instanceof Personnel;
     }
 
-    private function canEditContraintes(Personnel|Etudiant $user): bool
-    {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN',
-            'ROLE_CHEF_DEPT',
-            'ROLE_EDT',
-            'ROLE_DIRECTEUR_ETUDES'
-        ]);
-    }
-
-    private function canDeleteContraintes(Personnel|Etudiant $user): bool
-    {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN',
-            'ROLE_EDT'
-        ]);
-    }
-
     // ========== Créneaux Interdits ==========
 
     private function canViewCreneaux(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel;
-    }
-
-    private function canEditCreneaux(Personnel|Etudiant $user): bool
-    {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN',
-            'ROLE_CHEF_DEPT',
-            'ROLE_EDT'
-        ]);
-    }
-
-    private function canDeleteCreneaux(Personnel|Etudiant $user): bool
-    {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'SUPER_ADMIN',
-            'ROLE_ADMIN',
-            'ROLE_EDT'
-        ]);
     }
 
     // ========== Progression ==========

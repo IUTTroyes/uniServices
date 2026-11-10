@@ -3,7 +3,6 @@ import { createPinia } from "pinia";
 import App from './App.vue';
 import '@styles/main.scss';
 import router from './router';
-import { initializeAppData } from '@requests/initializeData';
 import { registerPermissionDirective } from '@utils';
 import { setupInactivityTimer } from '@helpers/authService';
 import { registerAllBundleWidgets } from './widgets/registerBundleWidgets';
@@ -46,6 +45,7 @@ const app = createApp(App);
 
 registerAllBundleWidgets();
 
+app.use(pinia);
 app.use(router);
 
 app.use(PrimeVue, {
@@ -64,8 +64,6 @@ app.directive('tooltip', Tooltip);
 app.use(ToastService);
 app.use(ConfirmationService);
 
-app.use(pinia);
-
 registerPermissionDirective(app);
 
 // Ajouter un contenu temporaire avant le montage
@@ -80,7 +78,7 @@ loaderApp.mount(loadingElement);
 // Initialiser les données et monter l'application
 (async () => {
     try {
-        await initializeAppData();
+        await router.isReady();
         setupInactivityTimer();
     } catch (error) {
         console.error('Erreur lors de l\'initialisation de l\'application:', error);

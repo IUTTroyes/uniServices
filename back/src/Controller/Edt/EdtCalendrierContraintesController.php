@@ -15,7 +15,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 class EdtCalendrierContraintesController extends AbstractController
 {
     #[Route('/api/edt-calendrier-contraintes', name: 'edt_calendrier_contraintes', methods: ['POST'])]
@@ -27,8 +29,6 @@ class EdtCalendrierContraintesController extends AbstractController
         Request                          $request
     ): Response
     {
-        //todo: tester securité et droits
-
         $data = JsonRequest::getValuesFromString($request->getContent());
 
         $semestre = $structureSemestreRepository->find($data['semestreId']);
@@ -36,6 +36,9 @@ class EdtCalendrierContraintesController extends AbstractController
         if (!$semestre) {
             return $this->json(['message' => 'Semestre not found'], Response::HTTP_NOT_FOUND);
         }
+
+        $department = $semestre->getDepartement();
+        $this->denyAccessUnlessGranted($department === null ? 'IS_SUPER_ADMIN' : 'ROLE_EDT', $department);
 
         $semaine = $structureCalendrierRepository->find($data['weekId']);
 

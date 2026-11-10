@@ -19,10 +19,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new GetCollection(normalizationContext: ['groups' => ['reception:read']]),
-        new Get(normalizationContext: ['groups' => ['reception:read']]),
-        new Post(denormalizationContext: ['groups' => ['reception:write', 'finance:write']]),
-        new Patch(denormalizationContext: ['groups' => ['reception:write', 'finance:write']]),
-        new Delete()
+        new Get(security: "is_granted('CAN_VIEW_FINANCE', object)", normalizationContext: ['groups' => ['reception:read']]),
+        new Post(securityPostDenormalize: "is_granted('CAN_MANAGE_FINANCE', object)", denormalizationContext: ['groups' => ['reception:write', 'finance:write']]),
+        new Patch(security: "is_granted('CAN_MANAGE_FINANCE', object)", securityPostDenormalize: "is_granted('CAN_MANAGE_FINANCE', object)", denormalizationContext: ['groups' => ['reception:write', 'finance:write']]),
+        new Delete(security: "is_granted('CAN_MANAGE_FINANCE', object)")
     ]
 )]
 class FinanceReception

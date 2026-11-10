@@ -27,7 +27,7 @@ use Symfony\Component\Uid\Uuid;
     operations: [
         new GetCollection(normalizationContext: ['groups' => ['questionnaire_section:read']]),
         new Post(
-            read: false,
+            read: false, securityPostDenormalize: "is_granted('CAN_EDIT_QUESTION_SECTION', object)",
             normalizationContext: ['groups' => ['questionnaire_section:read']]
         ),
     ],
@@ -38,8 +38,8 @@ use Symfony\Component\Uid\Uuid;
 #[ApiResource(
     uriTemplate: '/questionnaires/{questionnaireId}/questionnaire_sections/{uuid}',
     operations: [
-        new Patch(normalizationContext: ['groups' => ['questionnaire_section:read']]),
-        new Delete(),
+        new Patch(security: "is_granted('CAN_EDIT_QUESTION_SECTION', object)", securityPostDenormalize: "is_granted('CAN_EDIT_QUESTION_SECTION', object)", normalizationContext: ['groups' => ['questionnaire_section:read']]),
+        new Delete(security: "is_granted('CAN_DELETE_QUESTION_SECTION', object)"),
     ],
     uriVariables: [
         'questionnaireId' => new Link(toProperty: 'questionnaire', fromClass: Questionnaire::class),

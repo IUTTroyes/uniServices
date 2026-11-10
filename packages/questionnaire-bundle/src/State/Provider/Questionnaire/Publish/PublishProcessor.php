@@ -2,6 +2,8 @@
 
 namespace QuestionnaireBundle\State\Provider\Questionnaire\Publish;
 
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use QuestionnaireBundle\Domain\Questionnaire\Publish\PublishQuestionnaireService;
@@ -13,6 +15,7 @@ use QuestionnaireBundle\ApiDto\Questionnaire\Publish\PublishOutputDto;
 final class PublishProcessor implements ProcessorInterface
 {
     public function __construct(
+        private readonly Security $security,
         private readonly EntityManagerInterface      $em,
         private readonly PublishQuestionnaireService $service
     )
@@ -28,6 +31,10 @@ final class PublishProcessor implements ProcessorInterface
         if (!$q) {
             throw new \RuntimeException('Questionnaire not found');
         }
+        if (!$this->security->isGranted('CAN_PUBLISH_QUESTIONNAIRE', $q)) {
+            throw new AccessDeniedException();
+        }
+
 
         $result = $this->service->publish($q, $data->recipients);
 

@@ -24,7 +24,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['pn:detail']]),
         new GetCollection(normalizationContext: ['groups' => ['pn:detail']]),
-        new Delete(),
+        new Delete(security: "is_granted('CAN_DELETE_PN', object)"),
     ],
     parameters: [
         'diplome' => new QueryParameter(filter: PnFilter::class),

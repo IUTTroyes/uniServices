@@ -3,6 +3,11 @@
 namespace App\Entity\Scolarite;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Salle;
 use App\Entity\Contracts\TimestampableInterface;
 use App\Entity\Traits\TimestampableTrait;
@@ -14,7 +19,13 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ScolEvaluationRattrapageRepository::class)]
-#[ApiResource]
+#[ApiResource(operations: [
+    new Get(),
+    new GetCollection(),
+    new Post(securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object.getEvaluation())"),
+    new Patch(security: "is_granted('CAN_EDIT_EVAL', object.getEvaluation())", securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object.getEvaluation())"),
+    new Delete(security: "is_granted('CAN_EDIT_EVAL', object.getEvaluation())"),
+])]
 class ScolEvaluationRattrapage implements TimestampableInterface
 {
     use TimestampableTrait;

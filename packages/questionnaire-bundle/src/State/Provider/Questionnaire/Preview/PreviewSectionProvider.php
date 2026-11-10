@@ -2,6 +2,8 @@
 
 namespace QuestionnaireBundle\State\Provider\Questionnaire\Preview;
 
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use QuestionnaireBundle\Domain\Questionnaire\Mapping\QuestionRuntimeMapper;
@@ -14,6 +16,7 @@ use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireSection;
 final readonly class PreviewSectionProvider implements ProviderInterface
 {
     public function __construct(
+        private Security $security,
         private EntityManagerInterface $em,
         private QuestionRuntimeMapper  $mapper
     ) {}
@@ -27,6 +30,10 @@ final readonly class PreviewSectionProvider implements ProviderInterface
         if (!$q) {
             throw new \RuntimeException('Questionnaire not found');
         }
+        if (!$this->security->isGranted('CAN_EDIT_QUESTIONNAIRE', $q)) {
+            throw new AccessDeniedException();
+        }
+
 
         // key format: tpl:12|matiere:45
         [$tplId, $repeatType, $repeatId] = $this->parseKey($key);

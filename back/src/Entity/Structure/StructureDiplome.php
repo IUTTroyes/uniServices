@@ -76,7 +76,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Patch(
             normalizationContext: ['groups' => ['diplome:detail']],
             denormalizationContext: ['groups' => ['diplome:write']],
-            securityPostDenormalize: "is_granted('CAN_EDIT_DIPLOME', object)"
+            security: "is_granted('CAN_EDIT_DIPLOME', object)", securityPostDenormalize: "is_granted('CAN_EDIT_DIPLOME', object)"
         ),
         new Delete(security: "is_granted('CAN_DELETE_DIPLOME', object)"),
     ],

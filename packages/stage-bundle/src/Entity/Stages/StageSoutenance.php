@@ -19,17 +19,20 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: StageSoutenanceRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['stage_soutenance:read']]),
+        new Get(security: "is_granted('CAN_VIEW_STAGE', object)", normalizationContext: ['groups' => ['stage_soutenance:read']]),
         new GetCollection(normalizationContext: ['groups' => ['stage_soutenance:read']]),
         new Post(
+            securityPostDenormalize: "is_granted('CAN_EDIT_STAGE', object)",
             normalizationContext: ['groups' => ['stage_soutenance:read']],
             denormalizationContext: ['groups' => ['stage_soutenance:write']]
         ),
         new Patch(
+            security: "is_granted('CAN_EDIT_STAGE', object)",
+            securityPostDenormalize: "is_granted('CAN_EDIT_STAGE', object)",
             normalizationContext: ['groups' => ['stage_soutenance:read']],
             denormalizationContext: ['groups' => ['stage_soutenance:write']]
         ),
-        new Delete()
+        new Delete(security: "is_granted('CAN_DELETE_STAGE', object)")
     ]
 )]
 class StageSoutenance implements TimestampableInterface

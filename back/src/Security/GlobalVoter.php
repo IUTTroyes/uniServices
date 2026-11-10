@@ -2,7 +2,6 @@
 
 namespace App\Security;
 
-use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
@@ -25,12 +24,17 @@ class GlobalVoter extends Voter
         private readonly UserEffectivePermissionService $effectivePermissionService
     ) {}
 
+    public function supportsAttribute(string $attribute): bool
+    {
+        return in_array($attribute, self::SUPPORTED_ATTRIBUTES, true);
+    }
+
     /**
      * @inheritDoc
      */
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return in_array($attribute, self::SUPPORTED_ATTRIBUTES);
+        return $this->supportsAttribute($attribute);
     }
 
     /**
@@ -40,35 +44,6 @@ class GlobalVoter extends Voter
     {
         $user = $token->getUser();
 
-        // L'utilisateur doit être connecté
-        if (!($user instanceof Etudiant || $user instanceof Personnel)) {
-            $vote?->addReason('L\'utilisateur n\'est pas connecté.');
-            return false;
-        }
-
-        // SUPER_ADMIN a accès à tout
-        if ($this->isSuperAdmin($user)) {
-            return true;
-        }
-
-        return match($attribute) {
-            self::IS_SUPER_ADMIN => $this->isSuperAdmin($user),
-            default => false,
-        };
-    }
-
-    // ========== Helpers ==========
-    private function hasAnyRole(Personnel $user, array $roles): bool
-    {
-        return $this->effectivePermissionService->hasAnyPermission($user, $roles);
-    }
-
-    private function isSuperAdmin(Personnel|Etudiant $user): bool
-    {
-        return $user instanceof Personnel && $this->hasAnyRole($user, [
-                'SUPER_ADMIN',
-            ]);
+        return $user instanceof Personnel && $this->effectivePermissionService->isSuperAdmin($user);
     }
 }
-
-

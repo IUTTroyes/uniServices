@@ -22,14 +22,17 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(normalizationContext: ['groups' => ['plancours:read']]),
         new GetCollection(normalizationContext: ['groups' => ['plancours:read']]),
         new Post(
+            securityPostDenormalize: "is_granted('CAN_MANAGE_PLAN_COURS', object)",
             normalizationContext: ['groups' => ['plancours:read']],
             denormalizationContext: ['groups' => ['plancours:write']]
         ),
         new Patch(
+            security: "is_granted('CAN_MANAGE_PLAN_COURS', object)",
+            securityPostDenormalize: "is_granted('CAN_MANAGE_PLAN_COURS', object)",
             normalizationContext: ['groups' => ['plancours:read']],
             denormalizationContext: ['groups' => ['plancours:write']]
         ),
-        new Delete(),
+        new Delete(security: "is_granted('CAN_MANAGE_PLAN_COURS', object)"),
     ],
     paginationEnabled: false
 )]

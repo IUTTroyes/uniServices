@@ -19,7 +19,7 @@ class DepartmentPermissionVoter extends Voter
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return !in_array($attribute, ['ROLE_PERSONNEL', 'ROLE_ETUDIANT'], true)
+        return !in_array($attribute, ['ROLE_PERSONNEL', 'ROLE_ETUDIANT', 'ROLE_RESP_PARCOURS'], true)
             && ($subject === null || $subject instanceof StructureDepartement) &&
             ($this->registry->getPermissionByRole($attribute) !== null || str_starts_with($attribute, 'ROLE_'));
     }
@@ -31,8 +31,12 @@ class DepartmentPermissionVoter extends Voter
             return false;
         }
 
+        if ($this->permissions->isSuperAdmin($user)) {
+            return true;
+        }
+
         if ($subject === null) {
-            return $this->permissions->isSuperAdmin($user) || $this->permissions->hasPermission($user, $attribute);
+            return $this->permissions->hasPermission($user, $attribute);
         }
 
         return $this->checker->checkPermission($user, $subject, $attribute);

@@ -21,8 +21,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['actu:read']]),
         new GetCollection(normalizationContext: ['groups' => ['actu:read']]),
-        new Post(),
-        new Delete()
+        new Post(securityPostDenormalize: "is_granted('CAN_MANAGE_DEPARTEMENT_ACTUALITE', object)"),
+        new Delete(security: "is_granted('CAN_MANAGE_DEPARTEMENT_ACTUALITE', object)")
     ]
 )]
 class DepartementActualite implements TimestampableInterface

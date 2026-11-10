@@ -18,17 +18,20 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: StageAvenantRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['stage_avenant:read']]),
+        new Get(security: "is_granted('CAN_VIEW_STAGE', object)", normalizationContext: ['groups' => ['stage_avenant:read']]),
         new GetCollection(normalizationContext: ['groups' => ['stage_avenant:read']]),
         new Post(
+            securityPostDenormalize: "is_granted('CAN_EDIT_STAGE', object) and (is_granted('CAN_VALIDATE_STAGE', object) or (not object.isValide() and object.getDateValidation() == null))",
             normalizationContext: ['groups' => ['stage_avenant:read']],
             denormalizationContext: ['groups' => ['stage_avenant:write']]
         ),
         new Patch(
+            security: "is_granted('CAN_EDIT_STAGE', object)",
+            securityPostDenormalize: "is_granted('CAN_EDIT_STAGE', object) and (is_granted('CAN_VALIDATE_STAGE', object) or (object.getStageEtudiant() == previous_object.getStageEtudiant() and object.isValide() == previous_object.isValide() and object.getDateValidation() == previous_object.getDateValidation()))",
             normalizationContext: ['groups' => ['stage_avenant:read']],
             denormalizationContext: ['groups' => ['stage_avenant:write']]
         ),
-        new Delete()
+        new Delete(security: "is_granted('CAN_DELETE_STAGE', object)")
     ]
 )]
 class StageAvenant implements TimestampableInterface

@@ -35,9 +35,10 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
 #[ORM\Entity(repositoryClass: EtudiantRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(requirements: ['id' => '\d+'], normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:light', 'bac:light', 'semestre:light', 'groupe:light', 'annee_univ:light']]),
+        new Get(security: "is_granted('CAN_VIEW_ETUDIANT', object)", requirements: ['id' => '\d+'], normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:light', 'bac:light', 'semestre:light', 'groupe:light', 'annee_univ:light']]),
         new Get(
             uriTemplate: '/scolarite/etudiant/{id}',
+            security: "is_granted('CAN_VIEW_ETUDIANT', object)",
             requirements: ['id' => '\d+'],
             normalizationContext: ['groups' => ['etudiant:scolarite']],
         ),

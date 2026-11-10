@@ -17,11 +17,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: FinanceFournisseurRepository::class)]
 #[ApiResource(
     operations: [
-        new GetCollection(normalizationContext: ['groups' => ['fournisseur:read']]),
-        new Get(normalizationContext: ['groups' => ['fournisseur:read']]),
-        new Post(denormalizationContext: ['groups' => ['fournisseur:write']]),
-        new Patch(denormalizationContext: ['groups' => ['fournisseur:write']]),
-        new Delete()
+        new GetCollection(security: "is_granted('ROLE_FINANCE_VIEW')", normalizationContext: ['groups' => ['fournisseur:read']]),
+        new Get(security: "is_granted('ROLE_FINANCE_VIEW')", normalizationContext: ['groups' => ['fournisseur:read']]),
+        new Post(securityPostDenormalize: "is_granted('ROLE_FINANCE_MANAGER')", denormalizationContext: ['groups' => ['fournisseur:write']]),
+        new Patch(security: "is_granted('ROLE_FINANCE_MANAGER')", securityPostDenormalize: "is_granted('ROLE_FINANCE_MANAGER')", denormalizationContext: ['groups' => ['fournisseur:write']]),
+        new Delete(security: "is_granted('ROLE_FINANCE_MANAGER')")
     ]
 )]
 class FinanceFournisseur

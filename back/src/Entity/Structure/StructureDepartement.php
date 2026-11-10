@@ -47,7 +47,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Patch(
             normalizationContext: ['groups' => ['departement:administration']],
             denormalizationContext: ['groups' => ['departement:write']],
-            securityPostDenormalize: "is_granted('CAN_EDIT_DEPARTEMENT', object)",
+            security: "is_granted('CAN_EDIT_DEPARTEMENT', object)", securityPostDenormalize: "is_granted('CAN_EDIT_DEPARTEMENT', object)",
             processor: DepartementUpdateProcessor::class
         ),
         new Delete(security: "is_granted('CAN_DELETE_DEPARTEMENT', object)"),

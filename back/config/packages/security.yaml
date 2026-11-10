@@ -73,8 +73,14 @@ security:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/token/refresh, roles: PUBLIC_ACCESS }
         - { path: ^/api/change_password, roles: PUBLIC_ACCESS }
+        - { path: ^/api/reset_password$, roles: PUBLIC_ACCESS }
         - { path: ^/api/logout, roles: PUBLIC_ACCESS }
-#        - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY }
+        - { path: '^/api/public/login-branding$', roles: PUBLIC_ACCESS, methods: [GET, HEAD] }
+        # Les invitations externes sont autorisées par leur jeton dans les providers/processors.
+        - { path: '^/api/invitations/[^/]+(?:/sections/[^/]+|/answers|/submit)?$', roles: PUBLIC_ACCESS }
+        - { path: '^/api/(actualites|agenda)$', roles: PUBLIC_ACCESS, methods: [GET, HEAD] }
+        # Protéger les ressources API Platform avant toute lecture de la base.
+        - { path: '^/api(?:/|$)', attributes: { _api_resource_class: '.+' }, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/api,       roles: PUBLIC_ACCESS }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }

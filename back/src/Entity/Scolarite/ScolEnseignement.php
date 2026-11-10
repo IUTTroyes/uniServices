@@ -39,7 +39,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: 'mini/scol_enseignements',
         ),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_ENSEIGNEMENT', object)"),
-        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_ENSEIGNEMENT', object)"),
+        new Patch(security: "is_granted('CAN_EDIT_ENSEIGNEMENT', object)", securityPostDenormalize: "is_granted('CAN_EDIT_ENSEIGNEMENT', object)"),
         new Delete(security: "is_granted('CAN_DELETE_ENSEIGNEMENT', object)"),
     ],
     parameters: [

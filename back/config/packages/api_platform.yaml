@@ -13,6 +13,7 @@ api_platform:
             - '%kernel.project_dir%/../packages/stage-bundle/src/Entity'
             - '%kernel.project_dir%/../packages/message-bundle/src/Entity'
     defaults:
+        security: "is_granted('IS_AUTHENTICATED_FULLY')"
         stateless: true
         cache_headers:
             vary: ['Content-Type', 'Authorization', 'Origin']

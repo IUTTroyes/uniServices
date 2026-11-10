@@ -25,21 +25,26 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new GetCollection(
+            security: "is_granted('IS_PERSONNEL')",
             uriTemplate: '/administration/etudiant_absence_justificatifs',
             normalizationContext: ['groups' => ['justificatif:administration']],
         ),
         new Post(
+            securityPostDenormalize: "is_granted('CAN_EDIT_JUSTIFICATIF', object)",
             uriTemplate: '/administration/etudiant_absence_justificatifs',
             denormalizationContext: ['groups' => ['justificatif:write:administration']],
             normalizationContext: ['groups' => ['justificatif:administration']],
             processor: EtudiantAbsenceJustificatifCreateProcessor::class,
         ),
         new Patch(
+            security: "is_granted('CAN_EDIT_JUSTIFICATIF', object)",
+            securityPostDenormalize: "is_granted('CAN_EDIT_JUSTIFICATIF', object)",
             uriTemplate: '/administration/etudiant_absence_justificatifs/{id}',
             denormalizationContext: ['groups' => ['justificatif:write:administration']],
             normalizationContext: ['groups' => ['justificatif:administration']],
         ),
         new Delete(
+            security: "is_granted('CAN_DELETE_JUSTIFICATIF', object)",
             uriTemplate: '/administration/etudiant_absence_justificatifs/{id}',
             normalizationContext: ['groups' => ['justificatif:administration']],
         )

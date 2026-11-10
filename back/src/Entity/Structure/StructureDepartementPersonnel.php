@@ -37,6 +37,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
         ),
         new Post(
             uriTemplate: '/structure_departement_personnels/{id}/change_departement',
+            security: "is_granted('IS_PERSONNEL') and object.getPersonnel() === user",
             inputFormats: ['json' => ['application/ld+json']],
             outputFormats: ['json' => ['application/ld+json']],
             normalizationContext: ['groups' => ['departement_personnel:read']],

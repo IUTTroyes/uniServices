@@ -23,7 +23,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: EtudiantNoteRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['note:detail']]),
+        new Get(security: "is_granted('CAN_VIEW_NOTES', object)", normalizationContext: ['groups' => ['note:detail']]),
         new GetCollection(normalizationContext: ['groups' => ['note:detail']]),
         new Post(
             normalizationContext: ['groups' => ['note:write']],
@@ -32,7 +32,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         ),
         new Patch(
             normalizationContext: ['groups' => ['note:write']],
-            securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)",
+            security: "is_granted('CAN_EDIT_NOTES', object)", securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)",
             processor: EtudiantNotePersistProcessor::class
         ),
     ],

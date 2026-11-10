@@ -23,7 +23,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(normalizationContext: ['groups' => ['ac:read']]),
         new GetCollection(normalizationContext: ['groups' => ['ac:read']]),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_APC_AC', object)"),
-        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_APC_AC', object)"),
+        new Patch(security: "is_granted('CAN_EDIT_APC_AC', object)", securityPostDenormalize: "is_granted('CAN_EDIT_APC_AC', object)"),
         new Delete(security: "is_granted('CAN_DELETE_APC_AC', object)"),
     ]
 )]

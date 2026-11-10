@@ -23,6 +23,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -75,7 +76,7 @@ class SecurityController extends AbstractController
     public function changePassword(
         Request $request,
         MailerInterface $mailer,
-        RateLimiterFactory $passwordResetLimiter
+        #[Autowire(service: 'limiter.password_reset')] RateLimiterFactory $passwordResetLimiter
     ): JsonResponse
     {
         // Rate limiting : max 3 demandes par IP par heure
@@ -155,7 +156,7 @@ class SecurityController extends AbstractController
         Request $request,
         UserPasswordHasherInterface $passwordHasher,
         ValidatorInterface $validator,
-        RateLimiterFactory $passwordResetLimiter
+        #[Autowire(service: 'limiter.password_reset')] RateLimiterFactory $passwordResetLimiter
     ): JsonResponse
     {
         // Rate limiting : protection contre le brute force
@@ -230,6 +231,7 @@ class SecurityController extends AbstractController
     }
 
     #[Route(path: '/api/me/security-context', name: 'api_me_security_context', methods: ['GET'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function getSecurityContext(
         DepartmentPermissionChecker $checker,
         StructureDepartementPersonnelRepository $sdpRepo,
@@ -328,6 +330,7 @@ class SecurityController extends AbstractController
     }
 
     #[Route(path: '/api/security/permissions', name: 'api_security_permissions', methods: ['GET'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function getPermissions(PermissionRegistry $registry): JsonResponse
     {
         $grouped = [];

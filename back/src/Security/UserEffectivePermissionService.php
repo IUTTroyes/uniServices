@@ -2,6 +2,8 @@
 
 namespace App\Security;
 
+use App\Entity\Scolarite\ScolEnseignement;
+use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
@@ -24,13 +26,23 @@ class UserEffectivePermissionService
         }
 
         $assignment = $this->getActiveDepartementPersonnel($user);
-        if ($assignment === null) return [];
-        return $this->resolver->resolveForDepartment($assignment, DiplomeScope::fromSubject($subject));
+        if ($assignment === null) {
+            return [];
+        }
+
+        $permissions = $this->resolver->resolveForDepartment($assignment, DiplomeScope::fromSubject($subject));
+        if ($subject === null && !in_array('SUPER_ADMIN', $permissions, true) && $this->isSuperAdmin($user)) {
+            $permissions[] = 'SUPER_ADMIN';
+        }
+
+        return $permissions;
     }
 
     public function hasPermission(Personnel|Etudiant $user, string $permission, mixed $subject = null): bool
     {
-        return in_array($permission, $this->getEffectivePermissions($user, $subject), true);
+        return $permission === 'SUPER_ADMIN'
+            ? $this->isSuperAdmin($user)
+            : in_array($permission, $this->getEffectivePermissions($user, $subject), true);
     }
 
     /**
@@ -82,7 +94,88 @@ class UserEffectivePermissionService
 
     public function isSuperAdmin(Personnel|Etudiant $user): bool
     {
-        return $user instanceof Personnel && $this->hasPermission($user, 'SUPER_ADMIN');
+        if (!$user instanceof Personnel) {
+            return false;
+        }
+
+        // Une affectation qui donne ce droit l’ouvre dans toute l’application.
+        foreach ($user->getDepartementsPersonnel() as $assignment) {
+            if (in_array('SUPER_ADMIN', $this->resolver->resolveForDepartment($assignment), true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Pour une écriture locale, l’affectation doit appartenir au département de la ressource.
+     *
+     * @param string[] $roles
+     */
+    public function hasAnyPermissionInDepartment(
+        Personnel $user,
+        array $roles,
+        ?StructureDepartement $department,
+        mixed $subject = null,
+    ): bool {
+        if ($department === null) {
+            return false;
+        }
+
+        $diploma = DiplomeScope::fromSubject($subject);
+        foreach ($user->getDepartementsPersonnel() as $assignment) {
+            $assignedDepartment = $assignment->getDepartement();
+            if ($assignedDepartment !== $department
+                && ($department->getId() === null || $assignedDepartment?->getId() !== $department->getId())) {
+                continue;
+            }
+
+            if (array_intersect($roles, $this->resolver->resolveForDepartment($assignment, $diploma)) !== []) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** @param string[] $roles */
+    public function hasAnyPermissionForResource(
+        Personnel $user,
+        array $roles,
+        mixed $subject,
+    ): bool {
+        $department = DepartmentScope::fromSubject($subject);
+
+        // Une nouvelle entité locale sans rattachement utilise l’affectation active.
+        // Une entité persistée sans périmètre reste réservée au super administrateur.
+        if ($department === null && is_object($subject) && is_callable([$subject, 'getId']) && $subject->getId() === null) {
+            $department = $this->getActiveDepartementPersonnel($user)?->getDepartement();
+        }
+
+        return $this->hasAnyPermissionInDepartment($user, $roles, $department, $subject);
+    }
+
+    /** @param string[] $roles */
+    public function hasAnyPermissionForTeaching(Personnel $user, ScolEnseignement $teaching, array $roles): bool
+    {
+        // getDiplome() sur l’enseignement ne représente que sa première UE.
+        $links = $teaching->getEnseignementUes();
+        if ($links->isEmpty()) {
+            return $teaching->getId() === null && $this->hasAnyPermissionInDepartment(
+                $user, $roles, $this->getActiveDepartementPersonnel($user)?->getDepartement(),
+            );
+        }
+
+        foreach ($links as $link) {
+            if (!$this->hasAnyPermissionInDepartment(
+                $user, $roles, DepartmentScope::fromSubject($link), $link,
+            )) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function getActiveDepartementPersonnel(Personnel $user): ?StructureDepartementPersonnel

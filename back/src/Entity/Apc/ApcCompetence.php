@@ -29,7 +29,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
             normalizationContext: ['groups' => ['competence:referentiel:full']]
         ),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_APC_COMPETENCE', object)"),
-        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_APC_COMPETENCE', object)"),
+        new Patch(security: "is_granted('CAN_EDIT_APC_COMPETENCE', object)", securityPostDenormalize: "is_granted('CAN_EDIT_APC_COMPETENCE', object)"),
         new Delete(security: "is_granted('CAN_DELETE_APC_COMPETENCE', object)"),
     ],
     parameters: [

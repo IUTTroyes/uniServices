@@ -21,7 +21,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(normalizationContext: ['groups' => ['niveau:read']]),
         new GetCollection(normalizationContext: ['groups' => ['niveau:read']]),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_APC_NIVEAU', object)"),
-        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_APC_NIVEAU', object)"),
+        new Patch(security: "is_granted('CAN_EDIT_APC_NIVEAU', object)", securityPostDenormalize: "is_granted('CAN_EDIT_APC_NIVEAU', object)"),
         new Delete(security: "is_granted('CAN_DELETE_APC_NIVEAU', object)"),
     ]
 )]

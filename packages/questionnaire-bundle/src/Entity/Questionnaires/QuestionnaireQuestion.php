@@ -25,7 +25,7 @@ use Symfony\Component\Uid\Uuid;
     uriTemplate: '/questionnaire_sections/{questionnaireSectionId}/questionnaire_questions',
     operations: [
         new GetCollection(),
-        new Post(read: false),
+        new Post(read: false, securityPostDenormalize: "is_granted('CAN_EDIT_QUESTION', object)"),
     ],
     uriVariables: [
         'questionnaireSectionId' => new Link(toProperty: 'section', fromClass: QuestionnaireSection::class),
@@ -33,8 +33,8 @@ use Symfony\Component\Uid\Uuid;
 )]
 #[ApiResource(
     operations: [
-        new Patch(),
-        new Delete()
+        new Patch(security: "is_granted('CAN_EDIT_QUESTION', object)", securityPostDenormalize: "is_granted('CAN_EDIT_QUESTION', object)"),
+        new Delete(security: "is_granted('CAN_DELETE_QUESTION', object)")
     ]
 )]
 #[ORM\Index(name: 'idx_question_section_ordre', columns: ['section_id', 'sort_order'])]

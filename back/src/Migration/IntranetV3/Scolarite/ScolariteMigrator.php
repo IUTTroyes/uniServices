@@ -176,9 +176,12 @@ SQL;
                     ])
                     : null;
 
-                if (null === $semestre) {
+                if (null === $scolariteSemestre) {
+                    // Réutiliser aussi une inscription créée avant la résolution du snapshot.
                     foreach ($scolarite->getScolariteSemestre() as $candidate) {
-                        if ((int) ($candidate->getLegacyContext()['semestre']['oldId'] ?? 0) === (int) $row['semestre_id']) {
+                        $candidateOldId = $candidate->getSemestre()?->getOldId()
+                            ?? $candidate->getLegacyContext()['semestre']['oldId'] ?? null;
+                        if (null !== $candidateOldId && (int) $candidateOldId === (int) $row['semestre_id']) {
                             $scolariteSemestre = $candidate;
                             break;
                         }
@@ -187,13 +190,15 @@ SQL;
 
                 if (null === $scolariteSemestre) {
                     $scolariteSemestre = new EtudiantScolariteSemestre();
-                    $scolariteSemestre
-                        ->setScolarite($scolarite)
-                        ->setSemestre($semestre);
+                    $scolarite->addScolariteSemestre($scolariteSemestre);
                     $this->entityManager->persist($scolariteSemestre);
                 }
 
-                $scolariteSemestre->setLegacyContext(null === $semestre ? [
+                if (null !== $semestre) {
+                    $scolariteSemestre->setSemestre($semestre);
+                }
+
+                $scolariteSemestre->setLegacyContext(null === $scolariteSemestre->getSemestre() ? [
                     'source' => 'intranet-v3',
                     'annee' => ['libelle' => $row['annee_libelle'] ?: null],
                     'semestre' => [

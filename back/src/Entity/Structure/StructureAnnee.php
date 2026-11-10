@@ -37,9 +37,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Patch(
             normalizationContext: ['groups' => ['annee:read']],
             denormalizationContext: ['groups' => ['annee:write']],
-            securityPostDenormalize: "is_granted('CAN_EDIT_ANNEE', object)"
+            security: "is_granted('CAN_EDIT_ANNEE', object)", securityPostDenormalize: "is_granted('CAN_EDIT_ANNEE', object)"
         ),
-        new Delete(),
+        new Delete(security: "is_granted('CAN_DELETE_ANNEE', object)"),
     ],
     parameters: [
         'departement' => new QueryParameter(filter: AnneeFilter::class),

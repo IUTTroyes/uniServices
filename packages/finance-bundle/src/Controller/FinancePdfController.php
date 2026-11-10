@@ -15,8 +15,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Twig\Environment;
 
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 class FinancePdfController extends AbstractController
 {
     public function __construct(
@@ -33,6 +35,7 @@ class FinancePdfController extends AbstractController
         if (!$commande) {
             return new Response('Demande / Bon de commande non trouvé', Response::HTTP_NOT_FOUND);
         }
+        $this->denyAccessUnlessGranted('CAN_VIEW_FINANCE', $commande);
 
         $step = $request->query->getInt('step', 0);
         if ($step < 1 || $step > 5) {
@@ -66,6 +69,7 @@ class FinancePdfController extends AbstractController
         if (!$commande) {
             return new JsonResponse(['error' => 'Demande / Bon de commande non trouvé'], Response::HTTP_NOT_FOUND);
         }
+        $this->denyAccessUnlessGranted('CAN_EDIT_FINANCE', $commande);
 
         /** @var UploadedFile|null $file */
         $file = $request->files->get('file');
@@ -75,11 +79,11 @@ class FinancePdfController extends AbstractController
 
         $mimeType = $file->getMimeType();
         $ext = strtolower((string) $file->getClientOriginalExtension());
-        if ($mimeType !== 'application/pdf' && $ext !== 'pdf') {
+        if ($mimeType !== 'application/pdf' || $ext !== 'pdf') {
             return new JsonResponse(['error' => 'Le fichier doit obligatoirement être un document PDF'], Response::HTTP_BAD_REQUEST);
         }
 
-        $uploadDir = $this->kernel->getProjectDir() . '/public/uploads/finance';
+        $uploadDir = $this->kernel->getProjectDir() . '/var/uploads/finance';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0775, true);
         }
@@ -116,13 +120,20 @@ class FinancePdfController extends AbstractController
         if (!$commande) {
             return new Response('Demande / Bon de commande non trouvé', Response::HTTP_NOT_FOUND);
         }
+        $this->denyAccessUnlessGranted('CAN_VIEW_FINANCE', $commande);
 
         $relPath = $commande->getPdfFilePath();
         if (!$relPath) {
             return new Response('Aucun document signé n\'est associé à cette demande', Response::HTTP_NOT_FOUND);
         }
 
-        $fullPath = $this->kernel->getProjectDir() . '/public/' . ltrim($relPath, '/');
+        if (!preg_match('~^uploads/finance/[a-zA-Z0-9_.-]+\.pdf$~D', $relPath)) {
+            return new Response('Fichier introuvable sur le serveur', Response::HTTP_NOT_FOUND);
+        }
+        $fullPath = $this->kernel->getProjectDir() . '/var/' . $relPath;
+        if (!is_file($fullPath)) {
+            $fullPath = $this->kernel->getProjectDir() . '/public/' . $relPath;
+        }
         if (!file_exists($fullPath)) {
             return new Response('Fichier introuvable sur le serveur', Response::HTTP_NOT_FOUND);
         }
@@ -140,6 +151,7 @@ class FinancePdfController extends AbstractController
         if (!$commande) {
             return new Response('Demande / Bon de commande non trouvé', Response::HTTP_NOT_FOUND);
         }
+        $this->denyAccessUnlessGranted('CAN_VIEW_FINANCE', $commande);
 
         $step = $request->query->getInt('step', 0);
         if ($step < 1 || $step > 5) {

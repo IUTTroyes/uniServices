@@ -3,6 +3,7 @@
 namespace App\Service\Edt;
 
 use App\Entity\Edt\EdtEvent;
+use App\Enum\TypeEvenementEdt;
 use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -69,6 +70,7 @@ class GenereSlots
         $edtEvent->setSemestre($semestre);
         $edtEvent->setAnneeUniversitaire($previsionnel->getAnneeUniversitaire());
         $edtEvent->setType($typeCours);
+        $edtEvent->setTypeEvenement(TypeEvenementEdt::Cours);
         $edtEvent->setSemaineFormation($semaine);
         $edtEvent->setEnseignement($previsionnel->getMatiere());
         $edtEvent->setLibModule($previsionnel->getMatiere()?->getLibelle());

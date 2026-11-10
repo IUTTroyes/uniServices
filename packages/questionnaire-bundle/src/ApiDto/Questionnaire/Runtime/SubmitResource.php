@@ -10,6 +10,7 @@ use QuestionnaireBundle\State\Provider\Questionnaire\Runtime\SubmitProcessor;
     operations: [
         new Post(
             uriTemplate: '/invitations/{token}/submit',
+            security: "is_granted(\'PUBLIC_ACCESS\')",
             input: false,
             output: SubmitOutput::class,
             read: false,

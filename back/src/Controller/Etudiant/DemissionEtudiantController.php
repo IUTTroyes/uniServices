@@ -7,7 +7,9 @@ use App\Repository\EtudiantScolariteRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 class DemissionEtudiantController extends AbstractController
 {
     public function __construct(
@@ -24,6 +26,8 @@ class DemissionEtudiantController extends AbstractController
         if (!$etudiantScolarite) {
             return $this->json(['message' => 'Scolarité non trouvée'], Response::HTTP_NOT_FOUND);
         }
+        $this->denyAccessUnlessGranted('CAN_EDIT_ETUDIANT_SCOLARITE', $etudiantScolarite);
+
         $etudiantScolarite->setActif(false);
         $this->etudiantScolariteRepository->save($etudiantScolarite, true);
 

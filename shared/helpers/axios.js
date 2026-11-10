@@ -37,7 +37,8 @@ const refreshToken = async () => {
 // Fonction de déconnexion
 const logout = () => {
     // Éviter les boucles de déconnexion si on est déjà sur la page de login
-    if (window.location.pathname === '/auth/login' || window.location.pathname === '/auth/login/') return;
+    const currentPath = window.location.pathname.replace(/\/+$/, '');
+    if (currentPath === '/app/auth/login' || currentPath === '/auth/login') return;
 
     // Appeler l'endpoint de logout pour supprimer les cookies côté serveur
     axios.post(`${baseURL}/api/logout`, {}, { withCredentials: true })

@@ -10,6 +10,7 @@ use QuestionnaireBundle\State\Provider\Questionnaire\Runtime\SaveAnswersProcesso
     operations: [
         new Patch(
             uriTemplate: '/invitations/{token}/answers',
+            security: "is_granted(\'PUBLIC_ACCESS\')",
             input: SaveAnswersInput::class,
             output: SaveAnswersOutput::class,
             read: false,

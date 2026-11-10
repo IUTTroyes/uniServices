@@ -3,6 +3,11 @@
 namespace IntranetBundle\Entity\Etudiant;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Structure\StructureUe;
@@ -11,7 +16,13 @@ use Doctrine\ORM\Mapping as ORM;
 use IntranetBundle\Repository\Etudiant\MoyenneUeRepository;
 
 #[ORM\Entity(repositoryClass: MoyenneUeRepository::class)]
-#[ApiResource]
+#[ApiResource(operations: [
+    new Get(),
+    new GetCollection(),
+    new Post(securityPostDenormalize: "is_granted('CAN_EDIT_SCOL', object.getEtudiantScolarite())"),
+    new Patch(security: "is_granted('CAN_EDIT_SCOL', object.getEtudiantScolarite())", securityPostDenormalize: "is_granted('CAN_EDIT_SCOL', object.getEtudiantScolarite())"),
+    new Delete(security: "is_granted('CAN_EDIT_SCOL', object.getEtudiantScolarite())"),
+])]
 class MoyenneUe
 {
     #[ORM\Id]

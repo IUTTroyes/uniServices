@@ -14,8 +14,10 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/intranet/export')]
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 class ListingEtudiantExportController extends AbstractController
 {
     public function __construct(
@@ -47,6 +49,10 @@ class ListingEtudiantExportController extends AbstractController
             return new JsonResponse(['error' => 'Aucun semestre associé à ce groupe'], Response::HTTP_BAD_REQUEST);
         }
 
+        if (!$groupe->getSemestres()->contains($semestre)) {
+            return new JsonResponse(['error' => 'Ce groupe ne fait pas partie du semestre demandé'], Response::HTTP_BAD_REQUEST);
+        }
+        $this->checkSemesterAccess($semestre);
         $format = (string) $request->query->get('format', 'pdf');
 
         return $this->exportService->exportListing($semestre, [$groupe], $format);
@@ -63,6 +69,7 @@ class ListingEtudiantExportController extends AbstractController
             return new JsonResponse(['error' => 'Semestre introuvable'], Response::HTTP_NOT_FOUND);
         }
 
+        $this->checkSemesterAccess($semestre);
         $type = $request->query->get('type');
         $groupeId = $request->query->get('groupeId') ? (int) $request->query->get('groupeId') : null;
         $format = (string) $request->query->get('format', 'pdf');
@@ -86,6 +93,7 @@ class ListingEtudiantExportController extends AbstractController
             return new JsonResponse(['error' => 'Semestre introuvable'], Response::HTTP_NOT_FOUND);
         }
 
+        $this->checkSemesterAccess($semestre);
         $type = $request->query->get('type');
         $groupeId = $request->query->get('groupeId') ? (int) $request->query->get('groupeId') : null;
 
@@ -111,6 +119,7 @@ class ListingEtudiantExportController extends AbstractController
             return new JsonResponse(['error' => 'Semestre introuvable'], Response::HTTP_BAD_REQUEST);
         }
 
+        $this->checkSemesterAccess($semestre);
         $groupeId = !empty($payload['groupeId']) ? (int) $payload['groupeId'] : null;
         $type = !empty($payload['type']) ? (string) $payload['type'] : null;
         $format = (string) ($payload['format'] ?? 'xlsx');
@@ -123,4 +132,14 @@ class ListingEtudiantExportController extends AbstractController
 
         return $this->exportService->exportPersonnalise($semestre, $groupes, $champs, $format);
     }
+
+    private function checkSemesterAccess(StructureSemestre $semester): void
+    {
+        $department = $semester->getDepartement();
+        if (!$this->isGranted('CAN_EDIT_SEMESTRE', $semester)
+            && ($department === null || !$this->isGranted('ROLE_SCOLARITE', $department))) {
+            throw $this->createAccessDeniedException();
+        }
+    }
+
 }

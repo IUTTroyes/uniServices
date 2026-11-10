@@ -40,12 +40,16 @@ use Symfony\Component\Serializer\Attribute\Groups;
             normalizationContext: ['groups' => ['ticket:read']],
         ),
         new Get(
+            security: "is_granted('CAN_VIEW_TICKET', object)",
             normalizationContext: ['groups' => ['ticket:read']],
         ),
         new Patch(
+            security: "is_granted('CAN_EDIT_TICKET', object)",
+            securityPostDenormalize: "is_granted('CAN_EDIT_TICKET', object)",
             normalizationContext: ['groups' => ['ticket:write']],
         ),
         new Delete(
+            security: "is_granted('CAN_DELETE_TICKET', object)",
             normalizationContext: ['groups' => ['ticket:delete']],
         )
     ],

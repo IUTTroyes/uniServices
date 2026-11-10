@@ -14,7 +14,7 @@ const userStore = useUsersStore();
 const anneeUnivStore = useAnneeUnivStore();
 const date = new Date();
 const etablissementStore = useEtablissementStore();
-const departement = userStore.departementDefaut;
+const departementLabel = computed(() => userStore.departementDefaut?.libelle || 'votre département');
 
 defineProps({
   appName: {
@@ -186,19 +186,19 @@ watch(() => route.path, async (newPath, oldPath) => {
 </script>
 
 <template>
-  <main>
+  <main class="portal-page">
     <TopbarComponent :app-name :logo-url/>
 
-    <RouterView class="mt-28 mx-10"/>
+    <RouterView class="mx-4 lg:mx-10"/>
     <div v-if="!route.path.includes('/portail/widgets')" class="px-4 lg:px-10">
       <div class="grid grid-cols-12 gap-4">
-        <aside class="col-span-12 lg:col-span-2 pt-28 pb-14 lg:h-screen">
+        <aside class="col-span-12 lg:col-span-2 portal-column pb-8">
           <div class="card card-body h-full overflow-y-auto flex flex-col">
             <div class="flex flex-col gap-4">
               <div class="flex items-center justify-between gap-3">
-                <h2 id="portail-applications-title" class="m-0! text-base! font-semibold">Mes applications</h2>
+                <h2 id="portail-applications-title" class="m-0! text-base! font-semibold">Vos applications pour ce département</h2>
               </div>
-              <p class="m-0! text-sm text-muted-color">Retrouvez les outils de votre espace de travail.</p>
+              <p class="m-0! text-sm text-muted-color">Les applications disponibles dépendent de vos droits dans le département {{ departementLabel }}.</p>
               <GlobalLoader v-if="isLoadingBundles" text="Chargement des applications..."/>
               <nav v-else-if="activatedBundles.length" aria-labelledby="portail-applications-title" class="flex flex-col gap-3">
                 <a
@@ -232,17 +232,17 @@ watch(() => route.path, async (newPath, oldPath) => {
                 </div>
               </nav>
               <Message v-else severity="info">
-                Aucune application accessible dans cet espace. Contactez votre administrateur pour faire vérifier vos accès.
+                Aucune application accessible dans le département {{ departementLabel }}. Contactez votre administrateur pour faire vérifier vos accès.
               </Message>
             </div>
           </div>
         </aside>
 
-        <section class="col-span-12 lg:col-span-10 pt-28 pb-14 h-screen">
+        <section class="col-span-12 lg:col-span-10 portal-column pb-8">
           <div class="h-full overflow-y-auto">
             <HeaderComponent
                 icon="pi pi-home"
-                :titre="`Portail - ${departement.libelle}`"
+                :titre="`Espace ${departementLabel}`"
                 description="Accédez à vos applications et personnalisez votre tableau de bord"
             />
             <div v-if="!userStore.isLoading" class="flex items-center justify-between mb-4">
@@ -365,6 +365,16 @@ watch(() => route.path, async (newPath, oldPath) => {
 </template>
 
 <style scoped>
+.portal-page {
+  padding-top: calc(var(--layout-header-height, 4rem) + 2rem);
+}
+
+@media (min-width: 1024px) {
+  .portal-column {
+    height: calc(100dvh - var(--layout-header-height, 4rem) - 2rem);
+  }
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
