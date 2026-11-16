@@ -10,6 +10,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Scolarite\ScolEvaluationRattrapage;
 use App\Entity\Traits\OldIdTrait;
+use App\Enum\TypeSalleEnum;
 use App\Repository\SalleRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -46,9 +47,9 @@ class Salle
     #[Groups(['salle:detail'])]
     private ?int $capacite = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(length: 255, nullable: true, enumType: TypeSalleEnum::class)]
     #[Groups(['salle:detail'])]
-    private ?string $type = null;
+    private ?TypeSalleEnum $type = null;
 
     /**
      * @var Collection<int, ScolEvaluationRattrapage>
@@ -90,12 +91,12 @@ class Salle
         return $this;
     }
 
-    public function getType(): ?string
+    public function getType(): ?TypeSalleEnum
     {
         return $this->type;
     }
 
-    public function setType(?string $type): static
+    public function setType(?TypeSalleEnum $type): static
     {
         $this->type = $type;
 
