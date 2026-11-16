@@ -61,5 +61,3 @@ La migration :
 Les vérifications de données précèdent les DDL. Un calendrier incohérent doit être corrigé avant reprise ; aucune date arbitraire n’est inventée. Les années sans calendrier restent non configurées. La migration MySQL n’est pas transactionnelle ; sa restauration nécessite une sauvegarde, notamment pour retrouver les anciens identifiants. Les éventuelles tables historiques sans entité Doctrine restent hors du modèle courant.
 
 Le migrateur V3 `CalendrierMigrator` conserve son nom et sa dépendance aux années universitaires, mais reprend uniquement la date de référence annuelle. Il vérifie également la continuité et refuse d’écraser une date configurée différente.
-
-Tests : `tests/Calendrier/CalendrierUniversitaireServiceTest.php`.

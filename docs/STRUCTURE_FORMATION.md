@@ -185,3 +185,7 @@ Pour 2027–2028, le même diplôme peut avoir un autre PN, avec ses propres ann
 - [Scolarité annuelle](../back/src/Entity/Etudiant/EtudiantScolarite.php) et [inscription semestrielle](../back/src/Entity/Etudiant/EtudiantScolariteSemestre.php)
 - [Initialisation d’une année universitaire](../back/src/State/Processor/AnneeUniv/AnneeUnivInitProcessor.php)
 - [Résolution des permissions départementales et par diplôme](../back/src/Security/PermissionResolver.php)
+
+## Calendrier universitaire
+
+Le calendrier se calcule depuis `StructureAnneeUniversitaire.dateDebutSemaineFormation`, jusqu’au 31 août N+1 inclus. Les vacances ne suspendent pas le compteur. Les semaines ne sont plus stockées dans une entité dédiée. Voir [le fonctionnement et la reprise historique](CALENDRIER_UNIVERSITAIRE.md).
