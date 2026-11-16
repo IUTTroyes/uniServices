@@ -22,7 +22,6 @@ use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Contracts\TimestampableInterface;
 use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OldIdTrait;
-use App\Entity\Users\Personnel;
 use App\Repository\Structure\StructureAnneeUniversitaireRepository;
 use App\State\Processor\AnneeUniv\AnneeUnivInitProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -93,12 +92,6 @@ class StructureAnneeUniversitaire implements TimestampableInterface
     #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'anneeUniversitaire', orphanRemoval: true, cascade: ['remove'])]
     private Collection $pns;
 
-    /**
-     * @var Collection<int, Personnel>
-     */
-    #[ORM\OneToMany(targetEntity: Personnel::class, mappedBy: 'anneeUniversitaire')]
-    private Collection $personnels;
-
     #[ORM\Column]
     #[Groups(['annee_universitaire:detail', 'annee_universitaire:write', 'maquette:detail', 'pn:read', 'scolarite:read', 'etudiant:read', 'scolarite:user', 'stage_periode:read'])]
     private bool $actif = false;
@@ -148,7 +141,6 @@ class StructureAnneeUniversitaire implements TimestampableInterface
     {
         $this->scolarites = new ArrayCollection();
         $this->pns = new ArrayCollection();
-        $this->personnels = new ArrayCollection();
         $this->evaluations = new ArrayCollection();
         $this->edtEvents = new ArrayCollection();
 
@@ -254,36 +246,6 @@ class StructureAnneeUniversitaire implements TimestampableInterface
             // set the owning side to null (unless already changed)
             if ($pn->getAnneeUniversitaire() === $this) {
                 $pn->setAnneeUniversitaire(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Personnel>
-     */
-    public function getPersonnels(): Collection
-    {
-        return $this->personnels;
-    }
-
-    public function addPersonnel(Personnel $personnel): static
-    {
-        if (!$this->personnels->contains($personnel)) {
-            $this->personnels->add($personnel);
-            $personnel->setAnneeUniversitaire($this);
-        }
-
-        return $this;
-    }
-
-    public function removePersonnel(Personnel $personnel): static
-    {
-        if ($this->personnels->removeElement($personnel)) {
-            // set the owning side to null (unless already changed)
-            if ($personnel->getAnneeUniversitaire() === $this) {
-                $personnel->setAnneeUniversitaire(null);
             }
         }
 

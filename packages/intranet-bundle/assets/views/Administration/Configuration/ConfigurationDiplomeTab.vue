@@ -26,10 +26,8 @@ const toast = useToast();
 const selectedDiplomeId = ref(null);
 const loadingKeys = ref({});
 
-// Filtrer uniquement les diplômes actifs
-const activeDiplomes = computed(() => {
-  return (props.diplomes || []).filter(d => d.actif !== false);
-});
+// La liste fournie est limitée aux diplômes ayant un PN pour l’année sélectionnée.
+const activeDiplomes = computed(() => props.diplomes || []);
 
 // Sélectionner par défaut le premier diplôme actif
 watch(activeDiplomes, (list) => {

@@ -21,7 +21,6 @@ use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
 use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use App\Entity\Scolarite\ScolEvaluation;
-use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Contracts\TimestampableInterface;
@@ -140,10 +139,6 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'assistantDiplome')]
     #[Groups(['personnel:detail', 'personnel:config'])]
     private Collection $assistantDiplome;
-
-    #[ORM\ManyToOne(inversedBy: 'personnels')]
-    #[Groups(['personnel:detail'])]
-    private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
     #[Groups(['personnel:detail'])]
@@ -461,18 +456,6 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
                 $assistantDiplome->setAssistantDiplome(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getAnneeUniversitaire(): ?StructureAnneeUniversitaire
-    {
-        return $this->anneeUniversitaire;
-    }
-
-    public function setAnneeUniversitaire(?StructureAnneeUniversitaire $anneeUniversitaire): static
-    {
-        $this->anneeUniversitaire = $anneeUniversitaire;
 
         return $this;
     }

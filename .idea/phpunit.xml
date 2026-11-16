@@ -4,7 +4,12 @@
     <option name="directories">
       <list>
         <option value="$PROJECT_DIR$/backend/tests" />
+        <option value="$PROJECT_DIR$/tests" />
         <option value="$PROJECT_DIR$/packages/message-bundle/tests" />
+        <option value="$PROJECT_DIR$/packages/unifolio-bundle/tests" />
+        <option value="$PROJECT_DIR$/packages/stage-bundle/tests" />
+        <option value="$PROJECT_DIR$/packages/questionnaire-bundle/tests" />
+        <option value="$PROJECT_DIR$/packages/finance-bundle/tests" />
       </list>
     </option>
   </component>

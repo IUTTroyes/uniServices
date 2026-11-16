@@ -10,7 +10,6 @@ export interface StructureDiplomeFields {
     volumeHoraire: number;
     codeCelcatDepartement?: number | null;
     sigle?: string | null;
-    actif: boolean;
     parent?: (string | StructureDiplome | null);
     enfants?: (string[] | StructureDiplome[]);
     logoPartenaireName?: string | null;

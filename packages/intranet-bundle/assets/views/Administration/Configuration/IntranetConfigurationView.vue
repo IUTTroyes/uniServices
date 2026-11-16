@@ -37,10 +37,10 @@ const personnels = ref([]);
 
 const currentDeptId = computed(() => userStore.departementDefaut?.id);
 
-// Filtrer uniquement les éléments actifs
-const activeDiplomes = computed(() => {
-  return (allDiplomes.value || []).filter(d => d.actif !== false);
-});
+// Le filtre API annéeUniversitaire sélectionne les diplômes via leurs PN.
+const activeDiplomes = computed(() => allDiplomes.value || []);
+const currentAnneeUnivId = computed(() => anneeUnivStore.selectedAnneeUniv?.id
+  ?? anneeUnivStore.anneesUniv?.find(annee => annee.actif === true)?.id);
 
 const activeAnnees = computed(() => {
   return (allAnnees.value || []).filter(a => a.actif === true);
@@ -69,10 +69,18 @@ const loadConfigurationData = async () => {
       await anneeUnivStore.getAllAnneesUniv();
     }
 
-    // 3. Charger diplômes, années, semestres (uniquement actifs) et personnels en parallèle
+    if (!currentAnneeUnivId.value) {
+      throw new Error('Aucune année universitaire sélectionnée ou active.');
+    }
+    const formationParams = {
+      departement: currentDeptId.value,
+      anneeUniversitaire: currentAnneeUnivId.value,
+    };
+
+    // 3. Limiter les formations aux PN de l’année universitaire sélectionnée.
     const [diplomesData, anneesData, semestresData, personnelsData] = await Promise.all([
-      getDiplomesService({ departement: currentDeptId.value }),
-      getAnneesService({ departement: currentDeptId.value, actif: true }),
+      getDiplomesService(formationParams),
+      getAnneesService({ ...formationParams, actif: true }),
       getDepartementSemestresService(currentDeptId.value, true),
       getPersonnelsService({ departement: currentDeptId.value, pagination: false }).catch(() => [])
     ]);
@@ -94,10 +102,8 @@ onMounted(async () => {
   await loadConfigurationData();
 });
 
-watch(currentDeptId, async (newDeptId) => {
-  if (newDeptId) {
-    await loadConfigurationData();
-  }
+watch([currentDeptId, () => anneeUnivStore.selectedAnneeUniv?.id], async () => {
+  await loadConfigurationData();
 });
 
 const onDepartementUpdated = (updatedInfo) => {

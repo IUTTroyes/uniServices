@@ -9,23 +9,31 @@ Pour chaque migrateur, noter le constat, la correction attendue et, si possible,
 [Code source](../back/src/Migration/IntranetV3/Users/EtudiantMigrator.php)
 
 - **Constat**
+    - Pas d'accès aux applis
 - **Correction attendue**
+    - Ajouter les droits d'accès à l'intranet
 - **Exemple ou contrôle**
+    - etudiant.applications = ['intranet']
 
 ### PersonnelDepartementMigrator
 
 [Code source](../back/src/Migration/IntranetV3/Users/PersonnelDepartementMigrator.php)
 
 - **Constat**
+    - Les différentes permissions ne sont pas toujours correctement atribuées (peut-être un problème d'affectation dans la V3)
 - **Correction attendue**
+    - Révision des permissions et de l'affectation des personnels aux départements après transfert (BIATSS & ENSEIGNANTS).
 - **Exemple ou contrôle**
+    - Demande aux départements d'effectuer un contrôle de leurs personnels et de leurs permissions au lancement de l'application.
 
 ### PersonnelMigrator
 
 [Code source](../back/src/Migration/IntranetV3/Users/PersonnelMigrator.php)
 
 - **Constat**
+    - ~~Liaison à une année universitaire = osbsolète~~
 - **Correction attendue**
+    - ~~Supprimer la liaison à l'année universitaire~~
 - **Exemple ou contrôle**
 
 ## Structure

@@ -2,24 +2,17 @@
 
 namespace App\Migration\IntranetV3\Users;
 
-use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Users\Personnel;
 use App\Enum\StatutEnum;
 use App\Migration\IntranetV3\AbstractMigrator;
 use App\Migration\IntranetV3\MigrationContext;
 use App\Migration\IntranetV3\MigrationResult;
-use App\Migration\IntranetV3\Structure\AnneeUniversitaireMigrator;
 
 final class PersonnelMigrator extends AbstractMigrator
 {
     public function getName(): string
     {
         return 'personnels';
-    }
-
-    public function getDependencies(): array
-    {
-        return [AnneeUniversitaireMigrator::class];
     }
 
     public function migrate(MigrationContext $context): MigrationResult
@@ -31,7 +24,7 @@ final class PersonnelMigrator extends AbstractMigrator
 
         $sql = <<<'SQL'
 SELECT
-    id, username, mail_univ, mail_perso, prenom, nom, photo_name, annee_universitaire_id,
+    id, username, mail_univ, mail_perso, prenom, nom, photo_name,
     statut, poste_interne, tel_bureau, responsabilites, domaines, entreprise,
     bureau1, bureau2, numero_harpege, initiales, nb_heures_service,
     site_perso, site_univ, id_edu_sign, deleted
@@ -43,7 +36,6 @@ SQL;
         foreach ($rows as $row) {
             try {
                 $repository = $this->entityManager->getRepository(Personnel::class);
-                $anneeRepository = $this->entityManager->getRepository(StructureAnneeUniversitaire::class);
 
                 $entity = $repository->findOneBy(['oldId' => (int) $row['id']]);
                 $isNew = null === $entity;
@@ -88,10 +80,6 @@ SQL;
 
                 if (method_exists($entity, 'setMailPerso')) {
                     $entity->setMailPerso($row['mail_perso']);
-                }
-
-                if (null !== $row['annee_universitaire_id']) {
-                    $entity->setAnneeUniversitaire($anneeRepository->findOneBy(['oldId' => (int) $row['annee_universitaire_id']]));
                 }
 
                 if ($isNew) {
