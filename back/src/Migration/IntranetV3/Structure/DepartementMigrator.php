@@ -43,7 +43,6 @@ final class DepartementMigrator extends AbstractMigrator
                         'materiel' => (bool) $row['opt_materiel'],
                         'edt' => (bool) $row['opt_edt'],
                         'stage' => (bool) $row['opt_stage'],
-                        'resp_ri' => null !== $row['respri_id'] ? (string) $row['respri_id'] : '',
                     ]);
 
                 if ($isNew) {

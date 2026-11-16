@@ -83,11 +83,6 @@ services:
       - "../src/Notification/NotificationType.php"
       - "../src/Notification/NotificationEmailDefinition.php"
 
-  App\DataProvider\SingleRecordDataProvider:
-    arguments:
-      $entityManager: "@doctrine.orm.entity_manager"
-    tags: ["api_platform.state_provider"]
-
   App\Service\Pdf\PdfExportService:
     public: true
 

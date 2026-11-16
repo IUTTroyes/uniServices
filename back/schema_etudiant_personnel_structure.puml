@@ -231,14 +231,7 @@ entity structure_annee_universitaire {
 * created: datetime_immutable
  updated: datetime
  old_id: integer
-}
-entity structure_calendrier {
-* id: integer
---
- annee_universitaire_id: integer
-* semaine_formation: integer
-* semaine_reelle: integer
-* date_lundi: datetime
+ date_debut_semaine_formation: date_immutable
 }
 entity structure_departement {
 * id: integer
@@ -382,7 +375,6 @@ personnel_enseignant_hrs }o--|| personnel_enseignant_type_hrs
 scol_evaluation_personnel }o--|| personnel
 stage_periode_structure_semestre }o--|| structure_semestre
 structure_annee }o--o| structure_pn
-structure_calendrier }o--o| structure_annee_universitaire
 structure_departement_personnel }o--|| personnel
 structure_departement_personnel }o--o| structure_departement
 structure_diplome }o--o| personnel

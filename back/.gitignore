@@ -19,3 +19,6 @@ phpstan.dist.neon
 ###< phpstan/phpstan ###
 
 .idea/
+
+# Calendrier universitaire calculé et reprise des correspondances historiques.
+!/migrations/Version20261116150000.php

@@ -43,7 +43,9 @@ Pour chaque migrateur, noter le constat, la correction attendue et, si possible,
 [Code source](../back/src/Migration/IntranetV3/Structure/AnneeMigrator.php)
 
 - **Constat**
+    - On a un PN créé pour chaque Diplome pour l'année universitaire 26/27 sans distinction si il existe encore ou pas.
 - **Correction attendue**
+    - Utiliser les proriétés actif et anneeUniversitaire pour ne créer que les PN pertinents. Et peut-être reconstruire l'historique, au moins 25/26 ?
 - **Exemple ou contrôle**
 
 ### AnneeUniversitaireMigrator
@@ -58,16 +60,18 @@ Pour chaque migrateur, noter le constat, la correction attendue et, si possible,
 
 [Code source](../back/src/Migration/IntranetV3/Structure/CalendrierMigrator.php)
 
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
+- **Constat** : le calendrier est calculé depuis une date de référence annuelle.
+- **Correction attendue** : reprendre uniquement `dateDebutSemaineFormation` sur l’année, sans recréer de lignes hebdomadaires.
+- **Exemple ou contrôle** : vérifier la continuité, les lundis et la borne du 31 août N+1. Voir [le calendrier calculé](CALENDRIER_UNIVERSITAIRE.md).
 
 ### DepartementMigrator
 
 [Code source](../back/src/Migration/IntranetV3/Structure/DepartementMigrator.php)
 
 - **Constat**
+    - ~~On récupère "resp_ri" dans la propriété opt mais on devrait le gérer dans la propriété permissions de département_personnel.~~
 - **Correction attendue**
+    - ~~Retrait de cette information de la propriété opt.~~
 - **Exemple ou contrôle**
 
 ### DiplomeMigrator
@@ -75,7 +79,9 @@ Pour chaque migrateur, noter le constat, la correction attendue et, si possible,
 [Code source](../back/src/Migration/IntranetV3/Structure/DiplomeMigrator.php)
 
 - **Constat**
+    - On récupère "resp_qualite" dans la propriété opt
 - **Correction attendue**
+    - Gérer dans la table departement_personnel_parcours_diplome **implique d'ajouter des propriétés à la table relationnelle departement_personnel_parcours_diplome pour gérer les permissions.**
 - **Exemple ou contrôle**
 
 ### GroupeMigrator
@@ -83,13 +89,24 @@ Pour chaque migrateur, noter le constat, la correction attendue et, si possible,
 [Code source](../back/src/Migration/IntranetV3/Structure/GroupeMigrator.php)
 
 - **Constat**
+    - ~~idEduSign pas repris~~
+    - Les groupes ne sont pas répartis correctement dans les semestres.
 - **Correction attendue**
+    - ~~Reprendre idEduSign~~
+    - Revoir la répartition des groupes dans les semestres (peut-être via groupe.apc_parcours de la v3 ??).
 - **Exemple ou contrôle**
+    - Exemple en GEA le semestre S4 GEMA FI contient les groupes de TD :
+        - BUT2 GCFF S4
+        - BUT2 GEMA S4 A
+        - BUT2 GPRH S4
+        - BUT2 GEMA ALT S4
+        - BUT2 GEMA S4 B
 
 ### PnMigrator
 
 [Code source](../back/src/Migration/IntranetV3/Structure/PnMigrator.php)
 
+- cf. AnneeMigrator
 - **Constat**
 - **Correction attendue**
 - **Exemple ou contrôle**

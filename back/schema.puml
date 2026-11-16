@@ -71,7 +71,7 @@ entity edt_contraintes_semestre {
 entity edt_creneaux_interdits_semaine {
 * id: integer
 --
- semaine_id: integer
+ date_lundi: date
  annee_universitaire_id: integer
 * restricted_slots: json
 }
@@ -497,14 +497,7 @@ entity structure_annee_universitaire {
 * created: datetime_immutable
  updated: datetime
  old_id: integer
-}
-entity structure_calendrier {
-* id: integer
---
- annee_universitaire_id: integer
-* semaine_formation: integer
-* semaine_reelle: integer
-* date_lundi: datetime
+ date_debut_semaine_formation: date_immutable
 }
 entity structure_departement {
 * id: integer
@@ -561,7 +554,6 @@ entity structure_groupe {
 * id: integer
 --
  parent_id: integer
- parcours_id: integer
 * libelle: string
 * type: string
  ordre: integer
@@ -630,7 +622,6 @@ apc_referentiel }o--o| structure_type_diplome
 apc_referentiel }o--o| structure_departement
 edt_contraintes_semestre }o--o| structure_annee_universitaire
 edt_contraintes_semestre }o--o| structure_semestre
-edt_creneaux_interdits_semaine }o--o| structure_calendrier
 edt_creneaux_interdits_semaine }o--o| structure_annee_universitaire
 edt_event }o--o| personnel
 edt_event }o--o| structure_annee_universitaire
@@ -696,7 +687,6 @@ stage_periode_structure_semestre }o--|| stage_periode
 stage_periode_structure_semestre }o--|| structure_semestre
 structure_annee }o--o| structure_pn
 structure_annee }o--o| apc_niveau
-structure_calendrier }o--o| structure_annee_universitaire
 structure_departement_personnel }o--|| personnel
 structure_departement_personnel }o--o| structure_departement
 structure_diplome }o--o| personnel
@@ -706,7 +696,6 @@ structure_diplome }o--o| structure_diplome
 structure_diplome }o--o| apc_referentiel
 structure_diplome }o--o| structure_departement
 structure_diplome }o--o| personnel
-structure_groupe }o--o| apc_parcours
 structure_groupe }o--o| structure_groupe
 structure_groupe_structure_semestre }o--|| structure_semestre
 structure_groupe_structure_semestre }o--|| structure_groupe
