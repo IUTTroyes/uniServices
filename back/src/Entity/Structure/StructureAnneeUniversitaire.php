@@ -29,6 +29,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: StructureAnneeUniversitaireRepository::class)]
 #[ApiResource(
@@ -76,6 +78,36 @@ class StructureAnneeUniversitaire implements TimestampableInterface
     #[Groups(['annee_universitaire:detail', 'annee_universitaire:write', 'scolarite:read', 'annee-univ:light', 'annee_univ:light', 'stage_periode:read'])]
     private int $annee;
 
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    #[Groups(['annee_universitaire:detail', 'annee_universitaire:write'])]
+    private ?\DateTimeImmutable $dateDebutSemaineFormation = null;
+
+    public function getDateDebutSemaineFormation(): ?\DateTimeImmutable
+    {
+        return $this->dateDebutSemaineFormation;
+    }
+
+    public function setDateDebutSemaineFormation(?\DateTimeImmutable $date): static
+    {
+        $this->dateDebutSemaineFormation = $date?->setTime(0, 0);
+        return $this;
+    }
+
+    #[Assert\Callback]
+    public function validateDebutCalendrier(ExecutionContextInterface $context): void
+    {
+        $date = $this->dateDebutSemaineFormation;
+        if ($date === null) return;
+        if ($date->format('N') !== '1') {
+            $context->buildViolation('La semaine de formation n°1 doit commencer un lundi.')
+                ->atPath('dateDebutSemaineFormation')->addViolation();
+        }
+        if ($date->format('Y-m-d') > sprintf('%d-08-31', $this->annee + 1)) {
+            $context->buildViolation('Le début doit précéder la fin de l’année universitaire au 31 août N+1.')
+                ->atPath('dateDebutSemaineFormation')->addViolation();
+        }
+    }
+
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(['annee_universitaire:write'])]
     private ?string $commentaire = null;
@@ -109,12 +141,6 @@ class StructureAnneeUniversitaire implements TimestampableInterface
     private Collection $edtEvents;
 
     /**
-     * @var Collection<int, StructureCalendrier>
-     */
-    #[ORM\OneToMany(targetEntity: StructureCalendrier::class, mappedBy: 'anneeUniversitaire')]
-    private Collection $calendriers;
-
-    /**
      * @var Collection<int, Previsionnel>
      */
     #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'anneeUniversitaire')]
@@ -145,7 +171,6 @@ class StructureAnneeUniversitaire implements TimestampableInterface
         $this->edtEvents = new ArrayCollection();
 
         $this->annee = (int) date('Y');
-        $this->calendriers = new ArrayCollection();
         $this->previsionnels = new ArrayCollection();
         $this->enseignantHrs = new ArrayCollection();
         $this->legacyDiplomes = new ArrayCollection();
@@ -318,36 +343,6 @@ class StructureAnneeUniversitaire implements TimestampableInterface
             // set the owning side to null (unless already changed)
             if ($edtEvent->getAnneeUniversitaire() === $this) {
                 $edtEvent->setAnneeUniversitaire(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, StructureCalendrier>
-     */
-    public function getCalendriers(): Collection
-    {
-        return $this->calendriers;
-    }
-
-    public function addCalendrier(StructureCalendrier $calendrier): static
-    {
-        if (!$this->calendriers->contains($calendrier)) {
-            $this->calendriers->add($calendrier);
-            $calendrier->setAnneeUniversitaire($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCalendrier(StructureCalendrier $calendrier): static
-    {
-        if ($this->calendriers->removeElement($calendrier)) {
-            // set the owning side to null (unless already changed)
-            if ($calendrier->getAnneeUniversitaire() === $this) {
-                $calendrier->setAnneeUniversitaire(null);
             }
         }
 

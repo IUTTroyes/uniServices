@@ -9,7 +9,6 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Post;
-use App\Entity\Apc\ApcParcours;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Traits\ApogeeTrait;
@@ -102,10 +101,6 @@ class StructureGroupe
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', cascade: ['persist', 'remove'])]
     #[Groups(['groupe:detail', 'edt_event:read:agenda', 'groupe:structure'])]
     private ?Collection $enfants;
-
-    #[ORM\ManyToOne(targetEntity: ApcParcours::class, inversedBy: 'groupes')]
-    #[Groups(['groupe:detail', 'groupe:structure'])]
-    private ?ApcParcours $parcours = null;
 
     /**
      * @var Collection<int, EdtEvent>
@@ -240,18 +235,6 @@ class StructureGroupe
                 $enfant->setParent(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getParcours(): ?ApcParcours
-    {
-        return $this->parcours;
-    }
-
-    public function setParcours(?ApcParcours $parcours): static
-    {
-        $this->parcours = $parcours;
 
         return $this;
     }

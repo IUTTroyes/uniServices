@@ -5,62 +5,51 @@ declare(strict_types=1);
 namespace App\Controller\Edt;
 
 use App\Entity\Edt\EdtContraintesSemestre;
-use App\Repository\Edt\EdtContraintesSemestreRepository;
-use App\Repository\Structure\StructureCalendrierRepository;
 use App\Repository\Structure\StructureSemestreRepository;
-use App\Utils\JsonRequest;
-use App\Utils\JsonResponse;
+use App\Service\Calendrier\CalendrierUniversitaireService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
-class EdtCalendrierContraintesController extends AbstractController
+final class EdtCalendrierContraintesController extends AbstractController
 {
     #[Route('/api/edt-calendrier-contraintes', name: 'edt_calendrier_contraintes', methods: ['POST'])]
-    public function index(
-        EntityManagerInterface           $entityManager,
-        StructureSemestreRepository      $structureSemestreRepository,
-        StructureCalendrierRepository    $structureCalendrierRepository,
-        EdtContraintesSemestreRepository $edtContraintesSemestreRepository,
-        Request                          $request
-    ): Response
+    public function __invoke(EntityManagerInterface $em, StructureSemestreRepository $semestres, CalendrierUniversitaireService $calendrier, Request $request): JsonResponse
     {
-        $data = JsonRequest::getValuesFromString($request->getContent());
-
-        $semestre = $structureSemestreRepository->find($data['semestreId']);
-
-        if (!$semestre) {
-            return $this->json(['message' => 'Semestre not found'], Response::HTTP_NOT_FOUND);
+        $data = $request->toArray();
+        $semestreId = $data['semestreId'] ?? null;
+        if (!is_int($semestreId) || $semestreId < 1 || !is_string($data['dateLundi'] ?? null) || !is_string($data['contrainte'] ?? null)) {
+            return $this->json(['message' => 'semestreId, dateLundi et contrainte sont requis.'], 400);
         }
-
-        $department = $semestre->getDepartement();
-        $this->denyAccessUnlessGranted($department === null ? 'IS_SUPER_ADMIN' : 'ROLE_EDT', $department);
-
-        $semaine = $structureCalendrierRepository->find($data['weekId']);
-
-        if (!$semaine) {
-            return $this->json(['message' => 'Week not found'], Response::HTTP_NOT_FOUND);
+        $semestre = $semestres->find($semestreId);
+        if ($semestre === null) throw $this->createNotFoundException('Semestre introuvable.');
+        $pn = $semestre->getAnnee()?->getPn();
+        $departement = $pn?->getDiplome()?->getDepartement();
+        $this->denyAccessUnlessGranted($departement === null ? 'SUPER_ADMIN' : 'ROLE_EDT', $departement);
+        $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $data['dateLundi']);
+        if ($date === false || $date->format('Y-m-d') !== $data['dateLundi'] || $date->format('N') !== '1') {
+            return $this->json(['message' => 'Une date de lundi au format AAAA-MM-JJ est requise.'], 400);
         }
-
-        $contraintes = $edtContraintesSemestreRepository->findOneBy(['semestre' => $semestre]); //todo: ajouter AnneeUniversitaire
-
-        if (!$contraintes) {
-            $contraintes = new EdtContraintesSemestre();
-            $contraintes->setSemestre($semestre);
-            $entityManager->persist($contraintes);
+        $annee = $pn?->getAnneeUniversitaire();
+        if ($annee === null) return $this->json(['message' => 'Semestre sans année universitaire.'], 422);
+        try {
+            if ($calendrier->getSemaineFormation($annee, $date) === null) {
+                return $this->json(['message' => 'Semaine hors de l’année universitaire du semestre.'], 422);
+            }
+        } catch (\DomainException $e) {
+            return $this->json(['message' => $e->getMessage()], 422);
         }
-
-        $tContraintes = $contraintes->getContraintes() ?? [];
-        $tContraintes[$semaine->getId()] = ['type' => $data['contrainte']];
-        $contraintes->setContraintes($tContraintes);
-
-        $entityManager->flush();
-
-        return JsonResponse::Success('Contrainte ajoutée', $semestre);
-
+        $contraintes = $em->getRepository(EdtContraintesSemestre::class)->findOneBy(['semestre' => $semestre, 'anneeUniversitaire' => $annee]);
+        $contraintes ??= (new EdtContraintesSemestre())->setSemestre($semestre)->setAnneeUniversitaire($annee);
+        $valeurs = $contraintes->getContraintes();
+        $valeurs[$data['dateLundi']] = ['type' => $data['contrainte']];
+        $contraintes->setContraintes($valeurs);
+        $em->persist($contraintes);
+        $em->flush();
+        return $this->json(['message' => 'Contrainte enregistrée.', 'contraintes' => $valeurs]);
     }
 }

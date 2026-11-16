@@ -7,7 +7,6 @@ import EdtEvent from './EdtEvent.vue'
 import EdtListe from "./EdtListe.vue";
 import {getEdtEventsService, getSemaineUniversitaireService} from "@requests";
 import {adjustColor, darkenColor} from "@helpers/colors.js";
-import {getISOWeekNumber} from "@helpers/date";
 import {useUsersStore} from "@stores";
 import {PhotoUser, ErrorState} from "@components";
 import {
@@ -26,7 +25,7 @@ const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localSt
 const liste = ref(false);
 const vuecalRef = ref(null)
 const events = ref([]);
-const weekUnivNumber = ref(0);
+const weekUnivNumber = ref(null);
 const hasError = ref(false);
 const viewTranslations = {
   week: 'SEMAINE',
@@ -42,16 +41,22 @@ watch(() => vuecalRef.value?.view?.start, async (newValue) => {
 }, { immediate: true });
 
 const getWeekUnivNumber = async (date) => {
-  const calendarWeekNumber = getISOWeekNumber(date); // Calcule le numéro de semaine ISO
+  weekUnivNumber.value = null;
   try {
-    const response = await getSemaineUniversitaireService(calendarWeekNumber, anneeUniv.id);
-    weekUnivNumber.value = response[0]?.semaineFormation || 0; // Définit la semaine de formation
+    const semaine = await getSemaineUniversitaireService(date, anneeUniv.id);
+    weekUnivNumber.value = semaine?.semaineFormation ?? null;
+    hasError.value = false;
   } catch (error) {
-    console.error('Erreur lors de la récupération du numéro de semaine universitaire :', error);
+    hasError.value = true;
+    console.error('Impossible de calculer la semaine universitaire :', error);
   }
 };
 
 const getEventsPersonnelWeek = async () => {
+  if (weekUnivNumber.value === null) {
+    events.value = [];
+    return;
+  }
   try {
     const params = {
       semaineFormation: weekUnivNumber.value,

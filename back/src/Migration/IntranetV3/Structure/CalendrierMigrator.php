@@ -1,87 +1,51 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Migration\IntranetV3\Structure;
 
 use App\Entity\Structure\StructureAnneeUniversitaire;
-use App\Entity\Structure\StructureCalendrier;
 use App\Migration\IntranetV3\AbstractMigrator;
-use App\Migration\IntranetV3\Contract\MigratorInterface;
 use App\Migration\IntranetV3\MigrationContext;
 use App\Migration\IntranetV3\MigrationResult;
+use App\Service\Calendrier\CalendrierUniversitaireService;
 
+/** Reprend le début annuel depuis V3 ; aucune semaine n’est persistée. */
 final class CalendrierMigrator extends AbstractMigrator
 {
-    public function getName(): string
-    {
-        return 'calendriers';
-    }
-
-    /** @return list<class-string<MigratorInterface>> */
-    public function getDependencies(): array
-    {
-        return [AnneeUniversitaireMigrator::class];
-    }
+    public function getName(): string { return 'calendriers'; }
+    public function getDependencies(): array { return [AnneeUniversitaireMigrator::class]; }
 
     public function migrate(MigrationContext $context): MigrationResult
     {
-        $created = $updated = $skipped = $failed = $processed = 0;
+        $updated = $skipped = $failed = 0;
         $messages = [];
-        $calendarRepository = $this->entityManager->getRepository(StructureCalendrier::class);
-        $yearRepository = $this->entityManager->getRepository(StructureAnneeUniversitaire::class);
-
-        $sql = <<<'SQL'
-SELECT c.id, c.semaine_formation, c.semaine_reelle, c.date_lundi, c.annee_universitaire_id
-FROM calendrier c
-ORDER BY c.annee_universitaire_id, c.semaine_formation, c.id
-SQL;
-
-        foreach ($this->source->executeQuery($sql)->iterateAssociative() as $row) {
-            try {
-                $anneeUniversitaire = $yearRepository->findOneBy(['oldId' => (int) $row['annee_universitaire_id']]);
-                if (null === $anneeUniversitaire) {
-                    ++$skipped;
-                    if (count($messages) < 20) {
-                        $messages[] = sprintf(
-                            'Calendrier V3 #%s ignoré: année universitaire V3 #%s non résolue.',
-                            $row['id'],
-                            $row['annee_universitaire_id'],
-                        );
-                    }
-                    ++$processed;
-                    $this->flushBatch($context, $processed);
-                    continue;
-                }
-
-                $entity = $calendarRepository->findOneBy(['oldId' => (int) $row['id']]);
-                $isNew = null === $entity;
-                $entity ??= new StructureCalendrier();
-
-                $entity
-                    ->setOldId((int) $row['id'])
-                    ->setAnneeUniversitaire($anneeUniversitaire)
-                    ->setSemaineFormation((int) $row['semaine_formation'])
-                    ->setSemaineReelle((int) $row['semaine_reelle'])
-                    ->setDateLundi(new \DateTimeImmutable((string) $row['date_lundi']));
-
-                if ($isNew) {
-                    $this->entityManager->persist($entity);
-                    ++$created;
-                } else {
-                    ++$updated;
-                }
-            } catch (\Throwable $e) {
-                ++$failed;
-                if (count($messages) < 20) {
-                    $messages[] = sprintf('Calendrier V3 #%s: %s', $row['id'], $e->getMessage());
-                }
-            }
-
-            ++$processed;
-            $this->flushBatch($context, $processed);
+        $groupes = [];
+        foreach ($this->source->fetchAllAssociative('SELECT semaine_formation, semaine_reelle, date_lundi, annee_universitaire_id FROM calendrier ORDER BY annee_universitaire_id, semaine_formation') as $row) {
+            $groupes[$row['annee_universitaire_id']][] = $row;
         }
-
-        $this->flushAndClear($context);
-
-        return new MigrationResult($created, $updated, $skipped, $failed, $messages);
+        $service = new CalendrierUniversitaireService();
+        foreach ($groupes as $oldId => $lignes) {
+            try {
+                $annee = $this->entityManager->getRepository(StructureAnneeUniversitaire::class)->findOneBy(['oldId' => (int) $oldId]);
+                if ($annee === null) { ++$skipped; continue; }
+                $debut = $service->getDateDebutDepuisCorrespondances($lignes);
+                if ($annee->getDateDebutSemaineFormation() !== null && $annee->getDateDebutSemaineFormation()->format('Y-m-d') !== $debut?->format('Y-m-d')) {
+                    throw new \DomainException('La date déjà configurée diffère de celle du calendrier V3.');
+                }
+                foreach ($lignes as $ligne) {
+                    if ($ligne['date_lundi'] > $service->getDateFin($annee)->format('Y-m-d')) {
+                        throw new \DomainException('Une semaine V3 dépasse le 31 août N+1.');
+                    }
+                }
+                $annee->setDateDebutSemaineFormation($debut);
+                ++$updated;
+            } catch (\Throwable $exception) {
+                ++$failed;
+                $messages[] = sprintf('Calendrier V3 année #%s : %s', $oldId, $exception->getMessage());
+            }
+        }
+        $this->flush($context);
+        return new MigrationResult(0, $updated, $skipped, $failed, $messages);
     }
 }

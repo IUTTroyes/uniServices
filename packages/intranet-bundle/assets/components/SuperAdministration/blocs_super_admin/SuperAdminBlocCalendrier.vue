@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 const panelMenuItems = [
-  { label: 'Créer une semaine', icon: 'pi pi-plus', command: () => { router.push('/intranet/super-administration/calendrier'); } },
   { label: 'Gestion du calendrier', icon: 'pi pi-calendar', command: () => { router.push('/intranet/super-administration/calendriers'); } },
 ];
 </script>

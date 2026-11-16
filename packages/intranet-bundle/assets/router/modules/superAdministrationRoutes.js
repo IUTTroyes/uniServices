@@ -7,7 +7,6 @@ import NewBac from "@/views/Super-Administration/Bac/NewBac.vue";
 import ListTypeDiplome from "@/views/Super-Administration/TypeDiplome/ListTypeDiplome.vue";
 import NewTypeDiplome from "@/views/Super-Administration/TypeDiplome/NewTypeDiplome.vue";
 import ListCalendrier from "@/views/Super-Administration/Calendrier/ListCalendrier.vue";
-import NewCalendrier from "@/views/Super-Administration/Calendrier/NewCalendrier.vue";
 import ListTypeHrs from "@/views/Super-Administration/TypeHrs/ListTypeHrs.vue";
 import NewTypeHrs from "@/views/Super-Administration/TypeHrs/NewTypeHrs.vue";
 
@@ -127,7 +126,7 @@ export default [
   {
     path: 'super-administration/calendrier',
     name: 'super-admin-calendrier-new',
-    component: NewCalendrier,
+    redirect: '/intranet/super-administration/calendriers',
     meta: {
       permission: 'SUPER_ADMIN',
       breadcrumb: [

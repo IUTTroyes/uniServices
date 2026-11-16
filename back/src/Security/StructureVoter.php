@@ -53,11 +53,6 @@ class StructureVoter extends Voter
     public const CAN_EDIT_ANNEE = 'CAN_EDIT_ANNEE';
     public const CAN_DELETE_ANNEE = 'CAN_DELETE_ANNEE';
 
-    // Permissions Calendrier
-    public const CAN_VIEW_CALENDRIER = 'CAN_VIEW_CALENDRIER';
-    public const CAN_EDIT_CALENDRIER = 'CAN_EDIT_CALENDRIER';
-    public const CAN_DELETE_CALENDRIER = 'CAN_DELETE_CALENDRIER';
-
     // Permissions Type Diplôme
     public const CAN_VIEW_TYPE_DIPLOME = 'CAN_VIEW_TYPE_DIPLOME';
     public const CAN_EDIT_TYPE_DIPLOME = 'CAN_EDIT_TYPE_DIPLOME';
@@ -94,9 +89,6 @@ class StructureVoter extends Voter
         self::CAN_VIEW_ANNEE,
         self::CAN_EDIT_ANNEE,
         self::CAN_DELETE_ANNEE,
-        self::CAN_VIEW_CALENDRIER,
-        self::CAN_EDIT_CALENDRIER,
-        self::CAN_DELETE_CALENDRIER,
         self::CAN_VIEW_TYPE_DIPLOME,
         self::CAN_EDIT_TYPE_DIPLOME,
         self::CAN_DELETE_TYPE_DIPLOME,
@@ -179,9 +171,6 @@ class StructureVoter extends Voter
             self::CAN_DELETE_ANNEE => $this->canDeleteAnnee($user, $subject),
 
             // Calendrier
-            self::CAN_VIEW_CALENDRIER => $this->canViewCalendrier($user),
-            self::CAN_EDIT_CALENDRIER => false,
-            self::CAN_DELETE_CALENDRIER => false,
 
             // Type Diplôme
             self::CAN_VIEW_TYPE_DIPLOME => $this->canViewTypeDiplome($user),
@@ -444,13 +433,6 @@ class StructureVoter extends Voter
             'SUPER_ADMIN',
             'ROLE_ADMIN'
         ], $subject);
-    }
-
-    // ========== Calendrier ==========
-
-    private function canViewCalendrier(Personnel|Etudiant $user): bool
-    {
-        return true;
     }
 
     // ========== Type Diplôme ==========

@@ -15,6 +15,7 @@ const anneeUnivStore = useAnneeUnivStore();
 const anneeUnivId = computed(() => route.params.id);
 const anneeUniv = ref({
   libelle: "",
+  dateDebutSemaineFormation: null,
   annee: null,
   commentaire: "",
   actif: false,
@@ -47,6 +48,7 @@ const getAnneeUniv = async () => {
     const data = await getAnneeUniversitaireService(anneeUnivId.value);
     anneeUniv.value = {
       libelle: data.libelle,
+      dateDebutSemaineFormation: data.dateDebutSemaineFormation?.slice(0, 10) ?? null,
       annee: data.annee,
       commentaire: data.commentaire,
       actif: data.actif,
@@ -130,6 +132,7 @@ const updateAnneeUniv = async () => {
   try {
     const data = {
       libelle: anneeUniv.value.libelle,
+      dateDebutSemaineFormation: anneeUniv.value.dateDebutSemaineFormation || null,
       annee: anneeUniv.value.annee,
       commentaire: anneeUniv.value.commentaire,
       actif: anneeUniv.value.actif,
@@ -176,6 +179,11 @@ const goBack = () => {
     <template v-else>
       <PermissionGuard permission="isSuperAdmin" :showFallback="true">
         <form @submit.prevent="updateAnneeUniv()" class="flex flex-col">
+          <div class="mb-6">
+            <label for="debut-semaine-formation" class="block mb-2 font-medium">Lundi de la semaine de formation n°1</label>
+            <input id="debut-semaine-formation" v-model="anneeUniv.dateDebutSemaineFormation" type="date" class="border rounded p-2" />
+            <p class="text-sm text-muted-color mt-2">Date communiquée en interne. Le compteur reste continu jusqu’au 31 août de l’année suivante. Sans date, le calendrier n’est pas configuré.</p>
+          </div>
           <div>
             <div class="flex flex-row gap-4 items-center">
               <ValidatedInput

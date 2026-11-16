@@ -5,7 +5,6 @@ import 'vue-cal/style'
 import {computed, nextTick, onMounted, ref, watch} from 'vue';
 import {useUsersStore} from '@stores';
 import {PhotoUser, SimpleSkeleton, ListSkeleton, ErrorState} from '@components';
-import {getISOWeekNumber} from "@helpers/date";
 import EdtEvent from "./EdtEvent.vue";
 import {
   getEdtEventsService,
@@ -63,7 +62,7 @@ const isLoadingEvents = ref(false);
 const hasError = ref(false);
 const personnel = usersStore.user;
 const departement = usersStore.departementDefaut;
-const weekUnivNumber = ref(0);
+const weekUnivNumber = ref(null);
 const events = ref([]);
 const schedules = ref([]);
 const isLoadingGroupes = ref(false);
@@ -187,12 +186,14 @@ const getEnseignements = async () => {
 };
 
 const getWeekUnivNumber = async (date) => {
-  const calendarWeekNumber = getISOWeekNumber(date);
+  weekUnivNumber.value = null;
   try {
-    const response = await getSemaineUniversitaireService(calendarWeekNumber, anneeUniv.id);
-    weekUnivNumber.value = response[0]?.semaineFormation || 0; // Définit la semaine de formation
+    const semaine = await getSemaineUniversitaireService(date, anneeUniv.id);
+    weekUnivNumber.value = semaine?.semaineFormation ?? null;
+    hasError.value = false;
   } catch (error) {
-    console.error('Erreur lors de la récupération du numéro de semaine universitaire :', error);
+    hasError.value = true;
+    console.error('Impossible de calculer la semaine universitaire :', error);
   }
 };
 
@@ -251,6 +252,10 @@ watch(selectedEnseignement, async () => {
 });
 
 const getEventsDepartementWeek = async () => {
+  if (weekUnivNumber.value === null) {
+    events.value = [];
+    return;
+  }
   const hasAtLeastOneFilter = selectedSemestre.value || selectedEnseignant.value || selectedSalle.value || selectedEnseignement.value;
 
   try {
