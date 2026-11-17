@@ -44,7 +44,7 @@ const hasError = ref(false);
 
 const getSemestres = async () => {
   isLoadingSemestres.value = true;
-  await semestreStore.getSemestresByDepartement(departementId, true);
+  await semestreStore.getSemestresByDepartement(departementId);
   semestresList.value = semestreStore.semestres;
   if (semestresList.value.length > 0) {
     selectedSemestre.value = semestresList.value[0];

@@ -67,7 +67,9 @@ Le diplôme peut ainsi rester la même entité d’une année universitaire à l
 
 Le filtre API `structure_diplomes?anneeUniversitaire=<id>` applique cette règle via les PN. Les écrans annuels doivent fournir l’année sélectionnée ; les écrans de catalogue et de préparation d’une nouvelle année peuvent conserver la liste complète des diplômes pour permettre leur réouverture.
 
-Les propriétés `actif` des départements, années de formation et semestres restent distinctes et sont conservées.
+Les propriétés `actif` des départements et années de formation restent distinctes et sont conservées. `StructureSemestre` ne possède plus de propriété `actif` : tous les semestres de la maquette sont disponibles, même si leurs enseignements se chevauchent ou si les inscriptions aux deux semestres sont créées dès le début de l’année.
+
+Les listes de semestres sont limitées par `anneeUniversitaire` via `semestre → annee → pn`. Le service frontend utilise l’année sélectionnée, ou `courante` pour l’année universitaire active si aucune sélection n’est disponible. Le filtre département/diplôme n’impose plus implicitement une année active ; une année passée peut être demandée explicitement. La clôture et la validation des résultats sont indépendantes de cette disponibilité.
 
 ### Initialisation d’une année universitaire
 

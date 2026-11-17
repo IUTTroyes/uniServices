@@ -46,8 +46,8 @@ const activeAnnees = computed(() => {
   return (allAnnees.value || []).filter(a => a.actif === true);
 });
 
-const activeSemestres = computed(() => {
-  return (allSemestres.value || []).filter(s => s.actif === true);
+const semestresDisponibles = computed(() => {
+  return allSemestres.value || [];
 });
 
 const loadConfigurationData = async () => {
@@ -81,7 +81,7 @@ const loadConfigurationData = async () => {
     const [diplomesData, anneesData, semestresData, personnelsData] = await Promise.all([
       getDiplomesService(formationParams),
       getAnneesService({ ...formationParams, actif: true }),
-      getDepartementSemestresService(currentDeptId.value, true),
+      getDepartementSemestresService(currentDeptId.value, currentAnneeUnivId.value),
       getPersonnelsService({ departement: currentDeptId.value, pagination: false }).catch(() => [])
     ]);
 
@@ -136,7 +136,7 @@ const onAnneeUpdated = ({ anneeId, key, value }) => {
 const onSemestreUpdated = ({ semestreId, key, value }) => {
   const s = allSemestres.value.find(item => item.id === semestreId);
   if (s) {
-    if (key === 'actif' || key === 'ppnActif') {
+    if (key === 'ppnActif') {
       s[key] = value;
     } else {
       if (!s.opt) s.opt = {};
@@ -152,7 +152,7 @@ const onSemestreUpdated = ({ semestreId, key, value }) => {
       icon="pi pi-sliders-h"
       color="violet"
       titre="Configuration de l'Intranet"
-      :description="`Paramétrage du département ${departement?.libelle || ''}, des diplômes, années et semestres actifs`"
+      :description="`Paramétrage du département ${departement?.libelle || ''}, des diplômes, années et semestres de l’année universitaire`"
       :show-back="true"
       back-url="/intranet/administration"
     />
@@ -196,11 +196,11 @@ const onSemestreUpdated = ({ semestreId, key, value }) => {
         />
 
         <Kpi
-          label="Semestres actifs"
-          :value="activeSemestres.length"
+          label="Semestres de l’année"
+          :value="semestresDisponibles.length"
           icon="pi pi-list"
           color="amber"
-          description="Semestres ouverts aux saisies"
+          description="Semestres de la maquette annuelle"
           @click="activeTab = 'semestre'"
         />
       </div>
@@ -225,7 +225,7 @@ const onSemestreUpdated = ({ semestreId, key, value }) => {
           <Tab value="semestre" class="flex items-center gap-2 px-4 py-2.5 font-semibold text-sm">
             <i class="pi pi-list text-base" />
             <span>Semestres</span>
-            <Badge v-if="activeSemestres.length > 0" :value="activeSemestres.length" severity="secondary" />
+            <Badge v-if="semestresDisponibles.length > 0" :value="semestresDisponibles.length" severity="secondary" />
           </Tab>
         </TabList>
 
@@ -257,7 +257,7 @@ const onSemestreUpdated = ({ semestreId, key, value }) => {
 
           <TabPanel value="semestre">
             <ConfigurationSemestreTab
-              :semestres="activeSemestres"
+              :semestres="semestresDisponibles"
               :personnels="personnels"
               @updated="onSemestreUpdated"
             />

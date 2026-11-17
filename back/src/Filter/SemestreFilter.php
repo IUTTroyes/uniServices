@@ -6,8 +6,8 @@ use ApiPlatform\Doctrine\Orm\Filter\FilterInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\BackwardCompatibleFilterDescriptionTrait;
 use ApiPlatform\Metadata\Operation;
-use App\Entity\Structure\StructureAnnee;
 use Doctrine\ORM\QueryBuilder;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class SemestreFilter implements FilterInterface
 {
@@ -17,59 +17,45 @@ class SemestreFilter implements FilterInterface
     {
         if (isset($context['parameter'])) {
             $parameter = $context['parameter'];
-            $property = $parameter->getProperty() ?? $parameter->getKey();
-            $this->filterProperty($property, $parameter->getValue(), $queryBuilder, $queryNameGenerator, $resourceClass, $operation, $context);
-
+            $this->filterProperty($parameter->getProperty() ?? $parameter->getKey(), $parameter->getValue(), $queryBuilder, $queryNameGenerator);
             return;
         }
-
         foreach ($context['filters'] ?? [] as $property => $value) {
-            $this->filterProperty((string) $property, $value, $queryBuilder, $queryNameGenerator, $resourceClass, $operation, $context);
+            $this->filterProperty((string) $property, $value, $queryBuilder, $queryNameGenerator);
         }
     }
 
-    protected function filterProperty(string $property, $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
+    private function filterProperty(string $property, mixed $value, QueryBuilder $qb, QueryNameGeneratorInterface $names): void
     {
-        if (null === $value) {
-            return;
+        if ($value === null || !in_array($property, ['departement', 'diplome', 'annee', 'anneeUniversitaire'], true)) return;
+        $root = $qb->getRootAliases()[0];
+        $parameter = $names->generateParameterName($property);
+        if ($property === 'annee') {
+            $qb->andWhere("$root.annee = :$parameter")->setParameter($parameter, $value);
+        } else {
+            $annee = $this->join($qb, $names, $root, 'annee');
+            $pn = $this->join($qb, $names, $annee, 'pn');
+            if ($property === 'anneeUniversitaire') {
+                $au = $this->join($qb, $names, $pn, 'anneeUniversitaire');
+                if ($value === 'courante') $qb->andWhere("$au.actif = true");
+                elseif (ctype_digit((string) $value) && (int) $value > 0) $qb->andWhere("$au.id = :$parameter")->setParameter($parameter, (int) $value);
+                else throw new BadRequestHttpException('Année universitaire attendue : identifiant positif ou « courante ».');
+            } else {
+                $diplome = $this->join($qb, $names, $pn, 'diplome');
+                $field = $property === 'departement' ? 'departement' : 'id';
+                $qb->andWhere("$diplome.$field = :$parameter")->setParameter($parameter, $value);
+            }
         }
+        $qb->orderBy("$root.ordreLmd", 'ASC')->addOrderBy("$root.libelle", 'ASC');
+    }
 
-        $alias = $queryBuilder->getRootAliases()[0];
-
-        if ('diplome' === $property) {
-            $queryBuilder
-                ->innerJoin(StructureAnnee::class, 'sa', 'WITH', sprintf('%s.annee = sa.id', $alias))
-                ->innerJoin('sa.pn', 'pn')
-                ->innerJoin('pn.anneeUniversitaire', 'au')
-                ->innerJoin('pn.diplome', 'd')
-                ->andWhere('au.actif = true')
-                ->andWhere('d.id = :diplome')
-                ->setParameter('diplome', $value)
-                ->orderBy(sprintf('%s.ordreLmd', $alias), 'ASC')
-                ->addOrderBy(sprintf('%s.libelle', $alias), 'ASC')
-            ;
-        } else if ('departement' === $property) {
-            $queryBuilder
-                ->innerJoin(StructureAnnee::class, 'sa', 'WITH', sprintf('%s.annee = sa.id', $alias))
-                ->innerJoin('sa.pn', 'pn')
-                ->innerJoin('pn.anneeUniversitaire', 'au')
-                ->innerJoin('pn.diplome', 'd')
-                ->andWhere('au.actif = true')
-                ->andWhere('d.departement = :departement')
-                ->setParameter('departement', $value)
-                ->orderBy(sprintf('%s.ordreLmd', $alias), 'ASC')
-                ->addOrderBy(sprintf('%s.libelle', $alias), 'ASC')
-            ;
-        } elseif ('annee' === $property) {
-            $queryBuilder
-                ->andWhere(sprintf('%s.annee = :annee', $alias))
-                ->setParameter('annee', $value)
-            ;
-        } elseif ('actif' === $property) {
-            $queryBuilder
-                ->andWhere(sprintf('%s.actif = :actif', $alias))
-                ->setParameter('actif', filter_var($value, FILTER_VALIDATE_BOOLEAN))
-            ;
+    private function join(QueryBuilder $qb, QueryNameGeneratorInterface $names, string $owner, string $field): string
+    {
+        foreach ($qb->getDQLPart('join') as $joins) {
+            foreach ($joins as $join) if ($join->getJoin() === "$owner.$field") return $join->getAlias();
         }
+        $alias = $names->generateJoinAlias($field);
+        $qb->innerJoin("$owner.$field", $alias);
+        return $alias;
     }
 }

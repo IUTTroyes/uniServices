@@ -22,13 +22,13 @@ const toast = useToast();
 const selectedSemestreId = ref(null);
 const loadingKeys = ref({});
 
-// N'afficher que les semestres actifs
-const activeSemestres = computed(() => {
-  return (props.semestres || []).filter(s => s.actif === true);
+// N'afficher que les semestres de l’année universitaire
+const semestresDisponibles = computed(() => {
+  return props.semestres || [];
 });
 
-// Sélectionner par défaut le premier semestre actif
-watch(activeSemestres, (list) => {
+// Sélectionner par défaut le premier semestre de l’année universitaire
+watch(semestresDisponibles, (list) => {
   if (list && list.length > 0) {
     if (!selectedSemestreId.value || !list.some(s => s.id === selectedSemestreId.value)) {
       selectedSemestreId.value = list[0].id;
@@ -39,7 +39,7 @@ watch(activeSemestres, (list) => {
 }, { immediate: true });
 
 const selectedSemestre = computed(() => {
-  return activeSemestres.value.find(s => s.id === selectedSemestreId.value) || activeSemestres.value[0] || null;
+  return semestresDisponibles.value.find(s => s.id === selectedSemestreId.value) || semestresDisponibles.value[0] || null;
 });
 
 const semOpt = computed(() => selectedSemestre.value?.opt || {});
@@ -130,10 +130,10 @@ const updateDirectField = async (fieldName, value) => {
 
 <template>
   <div class="space-y-6">
-    <!-- Barre de sélection des semestres actifs -->
-    <div v-if="activeSemestres.length > 0" class="flex flex-wrap items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-200/60 dark:border-slate-800">
+    <!-- Barre de sélection des semestres de l’année universitaire -->
+    <div v-if="semestresDisponibles.length > 0" class="flex flex-wrap items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-200/60 dark:border-slate-800">
       <button
-        v-for="s in activeSemestres"
+        v-for="s in semestresDisponibles"
         :key="s.id"
         type="button"
         @click="selectedSemestreId = s.id"
@@ -157,7 +157,7 @@ const updateDirectField = async (fieldName, value) => {
 
     <div v-if="!selectedSemestre" class="card p-12 text-center text-slate-500">
       <i class="pi pi-info-circle text-3xl mb-3 text-slate-400 block" />
-      <p class="font-medium">Aucun semestre actif n'est disponible pour ce département.</p>
+      <p class="font-medium">Aucun semestre de l’année universitaire n'est disponible pour ce département.</p>
     </div>
 
     <template v-else>

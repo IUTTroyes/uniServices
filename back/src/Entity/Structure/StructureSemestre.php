@@ -77,7 +77,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         'departement' => new QueryParameter(filter: SemestreFilter::class),
         'diplome' => new QueryParameter(filter: SemestreFilter::class),
         'annee' => new QueryParameter(filter: SemestreFilter::class),
-        'actif' => new QueryParameter(filter: SemestreFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: SemestreFilter::class),
     ]
 )]
 class StructureSemestre implements TimestampableInterface
@@ -104,10 +104,6 @@ class StructureSemestre implements TimestampableInterface
     #[ORM\Column]
     #[Groups(['semestre:detail', 'maquette:detail'])]
     private int $ordreLmd = 0;
-
-    #[ORM\Column]
-    #[Groups(['semestre:detail', 'semestre:light', 'annee:read'])]
-    private bool $actif = true;
 
     #[ORM\Column]
     #[Groups(['semestre:detail', 'pn:read'])]
@@ -172,6 +168,16 @@ class StructureSemestre implements TimestampableInterface
     #[ORM\Column]
     private bool $cloture = false;
 
+    /** Verrou optimiste commun à toute modification influençant les résultats. */
+    #[ORM\Column(type: 'integer'), ORM\Version]
+    private int $resultatsVersion = 1;
+
+    #[ORM\Column]
+    private int $resultatsGeneration = 0;
+
+    public function getResultatsVersion(): int { return $this->resultatsVersion; }
+    public function touchResultats(): void { ++$this->resultatsGeneration; }
+
     public function __construct()
     {
         $this->groupes = new ArrayCollection();
@@ -226,18 +232,6 @@ class StructureSemestre implements TimestampableInterface
     public function setOrdreLmd(int $ordreLmd): static
     {
         $this->ordreLmd = $ordreLmd;
-
-        return $this;
-    }
-
-    public function isActif(): ?bool
-    {
-        return $this->actif;
-    }
-
-    public function setActif(bool $actif): static
-    {
-        $this->actif = $actif;
 
         return $this;
     }

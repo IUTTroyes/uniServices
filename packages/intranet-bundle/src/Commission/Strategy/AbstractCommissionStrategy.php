@@ -82,7 +82,7 @@ abstract class AbstractCommissionStrategy implements CommissionStrategyInterface
             }
         }
 
-        $moyenneGenerale = $scolarite->getMoyenne() ?? $this->computeMoyenneGenerale($moyennesUe, $weights);
+        $moyenneGenerale = $this->computeMoyenneGenerale($moyennesUe, $weights);
         $decision = $this->decisionRule->decide($moyennesUe, $weights, $moyenneGenerale);
         $etudiant = $scolarite->getScolarite()?->getEtudiant();
         $dateNaissance = $etudiant?->getDateNaissance()?->format('d/m/Y');
@@ -115,9 +115,8 @@ abstract class AbstractCommissionStrategy implements CommissionStrategyInterface
         $somme = 0.0;
         $total = 0.0;
         foreach ($moyennesUe as $ueId => $moyenne) {
-            if (null === $moyenne) {
-                continue;
-            }
+            if (($weights[$ueId] ?? 0) > 0 && null === $moyenne) return null;
+            if (null === $moyenne) continue;
             $somme += $moyenne * ($weights[$ueId] ?? 0);
             $total += $weights[$ueId] ?? 0;
         }

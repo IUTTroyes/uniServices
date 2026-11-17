@@ -108,9 +108,9 @@ const loadSemestres = async () => {
   try {
     let result: any[] = [];
     if (departementId.value) {
-      result = await getDepartementSemestresService(departementId.value, true);
+      result = await getDepartementSemestresService(departementId.value);
     } else {
-      result = await getSemestresService({ actif: true });
+      result = await getSemestresService({ anneeUniversitaire: selectedAnneeUnivId.value });
     }
     const list = Array.isArray(result) ? result : (result?.member ?? []);
     semestres.value = list;

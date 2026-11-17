@@ -32,7 +32,7 @@ class EtudiantNoteRepository extends ServiceEntityRepository
             ->select('COUNT(n.id)')
             ->andWhere('n.evaluation = :evaluation')
             ->andWhere('(n.note IS NOT NULL OR n.presenceStatut IN (:ps))')
-            ->setParameter('ps', [EtudiantNote::STATUT_ABSENT_JUSTIFIE, EtudiantNote::STATUT_DISPENSE])
+            ->setParameter('ps', [EtudiantNote::STATUT_ABSENT_JUSTIFIE, EtudiantNote::STATUT_DISPENSE, EtudiantNote::STATUT_ABSENT_INJUSTIFIE])
             ->setParameter('evaluation', $evaluation)
             ->getQuery()
             ->getSingleScalarResult();

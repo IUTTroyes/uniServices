@@ -133,10 +133,10 @@ SQL;
                     continue;
                 }
 
-                $scolariteSemestre->setDecision($this->mapDecision($row['decision']));
-                $scolariteSemestre->setRang(null !== $row['rang'] ? (int) $row['rang'] : null);
-                $scolariteSemestre->setMoyennesMatiere($this->decodeLegacyArray($row['moyennes_matieres']));
-                $scolariteSemestre->setMoyennesUe($this->decodeLegacyArray($row['moyennes_ues']));
+                $legacyResultats = $scolariteSemestre->getLegacyContext() ?? [];
+                $legacyResultats['resultatsV3'] = ['decision' => $this->mapDecision($row['decision']), 'rang' => $row['rang'],
+                    'moyennesMatieres' => $this->decodeLegacyArray($row['moyennes_matieres']), 'moyennesUes' => $this->decodeLegacyArray($row['moyennes_ues'])];
+                $scolariteSemestre->setLegacyContext($legacyResultats);
 
                 if (null !== $row['proposition'] && '' !== trim((string) $row['proposition'])) {
                     $proposition = null !== $pn ? $this->resolveProposition((string) $row['proposition'], $pn) : null;

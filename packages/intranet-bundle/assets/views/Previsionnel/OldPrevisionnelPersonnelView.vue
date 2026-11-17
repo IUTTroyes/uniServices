@@ -155,7 +155,7 @@ const getTypesHrs = async () => {
 
 const getSemestres = async () => {
   try {
-    semestreList.value = await getDepartementSemestresService(departementId, true);
+    semestreList.value = await getDepartementSemestresService(departementId);
     // construire chaque élément de la liste des semestres avec le libelle en label et le semestre en value
     semestreList.value = semestreList.value.map((semestre) => ({
       id: semestre.id,

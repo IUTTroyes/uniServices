@@ -343,7 +343,7 @@ async function selectMode(mode: string) {
     try {
       let resSem: any;
       if (surveyDeptId.value) {
-        resSem = await getDepartementSemestresService(surveyDeptId.value, true);
+        resSem = await getDepartementSemestresService(surveyDeptId.value);
       } else {
         resSem = await getMiniSemestresService();
       }

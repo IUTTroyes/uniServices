@@ -43,7 +43,7 @@ const filters = ref({
 const getSemestres = async () => {
   isLoadingSemestres.value = true;
   try {
-    await semestreStore.getSemestresByDepartement(departementId, true);
+    await semestreStore.getSemestresByDepartement(departementId);
     semestresList.value = semestreStore.semestres || [];
     if (semestresList.value.length > 0) {
       selectedSemestre.value = semestresList.value[0];

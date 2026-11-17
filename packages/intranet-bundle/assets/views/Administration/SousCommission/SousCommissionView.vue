@@ -14,6 +14,8 @@ import { useAnneeStore, useAnneeUnivStore } from '@stores';
 import { getSemestresService } from '@requests';
 import {
   getCommissionSemestre,
+  validerCommission, rouvrirCommission, getHistoriqueCommission,
+  type CommissionRevision,
   type CommissionViewData,
   type CommissionRow,
 } from '@/service/commissionService';
@@ -36,6 +38,57 @@ const isLoadingSemestres = ref(true);
 const commissionData = ref<CommissionViewData | null>(null);
 const isLoadingCommission = ref(false);
 const errorMessage = ref<string | null>(null);
+
+const validationDialog = ref(false);
+const reouvertureDialog = ref(false);
+const historiqueDialog = ref(false);
+const historique = ref<CommissionRevision[]>([]);
+const historiqueSelection = ref<CommissionRevision | null>(null);
+const saving = ref(false);
+const motifReouverture = ref('');
+const decisionsJury = ref<Record<number, { decision: boolean | null; motif: string }>>({});
+const estValidee = computed(() => commissionData.value?.validation?.etat === 'validee');
+const decisionsValides = computed(() => (commissionData.value?.rows ?? []).every(row => {
+  const d = decisionsJury.value[row.scolariteSemestreId];
+  return d && typeof d.decision === 'boolean' && (d.decision === row.decision || d.motif.trim().length > 0);
+}));
+watch(commissionData, (data) => {
+  decisionsJury.value = Object.fromEntries((data?.rows ?? []).map(row => [row.scolariteSemestreId, { decision: row.decisionJury ?? row.decision ?? null, motif: row.motifJury ?? '' }]));
+});
+const messageErreur = (e: any) => e?.response?.data?.detail ?? e?.response?.data?.message ?? 'Impossible de mettre à jour la sous-commission.';
+const valider = async () => {
+  if (!commissionData.value || !selectedSemestre.value) return;
+  saving.value = true;
+  try {
+    const decisions = Object.entries(decisionsJury.value).map(([id, d]) => ({ inscriptionId: Number(id), decision: d.decision as boolean, motif: d.motif || null }));
+    commissionData.value = await validerCommission(selectedSemestre.value.id, commissionData.value.empreinte, decisions);
+    validationDialog.value = false;
+    errorMessage.value = null;
+  } catch (e) { errorMessage.value = messageErreur(e); }
+  finally { saving.value = false; }
+};
+const rouvrir = async () => {
+  const revision = commissionData.value?.validation.revision;
+  if (!revision || !selectedSemestre.value) return;
+  saving.value = true;
+  try {
+    commissionData.value = await rouvrirCommission(selectedSemestre.value.id, revision.numero, motifReouverture.value);
+    reouvertureDialog.value = false;
+    motifReouverture.value = '';
+    errorMessage.value = null;
+  } catch (e) { errorMessage.value = messageErreur(e); }
+  finally { saving.value = false; }
+};
+const voirHistorique = async () => {
+  if (!selectedSemestre.value) return;
+  saving.value = true;
+  try {
+    historique.value = await getHistoriqueCommission(selectedSemestre.value.id);
+    historiqueSelection.value = null;
+    historiqueDialog.value = true;
+  } catch (e) { errorMessage.value = messageErreur(e); }
+  finally { saving.value = false; }
+};
 
 // Options d'affichage
 const searchQuery = ref('');
@@ -167,7 +220,7 @@ watch(anneeId, async () => {
 <template>
   <ContexteSelection titre="Semestre de travail" :valeur="[selectedSemestre?.libelle].filter(Boolean).join(' · ')">
     <div class="flex flex-col gap-2"><label for="contexte-selectedSemestre" class="text-sm font-semibold text-muted-color">Semestre</label>
-      <Select :loading="isLoadingSemestres" :disabled="isLoadingSemestres" input-id="contexte-selectedSemestre"
+      <Select :loading="isLoadingSemestres" :disabled="isLoadingSemestres || saving" input-id="contexte-selectedSemestre"
             v-model="selectedSemestre"
             :options="semestres"
             option-label="libelle"
@@ -344,7 +397,29 @@ watch(anneeId, async () => {
       <span class="text-sm text-surface-500">Calcul et chargement des moyennes de la sous-commission en cours...</span>
     </div>
 
-    <!-- Affichage du tableau selon le mode (APC vs Classique) -->
+    <section v-if="commissionData && !isLoadingCommission" class="card space-y-4">
+      <p v-if="estValidee" class="font-medium">
+        Résultats validés — révision {{ commissionData.validation.revision?.numero }} par
+        {{ commissionData.validation.revision?.validePar.prenom }} {{ commissionData.validation.revision?.validePar.nom }}.
+      </p>
+      <p v-else>Résultats provisoires calculés depuis les notes courantes. La validation arrête les résultats de tout le semestre.</p>
+      <Message v-if="commissionData.erreurs?.length" severity="warn">
+        <p>Validation impossible tant que ces points ne sont pas résolus :</p>
+        <ul class="list-disc pl-5"><li v-for="erreur in commissionData.erreurs" :key="erreur">{{ erreur }}</li></ul>
+      </Message>
+      <div class="flex flex-wrap gap-3">
+        <Button v-if="!estValidee" label="Valider le semestre" icon="pi pi-check" :disabled="saving || !commissionData.rows.length || !!commissionData.erreurs?.length" @click="validationDialog = true" />
+        <Button v-else label="Rouvrir la sous-commission" severity="warn" icon="pi pi-lock-open" :disabled="saving" @click="reouvertureDialog = true" />
+        <Button label="Historique des validations" severity="secondary" :loading="saving" @click="voirHistorique" />
+      </div>
+      <table v-if="estValidee" class="w-full text-sm">
+        <thead><tr><th class="text-left">Étudiant</th><th>Proposition calculée</th><th>Décision du jury</th><th>Motif</th></tr></thead>
+        <tbody><tr v-for="row in filteredRows" :key="row.scolariteSemestreId">
+          <td>{{ row.nom }} {{ row.prenom }}</td><td class="text-center">{{ row.decisionLibelle }}</td>
+          <td class="text-center">{{ row.decisionJury ? 'Validé' : 'Non validé' }}</td><td>{{ row.motifJury || '—' }}</td>
+        </tr></tbody>
+      </table>
+    </section>
     <template v-else-if="commissionData">
       <div v-if="!commissionData.rows.length" class="card p-8 rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-0 dark:bg-surface-900 text-center text-surface-500">
         <i class="pi pi-info-circle text-2xl mb-2"></i>
@@ -373,5 +448,44 @@ watch(anneeId, async () => {
         :sticky-column="stickyColumn"
       />
     </template>
+
+
+    <Dialog v-model:visible="validationDialog" modal header="Valider les résultats du semestre" :closable="!saving" :style="{ width: '70rem', maxWidth: '95vw' }">
+      <p class="mb-4">Vérifiez les décisions du jury. Toute différence avec la proposition calculée exige un motif. Les notes et la maquette seront verrouillées jusqu’à une réouverture explicite.</p>
+      <table class="w-full text-sm">
+        <thead><tr><th class="text-left">Étudiant</th><th>Proposition calculée</th><th>Décision du jury</th><th>Motif de dérogation</th></tr></thead>
+        <tbody><tr v-for="row in commissionData?.rows ?? []" :key="row.scolariteSemestreId">
+          <td>{{ row.nom }} {{ row.prenom }}</td><td>{{ row.decisionLibelle }}</td>
+          <td class="p-2"><select v-if="decisionsJury[row.scolariteSemestreId]" v-model="decisionsJury[row.scolariteSemestreId].decision" class="border rounded p-2" :disabled="saving">
+            <option :value="null">Choisir</option><option :value="true">Validé</option><option :value="false">Non validé</option>
+          </select></td>
+          <td><input v-if="decisionsJury[row.scolariteSemestreId]" v-model="decisionsJury[row.scolariteSemestreId].motif" class="border rounded p-2 w-full" aria-label="Motif de dérogation" :disabled="saving" /></td>
+        </tr></tbody>
+      </table>
+      <Message v-if="errorMessage" severity="error" class="mt-4">{{ errorMessage }}</Message>
+      <template #footer><Button label="Annuler" severity="secondary" :disabled="saving" @click="validationDialog = false" /><Button label="Valider tout le semestre" :loading="saving" :disabled="!decisionsValides" @click="valider" /></template>
+    </Dialog>
+    <Dialog v-model:visible="reouvertureDialog" modal header="Rouvrir la sous-commission" :closable="!saving">
+      <p class="mb-4">La révision actuelle sera invalidée et conservée dans l’historique. Les résultats redeviendront provisoires.</p>
+      <label for="motif-reouverture" class="block mb-2">Motif obligatoire</label>
+      <textarea id="motif-reouverture" v-model="motifReouverture" class="border rounded p-2 w-full" :disabled="saving" />
+      <Message v-if="errorMessage" severity="error">{{ errorMessage }}</Message>
+      <template #footer><Button label="Annuler" severity="secondary" :disabled="saving" @click="reouvertureDialog = false" /><Button label="Rouvrir et invalider" severity="warn" :loading="saving" :disabled="!motifReouverture.trim()" @click="rouvrir" /></template>
+    </Dialog>
+    <Dialog v-model:visible="historiqueDialog" modal header="Historique des sous-commissions" :style="{ width: '75rem', maxWidth: '95vw' }">
+      <p v-if="!historique.length">Aucune validation enregistrée.</p>
+      <div v-for="revision in historique" :key="revision.id" class="border rounded p-3 mb-3">
+        <p>Révision {{ revision.numero }} — {{ revision.valideLe }} — {{ revision.validePar.prenom }} {{ revision.validePar.nom }}</p>
+        <p v-if="revision.invalideeLe">Invalidée le {{ revision.invalideeLe }} : {{ revision.motifReouverture }}</p>
+        <Button label="Consulter les résultats figés" text @click="historiqueSelection = revision" />
+      </div>
+      <template v-if="historiqueSelection">
+        <h3 class="font-bold my-4">Résultats de la révision {{ historiqueSelection.numero }}</h3>
+        <SousCommissionClassiqueTable :rows="historiqueSelection.vue.rows" :columns="historiqueSelection.vue.columns" :show-details="true" />
+        <table class="w-full mt-4"><thead><tr><th>Étudiant</th><th>Décision du jury</th><th>Motif</th></tr></thead><tbody>
+        <tr v-for="row in historiqueSelection.vue.rows" :key="row.scolariteSemestreId"><td>{{ row.nom }} {{ row.prenom }}</td><td>{{ row.decisionJury ? 'Validé' : 'Non validé' }}</td><td>{{ row.motifJury || '—' }}</td></tr>
+        </tbody></table>
+      </template>
+    </Dialog>
   </div>
 </template>

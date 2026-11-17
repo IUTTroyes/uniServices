@@ -84,7 +84,7 @@ const resolveSemestreSelection = () => {
     return semestreFromStore;
   }
 
-  return semestres.value.find(s => s.actif) || semestres.value[0] || {};
+  return semestres.value[0] || {};
 };
 
 onMounted(async () => {

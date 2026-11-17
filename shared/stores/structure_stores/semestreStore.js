@@ -24,11 +24,11 @@ export const useSemestreStore = defineStore('semestre', () => {
     }
   };
 
-  const getSemestresByDiplome = async (diplomeId, onlyActif = true, scope) => {
+  const getSemestresByDiplome = async (diplomeId, anneeUniversitaire = null, scope) => {
     try {
       const params = {
         diplome: diplomeId,
-        actif: onlyActif
+        anneeUniversitaire
       }
         return await getSemestresService(params, scope);
     } catch (error) {
@@ -36,11 +36,11 @@ export const useSemestreStore = defineStore('semestre', () => {
     }
   };
 
-  const getSemestresByDepartement = async (departementId, onlyActif = true, scope = "") => {
+  const getSemestresByDepartement = async (departementId, anneeUniversitaire = null, scope = "") => {
     try {
       const params = {
         departement: departementId,
-        actif: onlyActif
+        anneeUniversitaire
       }
       semestres.value = await getSemestresService(params, scope);
       return semestres.value;

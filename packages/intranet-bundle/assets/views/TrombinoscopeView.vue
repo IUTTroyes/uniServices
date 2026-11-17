@@ -319,9 +319,9 @@ onUnmounted(() => {
                   @click="updateFilters({ mode: 'students' })"
                 />
 
-                <!-- Semestres actifs -->
+                <!-- Semestres de l’année -->
                 <Kpi
-                  label="Semestres actifs"
+                  label="Semestres de l’année"
                   :value="studentsKpis.semestersCount"
                   icon="pi pi-calendar"
                   color="indigo"

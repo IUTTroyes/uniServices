@@ -154,7 +154,7 @@ abstract class StageApiTestCase extends TestCase
         $diplome = (new StructureDiplome())->setLibelle($this->unique('BUT'))->setVolumeHoraire(1800)->setDepartement($departement)->setTypeDiplome($type);
         $pn = (new StructurePn($diplome))->setLibelle('PN')->setAnneePublication(2022);
         $annee = (new StructureAnnee())->setLibelle('BUT2')->setOrdre(2)->setActif(true)->setPn($pn);
-        $semestre = (new StructureSemestre())->setLibelle('S4')->setOrdreAnnee(2)->setOrdreLmd(4)->setActif(true)
+        $semestre = (new StructureSemestre())->setLibelle('S4')->setOrdreAnnee(2)->setOrdreLmd(4)
             ->setNbGroupesCm(1)->setNbGroupesTd(1)->setNbGroupesTp(1)->setCloture(false)->setAnnee($annee);
         $au = (new StructureAnneeUniversitaire())->setLibelle('2026/2027')->setAnnee(2026)->setActif(true);
         $periode = (new StagePeriode())->setLibelle($this->unique('Stage BUT2'))->setSemestreProgramme($semestre)->setAnneeUniversitaire($au)

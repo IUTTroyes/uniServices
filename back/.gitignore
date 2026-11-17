@@ -22,3 +22,9 @@ phpstan.dist.neon
 
 # Calendrier universitaire calculé et reprise des correspondances historiques.
 !/migrations/Version20261116150000.php
+
+# Validation et réouverture des sous-commissions.
+!/migrations/Version20261116180000.php
+
+# Disponibilité des semestres par maquette annuelle.
+!/migrations/Version20261117110000.php

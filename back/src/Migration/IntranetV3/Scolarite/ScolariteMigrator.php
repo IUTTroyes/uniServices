@@ -209,7 +209,9 @@ SQL;
                     'diplome' => ['oldId' => (int) $row['diplome_id']],
                 ] : null);
 
-                $scolariteSemestre->setMoyenne(null !== $row['moyenne'] ? (float) $row['moyenne'] : null);
+                $legacy = $scolariteSemestre->getLegacyContext() ?? [];
+                $legacy['moyenneV3'] = null !== $row['moyenne'] ? (float) $row['moyenne'] : null;
+                $scolariteSemestre->setLegacyContext($legacy);
                 $scolariteSemestre->setNbAbsences((int) ($row['nb_absences'] ?? 0));
 
                 if (!empty($row['commentaire']) && empty($scolarite->getCommentaire())) {

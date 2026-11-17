@@ -16,13 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
 use IntranetBundle\Repository\Etudiant\MoyenneUeRepository;
 
 #[ORM\Entity(repositoryClass: MoyenneUeRepository::class)]
-#[ApiResource(operations: [
-    new Get(),
-    new GetCollection(),
-    new Post(securityPostDenormalize: "is_granted('CAN_EDIT_SCOL', object.getEtudiantScolarite())"),
-    new Patch(security: "is_granted('CAN_EDIT_SCOL', object.getEtudiantScolarite())", securityPostDenormalize: "is_granted('CAN_EDIT_SCOL', object.getEtudiantScolarite())"),
-    new Delete(security: "is_granted('CAN_EDIT_SCOL', object.getEtudiantScolarite())"),
-])]
+/** @deprecated Données historiques uniquement ; les résultats officiels sont figés par révision de sous-commission. */
 class MoyenneUe
 {
     #[ORM\Id]

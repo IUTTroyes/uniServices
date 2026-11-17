@@ -85,7 +85,7 @@ class ScolEvaluationInitProcessor implements ProcessorInterface
         foreach ($groupes as $groupe) {
             /** @var EtudiantScolariteSemestre $ess */
             foreach ($groupe->getScolariteSemestres() as $ess) {
-                if (null === $ess->getId()) {
+                if (null === $ess->getId() || $ess->getSemestre() !== $semestre) {
                     continue;
                 }
                 $targets[$ess->getId()] = $ess;
@@ -113,7 +113,6 @@ class ScolEvaluationInitProcessor implements ProcessorInterface
             $note = new EtudiantNote();
             $note->setEvaluation($data);
             $note->setScolariteSemestre($ess);
-            $note->setScolarite($ess->getScolarite());
             // Initialisation: note=null, presenceStatut=present, commentaire=null
             $note->setPresenceStatut(EtudiantNote::STATUT_PRESENT);
             $note->setCommentaire(null);

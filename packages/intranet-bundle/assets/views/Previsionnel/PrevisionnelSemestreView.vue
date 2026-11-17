@@ -91,7 +91,7 @@ const getSemestres = async () => {
     semestres.value = await getSemestresService(params, '/mini');
 
     if (semestres.value.length > 0) {
-      selectedSemestre.value = semestres.value.find(s => s.actif) || semestres.value[0];
+      selectedSemestre.value = semestres.value[0];
     }
   } catch (error) {
     hasError.value = true;

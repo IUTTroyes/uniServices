@@ -155,7 +155,7 @@ SQL;
                 $scolariteSemestre = null;
                 if (null !== $semestre) {
                     $scolariteSemestre = $this->entityManager->getRepository(EtudiantScolariteSemestre::class)->findOneBy([
-                        'scolarite' => $scolarite,
+                        'scolariteSemestre' => $scolariteSemestre,
                         'semestre' => $semestre,
                     ]);
                 } else {
@@ -175,11 +175,16 @@ SQL;
 
                 if (null === $scolariteSemestre) {
                     ++$partial['scolariteSemestre'];
+                    ++$skipped;
+                    ++$processed;
+                    $this->addSample($messages, $sampleCount, sprintf('Note V3 #%s non importée : inscription semestrielle non résolue.', $row['id']));
+                    $this->flushBatch($context, $processed);
+                    continue;
                 }
 
                 $note = $this->entityManager->getRepository(EtudiantNote::class)->findOneBy([
                     'evaluation' => $evaluation,
-                    'scolarite' => $scolarite,
+                    'scolariteSemestre' => $scolariteSemestre,
                 ]);
                 $isNew = null === $note;
                 $note ??= new EtudiantNote();
@@ -187,7 +192,6 @@ SQL;
                 $note
                     ->setUuid($this->resolveUuid($row['uuid'] ?? null))
                     ->setEvaluation($evaluation)
-                    ->setScolarite($scolarite)
                     ->setScolariteSemestre($scolariteSemestre)
                     ->setCommentaire($row['commentaire'] ?: null)
                     ->setPubliee($evaluation->isVisible());

@@ -38,6 +38,9 @@ export interface CommissionRow {
   rang?: number | null;
   decision?: boolean | null;
   decisionLibelle: string;
+  propositionCalculee?: boolean | null;
+  decisionJury?: boolean;
+  motifJury?: string | null;
   uesValidees: number;
   numeroEtudiant?: string | null;
   dateNaissance?: string | null;
@@ -54,6 +57,9 @@ export interface CommissionStatistiques {
 }
 
 export interface CommissionViewData {
+  empreinte: string;
+  erreurs: string[];
+  validation: { etat: 'ouverte' | 'validee'; numeroRevision?: number; revision?: CommissionRevision };
   mode: 'apc' | 'classique';
   modeLibelle: string;
   semestre: { id: number; libelle: string };
@@ -70,3 +76,16 @@ export const getCommissionSemestre = async (semestreId: number | string): Promis
   const response = await api.get(`/api/intranet/commissions/semestre/${semestreId}`);
   return response.data;
 };
+
+export interface JuryDecision { inscriptionId: number; decision: boolean; motif?: string | null }
+export interface CommissionRevision {
+  id: number; numero: number; valideLe: string;
+  validePar: { id: number; nom: string; prenom: string };
+  invalideeLe: string | null; motifReouverture: string | null; vue: CommissionViewData;
+}
+export const validerCommission = async (id: number, empreinte: string, decisions: JuryDecision[]): Promise<CommissionViewData> =>
+  (await api.post(`/api/intranet/commissions/semestre/${id}/valider`, { empreinte, decisions })).data;
+export const rouvrirCommission = async (id: number, numeroRevision: number, motif: string): Promise<CommissionViewData> =>
+  (await api.post(`/api/intranet/commissions/semestre/${id}/rouvrir`, { numeroRevision, motif })).data;
+export const getHistoriqueCommission = async (id: number): Promise<CommissionRevision[]> =>
+  (await api.get(`/api/intranet/commissions/semestre/${id}/historique`)).data;

@@ -241,6 +241,9 @@ class EtudiantScolariteSemestre
         return $this;
     }
 
+    public function getRang(): ?int { return $this->rang; }
+    public function setRang(?int $rang): static { $this->rang = $rang; return $this; }
+
     public function getMoyenne(): ?float
     {
         return $this->moyenne;

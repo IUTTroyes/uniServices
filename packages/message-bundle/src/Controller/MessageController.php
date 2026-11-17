@@ -395,7 +395,7 @@ class MessageController extends AbstractController
      * Options de cibles pour la rédaction (semestres, groupes, étudiants, enseignants, personnels CC).
      */
     #[Route('/targets', name: 'api_messages_targets', methods: ['GET'])]
-    public function getTargetOptions(): JsonResponse
+    public function getTargetOptions(Request $request): JsonResponse
     {
         $user = $this->getCurrentUser();
         if (!$user instanceof Personnel) {
@@ -416,18 +416,23 @@ class MessageController extends AbstractController
             ]);
         }
 
-        // 1. Semestres actifs du département
-        $semestresActifs = $this->semestreRepository->createQueryBuilder('s')
+        // 1. Tous les semestres du département dans l’année demandée.
+        $anneeUniversitaire = $request->query->get('anneeUniversitaire', 'courante');
+        if ($anneeUniversitaire !== 'courante' && (!ctype_digit((string) $anneeUniversitaire) || (int) $anneeUniversitaire < 1)) {
+            return new JsonResponse(['message' => 'Année universitaire invalide.'], Response::HTTP_BAD_REQUEST);
+        }
+        $query = $this->semestreRepository->createQueryBuilder('s')
             ->innerJoin('s.annee', 'sa')
             ->innerJoin('sa.pn', 'pn')
             ->innerJoin('pn.diplome', 'd')
             ->where('d.departement = :dept')
-            ->andWhere('s.actif = true')
+            ->innerJoin('pn.anneeUniversitaire', 'au')
             ->setParameter('dept', $departement)
             ->orderBy('s.ordreLmd', 'ASC')
-            ->addOrderBy('s.libelle', 'ASC')
-            ->getQuery()
-            ->getResult();
+            ->addOrderBy('s.libelle', 'ASC');
+        if ($anneeUniversitaire === 'courante') $query->andWhere('au.actif = true');
+        else $query->andWhere('au.id = :anneeUniversitaire')->setParameter('anneeUniversitaire', (int) $anneeUniversitaire);
+        $semestresAnnee = $query->getQuery()->getResult();
 
         $semestres = [];
         $groupes = [];
@@ -435,7 +440,7 @@ class MessageController extends AbstractController
         $etudiants = [];
         $etudiantIdsMap = [];
 
-        foreach ($semestresActifs as $s) {
+        foreach ($semestresAnnee as $s) {
             $semestres[] = [
                 'id' => $s->getId(),
                 'libelle' => $s->getLibelle(),
@@ -443,7 +448,7 @@ class MessageController extends AbstractController
                 'ordreLmd' => $s->getOrdreLmd(),
             ];
 
-            // Groupes rattachés aux semestres actifs
+            // Groupes rattachés aux semestres de l’année
             foreach ($s->getGroupes() as $g) {
                 $gId = $g->getId();
                 $typeStr = $g->getType()->value ?? (string) $g->getType();

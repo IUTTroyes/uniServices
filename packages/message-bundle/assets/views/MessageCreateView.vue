@@ -1,4 +1,5 @@
 <script setup>
+import { getSemestresAnneeUniversitaire } from '@requests';
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { HeaderComponent, EmptyState, Alert } from '@components';
@@ -70,7 +71,7 @@ const errorMessage = ref('');
 
 onMounted(async () => {
   try {
-    const res = await messageService.getTargets();
+    const res = await messageService.getTargets(getSemestresAnneeUniversitaire());
     departement.value = res.data?.departement ?? null;
     semestresList.value = res.data?.semestres ?? [];
     groupesList.value = res.data?.groupes ?? [];
@@ -364,14 +365,14 @@ const submitMessage = async () => {
           <EmptyState
             v-if="!isLoadingTargets && semestresList.length === 0"
             compact
-            title="Aucun semestre actif"
-            description="Aucun semestre actif n'a été trouvé pour votre département."
+            title="Aucun semestre de l’année universitaire"
+            description="Aucun semestre de l’année universitaire n'a été trouvé pour votre département."
             icon="pi pi-calendar"
             color="amber"
           />
           <template v-else>
             <div class="flex items-center justify-between text-xs text-surface-600 dark:text-surface-400">
-              <span>Sélectionnez un ou plusieurs semestres actifs :</span>
+              <span>Sélectionnez un ou plusieurs semestres de l’année universitaire :</span>
               <div class="flex items-center gap-2">
                 <button
                   type="button"
@@ -422,7 +423,7 @@ const submitMessage = async () => {
             v-if="!isLoadingTargets && groupesList.length === 0"
             compact
             title="Aucun groupe disponible"
-            description="Aucun groupe de cours n'a été configuré sur les semestres actifs."
+            description="Aucun groupe de cours n'a été configuré sur les semestres de l’année universitaire."
             icon="pi pi-users"
             color="amber"
           />

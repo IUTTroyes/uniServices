@@ -77,7 +77,7 @@ const semestresList = computed(() => {
 const loadSemestres = async () => {
   const deptId = targetDepartementId.value;
   if (deptId) {
-    const res = await getDepartementSemestresService(deptId, true);
+    const res = await getDepartementSemestresService(deptId);
     semestres.value = res || [];
   } else {
     const res = await getMiniSemestresService();

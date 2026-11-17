@@ -37,8 +37,10 @@ export const messageService = {
     return api.get(`/api/messages/sent/${id}/stats`);
   },
 
-  getTargets() {
-    return api.get('/api/messages/targets');
+  getTargets(anneeUniversitaire = null) {
+    return anneeUniversitaire === null
+      ? api.get('/api/messages/targets')
+      : api.get('/api/messages/targets', { params: { anneeUniversitaire } });
   },
 
   sendMessage(payload) {

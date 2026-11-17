@@ -25,7 +25,6 @@ const isAnneeActive = (annee) => {
 const getSortedSemestres = (annee) => {
   if (!annee?.semestres || !Array.isArray(annee.semestres)) return [];
   return [...annee.semestres]
-    .filter(s => s.actif === undefined || s.actif === true)
     .sort((a, b) => {
       if (a.ordreAnnee !== undefined && b.ordreAnnee !== undefined && a.ordreAnnee !== b.ordreAnnee) {
         return a.ordreAnnee - b.ordreAnnee;

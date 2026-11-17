@@ -20,6 +20,8 @@ final readonly class CommissionDataset
         public array $scolarites,
         public array $moyennesUe,
         public array $moyennesEnseignement,
+        public array $sources = [],
+        public array $erreurs = [],
     ) {
     }
 }

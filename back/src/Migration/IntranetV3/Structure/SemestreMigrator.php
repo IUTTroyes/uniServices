@@ -51,7 +51,7 @@ final class SemestreMigrator extends AbstractMigrator
             }
 
             $sql = <<<'SQL'
-SELECT id, annee_id, libelle, ordre_annee, ordre_lmd, actif,
+SELECT id, annee_id, libelle, ordre_annee, ordre_lmd,
        nb_groupes_cm, nb_groupes_td, nb_groupes_tp, code_element,
        opt_mail_releve, opt_mail_modification_note, opt_dest_mail_releve_id, opt_dest_mail_modif_note_id,
        opt_evaluation_visible, opt_evaluation_modifiable, opt_penalite_absence,
@@ -78,7 +78,6 @@ SQL;
                         ->setLibelle((string) $row['libelle'])
                         ->setOrdreAnnee((int) $row['ordre_annee'])
                         ->setOrdreLmd((int) $row['ordre_lmd'])
-                        ->setActif((bool) $row['actif'])
                         ->setNbGroupesCm((int) $row['nb_groupes_cm'])
                         ->setNbGroupesTd((int) $row['nb_groupes_td'])
                         ->setNbGroupesTp((int) $row['nb_groupes_tp'])

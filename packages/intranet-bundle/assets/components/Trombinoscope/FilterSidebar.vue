@@ -26,17 +26,16 @@ const emit = defineEmits<{
 }>();
 
 const loaded = ref(false);
-const semesters = ref<Array<{ id: number; libelle: string; actif?: boolean }>>([]);
+const semesters = ref<Array<{ id: number; libelle: string }>>([]);
 const availableGroups = ref<Array<{ id: number; libelle: string; type: string }>>([]);
 const loadingGroups = ref(false);
 
 const loadSemesters = async () => {
   if (!departementId.value) return;
   try {
-    const res = await getDepartementSemestresService(departementId.value, true);
+    const res = await getDepartementSemestresService(departementId.value);
     const list = Array.isArray(res) ? res : (res?.member || []);
-    // Strictly filter active semesters
-    semesters.value = list.filter((sem: any) => sem.actif === true);
+    semesters.value = list;
   } catch (err) {
     console.error('Erreur chargement semestres:', err);
     semesters.value = [];

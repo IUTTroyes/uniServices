@@ -234,3 +234,7 @@ Ces constats décrivent l’état actuel ; ce document ne modifie pas les traite
 - [Contrôleur de commission](../packages/intranet-bundle/src/Controller/CommissionController.php) et [page de sous-commission](../packages/intranet-bundle/assets/views/Administration/SousCommission/SousCommissionView.vue)
 - [Migration des détails V3](../back/src/Migration/IntranetV3/Scolarite/ScolariteDetailsMigrator.php)
 - [Structure de formation](STRUCTURE_FORMATION.md)
+
+## Disponibilité des semestres
+
+`StructureSemestre.actif` est supprimé. Une inscription peut exister sur chacun des deux semestres dès le début de l’année ; les cours peuvent se chevaucher. Les listes utilisent le PN de l’année universitaire sélectionnée, sans distinguer un semestre « actif ». La sélection du semestre de travail et la validation des résultats restent des notions distinctes.
