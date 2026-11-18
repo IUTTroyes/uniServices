@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.11.0](https://github.com/IUTTroyes/uniServices/compare/v0.10.0...v0.11.0) (2026-11-18)
+
+
+### ✨ Fonctionnalités
+
+* **Docs:** Structure de la formation ([9bb176d](https://github.com/IUTTroyes/uniServices/commit/9bb176db0716702fd3087ad66ae591f2b2f977db))
+* export excel + customdatatable sur finance ([21023c0](https://github.com/IUTTroyes/uniServices/commit/21023c01a788d921dc4d4baa9e040ae17efe0be3))
+* **finance:** imputation département ou service, service fait en deux temps, droits du service financier ([155284c](https://github.com/IUTTroyes/uniServices/commit/155284c60d41af8bda5633a3af9089c84ce7499e))
+* **intranet:** Refactor absence components and enhance semester handling ([2437d0e](https://github.com/IUTTroyes/uniServices/commit/2437d0e840e726676b4c8551143604518d995dd2))
+* ldap et ajout d'un utilisateur ([a00067b](https://github.com/IUTTroyes/uniServices/commit/a00067b8898bd6290b06f93c04ef8e64d16538f6))
+* **Structure:** simplify calendrier handling ([e86c5c9](https://github.com/IUTTroyes/uniServices/commit/e86c5c96a5310685ef9264163d3d9bcdb327252b))
+
+
+### 🐛 Corrections
+
+* **intranet:** Component for emptyData and error ([faeeb4f](https://github.com/IUTTroyes/uniServices/commit/faeeb4ffd6cbf3afa0da6661bb926ff1a9ae85b3))
+* **intranet:** Component for emptyData and error ([015186a](https://github.com/IUTTroyes/uniServices/commit/015186abd448375a3fd63f0df7af49bd7d191689))
+* **intranet:** Pédagogie -&gt; Déplacement de l'onglet enseignements ([479007f](https://github.com/IUTTroyes/uniServices/commit/479007fc6114d8054b8716974722bfb8aab5b234))
+* **Navigation:** Bandeau commun département ([dd967f8](https://github.com/IUTTroyes/uniServices/commit/dd967f8f0e941e983f20cf42350e9eb674cad4d4))
+* **Navigation:** Bandeau commun département ([253a81f](https://github.com/IUTTroyes/uniServices/commit/253a81f59882cacc8c24b9ded2c15e9d31e40f9e))
+* **Navigation:** Bandeau commun département ([b2142ad](https://github.com/IUTTroyes/uniServices/commit/b2142ade09468f167cbfe01a51a651078694c6fd))
+* **Sécurité:** Révision des accès ([73489f2](https://github.com/IUTTroyes/uniServices/commit/73489f21fb2599d5db4be0f5b14ad93f3e090a22))
+* **Structure:** transforme type de salle en Enum ([5bea07a](https://github.com/IUTTroyes/uniServices/commit/5bea07ab0fe5493e13d437a42725d45baf531e48))
+
+
+### ♻️ Refactoring
+
+* simplify active year and diploma filtering logic ([fd54070](https://github.com/IUTTroyes/uniServices/commit/fd540709ba38b35e9a08e77fbc0c51a5bf0f08df))
+* **Structure:** remove unused StructureGroupe references and update calendar handling ([bb22121](https://github.com/IUTTroyes/uniServices/commit/bb221212e8db8a0af2ebe59c6f8643f8e208e556))
+* **workContext:** Gestion de l'année univ dans les requêtes ([930148f](https://github.com/IUTTroyes/uniServices/commit/930148fad0aff90c03becce633dbfbfb37d2a8c4))
+* **workContext:** Gestion de l'année univ dans les requêtes ([6467155](https://github.com/IUTTroyes/uniServices/commit/646715552b812f9662919d95b468d2b07fea1d67))
+
+
+### 📚 Documentation
+
+* ajout de documentation sur le calendrier, la structure des formations et des éléments de scolarité ([c769098](https://github.com/IUTTroyes/uniServices/commit/c7690983d67ec807eecaa99535ac6b4a92e7ef36))
+
 ## [0.10.0](https://github.com/IUTTroyes/uniServices/compare/v0.9.0...v0.10.0) (2026-11-09)
 
 
