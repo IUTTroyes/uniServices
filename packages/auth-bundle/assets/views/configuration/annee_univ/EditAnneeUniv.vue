@@ -63,7 +63,7 @@ const getAnneeUniv = async () => {
 const getDiplomes = async () => {
   try {
     const [tousLesDiplomes, diplomesDeLAnnee] = await Promise.all([
-      getDiplomesService({ pagination: false }, '/pn-light'),
+      getDiplomesService({ pagination: false }, '/pn-light', false, 'toutes'),
       getDiplomesService({ anneeUniversitaire: anneeUnivId.value, pagination: false }, '/mini'),
     ]);
     diplomes.value = tousLesDiplomes;

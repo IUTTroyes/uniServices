@@ -23,6 +23,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 //todo: a déplacer dans le bundle stage
 #[\Symfony\Component\Security\Http\Attribute\IsGranted('IS_AUTHENTICATED_FULLY')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('ressource', 'Opération rattachée à une ressource identifiée et contrôlée par le métier.')]
 class StagePdfController extends AbstractController
 {
     public function __construct(

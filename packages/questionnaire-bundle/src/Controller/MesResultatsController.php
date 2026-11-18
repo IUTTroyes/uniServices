@@ -14,6 +14,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  * Résultats publiés qui concernent la personne connectée : questionnaires et sections dont elle est destinataire.
  * GET /api/questionnaire/mes-resultats
  */
+#[\App\AnneeUniversitaire\ContexteAnnuel('transversal', 'Historique, cursus, publications ou ressources explicitement choisis par le métier.')]
 class MesResultatsController extends AbstractController
 {
     public function __construct(private readonly EntityManagerInterface $em)

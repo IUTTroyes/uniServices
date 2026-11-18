@@ -9,6 +9,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[\App\AnneeUniversitaire\ContexteAnnuel('independant', 'Identité, paramétrage partagé ou données sans année universitaire.')]
 class AvailableCommandsController extends AbstractController
 {
     #[Route('/api/scheduler/available-commands', name: 'api_scheduler_available_commands', methods: ['GET'])]

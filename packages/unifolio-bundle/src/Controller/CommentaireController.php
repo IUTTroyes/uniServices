@@ -18,6 +18,7 @@ use UnifolioBundle\Service\Trace\UnifolioValidationException;
 /** Fil de discussion d'une trace : visible de l'étudiant, de ses évaluateurs affectés et du référent. */
 #[Route('/api/unifolio/traces/{uuid}/commentaires', requirements: ['uuid' => '[0-9a-fA-F-]{36}'])]
 #[IsGranted('IS_AUTHENTICATED')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('transversal', 'Historique, cursus, publications ou ressources explicitement choisis par le métier.')]
 class CommentaireController extends AbstractController
 {
     public function __construct(

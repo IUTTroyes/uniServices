@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { prepareContexteAnnuel, reponseAnnuelleObsolete } from './contexteAnnuel.js';
 
 const baseURL = import.meta.env.VITE_BASE_URL || '';
 
@@ -94,7 +95,7 @@ api.interceptors.request.use(
 
         // Les cookies sont envoyés automatiquement grâce à withCredentials: true
         // Plus besoin de gérer le token manuellement dans le header
-        return config;
+        return prepareContexteAnnuel(config);
     },
     error => {
         return Promise.reject(error);
@@ -102,12 +103,18 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-    response => response,
+    response => {
+        if (reponseAnnuelleObsolete(response)) throw new axios.CanceledError('Réponse ignorée après un changement d’année universitaire.');
+        return response;
+    },
     async error => {
         const originalRequest = error.config;
 
         if (!originalRequest) {
             return Promise.reject(error);
+        }
+        if (reponseAnnuelleObsolete({ config: originalRequest, headers: error.response?.headers })) {
+            return Promise.reject(new axios.CanceledError('Erreur ignorée après un changement d’année universitaire.'));
         }
 
         // Skip refresh pour les endpoints publics

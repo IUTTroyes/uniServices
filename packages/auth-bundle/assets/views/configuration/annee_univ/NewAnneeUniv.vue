@@ -129,7 +129,7 @@ const getDiplomes = async () => {
   isLoadingDiplomes.value = true;
   try {
     // Récupérer tous les diplômes via le service (pas seulement ceux du département)
-    diplomes.value = await getDiplomesService({});
+    diplomes.value = await getDiplomesService({}, '', false, 'toutes');
     // Par défaut, aucun diplôme n'est sélectionné
     selectedDiplomes.value = [];
   } catch (error) {

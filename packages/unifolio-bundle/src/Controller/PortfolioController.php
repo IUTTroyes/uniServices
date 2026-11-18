@@ -23,6 +23,7 @@ use UnifolioBundle\Service\Trace\UnifolioValidationException;
 /** Portfolios de l'étudiant : liste, pages, blocs. Le portfolio académique est créé à la volée. */
 #[Route('/api/unifolio/portfolios')]
 #[IsGranted(UnifolioVoter::ESPACE_ETUDIANT)]
+#[\App\AnneeUniversitaire\ContexteAnnuel('transversal', 'Historique, cursus, publications ou ressources explicitement choisis par le métier.')]
 class PortfolioController extends AbstractController
 {
     private const UUID = '[0-9a-fA-F-]{36}';

@@ -14,6 +14,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route(path: '/api/oreof/ref-competences/synchronisation', name: 'oreof_competences_synchronisation', methods: ['POST'])]
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('independant', 'Identité, paramétrage partagé ou données sans année universitaire.')]
 class RefCompetencesSynchronisationController extends AbstractController
 {
     public function __invoke(

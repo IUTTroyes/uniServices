@@ -25,6 +25,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * GET /api/questionnaires/{uuid}/retours   équipe : tous les retours ; destinataire : les siens
  * PUT /api/questionnaires/{uuid}/retours   destinataire : {"section": id, "commentaire": "…", "planAction": "…"}
  */
+#[\App\AnneeUniversitaire\ContexteAnnuel('ressource', 'Questionnaire explicitement identifié.', \QuestionnaireBundle\Entity\Questionnaires\Questionnaire::class, 'uuid', 'uuid')]
 class QuestionnaireRetourController extends AbstractController
 {
     private const LONGUEUR_MAX = 10000;

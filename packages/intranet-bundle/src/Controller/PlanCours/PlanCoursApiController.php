@@ -21,6 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api')]
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('annuel', 'Travail sur la maquette ou les données de l’année demandée.')]
 class PlanCoursApiController extends AbstractController
 {
     public function __construct(
@@ -50,7 +51,7 @@ class PlanCoursApiController extends AbstractController
         if ($anneeUniversitaireId) {
             $anneeUniversitaire = $this->entityManager->getRepository(StructureAnneeUniversitaire::class)->find($anneeUniversitaireId);
         } else {
-            $anneeUniversitaire = $this->entityManager->getRepository(StructureAnneeUniversitaire::class)->findOneBy(['actif' => true]);
+            throw new \Symfony\Component\HttpKernel\Exception\BadRequestHttpException('Une année universitaire doit être fournie par le contexte annuel.');
         }
 
         $this->denyAccessUnlessGranted('CAN_EDIT_DIPLOME', $diplome);
@@ -199,7 +200,7 @@ class PlanCoursApiController extends AbstractController
         if ($anneeUniversitaireId) {
             $anneeUniversitaire = $this->entityManager->getRepository(StructureAnneeUniversitaire::class)->find($anneeUniversitaireId);
         } else {
-            $anneeUniversitaire = $this->entityManager->getRepository(StructureAnneeUniversitaire::class)->findOneBy(['actif' => true]);
+            throw new \Symfony\Component\HttpKernel\Exception\BadRequestHttpException('Une année universitaire doit être fournie par le contexte annuel.');
         }
 
         if (!$anneeUniversitaire) {
@@ -311,6 +312,7 @@ class PlanCoursApiController extends AbstractController
     }
 
     #[Route('/plan_cours/{id}/recopie', name: 'api_plan_cours_recopie', methods: ['POST'])]
+    #[\App\AnneeUniversitaire\ContexteAnnuel('transversal', 'Copie volontaire entre deux années universitaires.')]
     public function recopie(int $id, Request $request): JsonResponse
     {
         $planCours = $this->entityManager->getRepository(PlanCours::class)->find($id);
@@ -381,7 +383,7 @@ class PlanCoursApiController extends AbstractController
     {
         $payload = json_decode($request->getContent(), true) ?: [];
         $enseignementId = $payload['enseignementId'] ?? null;
-        $anneeUniversitaireId = $payload['anneeUniversitaireId'] ?? null;
+        $anneeUniversitaireId = $request->attributes->get('_annee_universitaire_id') ?? ($payload['anneeUniversitaireId'] ?? null);
 
         if (!$enseignementId || !$anneeUniversitaireId) {
             return new JsonResponse(['message' => 'enseignementId et anneeUniversitaireId sont requis.'], Response::HTTP_BAD_REQUEST);

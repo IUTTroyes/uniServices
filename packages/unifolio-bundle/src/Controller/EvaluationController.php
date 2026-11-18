@@ -37,6 +37,7 @@ use UnifolioBundle\Service\Trace\UnifolioValidationException;
 /** Espace des évaluateurs : file d'évaluation, suivi d'un étudiant, évaluation d'une trace ou d'un bilan. */
 #[Route('/api/unifolio/evaluations')]
 #[IsGranted(UnifolioVoter::CORRIGER)]
+#[\App\AnneeUniversitaire\ContexteAnnuel('transversal', 'Historique, cursus, publications ou ressources explicitement choisis par le métier.')]
 class EvaluationController extends AbstractController
 {
     private const UUID = '[0-9a-fA-F-]{36}';

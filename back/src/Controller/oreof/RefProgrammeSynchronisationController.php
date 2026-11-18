@@ -15,6 +15,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route(path: '/api/oreof/ref-formation/synchronisation', name: 'oreof_programme_synchronisation', methods: ['POST'])]
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('annuel', 'Travail sur la maquette ou les données de l’année demandée.')]
 class RefProgrammeSynchronisationController extends AbstractController
 {
     public function __invoke(
@@ -24,6 +25,7 @@ class RefProgrammeSynchronisationController extends AbstractController
     ): Response
     {
         $data = JsonRequest::getValuesFromString($request->getContent());
+        if (is_array($data)) $data['anneeUniversitaire'] = $request->attributes->get('_annee_universitaire_id');
         $diploma = $diplomes->find($data['selectedDiplome']);
         if ($diploma === null) {
             throw $this->createNotFoundException();

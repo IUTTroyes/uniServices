@@ -18,6 +18,7 @@ use StageBundle\Util\Iri;
 
 /** Planification des soutenances : réservée au responsable des stages du département de la période. */
 #[\Symfony\Component\Security\Http\Attribute\IsGranted('IS_AUTHENTICATED_FULLY')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('ressource', 'Opération rattachée à une ressource identifiée et contrôlée par le métier.')]
 class StageSoutenanceController extends AbstractController
 {
     private const DUREE_MIN = 5;

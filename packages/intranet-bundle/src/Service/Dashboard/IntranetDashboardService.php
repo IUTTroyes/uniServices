@@ -12,6 +12,7 @@ final class IntranetDashboardService
     public function __construct(
         private readonly UserEffectivePermissionService $permissions,
         private readonly IntranetScheduleService $schedule,
+        private readonly \App\AnneeUniversitaire\AnneeUniversitaireContext $anneeContext,
     ) {}
 
     public function getSection(Personnel|Etudiant $user, string $section): array
@@ -42,7 +43,7 @@ final class IntranetDashboardService
                 || array_intersect(UserEffectivePermissionService::IUT_DIRECTION_ROLES, $departmentAssignment->getPermissions()) === []) continue;
             $departements[$department->getId()] = [
                 'id' => $department->getId(), 'libelle' => $department->getLibelle(),
-                'formations' => $department->getStructureDiplomes()->count(),
+                'formations' => count(array_filter($department->getStructureDiplomes()->toArray(), fn ($d) => $this->dansAnnee($d))),
             ];
         }
         return ['departements' => array_values($departements)];
@@ -53,10 +54,15 @@ final class IntranetDashboardService
         $assignment = $this->permissions->getActiveDepartementPersonnel($user);
         $diplomes = [];
         foreach ($assignment?->getDepartement()?->getStructureDiplomes() ?? [] as $diplome) {
-            if ($ids !== null && !in_array($diplome->getId(), $ids, true)) continue;
+            if (!$this->dansAnnee($diplome) || ($ids !== null && !in_array($diplome->getId(), $ids, true))) continue;
             $diplomes[] = ['id' => $diplome->getId(), 'libelle' => $diplome->getLibelle(), 'sigle' => $diplome->getSigle()];
         }
         return $diplomes;
+    }
+    private function dansAnnee(\App\Entity\Structure\StructureDiplome $diplome): bool
+    {
+        foreach ($diplome->getPns() as $pn) if ($pn->getAnneeUniversitaire()?->getId() === $this->anneeContext->requireId()) return true;
+        return false;
     }
 
 }

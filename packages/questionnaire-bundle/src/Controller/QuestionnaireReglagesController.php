@@ -22,6 +22,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * GET /api/questionnaire/reglages/{departement} → réglages complets (valeurs par défaut comprises)
  * PUT /api/questionnaire/reglages/{departement} → champs partiels, 422 si clé inconnue ou valeur hors bornes
  */
+#[\App\AnneeUniversitaire\ContexteAnnuel('independant', 'Identité, paramétrage partagé ou données sans année universitaire.')]
 class QuestionnaireReglagesController extends AbstractController
 {
     public function __construct(

@@ -27,6 +27,7 @@ use Symfony\Component\Routing\Attribute\Route;
  *  - retrait : l'étudiant tant que le stage n'est pas noté, ou le service des stages.
  */
 #[Route('/api/stage_etudiants/{id}/rapport', requirements: ['id' => '\d+'])]
+#[\App\AnneeUniversitaire\ContexteAnnuel('ressource', 'Opération rattachée à une ressource identifiée et contrôlée par le métier.')]
 class StageRapportController extends AbstractController
 {
     /** États dans lesquels un rapport peut être déposé (demande validée). */

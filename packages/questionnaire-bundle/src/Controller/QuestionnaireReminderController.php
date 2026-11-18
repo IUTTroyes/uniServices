@@ -18,6 +18,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * Corps : {"invitations": [id, …], "subject"?: "…", "message"?: "…"}.
  */
 #[\Symfony\Component\Security\Http\Attribute\IsGranted('IS_AUTHENTICATED_FULLY')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('ressource', 'Questionnaire explicitement identifié.', \QuestionnaireBundle\Entity\Questionnaires\Questionnaire::class, 'uuid', 'uuid')]
 class QuestionnaireReminderController extends AbstractController
 {
     public function __construct(

@@ -69,7 +69,7 @@ Le filtre API `structure_diplomes?anneeUniversitaire=<id>` applique cette règle
 
 Les propriétés `actif` des départements et années de formation restent distinctes et sont conservées. `StructureSemestre` ne possède plus de propriété `actif` : tous les semestres de la maquette sont disponibles, même si leurs enseignements se chevauchent ou si les inscriptions aux deux semestres sont créées dès le début de l’année.
 
-Les listes de semestres sont limitées par `anneeUniversitaire` via `semestre → annee → pn`. Le service frontend utilise l’année sélectionnée, ou `courante` pour l’année universitaire active si aucune sélection n’est disponible. Le filtre département/diplôme n’impose plus implicitement une année active ; une année passée peut être demandée explicitement. La clôture et la validation des résultats sont indépendantes de cette disponibilité.
+Les listes de semestres sont limitées par `anneeUniversitaire` via `semestre → annee → pn`. Le contexte Axios transmet l’année sélectionnée ; une opération annuelle sans sélection, année explicite ou parent identifiable est refusée. Le filtre département/diplôme n’impose plus implicitement une année active ; une année passée peut être demandée explicitement. La clôture et la validation des résultats sont indépendantes de cette disponibilité.
 
 ### Initialisation d’une année universitaire
 
@@ -191,3 +191,5 @@ Pour 2027–2028, le même diplôme peut avoir un autre PN, avec ses propres ann
 ## Calendrier universitaire
 
 Le calendrier se calcule depuis `StructureAnneeUniversitaire.dateDebutSemaineFormation`, jusqu’au 31 août N+1 inclus. Les vacances ne suspendent pas le compteur. Les semaines ne sont plus stockées dans une entité dédiée. Voir [le fonctionnement et la reprise historique](CALENDRIER_UNIVERSITAIRE.md).
+
+La résolution automatique du contexte et les exceptions sont décrites dans [Gestion des années universitaires](ANNEES_UNIVERSITAIRES.md).

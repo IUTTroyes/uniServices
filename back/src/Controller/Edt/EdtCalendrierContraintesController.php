@@ -15,6 +15,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('ressource', 'Opération rattachée à une ressource identifiée et contrôlée par le métier.')]
 final class EdtCalendrierContraintesController extends AbstractController
 {
     #[Route('/api/edt-calendrier-contraintes', name: 'edt_calendrier_contraintes', methods: ['POST'])]

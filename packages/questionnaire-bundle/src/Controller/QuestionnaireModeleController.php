@@ -29,6 +29,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * POST /api/questionnaires/{uuid}/instancier  crée un questionnaire (brouillon de l'année en cours) depuis un modèle
  *                                             {"title"?, "departement": id} ; les campagnes d'un même modèle se comparent
  */
+#[\App\AnneeUniversitaire\ContexteAnnuel('transversal', 'Historique, cursus, publications ou ressources explicitement choisis par le métier.')]
 class QuestionnaireModeleController extends AbstractController
 {
     public function __construct(
@@ -54,6 +55,7 @@ class QuestionnaireModeleController extends AbstractController
     }
 
     #[Route('/api/questionnaires/{uuid}/instancier', name: 'api_questionnaire_instancier', methods: ['POST'])]
+    #[\App\AnneeUniversitaire\ContexteAnnuel('annuel', 'Instanciation dans l’année cible.')]
     public function instancier(string $uuid, Request $request): JsonResponse
     {
         $modele = $this->questionnaires->charger($uuid, QuestionnaireVoter::VIEW);

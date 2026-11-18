@@ -51,7 +51,7 @@ class EtudiantFilter implements FilterInterface
                 ->setParameter('anneeUniversitaire', $value);
 
             if (isset($context['filters']['annee'])) {
-                $anneeAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolaritesAlias, 'annee');
+                $anneeAlias = $this->getAnneeFormationAlias($queryBuilder, $queryNameGenerator, $scolaritesAlias);
                 $queryBuilder
                     ->andWhere(sprintf('%s.id = :annee', $anneeAlias))
                     ->setParameter('annee', $context['filters']['annee']);
@@ -69,10 +69,9 @@ class EtudiantFilter implements FilterInterface
 
         if ('annee' === $property) {
             $scolaritesAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'scolarites');
-            $anneeAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolaritesAlias, 'annee');
+            $anneeAlias = $this->getAnneeFormationAlias($queryBuilder, $queryNameGenerator, $scolaritesAlias);
             $queryBuilder
                 ->andWhere(sprintf('%s.id = :annee', $anneeAlias))
-                ->andWhere(sprintf('%s.actif = true', $scolaritesAlias))
                 ->setParameter('annee', $value);
         }
 
@@ -102,6 +101,13 @@ class EtudiantFilter implements FilterInterface
                 ->andWhere(sprintf('%s.annee_sortie = :anneeSortie', $alias))
                 ->setParameter('anneeSortie', (int) $value);
         }
+    }
+
+    private function getAnneeFormationAlias(QueryBuilder $qb, QueryNameGeneratorInterface $names, string $scolarite): string
+    {
+        $inscription = $this->getOrCreateJoin($qb, $names, $scolarite, 'scolariteSemestre');
+        $semestre = $this->getOrCreateJoin($qb, $names, $inscription, 'semestre');
+        return $this->getOrCreateJoin($qb, $names, $semestre, 'annee');
     }
 
     private function getOrCreateJoin(QueryBuilder $qb, QueryNameGeneratorInterface $queryNameGenerator, string $fromAlias, string $association): string

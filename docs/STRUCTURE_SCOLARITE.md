@@ -238,3 +238,5 @@ Ces constats décrivent l’état actuel ; ce document ne modifie pas les traite
 ## Disponibilité des semestres
 
 `StructureSemestre.actif` est supprimé. Une inscription peut exister sur chacun des deux semestres dès le début de l’année ; les cours peuvent se chevaucher. Les listes utilisent le PN de l’année universitaire sélectionnée, sans distinguer un semestre « actif ». La sélection du semestre de travail et la validation des résultats restent des notions distinctes.
+
+La résolution automatique du contexte et les exceptions sont décrites dans [Gestion des années universitaires](ANNEES_UNIVERSITAIRES.md).

@@ -16,6 +16,7 @@ use UnifolioBundle\Service\Trace\UnifolioValidationException;
 /** Le CV de l'étudiant, source des blocs « CV » de ses portfolios. */
 #[Route('/api/unifolio/cv')]
 #[IsGranted(UnifolioVoter::ESPACE_ETUDIANT)]
+#[\App\AnneeUniversitaire\ContexteAnnuel('transversal', 'Historique, cursus, publications ou ressources explicitement choisis par le métier.')]
 class CvController extends AbstractController
 {
     public function __construct(

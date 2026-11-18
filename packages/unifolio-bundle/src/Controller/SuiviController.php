@@ -21,6 +21,7 @@ use UnifolioBundle\Service\Suivi\SuiviEtudiant;
 
 /** Suivi : progression de l'étudiant sur son cursus, tableau de bord de promo pour les enseignants et référents. */
 #[Route('/api/unifolio')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('transversal', 'Historique, cursus, publications ou ressources explicitement choisis par le métier.')]
 class SuiviController extends AbstractController
 {
     private const UUID = '[0-9a-fA-F-]{36}';

@@ -30,6 +30,7 @@ use Symfony\Component\Routing\Attribute\Route;
  *  - POST   /api/finance_receptions/{id}/viser                 visa (service financier), { numerosMigo?: [] }.
  * Ajout et retrait : tant que la réception n'est pas visée (cf. FinanceWorkflow::peutGererBonsLivraison).
  */
+#[\App\AnneeUniversitaire\ContexteAnnuel('independant', 'Identité, paramétrage partagé ou données sans année universitaire.')]
 class FinanceReceptionController extends AbstractController
 {
     public function __construct(

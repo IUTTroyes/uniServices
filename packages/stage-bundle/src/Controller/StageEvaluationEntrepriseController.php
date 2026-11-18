@@ -26,6 +26,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * Côté entreprise (sans compte) : le formulaire est ouvert par un jeton à usage unique, valable 30 jours ; seule son
  * empreinte est stockée. Un jeton inconnu, expiré ou déjà utilisé ne révèle rien du dossier.
  */
+#[\App\AnneeUniversitaire\ContexteAnnuel('ressource', 'Opération rattachée à une ressource identifiée et contrôlée par le métier.')]
 class StageEvaluationEntrepriseController extends AbstractController
 {
     private const ETATS_ENVOI = [EtatStageEnum::CONVENTION_ENVOYEE, EtatStageEnum::CONVENTION_RECUE];

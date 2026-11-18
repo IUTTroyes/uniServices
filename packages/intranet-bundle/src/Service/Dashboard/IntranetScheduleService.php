@@ -8,7 +8,7 @@ use App\Repository\Edt\EdtEventRepository;
 
 class IntranetScheduleService
 {
-    public function __construct(private readonly EdtEventRepository $edtEventRepository) {}
+    public function __construct(private readonly EdtEventRepository $edtEventRepository, private readonly \App\AnneeUniversitaire\AnneeUniversitaireContext $anneeContext) {}
 
     public function getToday(Personnel|Etudiant $user): array
     {
@@ -21,7 +21,7 @@ class IntranetScheduleService
 
         $today = new \DateTimeImmutable('today');
         $tomorrow = $today->modify('+1 day');
-        $events = $this->edtEventRepository->findByPersonnelAndRange($user->getId(), $today, $tomorrow);
+        $events = array_values(array_filter($this->edtEventRepository->findByPersonnelAndRange($user->getId(), $today, $tomorrow), fn ($event) => $event->getAnneeUniversitaire()?->getId() === $this->anneeContext->requireId()));
         $formatter = new \IntlDateFormatter('fr_FR', \IntlDateFormatter::FULL, \IntlDateFormatter::NONE, null, \IntlDateFormatter::GREGORIAN, 'EEEE d MMMM yyyy');
         return [
             'todayLabel' => $formatter->format($today),

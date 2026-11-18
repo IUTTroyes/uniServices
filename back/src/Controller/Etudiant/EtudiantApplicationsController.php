@@ -14,6 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('annuel', 'Travail sur la maquette ou les données de l’année demandée.')]
 class EtudiantApplicationsController extends AbstractController
 {
     public function __construct(
@@ -35,6 +36,7 @@ class EtudiantApplicationsController extends AbstractController
         }
 
         $data = json_decode($request->getContent(), true);
+        if (is_array($data)) $data['anneeUniversitaireId'] = $request->attributes->get('_annee_universitaire_id');
         if (!is_array($data)) {
             return $this->json(['message' => 'Requête JSON invalide.'], Response::HTTP_BAD_REQUEST);
         }

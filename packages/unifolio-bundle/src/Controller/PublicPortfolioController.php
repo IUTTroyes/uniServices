@@ -22,6 +22,7 @@ use UnifolioBundle\Service\Publication\PublicationStorage;
  * Toute réponse inconnue, privée ou modérée est un 404 identique (aucune fuite d'existence).
  */
 #[Route('/api/unifolio')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('transversal', 'Historique, cursus, publications ou ressources explicitement choisis par le métier.')]
 class PublicPortfolioController extends AbstractController
 {
     private const FICHIER = 'index\.html|[a-zA-Z0-9][a-zA-Z0-9._-]{0,120}|media/[a-zA-Z0-9][a-zA-Z0-9._-]{0,120}';

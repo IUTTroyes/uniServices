@@ -1,3 +1,4 @@
+import { setSelectedAnneeUniversitaireId } from '@helpers/contexteAnnuel.js';
 import { useAnneeUnivStore, useUsersStore, useDiplomeStore, useAnneeStore, useEtablissementStore } from '@stores';
 
 export const initializeAppData = async () => {
@@ -32,8 +33,12 @@ const initAnneeUnivData = async () => {
         isActif: foundAnnee.actif
       });
     } else {
-      // If not found, just set what we have
-      anneeUnivStore.selectedAnneeUniv.value = selectedAnneeUniv;
+      // Une ancienne sélection supprimée ne doit pas devenir un contexte valide.
+      localStorage.removeItem('selectedAnneeUniv');
+      setSelectedAnneeUniversitaireId(null);
+      anneeUnivStore.selectedAnneeUniv = null;
+      await anneeUnivStore.getCurrentAnneeUniv();
+      if (anneeUnivStore.anneeUniv) anneeUnivStore.setSelectedAnneeUniv(anneeUnivStore.anneeUniv);
     }
   } else {
     // No selected annee in localStorage, set the current one

@@ -15,6 +15,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * Invitation de nouveaux participants à un questionnaire publié (envoi des e-mails d'invitation).
  * Corps : {"emails": ["a@exemple.fr", …]} ; les adresses déjà invitées sont ignorées.
  */
+#[\App\AnneeUniversitaire\ContexteAnnuel('ressource', 'Questionnaire explicitement identifié.', \QuestionnaireBundle\Entity\Questionnaires\Questionnaire::class, 'uuid', 'uuid')]
 class QuestionnaireInvitationController extends AbstractController
 {
     public function __construct(

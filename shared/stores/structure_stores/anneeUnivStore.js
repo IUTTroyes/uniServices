@@ -1,5 +1,9 @@
 import {defineStore} from 'pinia'
 import {ref} from 'vue'
+import { setSelectedAnneeUniversitaireId, getSelectedAnneeUniversitaireId } from '@helpers/contexteAnnuel.js'
+import { useAnneeStore } from './anneeStore.js'
+import { useSemestreStore } from './semestreStore.js'
+import { useDiplomeStore } from './diplomeStore.js'
 import {getAnneesUniversitairesService, getAnneeUniversitaireService, updateAnneeUniversitaireService } from '@requests'
 
 export const useAnneeUnivStore = defineStore('anneeUniv', () => {
@@ -36,6 +40,17 @@ export const useAnneeUnivStore = defineStore('anneeUniv', () => {
   };
 
   const setSelectedAnneeUniv = (annee) => {
+    const previousId = getSelectedAnneeUniversitaireId();
+    setSelectedAnneeUniversitaireId(annee.id);
+    if (previousId !== Number(annee.id)) {
+      const annees = useAnneeStore();
+      annees.annees = [];
+      annees.annee = null;
+      const semestres = useSemestreStore();
+      semestres.semestres = [];
+      semestres.semestre = {};
+      useDiplomeStore().diplomes = [];
+    }
     // Ensure isActif is correctly set based on actif property
     const isActif = annee.actif !== undefined ? annee.actif : annee.isActif;
 

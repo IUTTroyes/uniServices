@@ -14,6 +14,7 @@ use UnifolioBundle\Service\Perimetre\UnifolioPerimetre;
  * Contexte de l'utilisateur courant pour le front : capacités et scolarité BUT active.
  */
 #[Route('/api/unifolio')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('transversal', 'Historique, cursus, publications ou ressources explicitement choisis par le métier.')]
 class UnifolioContexteController extends AbstractController
 {
     public function __construct(

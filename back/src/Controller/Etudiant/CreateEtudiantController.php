@@ -26,6 +26,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('annuel', 'Travail sur la maquette ou les données de l’année demandée.')]
 class CreateEtudiantController extends AbstractController
 {
     public function __construct(
@@ -44,6 +45,7 @@ class CreateEtudiantController extends AbstractController
     public function integrerScolarite(int $id, Request $request): Response
     {
         $data = $request->toArray();
+        if (is_array($data)) $data['anneeUniversitaireId'] = $request->attributes->get('_annee_universitaire_id');
         $anneeUnivId = $data['anneeUniversitaireId'] ?? null;
         $anneeId = $data['anneeId'] ?? null;
 
@@ -98,6 +100,7 @@ class CreateEtudiantController extends AbstractController
     {
         // Récupérer les données JSON envoyées dans la requête
         $data = $request->toArray();
+        if (is_array($data)) $data['anneeUniversitaireId'] = $request->attributes->get('_annee_universitaire_id');
         $fileContent = $data['fileContent'] ?? null;
         $anneeUniv = $this->structureAnneeUniversitaireRepository->findOneBy(['id' => $data['anneeUniversitaireId']]);
 

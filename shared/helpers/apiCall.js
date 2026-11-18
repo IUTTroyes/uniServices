@@ -21,7 +21,7 @@ const apiCall = async (serviceMethod, args = [], successMessage = 'Operation Suc
 
     return data
   } catch (error) {
-    if (showToast) showDanger(error.response?.data?.message || error.message)
+    if (showToast && error.code !== 'ERR_CANCELED') showDanger(error.response?.data?.message || error.message)
     throw error
   }
 }

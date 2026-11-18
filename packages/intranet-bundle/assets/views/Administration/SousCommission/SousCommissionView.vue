@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import { ref, computed, onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { HeaderComponent, SimpleSkeleton, Kpi } from '@components';
 import {
   UsersIcon,
@@ -10,8 +10,8 @@ import {
   CheckCircleIcon,
   AcademicCapIcon,
 } from '@heroicons/vue/24/outline';
-import { useAnneeStore, useAnneeUnivStore } from '@stores';
-import { getSemestresService } from '@requests';
+import { useAnneeStore, useAnneeUnivStore, useUsersStore } from '@stores';
+import { getAnneesService, getSemestresService } from '@requests';
 import {
   getCommissionSemestre,
   validerCommission, rouvrirCommission, getHistoriqueCommission,
@@ -23,11 +23,23 @@ import SousCommissionApcTable from './components/SousCommissionApcTable.vue';
 import SousCommissionClassiqueTable from './components/SousCommissionClassiqueTable.vue';
 
 const route = useRoute();
+const router = useRouter();
 const anneeStore = useAnneeStore();
 const anneeUnivStore = useAnneeUnivStore();
+const usersStore = useUsersStore();
 
-const anneeId = computed(() => route.params.anneeId || anneeStore.annee?.id);
+const annee = ref<any>(null);
+const annees = ref<any[]>([]);
+const isLoadingAnnees = ref(true);
+const isInitialLoading = ref(true);
+const departementId = computed(() => usersStore.departementDefaut?.id ?? null);
+const anneeId = computed(() => annee.value?.id ?? null);
 const selectedAnneeUnivId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
+const sameId = (left: any, right: any) => String(left ?? '') === String(right ?? '');
+
+let anneesRequestId = 0;
+let semestresRequestId = 0;
+let commissionRequestId = 0;
 
 // Données du semestre
 const semestres = ref<any[]>([]);
@@ -112,32 +124,50 @@ const filteredRows = computed<CommissionRow[]>(() => {
 });
 
 // Chargement des semestres de l'année
-const loadSemestres = async () => {
+const getSemestres = async () => {
+  const requestId = ++semestresRequestId;
   isLoadingSemestres.value = true;
+  commissionRequestId++;
+  isLoadingCommission.value = false;
+  commissionData.value = null;
+  semestres.value = [];
+  selectedSemestre.value = null;
+
+  if (!anneeId.value || !selectedAnneeUnivId.value) {
+    isLoadingSemestres.value = false;
+    return;
+  }
+
   try {
     const params: Record<string, any> = {};
     if (anneeId.value) params.annee = anneeId.value;
     if (selectedAnneeUnivId.value) params.anneeUniversitaire = selectedAnneeUnivId.value;
 
     const list = await getSemestresService(params);
+    if (requestId !== semestresRequestId) return;
     semestres.value = Array.isArray(list) ? list : [];
 
     if (semestres.value.length > 0) {
       selectedSemestre.value = semestres.value[0];
-    } else {
-      selectedSemestre.value = null;
     }
   } catch (e: any) {
     console.error('Erreur chargement semestres:', e);
+    if (requestId === semestresRequestId) {
+      semestres.value = [];
+      selectedSemestre.value = null;
+    }
   } finally {
-    isLoadingSemestres.value = false;
+    if (requestId === semestresRequestId) isLoadingSemestres.value = false;
   }
 };
 
 // Chargement de la vue commission
 const loadCommission = async () => {
-  if (!selectedSemestre.value?.id) {
+  const requestId = ++commissionRequestId;
+  const semestreId = selectedSemestre.value?.id;
+  if (!semestreId) {
     commissionData.value = null;
+    isLoadingCommission.value = false;
     return;
   }
 
@@ -145,14 +175,65 @@ const loadCommission = async () => {
   errorMessage.value = null;
 
   try {
-    commissionData.value = await getCommissionSemestre(selectedSemestre.value.id);
+    const data = await getCommissionSemestre(semestreId);
+    if (requestId === commissionRequestId && sameId(selectedSemestre.value?.id, semestreId)) {
+      commissionData.value = data;
+    }
   } catch (e: any) {
     console.error('Erreur chargement commission:', e);
-    errorMessage.value = e?.response?.data?.error || 'Impossible de charger la commission pour ce semestre.';
-    commissionData.value = null;
+    if (requestId === commissionRequestId) {
+      errorMessage.value = e?.response?.data?.error || 'Impossible de charger la commission pour ce semestre.';
+      commissionData.value = null;
+    }
   } finally {
-    isLoadingCommission.value = false;
+    if (requestId === commissionRequestId) isLoadingCommission.value = false;
   }
+};
+
+const getAnnees = async () => {
+  const requestId = ++anneesRequestId;
+  isLoadingAnnees.value = true;
+
+  if (!departementId.value || !selectedAnneeUnivId.value) {
+    annees.value = [];
+    annee.value = null;
+    isLoadingAnnees.value = false;
+    return;
+  }
+
+  try {
+    const params = {
+      departement: departementId.value,
+      anneeUniversitaire: selectedAnneeUnivId.value,
+      actif: true,
+    };
+    const response = await getAnneesService(params, '/liste', false);
+    if (requestId !== anneesRequestId) return;
+    annees.value = Array.isArray(response) ? response : [];
+
+    const requestedId = route.params.anneeId ?? annee.value?.id ?? anneeStore.annee?.id;
+    annee.value = annees.value.find((item) => sameId(item.id, requestedId)) ?? annees.value[0] ?? null;
+  } catch (e: any) {
+    console.error('Erreur lors de la récupération des années :', e);
+    if (requestId === anneesRequestId) {
+      annees.value = [];
+      annee.value = null;
+    }
+  } finally {
+    if (requestId === anneesRequestId) isLoadingAnnees.value = false;
+  }
+};
+
+const syncRouteAnnee = async (selectedAnnee: any) => {
+  if (!selectedAnnee?.id || sameId(route.params.anneeId, selectedAnnee.id)) return;
+  await router.replace({
+    name: route.name,
+    params: {
+      ...route.params,
+      anneeId: String(selectedAnnee.id),
+    },
+    query: route.query,
+  });
 };
 
 // Export CSV de la grille
@@ -199,26 +280,57 @@ const exportCsv = () => {
 };
 
 onMounted(async () => {
-  await loadSemestres();
-  if (selectedSemestre.value?.id) {
+  try {
+    await getAnnees();
+    await syncRouteAnnee(annee.value);
+    await getSemestres();
     await loadCommission();
+  } finally {
+    isInitialLoading.value = false;
   }
 });
 
 watch(selectedSemestre, async (newSem, oldSem) => {
-  if (newSem?.id && newSem.id !== oldSem?.id) {
-    await loadCommission();
-  }
-});
-
-watch(anneeId, async () => {
-  await loadSemestres();
+  if (isInitialLoading.value || isLoadingSemestres.value || sameId(newSem?.id, oldSem?.id)) return;
   await loadCommission();
+}, { flush: 'sync' });
+
+watch(annee, async (newAnnee, oldAnnee) => {
+  if (isInitialLoading.value || isLoadingAnnees.value || sameId(newAnnee?.id, oldAnnee?.id)) return;
+  await syncRouteAnnee(newAnnee);
+  await getSemestres();
+  await loadCommission();
+}, { flush: 'sync' });
+
+watch(() => route.params.anneeId, (routeAnneeId) => {
+  const selectedFromRoute = annees.value.find((item) => sameId(item.id, routeAnneeId));
+  if (selectedFromRoute && !sameId(annee.value?.id, selectedFromRoute.id)) {
+    annee.value = selectedFromRoute;
+  }
+}, { flush: 'sync' });
+
+let contexteRequestId = 0;
+watch([departementId, selectedAnneeUnivId], async () => {
+  if (isInitialLoading.value) return;
+  const requestId = ++contexteRequestId;
+  commissionRequestId++;
+  commissionData.value = null;
+  semestres.value = [];
+  selectedSemestre.value = null;
+
+  await getAnnees();
+  if (requestId !== contexteRequestId) return;
+  await syncRouteAnnee(annee.value);
+  await getSemestres();
+  if (requestId === contexteRequestId) await loadCommission();
 });
 </script>
 
 <template>
-  <ContexteSelection titre="Semestre de travail" :valeur="[selectedSemestre?.libelle].filter(Boolean).join(' · ')">
+  <ContexteSelection titre="Semestre de travail" :valeur="[annee?.libelle, selectedSemestre?.libelle].filter(Boolean).join(' · ')">
+    <div class="flex flex-col gap-2"><label for="contexte-annee" class="text-sm font-semibold text-muted-color">Année de formation</label>
+      <Select :loading="isLoadingAnnees" :disabled="isLoadingAnnees || saving" input-id="contexte-annee" class="w-full sm:w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
+    </div>
     <div class="flex flex-col gap-2"><label for="contexte-selectedSemestre" class="text-sm font-semibold text-muted-color">Semestre</label>
       <Select :loading="isLoadingSemestres" :disabled="isLoadingSemestres || saving" input-id="contexte-selectedSemestre"
             v-model="selectedSemestre"

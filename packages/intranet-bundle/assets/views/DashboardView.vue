@@ -111,12 +111,11 @@ const actions = [
 </script>
 
 <template>
+  <HeaderComponent icon="pi pi-desktop" titre="Intranet"
+                   description="Retrouvez vos outils et le suivi de vos activités." :show-back="false" />
   <div class="flex flex-col gap-6 pb-8">
-    <HeaderComponent icon="pi pi-desktop" titre="Intranet"
-                     description="Retrouvez vos outils et le suivi de vos activités." :show-back="false" />
     <section aria-labelledby="workspace-actions">
       <div class="mb-4">
-        <p class="m-0! text-sm text-muted-color">{{ departmentLabel }}</p>
         <h2 id="workspace-actions" class="mt-1! mb-0! text-xl!">Vos accès métier</h2>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

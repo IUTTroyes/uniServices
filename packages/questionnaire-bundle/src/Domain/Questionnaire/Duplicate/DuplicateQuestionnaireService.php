@@ -15,15 +15,16 @@ use Symfony\Component\Uid\Uuid;
 final class DuplicateQuestionnaireService
 {
     public function __construct(
-        private readonly EntityManagerInterface $em
+        private readonly EntityManagerInterface $em,
+        private readonly \App\AnneeUniversitaire\AnneeUniversitaireContext $anneeContext
     ) {}
 
     /**
      * Copie complète (sections, questions, règles conditionnelles réécrites). La copie est un brouillon de l'année
-     * universitaire en cours ; chaque question garde la trace de sa question d'origine (comparaison entre campagnes).
+     * universitaire du contexte cible ; chaque question garde la trace de sa question d'origine (comparaison entre campagnes).
      *
      * Options : 'departement' (département de la copie, sinon celui de la source), 'modele' (la copie est un modèle),
-     * 'modeleOrigine' (modèle dont la copie est une campagne).
+     * 'modeleOrigine' (modèle dont la copie est une campagne), 'anneeUniversitaireId' (cible explicite hors HTTP).
      *
      * @param array{departement?: ?StructureDepartement, modele?: bool, modeleOrigine?: ?Questionnaire} $options
      */
@@ -42,7 +43,7 @@ final class DuplicateQuestionnaireService
             $duplicate->setDepartement(\array_key_exists('departement', $options) ? $options['departement'] : $source->getDepartement());
             $duplicate->setEstModele($options['modele'] ?? false);
             $duplicate->setModeleOrigine($options['modeleOrigine'] ?? ($source->isEstModele() ? null : $source->getModeleOrigine()));
-            $duplicate->setAnneeUniversitaire($duplicate->isEstModele() ? null : $this->em->getRepository(StructureAnneeUniversitaire::class)->findOneBy(['actif' => true], ['id' => 'DESC']));
+            $duplicate->setAnneeUniversitaire($duplicate->isEstModele() ? null : $this->em->getReference(StructureAnneeUniversitaire::class, $options['anneeUniversitaireId'] ?? $this->anneeContext->requireId()));
             // La copie appartient à la personne qui la crée.
             $duplicate->setAuthor($auteur ?? $source->getAuthor());
             $duplicate->setCompletionNotified(false);

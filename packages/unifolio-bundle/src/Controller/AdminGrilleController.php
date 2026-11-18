@@ -28,6 +28,7 @@ use UnifolioBundle\Service\Trace\UnifolioValidationException;
 /** Administration UniFolio (référents) : grilles d'évaluation et paramétrage des formations BUT. */
 #[Route('/api/unifolio/admin')]
 #[IsGranted(UnifolioVoter::GERER)]
+#[\App\AnneeUniversitaire\ContexteAnnuel('transversal', 'Historique, cursus, publications ou ressources explicitement choisis par le métier.')]
 class AdminGrilleController extends AbstractController
 {
     private const UUID = '[0-9a-fA-F-]{36}';

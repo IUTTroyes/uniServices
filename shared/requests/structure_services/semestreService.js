@@ -1,21 +1,15 @@
 import api from '@helpers/axios';
 import apiCall from '@helpers/apiCall';
 
-// Sans année explicite, utiliser la sélection de l’interface, puis l’année active.
-const getSemestresAnneeUniversitaire = () => {
-    try {
-        return JSON.parse(globalThis.localStorage?.getItem('selectedAnneeUniv') ?? 'null')?.id ?? 'courante';
-    } catch {
-        return 'courante';
-    }
-};
+import { getSelectedAnneeUniversitaireId } from '@helpers/contexteAnnuel.js';
+
+const getSemestresAnneeUniversitaire = getSelectedAnneeUniversitaireId;
 
 // ----------------------------------------------
 // ------------------- GET ----------------------
 // ----------------------------------------------
 const getSemestresService = async (params = {}, scope = '', showToast = false) => {
     const filters = { ...params };
-    if (!filters.annee && !filters.anneeUniversitaire) filters.anneeUniversitaire = getSemestresAnneeUniversitaire();
     try {
         const response = await apiCall(
             api.get,

@@ -209,7 +209,7 @@ export const useUsersStore = defineStore('users', () => {
                         actif: true,
                         etudiant: userId.value
                     };
-                    const scolaritesActives = await getEtudiantScolaritesService(params, '/user');
+                    const scolaritesActives = await getEtudiantScolaritesService(params, '/user', false, 'toutes');
                     const activeFromList = Array.isArray(scolaritesActives)
                         ? (scolaritesActives.find(s => s.actif === true) || scolaritesActives.find(s => s.anneeUniversitaire?.actif === true) || scolaritesActives[0])
                         : null;

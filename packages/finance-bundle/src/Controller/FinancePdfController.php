@@ -28,6 +28,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * Lecture : personnes qui voient la demande ; dépôt : demandeur avant l'avis, service financier (cf. FinanceAccess).
  */
 #[\Symfony\Component\Security\Http\Attribute\IsGranted('IS_AUTHENTICATED_FULLY')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('independant', 'Identité, paramétrage partagé ou données sans année universitaire.')]
 class FinancePdfController extends AbstractController
 {
     public function __construct(

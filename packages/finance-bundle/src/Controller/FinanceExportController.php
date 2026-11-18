@@ -17,6 +17,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * Le client envoie les identifiants des lignes telles qu'affichées (filtres et tri appliqués) ; le serveur recharge
  * les demandes et n'exporte que celles que l'utilisateur a le droit de voir, dans l'ordre reçu.
  */
+#[\App\AnneeUniversitaire\ContexteAnnuel('independant', 'Identité, paramétrage partagé ou données sans année universitaire.')]
 class FinanceExportController extends AbstractController
 {
     public const MAX_LIGNES = 5000;

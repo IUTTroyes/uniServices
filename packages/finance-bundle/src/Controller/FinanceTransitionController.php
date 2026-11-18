@@ -24,6 +24,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * Constatation du service fait : formulaire multipart, mêmes champs + `bonsLivraison[]` (un ou plusieurs PDF, obligatoire).
  * Réponses : 200 (nouveau statut), 403 (droit), 404, 409 (statut incompatible), 422 (données invalides).
  */
+#[\App\AnneeUniversitaire\ContexteAnnuel('independant', 'Identité, paramétrage partagé ou données sans année universitaire.')]
 class FinanceTransitionController extends AbstractController
 {
     public function __construct(

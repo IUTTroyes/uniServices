@@ -32,6 +32,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/messages')]
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('transversal', 'Historique, cursus, publications ou ressources explicitement choisis par le métier.')]
 class MessageController extends AbstractController
 {
     private const PERMANENTS_STATUTS = ['MCF', 'PU', 'PRCE', 'PRAG', 'CONTRACTUEL', 'CONTRAC', 'PRCACDD', 'CDD'];
@@ -395,6 +396,7 @@ class MessageController extends AbstractController
      * Options de cibles pour la rédaction (semestres, groupes, étudiants, enseignants, personnels CC).
      */
     #[Route('/targets', name: 'api_messages_targets', methods: ['GET'])]
+    #[\App\AnneeUniversitaire\ContexteAnnuel('annuel', 'Destinataires de l’année de travail.')]
     public function getTargetOptions(Request $request): JsonResponse
     {
         $user = $this->getCurrentUser();
@@ -417,7 +419,7 @@ class MessageController extends AbstractController
         }
 
         // 1. Tous les semestres du département dans l’année demandée.
-        $anneeUniversitaire = $request->query->get('anneeUniversitaire', 'courante');
+        $anneeUniversitaire = $request->query->get('anneeUniversitaire');
         if ($anneeUniversitaire !== 'courante' && (!ctype_digit((string) $anneeUniversitaire) || (int) $anneeUniversitaire < 1)) {
             return new JsonResponse(['message' => 'Année universitaire invalide.'], Response::HTTP_BAD_REQUEST);
         }

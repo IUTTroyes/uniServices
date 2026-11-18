@@ -31,12 +31,14 @@ use UnifolioBundle\Service\Trace\UnifolioValidationException;
 /** Administration des campagnes d'évaluation et des affectations d'évaluateurs (référents). */
 #[Route('/api/unifolio/admin/campagnes')]
 #[IsGranted(UnifolioVoter::GERER)]
+#[\App\AnneeUniversitaire\ContexteAnnuel('transversal', 'Historique, cursus, publications ou ressources explicitement choisis par le métier.')]
 class AdminCampagneController extends AbstractController
 {
     private const UUID = '[0-9a-fA-F-]{36}';
 
     public function __construct(
         private readonly EntityManagerInterface $em,
+        private readonly \App\AnneeUniversitaire\AnneeUniversitaireContext $anneeContext,
         private readonly CampagneRepository $campagnes,
         private readonly CampagneAffectationRepository $affectations,
         private readonly CampagneManager $manager,
@@ -49,11 +51,12 @@ class AdminCampagneController extends AbstractController
     }
 
     #[Route('', name: 'unifolio_admin_campagnes', methods: ['GET'])]
+    #[\App\AnneeUniversitaire\ContexteAnnuel('annuel', 'Campagnes de l’année de travail.')]
     public function liste(): JsonResponse
     {
         $campagnes = array_filter(
             $this->campagnes->findPourDepartement($this->contexte->departement($this->personnel())),
-            fn (Campagne $c) => $this->isGranted(CampagneVoter::GERER, $c)
+            fn (Campagne $c) => $this->isGranted(CampagneVoter::GERER, $c) && $c->getAnneeUniversitaire()->getId() === $this->anneeContext->requireId()
         );
 
         return $this->json(array_map($this->avecCompteurs(...), array_values($campagnes)));
@@ -94,9 +97,11 @@ class AdminCampagneController extends AbstractController
     }
 
     #[Route('', name: 'unifolio_admin_campagnes_creer', methods: ['POST'])]
+    #[\App\AnneeUniversitaire\ContexteAnnuel('annuel', 'Année cible explicite ou sélectionnée.')]
     public function creer(Request $request): JsonResponse
     {
         $d = $this->corps($request);
+        $d['anneeUniversitaire'] = $this->anneeContext->requireId();
         $diplome = $this->em->find(StructureDiplome::class, (int) ($d['diplome'] ?? 0)) ?? throw UnifolioValidationException::un('Choisissez la formation.');
         $this->denyAccessUnlessGranted(CampagneVoter::GERER, $diplome);
         $this->verifierModele($d);

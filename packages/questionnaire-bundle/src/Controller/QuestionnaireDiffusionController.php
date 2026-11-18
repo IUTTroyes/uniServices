@@ -21,6 +21,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * POST /api/questionnaires/{uuid}/diffusion/preremplir    ajoute les suggestions manquantes (prévisionnel, emploi du temps)
  * POST /api/questionnaires/{uuid}/resultats/publier       publie (questionnaire clôturé, diffusion validée)
  */
+#[\App\AnneeUniversitaire\ContexteAnnuel('ressource', 'Questionnaire explicitement identifié.', \QuestionnaireBundle\Entity\Questionnaires\Questionnaire::class, 'uuid', 'uuid')]
 class QuestionnaireDiffusionController extends AbstractController
 {
     public function __construct(

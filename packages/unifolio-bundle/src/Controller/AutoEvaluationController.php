@@ -25,6 +25,7 @@ use UnifolioBundle\Service\Trace\TraceNormalizer;
 use UnifolioBundle\Service\Trace\UnifolioValidationException;
 
 #[Route('/api/unifolio/auto-evaluations')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('transversal', 'Historique, cursus, publications ou ressources explicitement choisis par le métier.')]
 class AutoEvaluationController extends AbstractController
 {
     private const UUID = '[0-9a-fA-F-]{36}';

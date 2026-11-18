@@ -40,7 +40,7 @@ const getEtudiantScolarites = async () => {
     const params = {
       etudiant: props.etudiantId,
     };
-    etudiantScolarites.value = await getEtudiantScolaritesService(params);
+    etudiantScolarites.value = await getEtudiantScolaritesService(params, '', false, 'toutes');
 
     // Trier et définir l'onglet actif
     etudiantScolarites.value.sort((a, b) => b.anneeUniversitaire.annee - a.anneeUniversitaire.annee);

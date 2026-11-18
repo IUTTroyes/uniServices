@@ -25,6 +25,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  */
 #[Route('/api/notifications')]
 #[IsGranted('IS_AUTHENTICATED')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('independant', 'Identité, paramétrage partagé ou données sans année universitaire.')]
 class NotificationController extends AbstractController
 {
     private const LIMITE_PAR_DEFAUT = 30;

@@ -11,6 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('annuel', 'Travail sur la maquette ou les données de l’année demandée.')]
 final class IntranetDashboardController extends AbstractController
 {
     #[Route('/api/intranet/dashboard/{section}', name: 'api_intranet_business_dashboard', methods: ['GET'])]

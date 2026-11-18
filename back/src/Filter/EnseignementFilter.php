@@ -64,10 +64,6 @@ class EnseignementFilter implements FilterInterface
                         ->join("$previsionnelAlias.anneeUniversitaire", $anneeUniversitaireAlias)
                         ->andWhere("$anneeUniversitaireAlias.id = :anneeUniversitaireId")
                         ->setParameter("anneeUniversitaireId", $context['filters']['anneeUniversitaire']);
-                } else {
-                    $queryBuilder
-                        ->join("$previsionnelAlias.anneeUniversitaire", $anneeUniversitaireAlias)
-                        ->andWhere("$anneeUniversitaireAlias.actif = true");
                 }
         }
 
@@ -111,9 +107,6 @@ class EnseignementFilter implements FilterInterface
                 $queryBuilder
                     ->andWhere("$anneeUniversitaireAlias.id = :anneeUniversitaireId")
                     ->setParameter("anneeUniversitaireId", $anneeUniversitaireId);
-            } else {
-                $queryBuilder
-                    ->andWhere("$anneeUniversitaireAlias.actif = true");
             }
         }
 

@@ -36,6 +36,7 @@ use UnifolioBundle\Service\Trace\UnifolioValidationException;
 
 /** Vitrine, partage, publication et exports d'un portfolio (côté étudiant) + consultation authentifiée des publications. */
 #[Route('/api/unifolio/portfolios')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('transversal', 'Historique, cursus, publications ou ressources explicitement choisis par le métier.')]
 class PublicationController extends AbstractController
 {
     private const UUID = '[0-9a-fA-F-]{36}';

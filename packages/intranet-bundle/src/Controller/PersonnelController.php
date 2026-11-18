@@ -9,6 +9,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use App\Enum\StatutEnum;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('independant', 'Identité, paramétrage partagé ou données sans année universitaire.')]
 class PersonnelController extends AbstractController
 {
     #[Route('/api/statuts', name: 'api_statuts', methods: ['GET'])]

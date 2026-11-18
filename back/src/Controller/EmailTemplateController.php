@@ -31,6 +31,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  */
 #[Route('/api/email', name: 'api_email_')]
 #[IsGranted('SUPER_ADMIN')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('independant', 'Identité, paramétrage partagé ou données sans année universitaire.')]
 class EmailTemplateController extends AbstractController
 {
     public function __construct(

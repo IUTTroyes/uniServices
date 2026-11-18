@@ -17,6 +17,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * Plus aucune réponse n'est acceptée ; la diffusion des résultats est pré-remplie (relecture) ; le bilan part au prochain
  * passage de app:questionnaire:check-completed.
  */
+#[\App\AnneeUniversitaire\ContexteAnnuel('ressource', 'Questionnaire explicitement identifié.', \QuestionnaireBundle\Entity\Questionnaires\Questionnaire::class, 'uuid', 'uuid')]
 class QuestionnaireClotureController extends AbstractController
 {
     public function __construct(

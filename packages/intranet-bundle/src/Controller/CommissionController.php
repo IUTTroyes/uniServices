@@ -17,6 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/intranet/commissions', name: 'api_intranet_commissions_')]
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('ressource', 'Semestre explicitement identifié.', \App\Entity\Structure\StructureSemestre::class, 'semestreId', 'id')]
 final class CommissionController extends AbstractController
 {
     public function __construct(private readonly SousCommissionService $service, private readonly StructureSemestreRepository $semestres) {}

@@ -17,6 +17,7 @@ use UnifolioBundle\Service\Trace\TraceNormalizer;
 
 #[Route('/api/unifolio')]
 #[IsGranted(UnifolioVoter::ESPACE_ETUDIANT)]
+#[\App\AnneeUniversitaire\ContexteAnnuel('transversal', 'Historique, cursus, publications ou ressources explicitement choisis par le métier.')]
 class ReferentielController extends AbstractController
 {
     public function __construct(

@@ -21,11 +21,11 @@ const getAllDiplomesService = async (showToast = false) => {
     }
 }
 
-const getDiplomesService = async (params, scope = '', showToast = false) => {
+const getDiplomesService = async (params = {}, scope = '', showToast = false, contexteAnnuel = 'selection') => {
     try {
         const response = await apiCall(
             api.get,
-            [`/api${scope}/structure_diplomes`, { params }],
+            [`/api${scope}/structure_diplomes`, { params, contexteAnnuel }],
             'Diplômes récupérés avec succès',
             'Erreur lors de la récupération des diplômes',
             showToast

@@ -18,6 +18,7 @@ use UnifolioBundle\Service\Trace\UnifolioValidationException;
 /** Modération des portfolios publiés : retrait immédiat avec motif, rétablissement. */
 #[Route('/api/unifolio/admin/publications')]
 #[IsGranted(UnifolioVoter::MODERER)]
+#[\App\AnneeUniversitaire\ContexteAnnuel('transversal', 'Historique, cursus, publications ou ressources explicitement choisis par le métier.')]
 class AdminPublicationController extends AbstractController
 {
     private const UUID = '[0-9a-fA-F-]{36}';

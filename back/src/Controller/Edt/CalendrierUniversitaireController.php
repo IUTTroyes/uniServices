@@ -14,6 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[\App\AnneeUniversitaire\ContexteAnnuel('ressource', 'Année explicitement identifiée.', \App\Entity\Structure\StructureAnneeUniversitaire::class, 'id', 'id')]
 final class CalendrierUniversitaireController extends AbstractController
 {
     #[Route('/api/annees-universitaires/{id}/calendrier', methods: ['GET'], requirements: ['id' => '\d+'])]

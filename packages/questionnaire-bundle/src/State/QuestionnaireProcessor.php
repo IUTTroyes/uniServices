@@ -39,6 +39,7 @@ final class QuestionnaireProcessor implements ProcessorInterface
         private readonly Security $security,
         private readonly QuestionnaireReglages $reglages,
         private readonly EntityManagerInterface $em,
+        private readonly \App\AnneeUniversitaire\AnneeUniversitaireContext $anneeContext,
     ) {
     }
 
@@ -64,7 +65,7 @@ final class QuestionnaireProcessor implements ProcessorInterface
             // Politique du département (anonymat si l'éditeur ne l'a pas fixé, modification des réponses, seuil).
             $this->reglages->appliquerALaCreation($data, self::anonymatEnvoye($request));
             // Campagne de l'année universitaire en cours (comparaison d'une année sur l'autre).
-            $data->setAnneeUniversitaire($this->em->getRepository(StructureAnneeUniversitaire::class)->findOneBy(['actif' => true], ['id' => 'DESC']));
+            $data->setAnneeUniversitaire($data->isEstModele() ? null : $this->em->getReference(StructureAnneeUniversitaire::class, $this->anneeContext->requireId()));
         } elseif (!$avant->estBrouillon()) {
             // Après publication, l'anonymat et son seuil sont figés (sinon on pourrait identifier les répondants).
             if ($avant->estAnonyme() !== $data->estAnonyme()) {

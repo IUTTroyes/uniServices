@@ -6,6 +6,7 @@ use App\Repository\EtablissementRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
+#[\App\AnneeUniversitaire\ContexteAnnuel('independant', 'Identité, paramétrage partagé ou données sans année universitaire.')]
 final class PublicLoginController
 {
     #[Route('/api/public/login-branding', name: 'api_public_login_branding', methods: ['GET'])]
