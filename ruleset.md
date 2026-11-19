@@ -1,149 +1,76 @@
-# Guide suprême de l'Itranet V4
+# Conventions de développement UniServices
 
-## Backend - SF7
+## Architecture du dépôt
 
-- 
-- 
+| Emplacement | Responsabilité |
+| --- | --- |
+| `back/` | Noyau Symfony 8.1, API Platform 4 et Doctrine ORM. Les entités et services transverses sont sous `back/src/`, le paramétrage sous `back/config/`. |
+| `packages/*-bundle/` | Modules applicatifs. Le PHP propre au module est sous `src/`, le code Vue sous `assets/`. Les bundles Symfony actifs sont déclarés dans [bundles.php](back/config/bundles.php). |
+| `packages/shell/` | Point d’entrée Vue 3. Le [registre des bundles](packages/shell/assets/bundles-registry.js) raccorde leurs interfaces au shell. Vite génère l’application dans `back/public/app/`. |
+| `shared/` | Composants, styles, composables, stores Pinia et clients API partagés. |
+| `docs/` | Documentation métier et technique à maintenir avec les changements de comportement. |
 
-## Frontend - VueJs3
+Les versions de référence sont déclarées dans [les dépendances backend](back/composer.json) et [le workspace frontend](package.json). La version de Symfony verrouillée dans [composer.lock](back/composer.lock) requiert PHP 8.4.1 ou une version compatible plus récente. Le frontend utilise Vue 3, PrimeVue 4, Pinia et Vite, avec pnpm pour les workspaces.
 
-- L'ordre doit être script, puis template et styles dans un fichier .vue
-- Les composants doivent être en PascalCase
-- Les méthodes doivent être en camelCase
-- Les requêtes API doivent être dans un fichier js à part dans le dossier ``shared/requests/`` et sont ensuite exploitées dans les stores si nécessaire ``shared/stores/``
-- Utiliser l'intercepteur axios pour chaque requête pour tester le token et exploiter la variable d'environnement qui contient l'URL du backoffice
-	```javascript
-	import api from '@helpers/axios';
-	api.get(`/api/hello`)
-	```
-- Utiliser les *Skeleton* de primevue comme loader -> en faire des composants si nécessaire
-- Inclure 'Service' à la fin du nom des méthodes qui font les requêtes API (dans le dossier ``shared/requests/``) exemple : `getUserService`
-- Respecter impérativement le **Styleguide & Design System** (`@components`) : consulter le guide [STYLEGUIDE_AI_AGENTS.md](docs/STYLEGUIDE_AI_AGENTS.md) ou la vue interactive `/auth/configuration/styleguide`.
+## Backend
 
-### Alias
+- Suivre PSR-12 et les espaces de noms PSR-4 déclarés par Composer. Utiliser PascalCase pour les classes et camelCase pour les méthodes et variables. Typer les entrées, retours et propriétés, et documenter en PHPDoc les formes de données que PHP ne permet pas d’exprimer directement.
+- Déclarer les opérations API Platform, leurs groupes de sérialisation et leurs paramètres selon le modèle de la ressource existante. Limiter les groupes d’écriture aux champs modifiables. Utiliser un provider pour une lecture spécifique, un processor pour une opération d’écriture et un repository pour les requêtes Doctrine.
+- Appliquer les autorisations côté serveur. Passer au voter l’objet du périmètre concerné. Si une écriture peut changer son rattachement, contrôler également l’objet dénormalisé. Filtrer les collections en requête avant pagination et appliquer les mêmes restrictions aux comptages et exports. [Autorisation côté serveur](docs/VOTERS.md)
+- Pour un changement de mapping Doctrine, ajouter la migration correspondante sous `back/migrations/` et vérifier qu’elle peut être versionnée. Le fichier [back/.gitignore](back/.gitignore) prévoit des exceptions pour les migrations suivies. La reprise Intranet V3 utilise ses propres migrateurs sous [back/src/Migration/IntranetV3](back/src/Migration/IntranetV3).
 
-#### Forms
+### Contexte annuel
 
-- Gestion des validations et des messages d'erreurs : [voir la documentation](../../shared/components/components/Forms/README.md)
+- Utiliser l’année universitaire sélectionnée par défaut. Le client Axios partagé transmet le contexte. Pour une autre année ou une exception, passer explicitement l’identifiant cible ou le mode `toutes`, `aucun` ou `ressource` selon la politique de l’opération. Changer la sélection via `useAnneeUnivStore.setSelectedAnneeUniv()`.
+- Déclarer le chemin vers l’année des ressources ORM dans `PATHS` du [registre annuel](back/src/AnneeUniversitaire/PerimetreAnnuelRegistry.php). Les lectures transversales autorisées relèvent de `autoriseToutes()`. Les ressources indépendantes et les DTO ont leurs propres entrées. Les contrôleurs métier déclarent leur politique avec l’attribut `ContexteAnnuel`.
+- Appliquer le périmètre dans les requêtes métier personnalisées utilisées hors de l’extension ORM d’API Platform. Le contexte annuel s’ajoute aux droits d’accès. Distinguer année sélectionnée, année active et année portée par une ressource identifiée. [Gestion des années universitaires et exemples complets](docs/ANNEES_UNIVERSITAIRES.md)
 
-#### assets
+### Formation et scolarité
 
-Dans chaque bundle, l'alias `@` est utilisé pour accéder au dossier `assets` du bundle.
+- Le PN rattache un diplôme à une année universitaire. L’année de formation contient les semestres. Un dossier annuel d’étudiant regroupe les inscriptions semestrielles. Utiliser l’inscription concernée pour les notes, groupes et résultats du semestre. [Structure des formations](docs/STRUCTURE_FORMATION.md)
+- Calculer les nombres de groupes CM, TD et TP depuis les `StructureGroupe` rattachés au semestre. Les champs lus par le prévisionnel (`nbGroupesCm`, `nbGroupesTd`, `nbGroupesTp`) sont exposés par des getters calculés.
+- La sous-commission ouverte calcule les résultats à partir des notes. La validation fige les résultats dans une révision et renseigne les résultats courants de l’inscription. Utiliser les opérations dédiées de réouverture ou de restauration pour leur cycle de vie. Les résultats V3 importés restent dans le contexte historique de l’inscription. La publication suit les indicateurs du dossier et des notes. [Scolarité et sous-commissions](docs/STRUCTURE_SCOLARITE.md)
 
-#### Shared
+## Frontend
 
-Pour accéder aux ressources partagées, utiliser les alias suivants :
+- Ordonner les fichiers Vue avec `<script setup>`, puis `<template>`, puis `<style>` si nécessaire. Nommer les composants en PascalCase, les fonctions en camelCase et les composables `useXxx`.
+- Définir les appels HTTP partagés dans `shared/requests/`. Placer les appels propres à un module dans ses services, par exemple [commissionService.ts](packages/intranet-bundle/assets/service/commissionService.ts). Conserver le suffixe `Service` des fonctions de requête et utiliser Pinia pour l’état partagé entre écrans.
+- Utiliser [le client Axios partagé](shared/helpers/axios.js) via `@helpers/axios`. Il résout l’URL du backend avec `VITE_BASE_URL`, envoie les cookies et gère le rafraîchissement de session et le contexte annuel. Réutiliser `apiCall` selon les conventions du service pour les erreurs et notifications.
+- Utiliser les composants et les styles partagés pour les états de chargement, de liste vide et d’erreur. Le [guide du design system](docs/STYLEGUIDE_AI_AGENTS.md) couvre notamment `ListSkeleton`, `SimpleSkeleton`, `EmptyState` et les tableaux. La démonstration est disponible sur `/auth/configuration/styleguide`. Pour les formulaires, suivre [les conventions de validation et de messages](shared/components/components/Forms/README.md).
 
-- **@components** : pour les composants partagés dans ``shared/components/``
-- **@styles** : pour les styles partagés dans ``shared/styles/``
-- **@helpers** : pour les fonctions utilitaires dans ``shared/helpers/``
-- **@stores** : pour les stores partagés dans ``shared/stores/``
-- **@requests** : pour les requêtes API partagées dans ``shared/requests/``
-- **@images** : pour les assets graphiques dans ``shared/images/``
-- **@config** : pour les données globales (traductions, etc.) dans ``shared/global-data/``
-- **@types** : pour les types TypeScript dans ``shared/types/``
-- **@utils** : pour les utilitaires techniques dans ``shared/utils/``
+### Alias Vite
 
+`@/` pointe vers le dossier `assets/` du bundle qui effectue l’import, ou vers celui du shell pour son propre code. La [configuration Vite du shell](packages/shell/vite.config.js) déclare les alias partagés.
 
-### Composables de filtres (PrimeVue) — conventions d'usage
+| Alias | Répertoire |
+| --- | --- |
+| `@components` | `shared/components/` |
+| `@composables` | `shared/composables/` |
+| `@config` | `shared/global-data/` |
+| `@dialogs` | `shared/dialogs/` |
+| `@helpers` | `shared/helpers/` |
+| `@images`, `@common-images` | `shared/images/` |
+| `@requests` | `shared/requests/` |
+| `@stores` | `shared/stores/` |
+| `@styles` | `shared/styles/` |
+| `@types` | `shared/types/` |
+| `@utils` | `shared/utils/` |
 
-Cette section formalise l'usage des filtres côté Front pour les listes/exports et l'alignement avec le Back. Elle s'applique notamment aux DataTable PrimeVue et aux appels d'API paginés.
+### Filtres PrimeVue et pagination
 
-- Emplacement des composables: `packages/intranet-bundle/assets/composables/filters/` (ou équivalent selon le bundle)
-  - Factory générique: `createFilters.ts`
-  - Composables métier: `usersFilters/useEtudiantFilters.ts`, etc.
-- Nommage: `useXxxFilters` pour les composables domaine (ex: `useEtudiantFilters`).
-- Structure d'un filtre: chaque clé est un objet `{ value, matchMode }` (aligné sur PrimeVue `FilterMatchMode`).
+- Réutiliser [createFilters](shared/composables/filters/createFilters.ts) et les composables métier dans `shared/composables/filters/`, par exemple [useEtudiantFilters](shared/composables/filters/usersFilters/useEtudiantFilters.ts). Déclarer les clés et modes de recherche dans les valeurs initiales. Lier les champs à l’état des filtres et utiliser `watchChanges` pour relancer la recherche serveur, avec un debounce pour la saisie libre si nécessaire.
+- Garder la structure PrimeVue `{ value, matchMode }` dans l’interface. Adapter les paramètres au contrat de l’opération dans le service. Le [service des inscriptions semestrielles](shared/requests/etudiant_services/etudiantScolariteSemestreService.js) traduit notamment `nom`, `prenom` et `numEtudiant` en paramètres lus par [le filtre backend](back/src/Filter/EtudiantScolariteSemestreFilter.php).
+- Pour un tableau paginé côté serveur, remettre la page à la première quand les critères changent. Utiliser `totalItems` lorsque le service expose la réponse paginée complète. Si le service renvoie seulement `member`, récupérer le total via un contrat qui le fournit et transmettre les mêmes filtres et périmètres à la liste, au comptage et à l’export.
 
-#### API générique: `createFilters`
+## Vérifications locales
 
-```ts
-// front/apps/intranet/src/composables/filters/createFilters.ts
-import { ref, watch, type Ref, type WatchOptions } from 'vue';
+Les commandes de référence sont déclarées dans le [Makefile](Makefile) et le [Makefile backend](back/Makefile).
 
-export function createFilters<F extends Record<string, any>>(defaultState: F) {
-  const filters = ref({ ...defaultState }) as Ref<F>;
-
-  const updateFilters = (patch: Partial<F>) => {
-    filters.value = { ...filters.value, ...patch } as F;
-  };
-
-  const resetFilters = () => {
-    filters.value = { ...defaultState } as F;
-  };
-
-  const watchChanges = (cb: (newF: F, oldF: F) => any, options?: WatchOptions) => {
-    return watch(filters, cb, { deep: true, ...options });
-  };
-
-  return { filters, updateFilters, resetFilters, watchChanges };
-}
-```
-
-Exposé par tous les composables métier:
-- `filters`: Ref de l'état courant (profond) des filtres
-- `updateFilters(patch)`: mise à jour partielle, immuable
-- `resetFilters()`: remet l'état par défaut
-- `watchChanges(cb, options)`: observe les changements profonds pour relancer une recherche serveur, etc.
-
-#### Exemple de composable métier
-
-```ts
-// front/apps/intranet/src/composables/filters/usersFilters/useEtudiantFilters.ts
-import { createFilters } from '../createFilters';
-import { FilterMatchMode } from '@primevue/core/api';
-
-const defaultEtudiantFilters = {
-  numEtudiant: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  nom:         { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  prenom:      { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-};
-
-export function useEtudiantFilters() {
-  return createFilters(defaultEtudiantFilters);
-}
-```
-
-Règles:
-- Déclarer tout le schéma par défaut dans le composable (pas d'ajout dynamique de clés à chaud).
-- Préférer `FilterMatchMode.*` de PrimeVue pour rester homogène avec la DataTable et l'API.
-
-#### Utilisation dans un composant Vue (schéma recommandé)
-
-- Importer le composable métier et l'initialiser dans `<script setup>`.
-- Passer `filters.value` tel quel au service/API.
-- Observer les changements via `watchChanges` pour relancer le chargement.
-- Lier les champs d'entrée à `filters.<clé>.value` et prévoir un bouton de réinitialisation.
-
-Exemple simplifié (pseudocode):
-```
-const { filters, resetFilters, watchChanges } = useEtudiantFilters();
-
-async function load() {
-  await getEtudiantScolariteSemestresService({
-    /* autres params */
-    filters: filters.value,
-  });
-}
-
-watchChanges(load);
-```
-
-Notes:
-- Lier les champs d'entrée directement à `filters.<clé>.value` pour conserver la structure attendue par les DataTable et l'API.
-- `watchChanges` est l'endroit recommandé pour déclencher les rechargements serveur, exports, recalculs, etc.
-
-#### Alignement Backend
-
-- Le back attend un objet `filters` sérialisable reprenant la même structure `{ champ: { value, matchMode } }`.
-- Les services existants (ex: `getEtudiantScolariteSemestresService`) acceptent un paramètre `filters` déjà conforme.
-- Pour le comptage fiable vs pagination, voir l'exemple dans `AffectationGroupeView.vue` qui envoie `filters` aux deux endpoints.
-
-#### Bonnes pratiques
-
-- Toujours initialiser toutes les clés nécessaires dans l'état par défaut du composable.
-- Ne pas muter profondément des sous-objets de façon non contrôlée; utiliser `updateFilters` pour patcher.
-- Utiliser `resetFilters()` pour revenir à l'état initial (utile lors d'un changement de contexte: semestre, année, route, etc.).
-- Ajouter un debounce/throttle côté appelant si les frappes clavier doivent éviter des requêtes trop fréquentes.
-- Conserver la compatibilité TypeScript en typant le schéma par défaut et en laissant `createFilters` inférer `F`.
-- Centraliser les composables par domaine (ex: `usersFilters/`, `coursesFilters/`) pour éviter la duplication.
+| Objectif | Commande depuis la racine |
+| --- | --- |
+| Démarrer Symfony et le shell en développement | `make start-back` et `make start-front` |
+| Vérifier le conteneur Symfony et le mapping Doctrine | `make lint-container` et `make doctrine-validate` |
+| Lancer l’analyse statique PHP | `make phpstan` |
+| Exécuter une suite PHP ciblée, selon la configuration du dépôt | `vendor/bin/phpunit <chemin>` |
+| Exécuter les tests frontend ciblés | `pnpm exec vitest run <chemin>` |
+| Compiler le shell pour vérifier l’intégration des modules | `make build-front` |
