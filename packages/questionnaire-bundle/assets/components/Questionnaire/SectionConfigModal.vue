@@ -122,7 +122,7 @@ const fetchElements = async () => {
         semesters.map(async (semId) => {
           try {
             const data = await getSemestrePreviService(semId, anneeUnivId);
-            return (data || []).map((item: any) => ({
+            return (data?.[0] ?? []).map((item: any) => ({
               ...item,
               semId: semId
             }));

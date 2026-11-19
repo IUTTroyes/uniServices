@@ -752,7 +752,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
     #[Groups(['personnel:detail', 'previsionnel_semestre:read', 'personnel:liste'])]
     public function getDisplayStatut(): ?string
     {
-        return $this->statut->getLibelle() ?? '-';
+        return $this->statut?->getLibelle() ?? '-';
     }
 
     #[Groups(['diplome:detail', 'maquette:detail', 'personnel:detail', 'personnel:light', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'edt_event:read:agenda', 'ticket:read', 'evaluation:init', 'absence:administration', 'edt_pointage:read'])]
@@ -834,7 +834,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
     #[Groups(['personnel:detail', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read', 'personnel:liste'])]
     public function getStatutSeverity(): string
     {
-        return $this->statut->getBadge();
+        return $this->statut?->getBadge() ?? 'secondary';
     }
 
     /**

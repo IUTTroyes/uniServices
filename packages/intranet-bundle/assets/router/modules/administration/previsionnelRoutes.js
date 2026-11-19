@@ -10,6 +10,7 @@ export default [
   },
   {
     path: 'semestre_test',
+    name: 'previsionnel-synthese',
     component: () => import("@/views/Previsionnel/PrevisionnelSemestreTestView.vue"),
   },
   {
@@ -22,10 +23,11 @@ export default [
   },
   {
     path: 'primes',
-    component: () => import("@/views/Previsionnel/PrevisionnelPrimesView.vue"),
+    component: () => import("@/views/Previsionnel/PrevisionnelPersonnelView.vue"),
+    props: { gestionHrs: true },
   },
   {
     path: 'actions',
-    component: () => import("@/views/Previsionnel/PrevisionnelActionsView.vue"),
+    component: () => import('@/views/Previsionnel/PrevisionnelActionsView.vue'),
   },
 ];

@@ -65,9 +65,9 @@ class PrevisionnelPersonnelProvider implements ProviderInterface
                 $personnel = $item->getPersonnel();
                 $output['previForm'][] = $this->toDto($item);
 
-                $totalCm += (float) $item->getHeures()['CM'];
-                $totalTd += (float) $item->getHeures()['TD'];
-                $totalTp += (float) $item->getHeures()['TP'];
+                $totalCm += (float) ($item->getHeures()['CM'] ?? 0);
+                $totalTd += (float) ($item->getHeures()['TD'] ?? 0);
+                $totalTp += (float) ($item->getHeures()['TP'] ?? 0);
             }
 
             $totalClassique = round($totalCm + $totalTd + $totalTp, 1);
@@ -84,20 +84,16 @@ class PrevisionnelPersonnelProvider implements ProviderInterface
 
             if (null !== $personnel) {
                 $personnelId = $personnel->getId();
-                $departementId = $context['filters']['departement'] ?? null;
+                $departementId = $operation->getParameters()?->get('departement')?->getValue(null)
+                    ?? $context['filters']['departement'] ?? null;
 
-                $departement = null;
-                if (null !== $departementId) {
-                    $departement = $this->structureDepartementPersonnelRepository->findOneBy([
+                $isVacataire = $personnel->getStatut()?->getLibelle() === 'Enseignant Vacataire';
+                $hasServiceInDepartement = $isVacataire || ($departementId !== null
+                    && $this->structureDepartementPersonnelRepository->count([
                         'personnel' => $personnelId,
                         'departement' => $departementId,
-                    ]);
-                }
-
-                $departementAffectation = $this->structureDepartementPersonnelRepository->findOneByPersonnelAffectation($personnelId);
-                $isVacataire = $personnel->getStatut() && $personnel->getStatut()->getLibelle() === 'Enseignant Vacataire';
-
-                $hasServiceInDepartement = ($departementAffectation && $departement && $departement->getId() === $departementAffectation->getId()) || $isVacataire;
+                        'affectation' => true,
+                    ]) > 0);
 
                 if ($hasServiceInDepartement) {
                     $nbHeuresService = (float) $personnel->getNbHeuresService();
@@ -166,34 +162,13 @@ class PrevisionnelPersonnelProvider implements ProviderInterface
         $prevPers->setPersonnel($item->getPersonnel());
         $prevPers->setIdPersonnel($item->getPersonnel()->getId());
         $prevPers->setStructureAnneeUniversitaire($item->getAnneeUniversitaire());
-        $prevPers->setStatut($item->getPersonnel()->getStatut()->getLibelle());
+        $prevPers->setStatut($item->getPersonnel()->getStatut()?->getLibelle() ?? '');
         $prevPers->setIdEnseignement($item->getEnseignement()->getId());
-        $prevPers->setCodeEnseignement($item->getEnseignement()->getCodeEnseignement());
+        $prevPers->setCodeEnseignement($item->getEnseignement()->getCodeEnseignement() ?? '');
         $prevPers->setLibelleEnseignement($item->getEnseignement()->getDisplay());
         $prevPers->setTypeEnseignement($item->getEnseignement()->getType());
         $prevPers->setLibelle($item->getPersonnel()->getDisplay());
-        $prevPers->setHeures([
-            'CM' => [
-                'NbHrGrp' => round($item->getGroupes()['CM'] !== 0 ? $item->getHeures()['CM'] / $item->getGroupes()['CM'] : $item->getHeures()['CM'], 1),
-                'NbGrp' => $item->getGroupes()['CM'],
-                'NbSeanceGrp' => round((($item->getGroupes()['CM'] !== 0 ? $item->getHeures()['CM'] / $item->getGroupes()['CM'] : $item->getHeures()['CM']) / $item::DUREE_SEANCE) * $item->getGroupes()['CM'], 1),
-            ],
-            'TD' => [
-                'NbHrGrp' => round($item->getGroupes()['TD'] !== 0 ? $item->getHeures()['TD'] / $item->getGroupes()['TD'] : $item->getHeures()['TD'], 1),
-                'NbGrp' => $item->getGroupes()['TD'],
-                'NbSeanceGrp' => round((($item->getGroupes()['TD'] !== 0 ? $item->getHeures()['TD'] / $item->getGroupes()['TD'] : $item->getHeures()['TD']) / $item::DUREE_SEANCE) * $item->getGroupes()['TD'], 1),
-            ],
-            'TP' => [
-                'NbHrGrp' => round($item->getGroupes()['TP'] !== 0 ? $item->getHeures()['TP'] / $item->getGroupes()['TP'] : $item->getHeures()['TP'], 1),
-                'NbGrp' => $item->getGroupes()['TP'],
-                'NbSeanceGrp' => round((($item->getGroupes()['TP'] !== 0 ? $item->getHeures()['TP'] / $item->getGroupes()['TP'] : $item->getHeures()['TP']) / $item::DUREE_SEANCE) * $item->getGroupes()['TP'], 1),
-            ],
-            'Projet' => [
-                'NbHrGrp' => round($item->getHeures()['Projet'], 1),
-                'NbGrp' => $item->getGroupes()['Projet'],
-                'NbSeanceGrp' => round($item->getHeures()['Projet'] / $item::DUREE_SEANCE, 1),
-            ],
-        ]);
+        $prevPers->setHeures($item->getRepartitionHeures());
         $prevPers->setGroupes($item->getGroupes());
 
         return $prevPers;

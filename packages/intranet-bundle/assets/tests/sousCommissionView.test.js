@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   getCommissionSemestre: vi.fn(),
   validerCommission: vi.fn(),
   rouvrirCommission: vi.fn(),
+  restaurerCommission: vi.fn(),
   getHistoriqueCommission: vi.fn(),
   route: null,
   routerReplace: vi.fn(),
@@ -35,6 +36,7 @@ vi.mock('@/service/commissionService', () => ({
   getCommissionSemestre: mocks.getCommissionSemestre,
   validerCommission: mocks.validerCommission,
   rouvrirCommission: mocks.rouvrirCommission,
+  restaurerCommission: mocks.restaurerCommission,
   getHistoriqueCommission: mocks.getHistoriqueCommission,
 }));
 
@@ -116,7 +118,23 @@ const mountView = () => {
   const app = createApp(SousCommissionView);
   app.component('Select', SelectStub);
   const componentStub = defineComponent({ setup: () => () => h('div') });
-  ['Tag', 'InputText', 'Button', 'Message', 'Dialog'].forEach((name) => app.component(name, componentStub));
+  ['Tag', 'Message'].forEach((name) => app.component(name, componentStub));
+  app.component('Button', defineComponent({
+    props: { label: String, disabled: Boolean },
+    setup: (props) => () => h('button', { type: 'button', disabled: props.disabled }, props.label),
+  }));
+  app.component('Dialog', defineComponent({
+    props: { visible: Boolean },
+    setup: (props, { slots }) => () => props.visible ? h('section', slots.default?.()) : null,
+  }));
+  app.component('InputText', defineComponent({
+    props: { modelValue: String },
+    emits: ['update:modelValue'],
+    setup: (props, { emit }) => () => h('input', {
+      value: props.modelValue,
+      onInput: (event) => emit('update:modelValue', event.target.value),
+    }),
+  }));
   app.mount(container);
   mountedApps.push({ app, container });
   return container;
@@ -204,5 +222,37 @@ describe('SousCommissionView - contexte de sélection', () => {
       query: {},
     });
     expect(container.querySelector('[aria-live="polite"]').textContent).toBe('Troisième année · Semestre 3');
+  });
+  it('restaure la révision choisie avec un motif et le numéro de la dernière révision', async () => {
+    const validePar = { prenom: 'Camille', nom: 'Martin' };
+    const source = { id: 1, numero: 1, validePar, invalideeLe: '2026-11-18', vue: commission };
+    const courante = { id: 2, numero: 2, validePar, vue: commission };
+    mocks.getHistoriqueCommission.mockResolvedValue([courante, source]);
+    mocks.restaurerCommission.mockResolvedValue({
+      ...commission,
+      validation: { etat: 'validee', revision: { ...courante, numero: 3 } },
+    });
+
+    const container = mountView();
+    await flushUpdates();
+    const boutons = (label) => [...container.querySelectorAll('button')].filter((button) => button.textContent === label);
+    boutons('Historique des validations')[0].click();
+    await flushUpdates();
+
+    expect(boutons('Restaurer cette révision')).toHaveLength(1);
+    boutons('Restaurer cette révision')[0].click();
+    await flushUpdates();
+    expect(boutons('Confirmer la restauration')[0].disabled).toBe(true);
+
+    const motif = container.querySelector('#motif-restauration');
+    motif.value = '  Décision réexaminée  ';
+    motif.dispatchEvent(new Event('input', { bubbles: true }));
+    await flushUpdates();
+    expect(boutons('Confirmer la restauration')[0].disabled).toBe(false);
+    motif.form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await flushUpdates();
+
+    expect(mocks.restaurerCommission).toHaveBeenCalledWith(20, 1, 2, 'Décision réexaminée');
+    expect(container.querySelector('#motif-restauration')).toBeNull();
   });
 });

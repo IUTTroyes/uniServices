@@ -16,7 +16,7 @@ const items = [
 ];
 
 const currentTab = computed(() => {
-  const match = items.find(item => route.path.startsWith(item.route));
+  const match = items.find(item => route.path === item.route);
   return match ? match.route : items[0].route;
 });
 
@@ -52,7 +52,7 @@ const navigateTo = (path) => {
           </router-link>
         </TabList>
       </Tabs>
-      <router-view class="mt-6" />
+      <router-view :key="currentTab" class="mt-6" />
     </div>
   </div>
 </template>

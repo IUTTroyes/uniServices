@@ -7,6 +7,7 @@ use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use App\Entity\Scolarite\ScolEnseignement;
 use IntranetBundle\Dto\Previsionnel\PrevisionnelAllPersonnelsDto;
 use IntranetBundle\Dto\Previsionnel\PrevisionnelEnseignementDto;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
@@ -48,26 +49,17 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
                 }
             }
 
-            // Batch fetch department data
-            $departementMap = [];
-            $departementAffectationMap = [];
-            if (!empty($personnelIds)) {
-                $departements = $this->structureDepartementPersonnelRepository->findBy([
-                    'personnel' => $personnelIds,
-                    'departement' => $context['filters']['departement']
+            $departementId = $operation->getParameters()?->get('departement')?->getValue(null)
+                ?? $context['filters']['departement'] ?? null;
+            $personnelsAffectes = [];
+            if ($personnelIds !== [] && $departementId !== null) {
+                $affectations = $this->structureDepartementPersonnelRepository->findBy([
+                    'personnel' => array_unique($personnelIds),
+                    'departement' => $departementId,
+                    'affectation' => true,
                 ]);
-
-                foreach ($departements as $dept) {
-                    $departementMap[$dept->getPersonnel()->getId()] = $dept;
-                }
-
-                // Fetch all affectations in one query
-                $affectations = [];
-                foreach ($personnelIds as $id) {
-                    $affectation = $this->structureDepartementPersonnelRepository->findOneByPersonnelAffectation($id);
-                    if ($affectation) {
-                        $departementAffectationMap[$id] = $affectation;
-                    }
+                foreach ($affectations as $affectation) {
+                    $personnelsAffectes[$affectation->getPersonnel()->getId()] = true;
                 }
             }
 
@@ -76,12 +68,9 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
                     $personnel = $item->getPersonnel();
                     $personnelId = $personnel->getId();
                     $statut = $personnel->getStatut();
-                    $statutLibelle = $statut->getLibelle();
+                    $statutLibelle = $statut?->getLibelle() ?? '';
 
-                    $departement = $departementMap[$personnelId] ?? null;
-                    $departementAffectation = $departementAffectationMap[$personnelId] ?? null;
-
-                    if (($departementAffectation && $departement && $departement->getId() === $departementAffectation->getId())
+                    if (isset($personnelsAffectes[$personnelId])
                         || $statutLibelle === 'Enseignant Vacataire') {
                         $nbHeuresService = $personnel->getNbHeuresService();
                         $affectation = true;
@@ -95,7 +84,7 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
                             'count' => $count++,
                             'personnel' => $personnel,
                             'statutLibelle' => $statutLibelle,
-                            'statutBadge' => $statut->getBadge(),
+                            'statutBadge' => $statut?->getBadge() ?? '',
                             'heures' => [
                                 'CM' => 0,
                                 'TD' => 0,
@@ -108,11 +97,10 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
 
                     // Cache these values to avoid repeated array access
                     $heures = $item->getHeures();
-                    $groupes = $item->getGroupes();
 
-                    $cmHours = $heures['CM'] * $groupes['CM'];
-                    $tdHours = $heures['TD'] * $groupes['TD'];
-                    $tpHours = $heures['TP'] * $groupes['TP'];
+                    $cmHours = (float) ($heures['CM'] ?? 0);
+                    $tdHours = (float) ($heures['TD'] ?? 0);
+                    $tpHours = (float) ($heures['TP'] ?? 0);
 
                     $groupedData[$personnelId]['heures']['CM'] += $cmHours;
                     $groupedData[$personnelId]['heures']['TD'] += $tdHours;
@@ -124,7 +112,7 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
 
                     $totalHeures = $cmHours + $tdHours + $tpHours;
 
-                    $statutValue = $statut->value;
+                    $statutValue = $statut?->value;
                     if (in_array($statutValue, ['MCF', 'PU', 'ENSAM', 'PRAG', 'PRCE', 'CDD'])) {
                         $totalPermanent += $totalHeures;
                     } elseif (in_array($statutValue, ['vacataire'])) {
@@ -141,17 +129,19 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
                 $total = round($total, 2);
 
                 $group['heures']['Total'] = $total;
+                $equivalentTd = round($group['heures']['CM'] * ScolEnseignement::MAJORATION_CM + $group['heures']['TD'] + $group['heures']['TP'], 2);
+                $group['heures']['EquivalentTd'] = $equivalentTd;
 
-                if ($group['statutLibelle'] === 'Enseignant Vacataire' && $total < $group['nbHeuresService']) {
-                    $diffValue = $total - $group['nbHeuresService'];
+                if ($group['statutLibelle'] === 'Enseignant Vacataire' && $equivalentTd < $group['nbHeuresService']) {
+                    $diffValue = $equivalentTd - $group['nbHeuresService'];
                     $diff = 'Peut rester ' . abs($diffValue);
-                } elseif ($group['statutLibelle'] === 'Enseignant Vacataire' && $total > $group['nbHeuresService']) {
-                    $diffValue = $total - $group['nbHeuresService'];
+                } elseif ($group['statutLibelle'] === 'Enseignant Vacataire' && $equivalentTd > $group['nbHeuresService']) {
+                    $diffValue = $equivalentTd - $group['nbHeuresService'];
                     $diff = 'Dépassement de ' . $diffValue;
                 }
                 else {
                     if ($group['affectation']) {
-                        $diff = $total - $group['nbHeuresService'];
+                        $diff = $equivalentTd - $group['nbHeuresService'];
                     } else {
                         $diff = 'Service réalisé dans un autre département';
                     }

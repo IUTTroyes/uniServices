@@ -1,27 +1,29 @@
 <script setup>
 import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import { computed, onMounted, ref, watch } from 'vue';
-import { SimpleSkeleton, ErrorState, ListSkeleton, ButtonDelete } from "@components";
-import { useAnneeStore, useEnseignementsStore, useUsersStore } from "@stores";
+import { EmptyState, ErrorState, ListSkeleton, ButtonDelete } from "@components";
+import { useUsersStore } from "@stores";
 import {
   createPreviService,
   deletePreviService,
+  getAnneesService,
+  getEnseignementsService,
   getPersonnelsService,
   getSemestrePreviService,
   getSemestresService,
   updatePreviService
 } from "@requests";
 import { showDanger } from "@helpers";
+import { getSelectedAnneeUniversitaireId } from "@helpers/contexteAnnuel.js";
+import { viderPrevisionnelService } from "@/service/previsionnelActionsService.js";
+import { construireHeures } from "@/service/utils/previsionnelHeures.js";
 import PrevisionnelTable from "@/components/Previsionnel/PrevisionnelTable.vue";
-import { useToast } from "primevue/usetoast";
 
-const toast = useToast();
 const hasError = ref(false);
-const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
-const usersStore = useUsersStore();
-const enseignementStore = useEnseignementsStore();
-const departementId = usersStore.departementDefaut.id;
-const anneeStore = useAnneeStore();
+const anneeUnivId = getSelectedAnneeUniversitaireId();
+const departementId = useUsersStore().departementDefaut?.id;
+const isSaving = ref(false);
+let requestId = 0;
 const annees = ref([]);
 const isLoadingAnnees = ref(true);
 const selectedAnnee = ref(null);
@@ -58,18 +60,8 @@ onMounted(async () => {
 const getAnnees = async () => {
   isLoadingAnnees.value = true;
   try {
-    if (anneeStore.annees && Array.isArray(anneeStore.annees) && anneeStore.annees.length > 0) {
-      annees.value = anneeStore.annees;
-    } else {
-      const params = {
-        departement: departementId,
-        actif: true,
-        anneeUniversitaire: anneeUniv.id,
-      };
-      await anneeStore.getAnneesDepartement(params);
-      annees.value = Array.isArray(anneeStore.annees) ? anneeStore.annees : [];
-    }
-
+    if (!departementId) return;
+    annees.value = await getAnneesService({ departement: departementId }) ?? [];
     if (annees.value.length > 0) {
       selectedAnnee.value = annees.value[0];
     }
@@ -82,258 +74,136 @@ const getAnnees = async () => {
 };
 
 const getSemestres = async () => {
-  if (!selectedAnnee.value) return;
+  const anneeId = selectedAnnee.value?.id;
+  selectedSemestre.value = null;
+  semestres.value = [];
+  hasError.value = false;
+  if (!anneeId) return;
 
   isLoadingSemestres.value = true;
-  hasError.value = false;
   try {
-    const params = { annee: selectedAnnee.value.id };
-    semestres.value = await getSemestresService(params, '/mini');
-
-    if (semestres.value.length > 0) {
-      selectedSemestre.value = semestres.value[0];
-    }
+    const resultat = await getSemestresService({ annee: anneeId }, '/mini');
+    if (selectedAnnee.value?.id !== anneeId) return;
+    semestres.value = resultat ?? [];
+    selectedSemestre.value = semestres.value[0] ?? null;
   } catch (error) {
-    hasError.value = true;
-    console.error("Erreur lors de la récupération des semestres :", error);
+    if (selectedAnnee.value?.id === anneeId) hasError.value = true;
   } finally {
-    isLoadingSemestres.value = false;
+    if (selectedAnnee.value?.id === anneeId) isLoadingSemestres.value = false;
   }
 };
 
-//watcher si selecedAnnee change
-watch(selectedAnnee, async (newAnnee, oldAnnee) => {
-  if (newAnnee) {
-    await getSemestres();
-  }
-})
-
-watch(selectedSemestre, async (newSemestre, oldSemestre) => {
-  if (newSemestre) {
-    await getPrevi(newSemestre.id);
-  }
-})
+watch(selectedAnnee, getSemestres);
+watch(selectedSemestre, (semestre) => getPrevi(semestre?.id));
 
 const getPrevi = async (semestreId) => {
+  const id = ++requestId;
+  editingRowId.value = null;
+  previSemestre.value = null;
+  isLoadingPrevisionnel.value = Boolean(semestreId);
   if (!semestreId) return;
 
-  isLoadingPrevisionnel.value = true;
+  hasError.value = false;
   try {
-    // previSemestre est un tableau renvoyé par le service :
-    // [0] : Données pour le formulaire (heures par personnel/enseignement)
-    // [1] : Données pour la synthèse (heures agrégées par enseignement)
-    // [2] : Totaux généraux pour la synthèse
-    // [3] : Totaux d'heures par étudiant (CM, TD, TP) avec comparaison attendu/saisi
-    // [5] : Totaux d'heures (Classique et Équivalent TD)
-    previSemestre.value = await getSemestrePreviService(semestreId, anneeUniv.id);
-    previSemestreOriginal.value = JSON.parse(JSON.stringify(previSemestre.value));
-
-    // Chargement des listes pour les sélections dans le formulaire
-    await Promise.all([
-      fetchEnseignements(semestreId),
-      getPersonnels()
+    const [previsionnel, enseignements, intervenants] = await Promise.all([
+      getSemestrePreviService(semestreId, anneeUnivId),
+      getEnseignementsService({ semestre: semestreId, pagination: false }),
+      getPersonnelsService({ departement: departementId, pagination: false }),
     ]);
+    if (id !== requestId) return;
 
+    previSemestre.value = previsionnel;
+    previSemestreOriginal.value = JSON.parse(JSON.stringify(previsionnel));
+    enseignementsList.value = (enseignements ?? []).map((e) => ({ ...e, label: e.display ?? `${e.codeEnseignement ?? ''} ${e.libelle}`.trim() }));
+    personnels.value = (intervenants ?? []).map((p) => ({ ...p, label: p.display }));
+    selectedEnseignement.value = null;
+    selectedPersonnel.value = null;
   } catch (error) {
-    console.error('Erreur lors du chargement du prévisionnel:', error);
-    hasError.value = true;
+    if (id === requestId) hasError.value = true;
   } finally {
-    isLoadingPrevisionnel.value = false;
+    if (id === requestId) isLoadingPrevisionnel.value = false;
   }
 };
 
-const fetchEnseignements = async (semestreId) => {
-  try {
-    await enseignementStore.getMatieresSemestre(semestreId);
-    enseignementsList.value = (enseignementStore.enseignements || []).map((e) => ({
-      ...e,
-      label: `${e.codeEnseignement} - ${e.libelle}`,
-      value: e
-    }));
-  } catch (error) {
-    console.error('Erreur lors du chargement des matières:', error);
-  }
-};
+const modifierPrevi = async (action) => {
+  if (isSaving.value) return;
+  const semestreId = selectedSemestre.value?.id;
+  if (!semestreId) return;
 
-const getPersonnels = async () => {
+  isSaving.value = true;
   try {
-    const params = { departement: departementId, pagination: false };
-    const personnels = await getPersonnelsService(params);
-    personnels.value = (personnels || []).map((p) => ({
-      ...p,
-      label: p.display,
-      value: p
-    }));
-  } catch (error) {
-    console.error('Erreur lors du chargement des personnels:', error);
-  }
-};
-
-const emptyPrevi = (previs) => {
-  try {
-    // pour chaque prévi on appelle deletePreviService
-    previs.forEach(p => {
-      deletePreviService(p.id, false);
-    });
-  } catch (error) {
-    console.error('Erreur lors de la suppression des prévisions:', error);
+    await action();
+    if (selectedSemestre.value?.id === semestreId) await getPrevi(semestreId);
   } finally {
-    toast.add({
-      severity: "success",
-      summary: "Succès",
-      detail: "Prévisionnel vidé avec succès",
-      life: 5000,
-    });
-    getPrevi(selectedSemestre.value.id);
+    isSaving.value = false;
   }
-}
-
-//-------------------------
-//-------------------------
-//-------------------------
-//-------------------------
-//-------------------------
-
-/**
- * Recalcule les totaux locaux pour la synthèse en bas du tableau après une modification d'heures ou de groupes.
- * previSemestre.value[0] contient les lignes individuelles par intervenant.
- * previSemestre.value[3] contient les totaux attendus/saisis par semestre.
- */
-const refreshTotals = () => {
-  const types = ['CM', 'TD', 'TP'];
-  const prevs = previSemestre.value[0];
-  const totals = previSemestre.value[3];
-
-  types.forEach(type => {
-    // Calcul de la somme des heures saisies (NbHrGrp * NbGrp) pour chaque type
-    // Note: Dans ce contexte, on veut la somme des heures affectées (NbHrGrp) quand NbGrp > 0
-    const totalSaisi = prevs.reduce((acc, p) => {
-      const h = p.heures[type];
-      return acc + (h.NbGrp > 0 ? (h.NbHrGrp || 0) : 0);
-    }, 0);
-
-    totals[type].NbHrSaisi = Math.round(totalSaisi * 10) / 10;
-    totals[type].Diff = Math.round((totals[type].NbHrSaisi - totals[type].NbHrAttendu) * 10) / 10;
-  });
 };
 
-const duplicatePrevi = async (previId) => {
+const deleteRow = async (id) => {
   try {
-    const previToDuplicate = previSemestre.value[0].find(p => p.id === previId);
-    if (!previToDuplicate) return;
+    await modifierPrevi(() => deletePreviService(id));
+  } catch {
+    // Le service affiche le détail de l'erreur.
+  }
+};
 
-    const newPreviData = {
-      personnel: `/api/personnels/${previToDuplicate.idPersonnel}`,
-      anneeUniversitaire: `/api/structure_annee_universitaires/${anneeUniv.value.id}`,
+const emptyPrevi = async () => {
+  const ids = previSemestre.value?.[0]?.map(({ id }) => id) ?? [];
+  if (!ids.length) return;
+
+  try {
+    await modifierPrevi(() => viderPrevisionnelService(selectedSemestre.value.id, ids));
+  } catch {
+    // Le service affiche le motif du refus.
+  }
+};
+
+const duplicatePrevi = async (id) => {
+  const ligne = previSemestre.value?.[0].find((p) => p.id === id);
+  if (!ligne) return;
+
+  try {
+    await modifierPrevi(() => createPreviService({
+      ...construireHeures(ligne),
+      personnel: `/api/personnels/${ligne.idPersonnel}`,
+      enseignement: `/api/scol_enseignements/${ligne.idEnseignement}`,
+      anneeUniversitaire: `/api/structure_annee_universitaires/${anneeUnivId}`,
       referent: false,
-      heures: Object.keys(previToDuplicate.heures).reduce((acc, key) => {
-        const h = previToDuplicate.heures[key];
-        if (key === 'Projet') {
-          acc[key] = parseFloat(h.NbHrGrp) || 0;
-        } else {
-          acc[key] = (parseFloat(h.NbHrGrp) || 0) * (parseInt(h.NbGrp) || 0);
-        }
-        return acc;
-      }, {}),
-      groupes: previToDuplicate.groupes,
-      enseignement: `/api/scol_enseignements/${previToDuplicate.idEnseignement}`,
-    };
-
-    await createPreviService(newPreviData);
-    await getPrevi(selectedSemestre.value.id); // Rechargement complet pour rafraîchir la synthèse
+    }));
   } catch (error) {
-    showDanger('Une erreur est survenue lors de la duplication du prévisionnel', error);
+    if (error instanceof RangeError) showDanger(error.message);
   }
 };
 
-const updateHeuresPrevi = (previId, type, valeur) => {
-  const previForm = previSemestre.value[0].find(p => p.id === previId);
-  if (!previForm) return;
-
-  const newValue = parseFloat(valeur);
-  // On accepte 0, mais on rejette ce qui n'est pas un nombre
-  if (isNaN(newValue)) return;
-
-  const DUREE_SEANCE = 1;
-
-  // Mise à jour locale immédiate pour réactivité de l'UI
-  previForm.heures[type].NbHrGrp = newValue;
-  const nbGrp = parseInt(previForm.heures[type].NbGrp) || 0;
-  previForm.heures[type].NbSeanceGrp = Math.round(((newValue / DUREE_SEANCE) * nbGrp) * 10) / 10;
-  refreshTotals();
+const updateHeuresPrevi = (id, type, valeur) => {
+  const ligne = previSemestre.value?.[0].find((p) => p.id === id);
+  ligne.heures[type].NbHrGrp = valeur;
+  const total = Number(String(valeur).replace(',', '.')) * ligne.heures[type].NbGrp;
+  ligne.heures[type].NbSeanceGrp = Number.isFinite(total) ? Math.round(total * 10) / 10 : null;
 };
 
-const updateGroupesPrevi = (previId, type, valeur) => {
-  const previForm = previSemestre.value[0].find(p => p.id === previId);
-  if (!previForm) return;
-
-  const newValue = parseInt(valeur);
-  // On accepte 0
-  if (isNaN(newValue)) return;
-
-  const DUREE_SEANCE = 1;
-
-  // Mise à jour locale immédiate
-  previForm.groupes[type] = newValue;
-  previForm.heures[type].NbGrp = newValue;
-  const nbHrGrp = parseFloat(previForm.heures[type].NbHrGrp) || 0;
-  previForm.heures[type].NbSeanceGrp = Math.round(((nbHrGrp / DUREE_SEANCE) * newValue) * 10) / 10;
-  refreshTotals();
+const updateGroupesPrevi = (id, type, valeur) => {
+  const ligne = previSemestre.value?.[0].find((p) => p.id === id);
+  ligne.heures[type].NbGrp = valeur;
+  updateHeuresPrevi(id, type, ligne.heures[type].NbHrGrp);
 };
 
-const saveRow = async (previId) => {
+const saveRow = async (id) => {
+  const ligne = previSemestre.value?.[0].find((p) => p.id === id);
+  if (!ligne) return;
+
   try {
-    const previForm = previSemestre.value[0].find(p => p.id === previId);
-    if (!previForm) return;
-
-    // Calcul des heures totales par type (NbHrGrp * NbGrp)
-    const newHeures = {};
-    const types = ['CM', 'TD', 'TP', 'Projet'];
-    const DUREE_SEANCE = 1;
-
-    types.forEach(type => {
-      const h = previForm.heures[type];
-      if (h) {
-        if (type === 'Projet') {
-          newHeures[type] = parseFloat(h.NbHrGrp) || 0;
-          previForm.heures[type].NbSeanceGrp = Math.round((newHeures[type] / DUREE_SEANCE) * 10) / 10;
-        } else {
-          const nbHrGrp = parseFloat(h.NbHrGrp) || 0;
-          const nbGrp = parseInt(h.NbGrp) || 0;
-          newHeures[type] = nbHrGrp * nbGrp;
-          previForm.heures[type].NbSeanceGrp = Math.round(((nbHrGrp / DUREE_SEANCE) * nbGrp) * 10) / 10;
-        }
-      } else {
-        newHeures[type] = 0;
-      }
-    });
-
-    const newGroupes = {};
-    types.forEach(type => {
-      newGroupes[type] = parseInt(previForm.heures[type]?.NbGrp || previForm.groupes[type]) || 0;
-    });
-
-    const dataToUpdate = {
-      groupes: newGroupes,
-      heures: newHeures,
-      personnel: `/api/personnels/${previForm.idPersonnel}`
-    };
-
-    // Si l'enseignement a été modifié, on l'ajoute aussi
-    if (previForm.idEnseignement) {
-      dataToUpdate.enseignement = `/api/scol_enseignements/${previForm.idEnseignement}`;
-    }
-
-    await updatePreviService(previId, dataToUpdate);
-
-    editingRowId.value = null;
-    previSemestreOriginal.value = JSON.parse(JSON.stringify(previSemestre.value));
+    await modifierPrevi(() => updatePreviService(id, {
+      ...construireHeures(ligne),
+      personnel: `/api/personnels/${ligne.idPersonnel}`,
+      enseignement: `/api/scol_enseignements/${ligne.idEnseignement}`,
+    }));
   } catch (error) {
-    showDanger('Une erreur est survenue lors de l\'enregistrement', error);
+    if (error instanceof RangeError) showDanger(error.message);
   }
 };
 
-const cancelRow = (previId) => {
+const cancelRow = () => {
   previSemestre.value = JSON.parse(JSON.stringify(previSemestreOriginal.value));
   editingRowId.value = null;
 };
@@ -341,9 +211,8 @@ const cancelRow = (previId) => {
 const updateIntervenantPrevi = (previId, personnel) => {
   // Récupérer le prévisionnel à modifier
   let previForm = previSemestre.value[0].find(previ => previ.id === previId);
-  if (!previForm) return;
+  if (!previForm || !personnel) return;
 
-  // Mettre à jour localement
   previForm.idPersonnel = personnel.id;
   previForm.intervenant = typeof personnel.display === 'string' ? personnel.display : `${personnel.prenom} ${personnel.nom}`;
 };
@@ -351,39 +220,31 @@ const updateIntervenantPrevi = (previId, personnel) => {
 const updateEnseignementPrevi = (previId, enseignement) => {
   // Récupérer le prévisionnel à modifier
   let previForm = previSemestre.value[0].find(previ => previ.id === previId);
-  if (!previForm) return;
+  if (!previForm || !enseignement) return;
 
-  // Mettre à jour localement
   previForm.idEnseignement = enseignement.id;
-  previForm.libelleEnseignement = enseignement.display;
-  previForm.codeEnseignement = enseignement.code;
+  previForm.libelleEnseignement = enseignement.label;
+  previForm.codeEnseignement = enseignement.codeEnseignement;
 };
 
-watch(isEditing, async (newIsEditing) => {
-  if (!newIsEditing) {
-    await getPrevi(selectedSemestre.value?.id);
-  }
+watch(isEditing, () => {
+  if (editingRowId.value !== null) cancelRow();
 });
 
-const addPrevi = async (personnel, enseignement) => {
-  if (!personnel || !enseignement) {
-    showDanger('Veuillez sélectionner un intervenant et une matière');
-    return;
-  }
+const addPrevi = async () => {
+  if (!selectedPersonnel.value || !selectedEnseignement.value) return;
 
   try {
-    const dataNewPrevi = {
-      personnel: `/api/personnels/${personnel.id}`,
-      anneeUniversitaire: `/api/structure_annee_universitaires/${anneeUniv.value.id}`,
+    await modifierPrevi(() => createPreviService({
+      personnel: `/api/personnels/${selectedPersonnel.value.id}`,
+      anneeUniversitaire: `/api/structure_annee_universitaires/${anneeUnivId}`,
       referent: false,
       heures: { CM: 0, TD: 0, TP: 0, Projet: 0 },
       groupes: { CM: 0, TD: 0, TP: 0, Projet: 0 },
-      enseignement: `/api/scol_enseignements/${enseignement.id}`,
-    };
-    await createPreviService(dataNewPrevi);
-    await getPrevi(selectedSemestre.value.id);
-  } catch (error) {
-    console.error('Erreur lors de la création du prévisionnel:', error);
+      enseignement: `/api/scol_enseignements/${selectedEnseignement.value.id}`,
+    }));
+  } catch {
+    // Le service affiche le détail de l'erreur.
   }
 };
 
@@ -566,14 +427,14 @@ const footerColsForm = computed(() => {
 <template>
   <ContexteSelection titre="Semestre de travail" :valeur="[selectedAnnee?.libelle, selectedSemestre?.libelle].filter(Boolean).join(' · ')">
     <div class="flex flex-col gap-2"><label for="contexte-selectedAnnee" class="text-sm font-semibold text-muted-color">Année de formation</label>
-      <Select :loading="isLoadingAnnees" :disabled="isLoadingAnnees" input-id="contexte-selectedAnnee" class="w-full sm:w-60" v-model="selectedAnnee" option-label="libelle" :options="annees">
+      <Select :loading="isLoadingAnnees" :disabled="isLoadingAnnees || isSaving" input-id="contexte-selectedAnnee" class="w-full sm:w-60" v-model="selectedAnnee" option-label="libelle" :options="annees">
           <template #value>
             {{ selectedAnnee?.libelle || "Sélectionner une année" }}
           </template>
         </Select>
     </div>
     <div class="flex flex-col gap-2"><label for="contexte-selectedSemestre" class="text-sm font-semibold text-muted-color">Semestre</label>
-      <Select :loading="isLoadingSemestres" :disabled="isLoadingSemestres" input-id="contexte-selectedSemestre" class="w-full sm:w-60" v-model="selectedSemestre" option-label="libelle" :options="semestres">
+      <Select :loading="isLoadingSemestres" :disabled="isLoadingSemestres || isSaving" input-id="contexte-selectedSemestre" class="w-full sm:w-60" v-model="selectedSemestre" option-label="libelle" :options="semestres">
           <template #value>
             {{ selectedSemestre?.libelle || "Sélectionner un semestre" }}
           </template>
@@ -582,18 +443,19 @@ const footerColsForm = computed(() => {
   </ContexteSelection>
 
   <ErrorState v-if="hasError" />
+  <ListSkeleton v-else-if="isLoadingAnnees || isLoadingSemestres || (selectedSemestre && isLoadingPrevisionnel)" class="mt-6" />
+  <EmptyState v-else-if="!previSemestre" title="Aucun semestre disponible pour cette sélection." />
   <div v-else class="px-4 flex flex-col">
     <div class="flex justify-between gap-10">
 
       <div class="flex items-center gap-4">
-        <Button v-if="!isEditing" label="Saisir le prévisionnel" icon="pi pi-plus" @click="isEditing = !isEditing" />
-        <Button v-else label="Afficher le prévisionnel" icon="pi pi-eye" @click="isEditing = !isEditing" />
-        <ButtonDelete tooltip="Vider le prévisionnel" label="Vider le prévisionnel" @confirm-delete="emptyPrevi(previSemestre[0])"/>
+        <Button v-if="!isEditing" label="Saisir le prévisionnel" icon="pi pi-plus" :disabled="isSaving" @click="isEditing = !isEditing" />
+        <Button v-else label="Afficher le prévisionnel" icon="pi pi-eye" :disabled="isSaving" @click="isEditing = !isEditing" />
+        <ButtonDelete v-if="isEditing && !isSaving && previSemestre[0].length" tooltip="Vider le prévisionnel" label="Vider le prévisionnel" @confirm-delete="emptyPrevi"/>
       </div>
     </div>
 
-    <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
-    <div v-else>
+    <div>
       <div class="flex w-full justify-between my-6">
         <SelectButton v-model="size" :options="sizeOptions" optionLabel="label" dataKey="label" />
         <div class="flex justify-end">
@@ -622,12 +484,22 @@ const footerColsForm = computed(() => {
         <Message severity="info" class="my-6 flex justify-center" icon="pi pi-info-circle">
           Cliquer sur une ligne pour l'éditer, enregistrer les modifications ligne par ligne
         </Message>
-          <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
+        <div class="flex flex-wrap items-end gap-3 mb-4">
+          <div class="flex flex-col gap-1">
+            <label for="previ-enseignement">Enseignement</label>
+            <Select v-model="selectedEnseignement" input-id="previ-enseignement" :options="enseignementsList" option-label="label" filter />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label for="previ-intervenant">Intervenant</label>
+            <Select v-model="selectedPersonnel" input-id="previ-intervenant" :options="personnels" option-label="label" filter />
+          </div>
+          <Button label="Ajouter une ligne" icon="pi pi-plus" :loading="isSaving" :disabled="!selectedEnseignement || !selectedPersonnel" @click="addPrevi" />
+        </div>
         <PrevisionnelTable
-            v-else
             origin="previSemestreForm"
             v-model:editingRowId="editingRowId"
             @save-row="saveRow"
+            @delete-row="deleteRow"
             @cancel-row="cancelRow"
             :columns="columnsForm"
             :topHeaderCols="topHeaderColsForm"

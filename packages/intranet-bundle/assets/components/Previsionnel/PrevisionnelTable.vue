@@ -1,33 +1,7 @@
 <script setup>
-import { ref, reactive, toRefs, watch } from 'vue';
 import ButtonDelete from "@components/components/Buttons/ButtonDelete.vue";
 import ButtonDuplicate from "@components/components/Buttons/ButtonDuplicate.vue";
 import ButtonSave from "@components/components/Buttons/ButtonSave.vue";
-import apiCall from '@helpers/apiCall.js'
-import debounce from '@helpers/debounce.js'
-import createApiService from '@requests/apiService'
-const previsionnelService = createApiService('/api/previsionnels');
-const hrsService = createApiService('/api/personnel_enseignant_hrs');
-
-const dataToDuplicatePrevi = ref({});
-const dataToDuplicateHrs = ref({});
-const duplicatedPrevi = ref({});
-const duplicatedHrs = ref({});
-
-
-const debouncedActions = new Map();
-
-// Function to get or create a debounced version of a form action
-const getDebouncedActionPrevi = (formAction, id, type, test) => {
-  console.log('test', formAction, id, type);
-  const key = `${id}-${type}-${test}`;
-  if (!debouncedActions.has(key)) {
-    debouncedActions.set(key, debounce((value) => {
-      formAction(id, type, value);
-    }, 500));
-  }
-  return debouncedActions.get(key);
-};
 
 // Définition des propriétés du composant
 const props = defineProps({
@@ -45,19 +19,19 @@ const props = defineProps({
   },
   topHeaderCols: {
     type: Array,
-    required: false
+    default: () => []
   },
   additionalRows: {
     type: Array,
-    required: false
+    default: () => []
   },
   footerCols: {
     type: Array,
-    required: false
+    default: () => []
   },
   footerRows: {
     type: Array,
-    required: false
+    default: () => []
   },
   data: {
     type: Array,
@@ -81,18 +55,10 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['update:editingRowId', 'save-row', 'cancel-row']);
-
-// Utilisation de reactive pour rendre les données réactives
-const state = reactive({
-  data: props.data
-});
-
-const { data } = toRefs(state);
-
+const emit = defineEmits(['update:editingRowId', 'save-row', 'cancel-row', 'delete-row']);
 
 const onRowClick = (rowData) => {
-  if ((props.origin === 'previSemestreForm' || props.origin === 'previEnseignantForm') && props.editingRowId !== rowData.id) {
+  if ((props.origin === 'previSemestreForm' || props.origin === 'previEnseignantForm') && props.editingRowId === null) {
     emit('update:editingRowId', rowData.id);
   }
 };
@@ -125,27 +91,11 @@ const setFieldValue = (data, field, value) => {
   }
 };
 
-// Fonction pour supprimer un prévisionnel
-const deletePrevi = async (data) => {
-  await apiCall(previsionnelService.delete, [data.id], 'L\'élément a bien été supprimé', 'Une erreur est survenue lors de la suppression du prévisionnel');
-  // Mettre à jour les données après la suppression
-  const index = state.data.findIndex(item => item.id === data.id);
-  if (index !== -1) {
-    state.data.splice(index, 1);
-  }
-  // Mettre à jour le tableau pour refléter les changements
-  data.value = [...state.data];
-};
-
-// Fonction pour supprimer des heures ou primes
-const deleteHrs = async (id) => {
-  await apiCall(hrsService.delete, [id], 'L\'élément a bien été supprimé', 'Une erreur est survenue lors de la suppression des heures ou primes');
-};
 </script>
 
 <template>
   <DataTable scrollHeight="800px"
-             scrollable :value="data" dataKey="id" :filters="props.filters" tableStyle="min-width: 50rem" striped-rows :size="props.size" show-gridlines
+             scrollable :value="props.data" dataKey="id" :filters="props.filters" tableStyle="min-width: 50rem" striped-rows :size="props.size" show-gridlines
              @row-click="(event) => onRowClick(event.data)">
     <!-- Groupe de colonnes pour l'en-tête -->
     <ColumnGroup type="header">
@@ -167,7 +117,7 @@ const deleteHrs = async (id) => {
             <InputText
                 v-if="col.formType === 'text'"
                 :modelValue="getFieldValue(slotProps.data, col.field)"
-                @update:modelValue="(val) => setFieldValue(slotProps.data, col.field, val)"
+                @update:modelValue="(val) => col.formAction ? col.formAction(slotProps.data.id, col.type, val) : setFieldValue(slotProps.data, col.field, val)"
                 :placeholder="getFieldValue(slotProps.data, col.field)"
                 @keydown="(event) => handleKeyDown(event, slotProps.data)"
                 class="max-w-20"
@@ -182,7 +132,7 @@ const deleteHrs = async (id) => {
                     optionLabel="label"
                     :placeholder="typeof getFieldValue(slotProps.data, col.field) === 'object' ? (getFieldValue(slotProps.data, col.field)?.label || 'Sélectionner un intervenant') : getFieldValue(slotProps.data, col.field)"
                     class="max-w-52"
-                    @update:modelValue="(event) => { setFieldValue(slotProps.data, col.field, event); col.formAction(getFieldValue(slotProps.data, col.id), event); }"
+                    @update:modelValue="(value) => col.formAction(slotProps.data.id, value)"
                     @keydown="(event) => handleKeyDown(event, slotProps.data)"
                     v-tooltip.top="col.tooltip ? col.tooltip : slotProps.data[col.field]"
                     :disabled="col.disabled ? col.disabled(slotProps.data) : false"
@@ -197,7 +147,7 @@ const deleteHrs = async (id) => {
               </template>
               <template v-else>
                 <ButtonDuplicate v-if="col.duplicate" tooltip="Dupliquer l'élément dans le prévi" @confirm-duplicate="col.duplicateAction(slotProps.data.id)" :class="col.class"/>
-                <ButtonDelete v-if="col.delete" tooltip="Supprimer l'élément du prévi" @confirm-delete="deletePrevi(slotProps.data)" :class="col.class"/>
+                <ButtonDelete v-if="col.delete" tooltip="Supprimer l'élément du prévi" @confirm-delete="emit('delete-row', slotProps.data.id)" :class="col.class"/>
               </template>
             </div>
 
@@ -237,9 +187,15 @@ const deleteHrs = async (id) => {
                       v-tooltip.top="d.tooltip ? d.tooltip : d.footer"
               />
 
-              <ButtonSave v-else-if="d.button & d.save" tooltip="Enregistrer l'élément HRS/prime"  :class="d.class"/>
-              <ButtonDelete v-else-if="d.button & d.delete" tooltip="Supprimer l'élément HRS/prime" @confirm-delete="deleteHrs(d.id)" :class="d.class"/>
-              <ButtonDuplicate v-else-if="d.button & d.duplicate" tooltip="Dupliquer l'élément HRS/prime" @confirm-duplicate="duplicateHrs(d.id)" :class="d.class"/>
+              <div v-else-if="Array.isArray(d.footer) && d.id" class="flex flex-wrap gap-2">
+                <template v-for="action in d.footer" :key="action.label">
+                  <ButtonDelete v-if="action.delete" :tooltip="action.label" @confirm-delete="action.buttonAction(d.id)" />
+                  <Button v-else :icon="action.buttonIcon" :aria-label="action.label" v-tooltip.top="action.label" size="small" @click="action.buttonAction(d.id)" />
+                </template>
+              </div>
+              <ButtonSave v-else-if="d.button && d.save" tooltip="Enregistrer l'élément HRS/prime"  :class="d.class"/>
+              <ButtonDelete v-else-if="d.button && d.delete" tooltip="Supprimer l'élément HRS/prime" @confirm-delete="d.buttonAction(d.id)" :class="d.class"/>
+              <ButtonDuplicate v-else-if="d.button && d.duplicate" tooltip="Dupliquer l'élément HRS/prime" @confirm-duplicate="d.buttonAction(d.id)" :class="d.class"/>
               <Button v-else-if="d.button" :icon="d.buttonIcon" @click="d.buttonAction(d.buttonParam !== undefined ? d.buttonParam : d.footer)" :class="d.buttonClass(d.footer)" :label="d.footer" :severity="d.buttonSeverity(d.footer)" :tooltip="d.tooltip"/>
               <Tag v-else-if="d.tag" class="w-max" :class="d.tagClass(d.footer)" :severity="d.tagSeverity(d.footer)" :icon="d.tagIcon(d.footer)" v-tooltip.top="d.tooltip">
                 {{ d.tagContent ? d.tagContent(d.footer) : d.footer }}<span v-if="d.unit && d.tagSeverity(d.footer) !== 'secondary'"> {{ d.unit }}</span>

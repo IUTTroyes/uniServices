@@ -28,3 +28,9 @@ phpstan.dist.neon
 
 # Disponibilité des semestres par maquette annuelle.
 !/migrations/Version20261117110000.php
+
+# Restauration des révisions de sous-commission.
+!/migrations/Version20261119100000.php
+
+# Comptage calculé des groupes par semestre.
+!/migrations/Version20261119110000.php
