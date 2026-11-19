@@ -6,7 +6,6 @@ namespace IntranetBundle\Entity\Commission;
 
 use App\Entity\Contracts\TimestampableInterface;
 use App\Entity\Traits\TimestampableTrait;
-use App\Entity\Structure\StructureSemestre;
 use App\Entity\Users\Personnel;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -52,7 +51,14 @@ class SousCommissionRevision implements TimestampableInterface
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $motifReouverture = null;
 
-    public function __construct(SousCommission $commission, int $numero, Personnel $auteur, array $vue, array $sources, string $empreinte)
+    #[ORM\ManyToOne(targetEntity: self::class)]
+    #[ORM\JoinColumn(onDelete: 'RESTRICT')]
+    private ?self $restaureeDepuis;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $motifRestauration;
+
+    public function __construct(SousCommission $commission, int $numero, Personnel $auteur, array $vue, array $sources, string $empreinte, ?self $restaureeDepuis = null, ?string $motifRestauration = null)
     {
         $this->sousCommission = $commission;
         $this->numero = $numero;
@@ -61,6 +67,8 @@ class SousCommissionRevision implements TimestampableInterface
         $this->vue = $vue;
         $this->sources = $sources;
         $this->empreinte = $empreinte;
+        $this->restaureeDepuis = $restaureeDepuis;
+        $this->motifRestauration = $motifRestauration;
     }
     public function getId(): ?int { return $this->id; }
     public function getSousCommission(): SousCommission { return $this->sousCommission; }
@@ -82,6 +90,7 @@ class SousCommissionRevision implements TimestampableInterface
             'validePar' => ['id' => $this->validePar->getId(), 'nom' => $this->validePar->getNom(), 'prenom' => $this->validePar->getPrenom()],
             'valideLe' => $this->valideLe->format(DATE_ATOM),
             'invalideeLe' => $this->invalideeLe?->format(DATE_ATOM),
-            'rouvertPar' => $this->rouvertPar?->getId(), 'motifReouverture' => $this->motifReouverture];
+            'rouvertPar' => $this->rouvertPar?->getId(), 'motifReouverture' => $this->motifReouverture,
+            'restaureeDepuis' => $this->restaureeDepuis?->getNumero(), 'motifRestauration' => $this->motifRestauration];
     }
 }

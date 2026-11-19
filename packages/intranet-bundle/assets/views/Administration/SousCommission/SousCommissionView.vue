@@ -14,7 +14,7 @@ import { useAnneeStore, useAnneeUnivStore, useUsersStore } from '@stores';
 import { getAnneesService, getSemestresService } from '@requests';
 import {
   getCommissionSemestre,
-  validerCommission, rouvrirCommission, getHistoriqueCommission,
+  validerCommission, rouvrirCommission, restaurerCommission, getHistoriqueCommission,
   type CommissionRevision,
   type CommissionViewData,
   type CommissionRow,
@@ -56,6 +56,9 @@ const reouvertureDialog = ref(false);
 const historiqueDialog = ref(false);
 const historique = ref<CommissionRevision[]>([]);
 const historiqueSelection = ref<CommissionRevision | null>(null);
+const revisionARestaurer = ref<CommissionRevision | null>(null);
+const motifRestauration = ref('');
+const erreurRestauration = ref<string | null>(null);
 const saving = ref(false);
 const motifReouverture = ref('');
 const decisionsJury = ref<Record<number, { decision: boolean | null; motif: string }>>({});
@@ -97,9 +100,34 @@ const voirHistorique = async () => {
   try {
     historique.value = await getHistoriqueCommission(selectedSemestre.value.id);
     historiqueSelection.value = null;
+    revisionARestaurer.value = null;
+    motifRestauration.value = '';
+    erreurRestauration.value = null;
     historiqueDialog.value = true;
   } catch (e) { errorMessage.value = messageErreur(e); }
   finally { saving.value = false; }
+};
+
+const preparerRestauration = (revision: CommissionRevision) => {
+  revisionARestaurer.value = revision;
+  motifRestauration.value = '';
+  erreurRestauration.value = null;
+};
+const restaurer = async () => {
+  const numeroRevision = historique.value[0]?.numero;
+  if (saving.value || !selectedSemestre.value || !revisionARestaurer.value || numeroRevision === undefined || !motifRestauration.value.trim()) return;
+
+  saving.value = true;
+  erreurRestauration.value = null;
+  try {
+    commissionData.value = await restaurerCommission(selectedSemestre.value.id, revisionARestaurer.value.numero, numeroRevision, motifRestauration.value.trim());
+    historiqueDialog.value = false;
+    errorMessage.value = null;
+  } catch (e) {
+    erreurRestauration.value = messageErreur(e);
+  } finally {
+    saving.value = false;
+  }
 };
 
 // Options d'affichage
@@ -589,8 +617,18 @@ watch([departementId, selectedAnneeUnivId], async () => {
       <div v-for="revision in historique" :key="revision.id" class="border rounded p-3 mb-3">
         <p>Révision {{ revision.numero }} — {{ revision.valideLe }} — {{ revision.validePar.prenom }} {{ revision.validePar.nom }}</p>
         <p v-if="revision.invalideeLe">Invalidée le {{ revision.invalideeLe }} : {{ revision.motifReouverture }}</p>
+        <p v-if="revision.restaureeDepuis">Restaurée depuis la révision {{ revision.restaureeDepuis }}. {{ revision.motifRestauration }}</p>
         <Button label="Consulter les résultats figés" text @click="historiqueSelection = revision" />
+        <Button v-if="revision.invalideeLe" label="Restaurer cette révision" text :disabled="saving" @click="preparerRestauration(revision)" />
       </div>
+      <form v-if="revisionARestaurer" class="border rounded p-3 mb-3" @submit.prevent="restaurer">
+        <p class="mb-3">Les résultats de la révision {{ revisionARestaurer.numero }} deviendront officiels dans une nouvelle révision validée.</p>
+        <label for="motif-restauration" class="block">Motif de restauration</label>
+        <InputText id="motif-restauration" v-model="motifRestauration" class="w-full mb-3" required :disabled="saving" />
+        <Message v-if="erreurRestauration" severity="error" class="mb-3">{{ erreurRestauration }}</Message>
+        <Button type="button" label="Annuler" text :disabled="saving" @click="revisionARestaurer = null" />
+        <Button type="submit" label="Confirmer la restauration" :loading="saving" :disabled="saving || !motifRestauration.trim()" />
+      </form>
       <template v-if="historiqueSelection">
         <h3 class="font-bold my-4">Résultats de la révision {{ historiqueSelection.numero }}</h3>
         <SousCommissionClassiqueTable :rows="historiqueSelection.vue.rows" :columns="historiqueSelection.vue.columns" :show-details="true" />

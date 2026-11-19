@@ -53,6 +53,22 @@ final class CommissionController extends AbstractController
         return $this->json($this->service->rouvrir($semestre, $this->getUser(), $data['numeroRevision'], $data['motif']));
     }
 
+    #[Route('/semestre/{semestreId}/restaurer', name: 'restaurer', methods: ['POST'])]
+    public function restaurer(int $semestreId, Request $request): JsonResponse
+    {
+        $semestre = $this->semestre($semestreId);
+        $data = $request->toArray();
+        if (!is_string($data['motif'] ?? null) || !is_int($data['numeroSource'] ?? null) || !is_int($data['numeroRevision'] ?? null)) {
+            throw new BadRequestHttpException('Motif et numéros de révision requis.');
+        }
+
+        try {
+            return $this->json($this->service->restaurer($semestre, $this->getUser(), $data['numeroSource'], $data['numeroRevision'], $data['motif']));
+        } catch (OptimisticLockException $e) {
+            throw new ConflictHttpException('Modification concurrente. Rechargez les résultats.', $e);
+        }
+    }
+
     #[Route('/semestre/{semestreId}/historique', name: 'historique', methods: ['GET'])]
     public function historique(int $semestreId): JsonResponse { return $this->json($this->service->historique($this->semestre($semestreId))); }
 }

@@ -82,10 +82,13 @@ export interface CommissionRevision {
   id: number; numero: number; valideLe: string;
   validePar: { id: number; nom: string; prenom: string };
   invalideeLe: string | null; motifReouverture: string | null; vue: CommissionViewData;
+  restaureeDepuis: number | null; motifRestauration: string | null;
 }
 export const validerCommission = async (id: number, empreinte: string, decisions: JuryDecision[]): Promise<CommissionViewData> =>
   (await api.post(`/api/intranet/commissions/semestre/${id}/valider`, { empreinte, decisions })).data;
 export const rouvrirCommission = async (id: number, numeroRevision: number, motif: string): Promise<CommissionViewData> =>
   (await api.post(`/api/intranet/commissions/semestre/${id}/rouvrir`, { numeroRevision, motif })).data;
+export const restaurerCommission = async (id: number, numeroSource: number, numeroRevision: number, motif: string): Promise<CommissionViewData> =>
+  (await api.post(`/api/intranet/commissions/semestre/${id}/restaurer`, { numeroSource, numeroRevision, motif })).data;
 export const getHistoriqueCommission = async (id: number): Promise<CommissionRevision[]> =>
   (await api.get(`/api/intranet/commissions/semestre/${id}/historique`)).data;

@@ -79,22 +79,9 @@ final readonly class SousCommissionService
             unset($row);
             $vue['statistiques']['validesJury'] = count(array_filter($vue['rows'], static fn ($r) => $r['decisionJury']));
             $commission ??= new SousCommission($semestre);
-            $numero = $commission->valider();
-            $revision = new SousCommissionRevision($commission, $numero, $auteur, $vue, $dataset->sources, $courante);
+            $revision = new SousCommissionRevision($commission, $commission->valider(), $auteur, $vue, $dataset->sources, $courante);
             $this->em->persist($commission);
-            $this->em->persist($revision);
-            $inscriptions = [];
-            foreach ($dataset->scolarites as $inscription) $inscriptions[$inscription->getId()] = $inscription;
-            foreach ($vue['rows'] as $row) {
-                $inscription = $inscriptions[$row['scolariteSemestreId']];
-                $this->em->persist(new ResultatSousCommission($revision, $inscription, $row, $row['decisionJury'], $row['motifJury']));
-                $inscription->setMoyenne($row['moyenne']);
-                $inscription->setRang($row['rang']);
-                $inscription->setDecision($row['decisionJury']);
-                // Un résultat annuel ancien ne peut rester officiel après un nouvel arrêté semestriel.
-                $inscription->getScolarite()?->setMoyenne(null);
-                $inscription->getScolarite()?->setDecision(null);
-            }
+            $this->enregistrerResultats($revision, $dataset->scolarites);
             $semestre->touchResultats();
             $this->em->flush();
             return $this->consulter($semestre);
@@ -123,6 +110,69 @@ final readonly class SousCommissionService
             $this->em->flush();
             return $this->consulter($semestre);
         }));
+    }
+
+    public function restaurer(StructureSemestre $semestre, Personnel $auteur, int $numeroSource, int $numeroAttendu, string $motif): array
+    {
+        $motif = trim($motif);
+        if ($motif === '') {
+            throw new UnprocessableEntityHttpException('Un motif de restauration est obligatoire.');
+        }
+
+        return $this->context->run(fn () => $this->em->wrapInTransaction(function () use ($semestre, $auteur, $numeroSource, $numeroAttendu, $motif) {
+            $this->em->refresh($semestre, LockMode::PESSIMISTIC_WRITE);
+            $commission = $this->commission($semestre);
+            if ($commission === null || $commission->getNumeroRevision() !== $numeroAttendu) {
+                throw new ConflictHttpException('La sous-commission a changé. Rechargez son historique.');
+            }
+
+            $source = $this->em->getRepository(SousCommissionRevision::class)
+                ->findOneBy(['sousCommission' => $commission, 'numero' => $numeroSource]);
+            if ($source === null || !$source->isInvalidee()) {
+                throw new ConflictHttpException('Sélectionnez une ancienne révision de cette sous-commission.');
+            }
+
+            $inscriptions = $this->em->getRepository(EtudiantScolariteSemestre::class)->findBy(['semestre' => $semestre], ['id' => 'ASC']);
+            $vue = $source->getVue();
+            $inscriptionsActuelles = array_map(static fn (EtudiantScolariteSemestre $inscription) => $inscription->getId(), $inscriptions);
+            $inscriptionsSource = array_column($vue['rows'], 'scolariteSemestreId');
+            sort($inscriptionsSource);
+            if ($inscriptionsActuelles !== $inscriptionsSource) {
+                throw new ConflictHttpException('La liste des inscriptions a changé depuis cette révision. La restauration est impossible.');
+            }
+
+            if ($commission->isValidee()) {
+                $this->revision($commission)->invalider($auteur, sprintf('Remplacée par la restauration de la révision %d. %s', $numeroSource, $motif));
+            }
+            $numero = $commission->valider();
+            $revision = new SousCommissionRevision(
+                $commission, $numero, $auteur, $vue, $source->getSources(), $source->getEmpreinte(), $source, $motif,
+            );
+            $this->enregistrerResultats($revision, $inscriptions);
+            $semestre->touchResultats();
+            $this->em->flush();
+
+            return $this->consulter($semestre);
+        }));
+    }
+
+    /** @param EtudiantScolariteSemestre[] $scolarites */
+    private function enregistrerResultats(SousCommissionRevision $revision, array $scolarites): void
+    {
+        $this->em->persist($revision);
+        $inscriptions = [];
+        foreach ($scolarites as $inscription) {
+            $inscriptions[$inscription->getId()] = $inscription;
+        }
+        foreach ($revision->getVue()['rows'] as $row) {
+            $inscription = $inscriptions[$row['scolariteSemestreId']];
+            $this->em->persist(new ResultatSousCommission($revision, $inscription, $row, $row['decisionJury'], $row['motifJury']));
+            $inscription->setMoyenne($row['moyenne']);
+            $inscription->setRang($row['rang']);
+            $inscription->setDecision($row['decisionJury']);
+            $inscription->getScolarite()?->setMoyenne(null);
+            $inscription->getScolarite()?->setDecision(null);
+        }
     }
 
     public function historique(StructureSemestre $semestre): array
