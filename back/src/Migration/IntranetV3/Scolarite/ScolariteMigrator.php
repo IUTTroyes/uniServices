@@ -198,7 +198,9 @@ SQL;
                     $scolariteSemestre->setSemestre($semestre);
                 }
 
-                $scolariteSemestre->setLegacyContext(null === $scolariteSemestre->getSemestre() ? [
+                $legacy = $scolariteSemestre->getLegacyContext() ?? [];
+                unset($legacy['source'], $legacy['annee'], $legacy['semestre'], $legacy['diplome']);
+                $legacy = array_replace($legacy, null === $scolariteSemestre->getSemestre() ? [
                     'source' => 'intranet-v3',
                     'annee' => ['libelle' => $row['annee_libelle'] ?: null],
                     'semestre' => [
@@ -207,9 +209,7 @@ SQL;
                         'ordre' => null !== $row['semestre_ordre'] ? (int) $row['semestre_ordre'] : null,
                     ],
                     'diplome' => ['oldId' => (int) $row['diplome_id']],
-                ] : null);
-
-                $legacy = $scolariteSemestre->getLegacyContext() ?? [];
+                ] : []);
                 $legacy['moyenneV3'] = null !== $row['moyenne'] ? (float) $row['moyenne'] : null;
                 $scolariteSemestre->setLegacyContext($legacy);
                 $scolariteSemestre->setNbAbsences((int) ($row['nb_absences'] ?? 0));

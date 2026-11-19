@@ -2,7 +2,6 @@
 
 namespace App\Migration\IntranetV3\Scolarite;
 
-use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructurePn;
@@ -62,7 +61,6 @@ SQL;
         $anneeUniversitaireRepository = $this->entityManager->getRepository(StructureAnneeUniversitaire::class);
         $diplomeRepository = $this->entityManager->getRepository(StructureDiplome::class);
         $pnRepository = $this->entityManager->getRepository(StructurePn::class);
-        $scolariteSemestreRepository = $this->entityManager->getRepository(EtudiantScolariteSemestre::class);
 
         foreach ($this->source->executeQuery($sql)->iterateAssociative() as $row) {
             try {
@@ -133,10 +131,16 @@ SQL;
                     continue;
                 }
 
-                $legacyResultats = $scolariteSemestre->getLegacyContext() ?? [];
-                $legacyResultats['resultatsV3'] = ['decision' => $this->mapDecision($row['decision']), 'rang' => $row['rang'],
-                    'moyennesMatieres' => $this->decodeLegacyArray($row['moyennes_matieres']), 'moyennesUes' => $this->decodeLegacyArray($row['moyennes_ues'])];
-                $scolariteSemestre->setLegacyContext($legacyResultats);
+                // Ces résultats précèdent les révisions V4 et restent dans l’historique V3.
+                $legacyContext = $scolariteSemestre->getLegacyContext() ?? [];
+                $legacyContext['resultatsV3'] = [
+                    'decision' => $this->mapDecision($row['decision']),
+                    'codeDecision' => $row['decision'],
+                    'rang' => null !== $row['rang'] ? (int) $row['rang'] : null,
+                    'moyennesMatieres' => $this->decodeLegacyArray($row['moyennes_matieres']),
+                    'moyennesUes' => $this->decodeLegacyArray($row['moyennes_ues']),
+                ];
+                $scolariteSemestre->setLegacyContext($legacyContext);
 
                 if (null !== $row['proposition'] && '' !== trim((string) $row['proposition'])) {
                     $proposition = null !== $pn ? $this->resolveProposition((string) $row['proposition'], $pn) : null;

@@ -1,6 +1,6 @@
 # Structure de la scolarité dans UniServices
 
-Ce document décrit les entités et les traitements présents dans le dépôt. Il distingue les résultats stockés, les valeurs calculées pour l’affichage et les traitements qui ne sont pas encore raccordés. Les règles de décision décrites sont celles du code actuel, pas une présentation du règlement des études.
+Ce document décrit les inscriptions, les notes et le cycle de validation des résultats dans UniServices. Les règles de décision présentées sont celles de l’application.
 
 ## 1. Vue d’ensemble
 
@@ -126,18 +126,18 @@ Les statistiques comprennent moyenne, médiane, minimum, maximum et nombres d’
 | Niveau | Stockage | Rattachement |
 | --- | --- | --- |
 | Évaluation | `ScolEvaluation.stats` | Statistiques collectives des notes de l’épreuve |
-| Enseignement | `MoyenneEnseignement.value` | Inscription semestrielle + enseignement + personnel |
-| UE | `MoyenneUe.value` | Inscription semestrielle + UE + personnel |
-| Semestre | `EtudiantScolariteSemestre.moyenne` | Inscription semestrielle |
+| Enseignement et UE | `ResultatSousCommission.resultat` | Inscription semestrielle et révision validée |
+| Semestre | `EtudiantScolariteSemestre.moyenne` | Moyenne de la révision validée courante |
 | Année universitaire | `EtudiantScolarite.moyenne` | Dossier annuel |
+| Historique V3 | `EtudiantScolariteSemestre.legacyContext` | Moyenne semestrielle, moyennes de matières et d’UE importées |
 
-Les deux entités `MoyenneEnseignement` et `MoyenneUe` appartiennent au bundle Intranet. Leur propriété `etudiantScolariteSemestre` référence bien une inscription semestrielle, malgré le nom de leur accesseur `getEtudiantScolarite()`.
+`MoyennesCalculator` calcule la moyenne d’un enseignement à partir des notes pondérées par les coefficients des évaluations. L’absence injustifiée compte pour zéro. L’absence justifiée et la dispense sont exclues du calcul. Une note obligatoire manquante bloque la validation.
 
-La moyenne d’enseignement est stockée indépendamment de la moyenne d’UE. Le lien pédagogique `ScolEnseignementUe` porte le coefficient et les ECTS de contribution de l’enseignement à une UE ; une même moyenne d’enseignement peut être affichée dans plusieurs UE auxquelles il contribue.
+La moyenne d’UE pondère les moyennes d’enseignement par les coefficients de leurs liens `ScolEnseignementUe`. Un enseignement peut contribuer à plusieurs UE. La sous-commission calcule les moyennes au niveau du semestre.
 
-Dans les traitements examinés, aucun service métier ne raccorde automatiquement toute la chaîne **notes → moyennes d’enseignement → moyennes d’UE → moyenne semestrielle → moyenne annuelle**. Les entités de moyennes disposent d’opérations API d’écriture, mais leur présence ne prouve pas qu’un calcul depuis les notes est implémenté. Les formules manquantes ne doivent pas être déduites de celles de la commission.
+Les entités historiques `MoyenneEnseignement` et `MoyenneUe` conservent les anciennes lignes, avec leur personnel associé. Leur accesseur `getEtudiantScolariteSemestre()` renvoie l’inscription semestrielle.
 
-## 6. La sous-commission : une vue calculée par semestre
+## 6. Calcul et validation en sous-commission
 
 La page `SousCommissionView.vue` charge les semestres de l’année de formation sélectionnée, puis appelle :
 
@@ -152,18 +152,19 @@ L’accès exige un utilisateur authentifié et soit `CAN_EDIT_SEMESTRE` sur le 
 | Composant | Responsabilité |
 | --- | --- |
 | `CommissionController` | Résout le semestre, vérifie les droits et renvoie le JSON |
-| `CommissionService` | Charge le jeu de données et sélectionne la stratégie |
-| `CommissionDataLoader` | Charge les inscriptions et les moyennes déjà persistées |
+| `SousCommissionService` | Consulte le calcul courant ou la révision validée et gère le cycle de validation |
+| `CommissionService` | Calcule la vue à partir du jeu de données et de la stratégie |
+| `CommissionDataLoader` | Charge les inscriptions, la maquette, les évaluations et les notes, puis appelle le calculateur |
 | `CommissionStrategyResolver` | Choisit le mode selon le caractère APC du type de diplôme |
 | `ClassiqueCommissionStrategy` / `ApcCommissionStrategy` | Construisent les colonnes et lignes de résultat |
 | `ClassiqueDecisionRule` / `ApcDecisionRule` | Produisent une décision indicative et son libellé |
 | `CommissionView`, `CommissionRow`, `CommissionColumn` | DTO de sortie ; ce ne sont pas des entités persistées |
 
-Les repositories indexent les moyennes sous la forme `[inscriptionSemestrielleId][ueId]` ou `[inscriptionSemestrielleId][enseignementId]`. Le chargement des inscriptions est effectué sur le semestre demandé, sans filtre supplémentaire sur `EtudiantScolarite.actif`.
+Le calculateur indexe les moyennes sous la forme `[inscriptionSemestrielleId][ueId]` ou `[inscriptionSemestrielleId][enseignementId]`. Le chargement des inscriptions est effectué sur le semestre demandé, sans filtre supplémentaire sur `EtudiantScolarite.actif`.
 
 ### Moyenne générale affichée
 
-La commission utilise en priorité `EtudiantScolariteSemestre.moyenne` si elle est renseignée. Sinon, elle calcule une moyenne pondérée à partir des moyennes d’UE disponibles :
+Pour une sous-commission ouverte, la moyenne générale est pondérée à partir des moyennes d’UE actives :
 
 ```text
 moyenne générale = somme(moyenne UE × poids UE) / somme(poids UE retenus)
@@ -174,9 +175,7 @@ moyenne générale = somme(moyenne UE × poids UE) / somme(poids UE retenus)
 | Classique | `StructureUe.coefficient` |
 | APC | `StructureUe.nbEcts` |
 
-Le résultat de secours est arrondi à trois décimales. Les UE inactives sont exclues ; les moyennes d’UE absentes sont ignorées pour ce calcul et son dénominateur. Si le poids total retenu n’est pas positif, la moyenne est `null`.
-
-Cette moyenne affichée n’est pas automatiquement écrite dans `EtudiantScolariteSemestre.moyenne`. Une moyenne semestrielle déjà enregistrée peut donc différer du résultat recalculé depuis les UE.
+La moyenne est arrondie à trois décimales. Elle est indisponible si une UE active de poids positif n’a pas de moyenne ou si la somme des poids est nulle.
 
 ### Décisions actuellement codées
 
@@ -185,17 +184,17 @@ Cette moyenne affichée n’est pas automatiquement écrite dans `EtudiantScolar
 | Classique | Moyenne générale absente : « Incomplet ». Sinon validation à partir de 10/20. Les UE à au moins 10 sont comptées à titre informatif. |
 | APC | Une moyenne d’UE manque ou aucune UE n’est disponible : « Incomplet ». Toutes les UE à au moins 10 : « Semestre validé ». Sinon moyenne générale à au moins 10 et aucune UE sous 8 : « Validé par compensation ». Sinon « Non validé ». |
 
-La règle APC est explicitement présentée dans le code comme **indicative et à adapter au règlement local**. Le mode classique peut produire une décision malgré des moyennes d’UE manquantes, puisqu’il se fonde sur la moyenne générale disponible.
+La règle APC est explicitement présentée dans le code comme **indicative et à adapter au règlement local**. Le mode classique se fonde sur la moyenne générale disponible.
 
 ### Rangs, statistiques et restitution
 
-Le rang affiché est recalculé sur les lignes ayant une moyenne, par ordre décroissant. Les ex æquo partagent le rang : par exemple 1, 1, 3. Il est indépendant du champ `rang` stocké sur l’inscription.
+Le rang affiché est recalculé sur les lignes ayant une moyenne, par ordre décroissant. Les ex æquo partagent le rang : par exemple 1, 1, 3. La validation recopie le rang dans l’inscription semestrielle.
 
 La vue fournit effectif, moyenne de promotion, minimum, maximum, nombre de validations et taux de réussite. Le taux utilise toutes les lignes comme dénominateur, y compris celles dont la décision est indéterminée. Les lignes sont ensuite triées par nom et prénom.
 
 L’interface propose des tableaux classiques ou APC, une présentation par UE ou par enseignement en APC, des filtres et un export CSV.
 
-**La sous-commission actuelle est une consultation avec calculs de présentation.** Le traitement ne persiste ni les moyennes calculées, ni les rangs, ni les décisions ; il n’enregistre pas de délibération de jury et ne modifie pas les propositions de poursuite ou la publication.
+La consultation d’une sous-commission ouverte calcule la vue. La validation crée une révision avec un résultat par inscription et recopie la moyenne, le rang et la décision du jury sur chaque inscription. Une sous-commission validée affiche la révision enregistrée. La réouverture conserve cette révision dans l’historique et efface les résultats courants de l’inscription. La restauration crée une nouvelle révision à partir des résultats d’une révision antérieure.
 
 ## 7. Décision enregistrée et proposition de poursuite
 
@@ -205,7 +204,7 @@ L’interface propose des tableaux classiques ou APC, une présentation par UE o
 | Inscription semestrielle | `EtudiantScolariteSemestre.decision` | `StructureSemestre` |
 | Vue de commission | Décision calculée dans `CommissionRow` | Pas de proposition générée dans ce traitement |
 
-Une décision stockée est un booléen nullable ; elle ne porte pas tout le détail d’une délibération. Les décisions affichées en commission sont recalculées par les règles et ne lisent pas simplement le champ `decision` déjà enregistré.
+Une décision stockée est un booléen nullable ; elle ne porte pas tout le détail d’une délibération. La proposition de décision affichée pendant la préparation est calculée. La révision validée conserve la proposition calculée, la décision du jury et le motif d’une éventuelle dérogation.
 
 Une proposition désigne une destination envisagée. La renseigner ne crée pas automatiquement un nouveau dossier annuel ou une inscription au semestre proposé.
 
@@ -215,14 +214,11 @@ Une proposition désigne une destination envisagée. La renseigner ne crée pas 
 
 L’historique se lit en partant des dossiers annuels de l’étudiant, puis de leurs inscriptions et des semestres de leurs PN. `legacyContext` et les rattachements directs conservés sur les notes permettent de représenter des situations issues de V3 qui ne correspondent pas toujours à une maquette native complète.
 
-## 9. Points de vigilance repérés dans le code
+## 9. Reprise V3 et publication
 
-Ces constats décrivent l’état actuel ; ce document ne modifie pas les traitements.
-
-- `ScolariteDetailsMigrator` appelle `setRang()`, `setMoyennesMatiere()` et `setMoyennesUe()` sur l’inscription semestrielle. Ces méthodes ne sont pas présentes dans l’entité examinée. Le champ `rang` existe, mais n’a pas d’accesseur correspondant. La reprise des détails V3 doit être alignée avec le stockage actuel des moyennes.
-- `MoyenneUe` et `MoyenneEnseignement` n’ont pas de contrainte unique explicite pour le couple inscription/UE ou inscription/enseignement. Le repository de commission construit un index à une seule valeur par couple : des doublons seraient écrasés dans ce tableau, sans sélection explicite selon le personnel.
-- Le nom `getEtudiantScolarite()` des entités de moyennes désigne une inscription semestrielle, pas le dossier annuel.
-- Les indicateurs de publication, décisions stockées et résultats calculés appartiennent à des niveaux différents. Ils ne sont pas synchronisés par le simple affichage d’une commission.
+- `ScolariteDetailsMigrator` importe le rang, les moyennes par matière et par UE et la décision V3 dans `legacyContext.resultatsV3`. Il conserve le code de décision d’origine avec sa traduction en booléen nullable. Relancer la migration de base préserve ces détails.
+- Les moyennes courantes sont calculées à partir des notes. Les révisions imposent en base un résultat unique par couple révision/inscription. Les anciennes lignes de moyennes restent disponibles pour l’historique.
+- La validation, la réouverture et la restauration pilotent les résultats semestriels. La publication du dossier annuel et des notes relève de leurs indicateurs respectifs. La consultation est une lecture.
 
 ## 10. Sources dans le dépôt
 

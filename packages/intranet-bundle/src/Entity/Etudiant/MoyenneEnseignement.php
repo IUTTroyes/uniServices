@@ -2,13 +2,6 @@
 
 namespace IntranetBundle\Entity\Etudiant;
 
-use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Delete;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Patch;
-use ApiPlatform\Metadata\Post;
-use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Users\Personnel;
@@ -56,14 +49,14 @@ class MoyenneEnseignement
         return $this;
     }
 
-    public function getEtudiantScolarite(): ?EtudiantScolariteSemestre
+    public function getEtudiantScolariteSemestre(): ?EtudiantScolariteSemestre
     {
         return $this->etudiantScolariteSemestre;
     }
 
-    public function setEtudiantScolarite(?EtudiantScolariteSemestre $etudiant_scolarite): static
+    public function setEtudiantScolariteSemestre(?EtudiantScolariteSemestre $etudiantScolariteSemestre): static
     {
-        $this->etudiantScolariteSemestre = $etudiant_scolarite;
+        $this->etudiantScolariteSemestre = $etudiantScolariteSemestre;
 
         return $this;
     }
