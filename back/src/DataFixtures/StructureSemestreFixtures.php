@@ -36,9 +36,6 @@ class StructureSemestreFixtures extends Fixture implements OrderedFixtureInterfa
         $semestre1->setLibelle('S1')
             ->setOrdreAnnee(1)
             ->setOrdreLmd(1)
-            ->setNbGroupesCm(1)
-            ->setNbGroupesTd(3)
-            ->setNbGroupesTp(6)
             ->setCodeElement('MMI123')
             ->setAnnee($annee1)
             ;
@@ -48,9 +45,6 @@ class StructureSemestreFixtures extends Fixture implements OrderedFixtureInterfa
         $semestre2->setLibelle('S2')
             ->setOrdreAnnee(2)
             ->setOrdreLmd(2)
-            ->setNbGroupesCm(1)
-            ->setNbGroupesTd(3)
-            ->setNbGroupesTp(6)
             ->setCodeElement('MMI123')
             ->setAnnee($annee1)
             ;
@@ -60,9 +54,6 @@ class StructureSemestreFixtures extends Fixture implements OrderedFixtureInterfa
         $semestre3->setLibelle('S3 - DWeb-DI FC')
             ->setOrdreAnnee(1)
             ->setOrdreLmd(1)
-            ->setNbGroupesCm(1)
-            ->setNbGroupesTd(1)
-            ->setNbGroupesTp(2)
             ->setCodeElement('MMI124')
             ->setAnnee($annee2)
             ;
@@ -72,9 +63,6 @@ class StructureSemestreFixtures extends Fixture implements OrderedFixtureInterfa
         $semestre4->setLibelle('S4 - DWeb-DI FC')
             ->setOrdreAnnee(2)
             ->setOrdreLmd(2)
-            ->setNbGroupesCm(1)
-            ->setNbGroupesTd(1)
-            ->setNbGroupesTp(2)
             ->setCodeElement('MMI124')
             ->setAnnee($annee2)
             ;

@@ -209,9 +209,6 @@ entity structure_semestre {
 * libelle: string
 * ordre_annee: integer
 * ordre_lmd: integer
-* nb_groupes_cm: integer
-* nb_groupes_td: integer
-* nb_groupes_tp: integer
  code_element: string
 * created: datetime_immutable
  updated: datetime

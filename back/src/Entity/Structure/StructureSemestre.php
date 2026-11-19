@@ -20,6 +20,7 @@ use App\Entity\Contracts\TimestampableInterface;
 use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Traits\OptionTrait;
+use App\Enum\TypeGroupeEnum;
 use App\Filter\SemestreFilter;
 use App\Repository\Structure\StructureSemestreRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -104,18 +105,6 @@ class StructureSemestre implements TimestampableInterface
     #[ORM\Column]
     #[Groups(['semestre:detail', 'maquette:detail'])]
     private int $ordreLmd = 0;
-
-    #[ORM\Column]
-    #[Groups(['semestre:detail', 'pn:read'])]
-    private int $nbGroupesCm = 1;
-
-    #[ORM\Column]
-    #[Groups(['semestre:detail', 'pn:read'])]
-    private int $nbGroupesTd = 1;
-
-    #[ORM\Column()]
-    #[Groups(['semestre:detail', 'pn:read'])]
-    private int $nbGroupesTp = 2;
 
     #[ORM\Column(length: 20, nullable: true)]
     #[Groups(['semestre:detail', 'maquette:detail', 'pn:read'])]
@@ -236,40 +225,34 @@ class StructureSemestre implements TimestampableInterface
         return $this;
     }
 
-    public function getNbGroupesCm(): ?int
+    #[Groups(['semestre:detail', 'pn:read'])]
+    public function getNbGroupesCm(): int
     {
-        return $this->nbGroupesCm;
+        return $this->compterGroupes(TypeGroupeEnum::TYPE_GROUPE_CM);
     }
 
-    public function setNbGroupesCm(int $nbGroupesCm): static
+    #[Groups(['semestre:detail', 'pn:read'])]
+    public function getNbGroupesTd(): int
     {
-        $this->nbGroupesCm = $nbGroupesCm;
-
-        return $this;
+        return $this->compterGroupes(TypeGroupeEnum::TYPE_GROUPE_TD);
     }
 
-    public function getNbGroupesTd(): ?int
+    #[Groups(['semestre:detail', 'pn:read'])]
+    public function getNbGroupesTp(): int
     {
-        return $this->nbGroupesTd;
+        return $this->compterGroupes(TypeGroupeEnum::TYPE_GROUPE_TP);
     }
 
-    public function setNbGroupesTd(int $nbGroupesTd): static
+    private function compterGroupes(TypeGroupeEnum $type): int
     {
-        $this->nbGroupesTd = $nbGroupesTd;
+        $nombre = 0;
+        foreach ($this->groupes as $groupe) {
+            if ($groupe->getType() === $type) {
+                ++$nombre;
+            }
+        }
 
-        return $this;
-    }
-
-    public function getNbGroupesTp(): ?int
-    {
-        return $this->nbGroupesTp;
-    }
-
-    public function setNbGroupesTp(int $nbGroupesTp): static
-    {
-        $this->nbGroupesTp = $nbGroupesTp;
-
-        return $this;
+        return $nombre;
     }
 
     public function getCodeElement(): ?string
