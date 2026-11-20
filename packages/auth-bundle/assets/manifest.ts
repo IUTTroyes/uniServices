@@ -26,7 +26,6 @@ const authMenu = {
 
 export default {
   name: 'auth',
-  primaryColor: 'yellow',
   registerWidgets,
   routes: [
     {

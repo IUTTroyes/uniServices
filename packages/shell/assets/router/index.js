@@ -129,7 +129,7 @@ router.beforeEach(async (to, from) => {
 });
 
 router.afterEach((to) => {
-  applyBundleTheme(to.path);
+  applyBundleTheme(to);
 });
 
 export default router;

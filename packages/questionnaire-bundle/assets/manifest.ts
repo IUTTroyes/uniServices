@@ -29,7 +29,6 @@ const questionnaireMenu = {
 
 export default { 
   name: 'questionnaire',
-  primaryColor: 'green',
   registerWidgets,
   routes: [
     // Réponse par le lien personnel reçu par e-mail : public (les invitations peuvent viser des adresses sans compte).

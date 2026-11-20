@@ -1,0 +1,13 @@
+{
+  "name": "Mon Espace / Portail",
+  "description": "Portail et espace personnel UniServices",
+  "urlSlug": "auth",
+  "url": "/app/auth/portail",
+  "showInPortal": false,
+  "shortLabel": "Portail",
+  "primaryColor": "yellow",
+  "icon": "pi pi-user",
+  "aliases": [
+    "portail"
+  ]
+}

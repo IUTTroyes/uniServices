@@ -11,7 +11,7 @@ import {
 // via le fichier tools.generated.json (créé/maintenu par les scripts PHP).
 // Par défaut, tous les logos utilisent LogoIut. La valeur 'url' provient du registre
 // ou est construite par défaut comme un chemin relatif "/<slug>".
-export const tools = (toolsMeta || []).map(item => {
+export const tools = toolsMeta.filter(item => item.showInPortal !== false).map(item => {
   let targetUrl = item.url || `/${item.urlSlug}`;
   if (targetUrl.startsWith('http://localhost') || targetUrl.startsWith('https://localhost')) {
     targetUrl = `/app/${item.urlSlug}`;

@@ -21,6 +21,8 @@ Composant prêt à l'emploi qui combine un champ de texte avec la validation. Il
 - `type`: Le type de champ (text, email, password, etc.)
 - `help-text`: Un texte d'aide affiché sous le champ
 
+Pour conserver une valeur de date sous forme de chaîne, utilisez `type="native-date"` (jour au format `YYYY-MM-DD`) ou `type="datetime-local"` (date et heure locales). Pour une heure à la seconde, passez `:step="1"`. Le type `date` conserve le sélecteur PrimeVue et son modèle `Date`.
+
 ### ExampleValidatedForm
 
 Un exemple complet de formulaire utilisant le système de validation. Vous pouvez l'utiliser comme référence pour implémenter vos propres formulaires validés.

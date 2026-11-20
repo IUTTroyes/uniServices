@@ -63,6 +63,14 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
+  optionDisabled: {
+    type: [String, Function],
+    default: undefined
+  },
+  step: {
+    type: [Number, String],
+    default: undefined
+  },
   filter: {
     type: Boolean,
     default: false
@@ -208,12 +216,14 @@ const isRequired = computed(() => {
     >
       <template #default="{ handleBlur, showError }">
         <InputText
-            v-if="type === 'text'"
+            v-if="['text', 'native-date', 'datetime-local'].includes(type)"
             :id="name"
             :name="name"
             :value="modelValue"
             :placeholder="placeholder"
-            :type="type"
+            :type="type === 'native-date' ? 'date' : type"
+            :step="step"
+            :disabled="disabled"
             :class="[inputClass, { 'p-invalid': showError }]"
             @input="updateValue"
             @blur="handleBlur"
@@ -221,6 +231,7 @@ const isRequired = computed(() => {
 
         <InputNumber
             v-if="type === 'number'"
+            :input-id="name"
             :id="inputId || name"
             :name="name"
             :placeholder="placeholder"
@@ -232,6 +243,7 @@ const isRequired = computed(() => {
             :max="max"
             :min-fraction-digits="minfractiondigits"
             :max-fraction-digits="maxfractiondigits"
+            :invalid="showError"
             :disabled="disabled"
         />
 
@@ -259,6 +271,8 @@ const isRequired = computed(() => {
             :class="[inputClass, { 'p-invalid': showError }]"
             optionLabel="label"
             optionValue="value"
+            :option-disabled="optionDisabled"
+            :input-id="name"
             @update:modelValue="updateModelValue"
             @blur="e => onBlurModelValue(e, handleBlur)"
             :filter="filter"

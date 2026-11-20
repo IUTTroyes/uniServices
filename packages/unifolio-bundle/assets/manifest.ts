@@ -37,7 +37,6 @@ const sectionRoutes = unifolioSections.flatMap((section) =>
 
 export default {
   name: 'unifolio',
-  primaryColor: 'emerald',
   registerWidgets,
   routes: [
     {

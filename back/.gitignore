@@ -34,3 +34,5 @@ phpstan.dist.neon
 
 # Comptage calculé des groupes par semestre.
 !/migrations/Version20261119110000.php
+
+!/migrations/Version20261120120000.php

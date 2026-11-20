@@ -133,7 +133,7 @@ const computedBottomMenuItems = computed(() => {
     <app-sidebar :menu-items="computedMenuItems" :bottom-items="computedBottomMenuItems"></app-sidebar>
     <div class="layout-main-container">
       <div class="flex justify-between items-center">
-        <app-breadcrumb v-if="breadcrumbItems.length > 0" :items="breadcrumbItems"></app-breadcrumb>
+        <app-breadcrumb v-if="breadcrumbItems?.length" :items="breadcrumbItems"></app-breadcrumb>
         <div v-if="selectedAnneeUniversitaire && !selectedAnneeUniversitaire.isActif">
           <Message severity="error" class="w-fit" icon="pi pi-exclamation-triangle"><span class="font-bold">Attention !</span> Vous n'êtes pas sur l'année universitaire courante</Message>
         </div>

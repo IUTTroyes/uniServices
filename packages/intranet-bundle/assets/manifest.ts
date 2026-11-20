@@ -65,7 +65,6 @@ const intranetMenu = {
 
 export default {
   name: 'intranet',
-  primaryColor: 'violet',
   registerWidgets,
   routes: [
     {

@@ -27,7 +27,6 @@ const helpdeskMenu = {
 
 export default {
   name: 'helpdesk',
-  primaryColor: 'orange',
   routes: [
     {
       path: '/helpdesk',

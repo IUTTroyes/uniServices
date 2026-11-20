@@ -39,3 +39,9 @@ unifolio_controllers:
         path: '../../packages/unifolio-bundle/src/Controller/'
         namespace: UnifolioBundle\Controller
     type: attribute
+
+parcauto_controllers:
+    resource:
+        path: '../../packages/parcauto-bundle/src/Controller/'
+        namespace: ParcautoBundle\Controller
+    type: attribute

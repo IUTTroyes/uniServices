@@ -22,7 +22,6 @@ const financeMenu = {
 
 export default {
   name: 'finance',
-  primaryColor: 'emerald',
   routes: [
     {
       path: '/finance',

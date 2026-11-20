@@ -21,7 +21,6 @@ const documentMenu = {
 
 export default {
   name: 'documents',
-  primaryColor: 'blue',
   registerWidgets,
   routes: [
     {

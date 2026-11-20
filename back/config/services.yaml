@@ -130,3 +130,10 @@ services:
     tags:
       - { name: api_platform.doctrine.orm.query_extension.collection, priority: 64 }
       - { name: api_platform.doctrine.orm.query_extension.item, priority: 64 }
+
+  ParcautoBundle\:
+    resource: "../../packages/parcauto-bundle/src/"
+    exclude:
+      - "../../packages/parcauto-bundle/src/Entity/"
+      - "../../packages/parcauto-bundle/src/ParcautoBundle.php"
+      - "../../packages/parcauto-bundle/src/Service/SaisieParcauto.php"

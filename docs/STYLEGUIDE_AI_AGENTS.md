@@ -338,9 +338,9 @@ import { ButtonDelete, ButtonSave, ButtonEdit, ButtonInfo, ButtonDuplicate } fro
 
 ---
 
-### 2.7. `ApplicationBadge` — Badge d'application avec couleurs du Manifeste
+### 2.7. `ApplicationBadge` — Badge d'application avec les couleurs du bundle
 
-Affiche un badge thématique standardisé représentant une application du portail UniServices, en appliquant rigoureusement les couleurs et icônes officielles configurées dans `manifest.ts`.
+Affiche un badge thématique standardisé représentant une application du portail UniServices, en appliquant rigoureusement les couleurs et icônes officielles configurées dans `bundle.meta.json`.
 
 ```vue
 <script setup lang="ts">
@@ -378,17 +378,7 @@ import { ApplicationBadge } from '@components';
 | `showDot` | `Boolean` | `false` | Affiche une pastille ronde colorée (dot) à gauche du libellé. |
 | `rounded` | `Boolean` | `false` | Style de bordure : `false` pour puce (`rounded-md`), `true` pour pilule (`rounded-full`). |
 
-#### Couleurs officielles (selon `manifest.ts`)
-| Application | Clé | Couleur principale |
-|---|---|---|
-| Intranet | `intranet` | Violet (`violet`) |
-| Gestion des stages | `stage` | Sarcelle (`teal`) |
-| Questionnaires & Qualité | `questionnaire` | Vert (`green`) |
-| Gestion des documents | `documents` | Bleu (`blue`) |
-| Assistance & Helpdesk | `helpdesk` | Orange (`orange`) |
-| Portefeuille de compétences UniFolio | `unifolio` | Émeraude (`emerald`) |
-| Gestion financière | `finance` | Émeraude (`emerald`) |
-| Portail & Authentification | `auth` | Jaune (`yellow`) |
+Les métadonnées des outils externes sont dans `shared/global-data/external-tools/`. Les scripts de gestion des bundles régénèrent le catalogue commun. Les classes du badge, du fond d’icône et de la pastille sont déduites de `primaryColor`. La feuille Tailwind du shell inclut explicitement ces classes pour chaque couleur proposée par le wizard.
 
 ---
 
@@ -441,7 +431,7 @@ Pour toutes les pages de liste et de gestion :
 👉 **Règle** : Utiliser `<ButtonDelete @confirm-delete="..." />` avec `<ConfirmDialog />` de PrimeVue.
 
 ❌ **Anti-pattern 6** : Coder des badges d'applications personnalisés en HTML brut (ex: `<span class="bg-blue-100 text-blue-800">Stages</span>`).  
-👉 **Règle** : Toujours utiliser `<ApplicationBadge :app="..." />` pour garantir l'application fidèle des couleurs et icônes officielles de `manifest.ts`.
+👉 **Règle** : Toujours utiliser `<ApplicationBadge :app="..." />` pour garantir l'application fidèle des couleurs et icônes officielles de `bundle.meta.json`.
 
 ---
 

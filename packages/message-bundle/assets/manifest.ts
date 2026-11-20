@@ -14,7 +14,6 @@ const messageMenu = {
 
 export default {
   name: 'message',
-  primaryColor: 'cyan',
   registerWidgets,
   routes: [
     {

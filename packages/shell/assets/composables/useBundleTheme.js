@@ -1,40 +1,17 @@
 import { updatePreset } from '@primeuix/themes';
+import { getApplicationMeta } from '../../../../shared/utils/applicationColors';
 import { bundles } from '../bundles-registry';
 
-/**
- * Construit un objet de tokens PrimeVue pour une couleur donnée.
- * Ex : 'violet' => { 50: '{violet.50}', 100: '{violet.100}', ... }
- */
-function buildColorTokens(colorName) {
+export function applyBundleTheme(route) {
+  const rootPath = route.matched[0]?.path;
+  const bundle = bundles.find(candidate => candidate.routes?.some(entry => entry.path === rootPath));
+  const { primaryColor } = getApplicationMeta(bundle?.name);
+  const color = primaryColor === 'surface' ? 'violet' : primaryColor;
   const shades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
-  return shades.reduce((acc, shade) => {
-    acc[shade] = `{${colorName}.${shade}}`;
-    return acc;
-  }, {});
-}
-
-/**
- * Retourne le bundle correspondant à une route donnée
- * en se basant sur le préfixe de chemin défini dans chaque manifest.
- */
-function getBundleForRoute(path) {
-  return bundles.find(bundle =>
-    bundle.routes?.some(route => path.startsWith(route.path))
-  );
-}
-
-/**
- * Applique le thème PrimeVue (primaryColor) du bundle actif.
- * Doit être appelé dans un router.afterEach().
- */
-export function applyBundleTheme(toPath) {
-  const bundle = getBundleForRoute(toPath);
-
-  if (!bundle?.primaryColor) return;
 
   updatePreset({
     semantic: {
-      primary: buildColorTokens(bundle.primaryColor)
-    }
+      primary: Object.fromEntries(shades.map(shade => [shade, `var(--color-${color}-${shade})`])),
+    },
   });
 }

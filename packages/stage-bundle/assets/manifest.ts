@@ -26,7 +26,6 @@ const stageMenu = {
 
 export default {
   name: 'stages',
-  primaryColor: 'teal',
   routes: [
     // Formulaire d'évaluation du tuteur en entreprise : public (lien à usage unique reçu par e-mail, sans compte)
     {
