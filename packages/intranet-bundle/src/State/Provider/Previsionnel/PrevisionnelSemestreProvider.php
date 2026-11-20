@@ -83,7 +83,8 @@ final readonly class PrevisionnelSemestreProvider implements ProviderInterface
             $ligne->setGroupes($groupe['groupes']);
             $heures = [];
             foreach (self::TYPES as $type) {
-                $heuresMaquette = (float) ($enseignement->getHeures()[$type]['IUT'] ?? 0);
+                $volumes = $enseignement->getHeures()[$type] ?? [];
+                $heuresMaquette = (float) ($volumes['PN'] ?? $volumes['IUT'] ?? 0);
                 $heuresService = $heuresMaquette * max(1, $nbGroupesSemestre[$type]);
                 $heures[$type] = $this->ecart($heuresService, $groupe['heures'][$type]);
                 $maquette[$type] += $heuresService;

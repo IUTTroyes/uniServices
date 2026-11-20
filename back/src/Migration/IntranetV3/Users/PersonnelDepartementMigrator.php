@@ -109,7 +109,8 @@ final class PersonnelDepartementMigrator extends AbstractMigrator
                     ->setDefaut((bool) $row['defaut'])
                     ->setPackages(['intranet'])
                     ->setPermissions(array_keys($permissions))
-                    ->setAffectation(true);
+                    // false si defaut = false, true si defaut = true
+                    ->setAffectation((bool) $row['defaut']);
 
                 if ($isNew) {
                     $this->entityManager->persist($entity);
