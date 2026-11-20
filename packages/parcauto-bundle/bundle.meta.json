@@ -1,0 +1,6 @@
+{
+    "name": "Parcauto",
+    "description": "Bundle de gestion du parc automobile",
+    "urlSlug": "parcauto",
+    "url": "/app/parcauto"
+}
