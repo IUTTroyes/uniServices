@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.12.0](https://github.com/IUTTroyes/uniServices/compare/v0.11.0...v0.12.0) (2026-11-20)
+
+
+### ✨ Fonctionnalités
+
+* **bundle:** enhance metadata structure with short labels, primary colors, and aliases ([372970e](https://github.com/IUTTroyes/uniServices/commit/372970e9bd39622b9b61f3b63790d478d809a949))
+* **intranet:** permettre la restauration d’une sous-commission ([b27c9d8](https://github.com/IUTTroyes/uniServices/commit/b27c9d88e917cd60bf4dcd45d534ddd5fc93a1c3))
+* **parcauto:** add initial entities and services for vehicle management and reservations ([213d680](https://github.com/IUTTroyes/uniServices/commit/213d680d0ace9c83371c4dbee22518272dff8d9b))
+* **parcauto:** enhance vehicle reservation management with journal entries for fuel and incidents ([28d4de6](https://github.com/IUTTroyes/uniServices/commit/28d4de6f1655333c427b2171984878caee1d4ccd))
+* **parcauto:** improve mission filtering and display in planning view ([e53f300](https://github.com/IUTTroyes/uniServices/commit/e53f30040aec05193818ef312ce7084c5957fdf8))
+* **parcauto:** initialize ParcautoBundle with main components and configuration ([64854ef](https://github.com/IUTTroyes/uniServices/commit/64854ef60161ffc9b509733f49f0603929e4f2ba))
+* **parcauto:** update URLs in bundle metadata and adjust Vite configuration ([a8e7f2b](https://github.com/IUTTroyes/uniServices/commit/a8e7f2b1c587e74e5f0e1d558d3c24562cc128a9))
+* **previsionnel:** finaliser la saisie et les synthèses ([a7ba8c6](https://github.com/IUTTroyes/uniServices/commit/a7ba8c6f5b9fecbcd8523dbf5eabd1c2f503cd21))
+
+
+### 🐛 Corrections
+
+* **intranet:** Scolarite - préserver les résultats historiques V3 ([ccc0d49](https://github.com/IUTTroyes/uniServices/commit/ccc0d4910b06a8adf812e73fffc90317efa09fc0))
+* **transfert:** update affectation logic based on defaut value ([1c010f8](https://github.com/IUTTroyes/uniServices/commit/1c010f86fbbf172c219877ab637ec101c63a2fdd))
+
+
+### ♻️ Refactoring
+
+* **structure:** calculer le nombre de groupes par semestre ([4b6efd1](https://github.com/IUTTroyes/uniServices/commit/4b6efd1decda556c75092e15567d683c17319300))
+
+
+### 📚 Documentation
+
+* actualiser les conventions de développement ([3a746fa](https://github.com/IUTTroyes/uniServices/commit/3a746fa1f9442ab6161e5aef324776bab5628f31))
+* **transfert:** Suivi du transfert V3-&gt;V4 ([98e1c6d](https://github.com/IUTTroyes/uniServices/commit/98e1c6dc126f570ddd5fed63a6c22ceaf49c9eb4))
+
 ## [0.11.0](https://github.com/IUTTroyes/uniServices/compare/v0.10.0...v0.11.0) (2026-11-18)
 
 
