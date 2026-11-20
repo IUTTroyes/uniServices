@@ -24,66 +24,9 @@ function normalizeBundleKebab(string $rawName): string
     return $normalized;
 }
 
-function portIsAvailable(int $port): bool
-{
-    if ($port < 1 || $port > 65535) {
-        return false;
-    }
-
-    $socket = @stream_socket_server("tcp://127.0.0.1:$port", $errno, $errstr);
-    if ($socket === false) {
-        return false;
-    }
-
-    fclose($socket);
-    return true;
-}
-
-function findFirstAvailablePort(array $usedScriptPorts, int $startPort = 3000): int
-{
-    $port = $startPort;
-    while (in_array($port, $usedScriptPorts, true) || !portIsAvailable($port)) {
-        $port++;
-    }
-
-    return $port;
-}
-
-function readRootScripts(string $projectRoot): array
-{
-    $rootPackagePath = $projectRoot . '/package.json';
-    if (!file_exists($rootPackagePath)) {
-        return [];
-    }
-
-    $rootPackage = json_decode(file_get_contents($rootPackagePath), true);
-    if (!is_array($rootPackage)) {
-        return [];
-    }
-
-    return is_array($rootPackage['scripts'] ?? null) ? $rootPackage['scripts'] : [];
-}
-
-function extractUsedDevPorts(array $scripts): array
-{
-    $usedPorts = [];
-
-    foreach ($scripts as $scriptName => $scriptCommand) {
-        if (!str_starts_with((string) $scriptName, 'dev:')) {
-            continue;
-        }
-
-        if (preg_match('/--port\s+(\d+)/', (string) $scriptCommand, $matches)) {
-            $usedPorts[] = (int) $matches[1];
-        }
-    }
-
-    return array_values(array_unique($usedPorts));
-}
-
 if ($argc < 2) {
-    echo "Usage: php scripts/create-bundle.php <bundle-name> [--display-name=Name] [--description=Text] [--url-slug=slug] [--url=http://...]\n";
-    echo "Example: php scripts/create-bundle.php sample-bundle --display-name=Sample --description=\"Mon appli\" --url-slug=sample --url=http://localhost:3005/sample/\n";
+    echo "Usage: php scripts/create-bundle.php <bundle-name> [--display-name=Name] [--description=Text] [--url-slug=slug] [--url=/app/slug]\n";
+    echo "Example: php scripts/create-bundle.php sample-bundle --display-name=Sample --description=\"Mon appli\" --url-slug=sample --url=/app/sample\n";
     exit(1);
 }
 
@@ -140,33 +83,12 @@ if (empty($urlSlug)) {
 $projectRoot = dirname(__DIR__);
 require_once $projectRoot . '/scripts/utils/regenerate-tools-registry.php';
 
-$rootScripts = readRootScripts($projectRoot);
-$usedScriptPorts = extractUsedDevPorts($rootScripts);
-
-$preferredPort = null;
-if (!empty($fullUrl) && preg_match('#^https?://[^:/]+:(\d+)#', $fullUrl, $portMatches)) {
-    $preferredPort = (int) $portMatches[1];
+if (!preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $urlSlug)) {
+    echo "Error: URL slug must be in kebab-case (e.g., my-new-bundle).\n";
+    exit(1);
 }
 
-$suggestedPort = findFirstAvailablePort($usedScriptPorts, $preferredPort ?? 3000);
-
-if (empty($fullUrl)) {
-    $defaultUrl = "http://localhost:$suggestedPort/$urlSlug/";
-    echo "URL complète (ex: /$urlSlug ou $defaultUrl): ";
-    $fullUrl = trim(fgets(STDIN)) ?: $defaultUrl;
-}
-
-$metaUrl = $fullUrl;
-if (!empty($fullUrl) && preg_match('#^https?://localhost:(\d+)(/.*)?$#', $fullUrl, $urlMatches)) {
-    $currentUrlPort = (int) $urlMatches[1];
-    $urlPath = $urlMatches[2] ?? '/';
-    $shouldAdjustPort = in_array($currentUrlPort, $usedScriptPorts, true) || !portIsAvailable($currentUrlPort);
-
-    if ($shouldAdjustPort) {
-        $metaUrl = "http://localhost:$suggestedPort$urlPath";
-        echo "- Port $currentUrlPort indisponible pour l'URL, proposition auto: $metaUrl\n";
-    }
-}
+$metaUrl = $fullUrl ?: "/app/$urlSlug";
 
 $bundlePath = $projectRoot . '/packages/' . $bundleKebab;
 
@@ -245,12 +167,7 @@ $packageContent = [
     "name" => "@uni/$bundleKebab",
     "private" => true,
     "version" => "1.0.0",
-    "type" => "module",
-    "scripts" => [
-        "dev" => "vite",
-        "build" => "vite build",
-        "preview" => "vite preview"
-    ]
+    "type" => "module"
 ];
 file_put_contents($bundlePath . '/package.json', json_encode($packageContent, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
@@ -263,86 +180,7 @@ $bundleMeta = [
 ];
 file_put_contents($bundlePath . '/bundle.meta.json', json_encode($bundleMeta, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
-// 5. Create vite.config.js (template from auth-bundle)
-$viteConfigTemplate = <<<JS
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import path from 'path'
-import Components from 'unplugin-vue-components/vite'
-import { PrimeVueResolver } from '@primevue/auto-import-resolver'
-import tailwindcss from '@tailwindcss/vite'
-
-export default defineConfig({
-  plugins: [
-    vue(),
-    tailwindcss(),
-    Components({
-      resolvers: [
-        PrimeVueResolver()
-      ],
-      dts: path.resolve(__dirname, 'assets/components.d.ts'),
-    })
-  ],
-  root: path.resolve(__dirname, 'assets'),
-  base: '/$metaUrlSlug/',
-  build: {
-    outDir: path.resolve(__dirname, '../../back/public/$metaUrlSlug'),
-    emptyOutDir: true,
-  },
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        secure: false,
-      },
-    },
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'assets'),
-      '@types': path.resolve(__dirname, '../../shared/types'),
-      '@components': path.resolve(__dirname, '../../shared/components'),
-      '@config': path.resolve(__dirname, '../../shared/global-data'),
-      '@styles': path.resolve(__dirname, '../../shared/styles'),
-      '@images': path.resolve(__dirname, '../../shared/images'),
-      '@helpers': path.resolve(__dirname, '../../shared/helpers'),
-      '@requests': path.resolve(__dirname, '../../shared/requests'),
-      '@stores': path.resolve(__dirname, '../../shared/stores'),
-      '@utils': path.resolve(__dirname, '../../shared/utils'),
-    },
-  },
-})
-JS;
-file_put_contents($bundlePath . '/vite.config.js', $viteConfigTemplate);
-
-// 5b. Create minimal front scaffold
-$indexHtmlContent = <<<HTML
-<!doctype html>
-<html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>$metaName</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="./main.js"></script>
-  </body>
-</html>
-HTML;
-file_put_contents($bundlePath . '/assets/index.html', $indexHtmlContent);
-
-$mainJsContent = <<<JS
-import { createApp } from 'vue';
-import App from './App.vue';
-
-const app = createApp(App);
-
-app.mount('#app');
-JS;
-file_put_contents($bundlePath . '/assets/main.js', $mainJsContent);
-
+// 5. Create the view and register its route in the Shell.
 $appVueContent = <<<VUE
 <template>
   <main class="bundle-home">
@@ -365,42 +203,30 @@ $appVueContent = <<<VUE
 VUE;
 file_put_contents($bundlePath . '/assets/App.vue', $appVueContent);
 
-// 5c. Ensure root package.json scripts contain dev/build entries for the new bundle
-$rootPackagePath = $projectRoot . '/package.json';
-if (file_exists($rootPackagePath)) {
-    $rootPackage = json_decode(file_get_contents($rootPackagePath), true);
+$manifestTitle = json_encode($metaName, JSON_THROW_ON_ERROR);
+$manifest = <<<JS
+export default {
+  name: '$metaUrlSlug',
+  routes: [
+    {
+      path: '/$metaUrlSlug',
+      name: '$metaUrlSlug-home',
+      component: () => import('./App.vue'),
+      meta: { title: $manifestTitle },
+    },
+  ],
+};
+JS;
+file_put_contents($bundlePath . '/assets/manifest.ts', $manifest . "\n");
 
-    if (is_array($rootPackage)) {
-        $scripts = $rootPackage['scripts'] ?? [];
-
-        if (!is_array($scripts)) {
-            $scripts = [];
-        }
-
-        $usedPorts = extractUsedDevPorts($scripts);
-
-        $devPort = findFirstAvailablePort($usedPorts, $suggestedPort);
-
-        $devScriptName = 'dev:' . $bundleShortName;
-        $buildScriptName = 'build:' . $bundleShortName;
-
-        $scripts[$devScriptName] = "cd packages/$bundleKebab && vite --port $devPort";
-        $scripts[$buildScriptName] = "cd packages/$bundleKebab && vite build";
-
-        $devCommands = [];
-        foreach ($scripts as $scriptName => $scriptCommand) {
-            if (str_starts_with($scriptName, 'dev:')) {
-                $devCommands[] = '"npm run ' . $scriptName . '"';
-            }
-        }
-
-        sort($devCommands);
-        $scripts['dev'] = 'concurrently ' . implode(' ', $devCommands);
-
-        $rootPackage['scripts'] = $scripts;
-        file_put_contents($rootPackagePath, json_encode($rootPackage, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-    }
-}
+$frontRegistryPath = $projectRoot . '/packages/shell/assets/bundles-registry.js';
+$frontRegistry = file_get_contents($frontRegistryPath);
+$frontRegistry = str_replace(
+    "export const bundles = [",
+    "import $bundlePascal from '../../$bundleKebab/assets/manifest.ts';\n\nexport const bundles = [\n  $bundlePascal,",
+    $frontRegistry
+);
+file_put_contents($frontRegistryPath, $frontRegistry);
 
 // 6. Update root composer.json
 $rootComposerPath = $projectRoot . '/composer.json';
@@ -448,7 +274,4 @@ if ($pnpmVersionExitCode === 0) {
 }
 
 echo "\nBundle $bundlePascal created successfully!\n";
-echo "Next steps:\n";
-echo "1. Le script dev/build du bundle a été ajouté au package.json racine.\n";
-echo "2. Front: la liste des outils a été mise à jour (shared/global-data/tools.generated.json).\n";
-echo "3. Lancez 'npm run dev:$bundleShortName' puis ouvrez $metaUrl pour vérifier la vue d'accueil.\n";
+echo "Lancez 'npm run dev' puis ouvrez http://localhost:3000/app/$metaUrlSlug pour vérifier la vue d'accueil.\n";

@@ -20,7 +20,8 @@
             "MessageBundle\\": "packages/message-bundle/src/",
             "QuestionnaireBundle\\": "packages/questionnaire-bundle/src/",
             "StageBundle\\": "packages/stage-bundle/src/",
-            "UnifolioBundle\\": "packages/unifolio-bundle/src/"
+            "UnifolioBundle\\": "packages/unifolio-bundle/src/",
+            "ParcautoBundle\\": "packages/parcauto-bundle/src/"
         }
     },
     "autoload-dev": {
@@ -53,6 +54,7 @@
         "iuttroyes/message-bundle": "self.version",
         "iuttroyes/questionnaire-bundle": "self.version",
         "iuttroyes/stage-bundle": "self.version",
-        "iuttroyes/unifolio-bundle": "self.version"
+        "iuttroyes/unifolio-bundle": "self.version",
+        "iuttroyes/parcauto-bundle": "self.version"
     }
 }

@@ -4,7 +4,7 @@ import path from "path";
 const rootDir = path.resolve(__dirname, "../../");
 
 // The Vue Shell builds to back/public/app and runs with base path /app/
-// During the migration, it also acts as a gateway proxy on port 3000 for non-migrated bundles.
+// All bundled frontends share one development server.
 export default getBaseConfig(__dirname, "app", {
   resolve: {
     alias: [
@@ -46,6 +46,7 @@ export default getBaseConfig(__dirname, "app", {
     ]
   },
   server: {
-    port: 3000
+    port: 3000,
+    strictPort: true,
   }
 });

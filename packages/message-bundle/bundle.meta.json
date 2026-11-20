@@ -2,6 +2,6 @@
   "name": "Messagerie",
   "description": "Communications et annonces internes",
   "urlSlug": "message",
-  "url": "http://localhost:3001/message/"
+  "url": "/app/message"
 }
 

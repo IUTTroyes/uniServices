@@ -267,14 +267,12 @@ if (file_exists($frontBundlesRegistryPath)) {
     $frontRegistryRaw = file_get_contents($frontBundlesRegistryPath);
     $changed = false;
 
-    $importPattern = '/^\s*import\s+' . preg_quote($bundleShortName, '/') . '\s+from\s+["\'][^"\']*["\'];\s*\R?/m';
-    if (preg_match($importPattern, $frontRegistryRaw)) {
+    $manifestPath = preg_quote("../../$bundleKebab/assets/manifest.ts", '~');
+    $importPattern = "~^import\\h+([a-zA-Z_][a-zA-Z0-9_]*)\\h+from\\h+[\"']{$manifestPath}[\"'];\\h*\\R~m";
+    if (preg_match($importPattern, $frontRegistryRaw, $matches)) {
         $frontRegistryRaw = preg_replace($importPattern, '', $frontRegistryRaw);
-        $changed = true;
-    }
-
-    $bundleEntryPattern = '/^\s*' . preg_quote($bundleShortName, '/') . '\s*,?\s*\R?/m';
-    if (preg_match($bundleEntryPattern, $frontRegistryRaw)) {
+        $bundleAlias = preg_quote($matches[1], '~');
+        $bundleEntryPattern = "~^\\h*$bundleAlias,?\\h*\\R~m";
         $frontRegistryRaw = preg_replace($bundleEntryPattern, '', $frontRegistryRaw);
         $changed = true;
     }

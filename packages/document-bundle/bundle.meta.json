@@ -2,5 +2,5 @@
     "name": "Documents",
     "description": "Gestion Électronique de Documents",
     "urlSlug": "documents",
-    "url": "http://localhost:5173/documents"
+    "url": "/app/documents"
 }

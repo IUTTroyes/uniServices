@@ -313,6 +313,8 @@ importers:
 
   packages/intranet-bundle: {}
 
+  packages/parcauto-bundle: {}
+
   packages/questionnaire-bundle: {}
 
   packages/shell:

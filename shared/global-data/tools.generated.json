@@ -3,49 +3,55 @@
         "name": "Documents",
         "description": "Gestion \u00c9lectronique de Documents",
         "urlSlug": "documents",
-        "url": "http://localhost:5173/documents"
+        "url": "/app/documents"
     },
     {
         "name": "Finances & Achats",
         "description": "Gestion financi\u00e8re, bons de commande et suivi budg\u00e9taire",
         "urlSlug": "finance",
-        "url": "http://localhost:3007/finance/"
+        "url": "/app/finance"
     },
     {
         "name": "HelpDesk",
         "description": "Syst\u00e8me de tickets",
         "urlSlug": "helpdesk",
-        "url": "http://localhost:3004/helpdesk/"
+        "url": "/app/helpdesk"
     },
     {
         "name": "Intranet",
         "description": "Gestion des formations et \u00e9tudiants.",
         "urlSlug": "intranet",
-        "url": "http://localhost:3001/intranet/"
+        "url": "/app/intranet"
     },
     {
         "name": "Messagerie",
         "description": "Communications et annonces internes",
         "urlSlug": "message",
-        "url": "http://localhost:3001/message/"
+        "url": "/app/message"
+    },
+    {
+        "name": "Parcauto",
+        "description": "Bundle de gestion du parc automobile",
+        "urlSlug": "parcauto",
+        "url": "/app/parcauto"
     },
     {
         "name": "Questionnaires",
         "description": "Cr\u00e9ation et gestion des questionnaires",
         "urlSlug": "questionnaire",
-        "url": "http://localhost:3005/questionnaire/"
+        "url": "/app/questionnaire"
     },
     {
         "name": "Stage/Alternance",
         "description": "Gestion des stages et alternances",
         "urlSlug": "stage",
-        "url": "http://localhost:3005/stage/"
+        "url": "/app/stage"
     },
     {
         "name": "UniFolio",
         "description": "Outil de cr\u00e9ation et de gestion de portfolios universitaires.",
         "urlSlug": "unifolio",
-        "url": "/unifolio"
+        "url": "/app/unifolio"
     },
     {
         "name": "Correcto",

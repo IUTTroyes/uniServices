@@ -180,21 +180,15 @@ Les alias permettent d'accéder aux ressources partagées depuis n'importe quel 
 
 Le `Makefile` à la racine permet de piloter l'ensemble de la structure :
 
-- Démarrer le backend (Symfony) : `make start-back`
-- Démarrer les serveurs de dev Vite (tous les bundles) : `make start-front`
-- Démarrer tout le projet : `make start-all`
+- Démarrer le backend Symfony avec `make start-back`.
+- Démarrer le serveur Vite du Shell avec `make start-front` ou `pnpm run dev`.
+- Démarrer les deux avec `make start-all`.
 
-Pour lancer un bundle spécifique en développement :
-- Auth : `npm run dev:auth`
-- Edt : `npm run dev:edt`
-- Intranet : `npm run dev:intranet`
+Le Shell sert tous les bundles frontend sur le port 3000. Le portail est accessible sur `http://localhost:3000/app/auth/portail`, et chaque bundle a son propre chemin sous `/app/`. Démarrez Vite une seule fois. Si le port 3000 est occupé, Vite affiche une erreur. Les requêtes `/api` passent par le proxy du Shell vers Symfony.
 
-### Build des Assets
+### Build des assets
 
-Chaque bundle doit être compilé indépendamment pour que ses assets soient disponibles pour Symfony :
-
-- Build complet : `npm run build:auth && npm run build:edt && npm run build:intranet`
-- Les fichiers compilés sont générés dans `packages/{bundle}/src/Resources/public/`
+`make build-front` compile le Shell et les vues des bundles enregistrés. Les fichiers compilés sont générés dans `back/public/app/`.
 
 ### Développement
 
@@ -215,7 +209,8 @@ Le script vous demandera interactivement :
 - **Nom de l'outil** (ex: `Mon Appli`)
 - **Description** (ex: `Gestion de mes données`)
 - **URL Slug** (ex: `mon-appli` pour la structure)
-- **URL complète** (ex: `http://localhost:3000/mon-appli/` pour le lien dans la navigation)
+
+Le lien du portail utilise `/app/<slug>` par défaut.
 
 Vous pouvez également passer ces informations via des arguments pour éviter les questions :
 
@@ -223,41 +218,14 @@ Vous pouvez également passer ces informations via des arguments pour éviter le
 php scripts/create-bundle.php nom \
   --display-name="Nom lisible" \
   --description="Description de l'outil" \
-  --url-slug="slug" \
-  --url="http://localhost:3000/slug/"
+  --url-slug="slug"
 ```
 
 Le logo est par défaut `LogoIut`.
 
-### Ce que fait le script :
-1. Normalise automatiquement le nom de dossier avec le suffixe `-bundle` si nécessaire (ex: `nom` devient `nom-bundle`).
-2. Crée l'arborescence du bundle dans `packages/nom-bundle/`.
-3. Génère la classe PHP du Bundle (`NomBundle.php`).
-4. Génère les fichiers de configuration du bundle : `composer.json`, `package.json`, `vite.config.js`.
-5. Génère un front minimal prêt à démarrer :
-    - `assets/index.html`
-    - `assets/main.js`
-    - `assets/App.vue` (vue d'accueil par défaut)
-6. Crée `packages/nom-bundle/bundle.meta.json` (nom, description, `urlSlug`, `url`) utilisé pour le registre des outils.
-7. Met à jour automatiquement le `package.json` racine :
-    - ajout de `dev:<slug>`
-    - ajout de `build:<slug>`
-    - régénération de la commande `dev` globale (`concurrently ...`)
-8. Propose automatiquement un port de dev non utilisé (scripts existants + disponibilité locale) pour l'URL et le script `dev:<slug>`.
-9. Configure Vite avec une base cohérente `/<slug>/`, un proxy API vers `http://localhost:8000` et un `outDir` vers `back/public/<slug>`.
-10. Met à jour l'autoloading Composer dans `composer.json` (racine) et `back/composer.json`.
-11. Enregistre le bundle dans `back/config/bundles.php`.
-12. Reconstruit automatiquement `shared/global-data/tools.generated.json` en scannant les bundles locaux et les outils externes (`shared/global-data/external-tools/`).
-13. Lance les commandes post-création nécessaires :
-    - `composer dump-autoload` (racine)
-    - `composer dump-autoload` + `bin/console cache:clear` (dans `back/`)
-    - `pnpm install --prefer-offline --ignore-scripts` si `pnpm` est disponible
+Le script crée le bundle Symfony, configure son autoloading Composer et génère une vue Vue avec un manifeste. Il ajoute ce manifeste au registre du Shell et reconstruit la liste des outils du portail. L’option `--url` permet de personnaliser le lien du portail.
 
-### Après l'exécution :
-1. Démarrez le backend (`make start-back`) et le front (`make start-front`) ou tout (`make start-all`).
-2. Lancez le bundle seul si besoin avec `npm run dev:<slug>`.
-3. Ouvrez l'URL de dev du bundle (ex: `http://localhost:3005/<slug>/`) : vous devez voir la vue d'accueil générée par défaut.
-4. (Optionnel) Ajoutez des raccourcis supplémentaires dans le `Makefile` si vous voulez des commandes dédiées.
+Démarrez le backend et le frontend avec `make start-all`. La vue s’ouvre sur `http://localhost:3000/app/<slug>` et la commande `make build-front` l’inclut dans le build du Shell.
 
 ## Activation et Désactivation d'un Bundle
 

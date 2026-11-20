@@ -2,5 +2,5 @@
     "name": "Questionnaires",
     "description": "Création et gestion des questionnaires",
     "urlSlug": "questionnaire",
-    "url": "http://localhost:3005/questionnaire/"
+    "url": "/app/questionnaire"
 }
