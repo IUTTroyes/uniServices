@@ -8,7 +8,7 @@ Le tableau de bord affiche les demandes personnelles, les départs confirmés et
 
 | Profil | Opérations |
 | --- | --- |
-| Personnel avec accès au paquet ParcAuto | Consulter les véhicules, les créneaux occupés et les bornes. Demander ou annuler ses réservations puis relever les compteurs de départ et de retour. |
+| Personnel avec accès au paquet ParcAuto | Consulter les véhicules, les créneaux occupés et les bornes. Demander ou annuler ses réservations puis relever les compteurs de départ et de retour. Pendant une mission, le conducteur peut saisir plusieurs pleins et signaler un incident depuis le planning. Ces déclarations sont horodatées et enregistrées dans le journal du véhicule avec leur auteur. |
 | Gestionnaire | Valider et annuler les demandes, gérer les fiches et les échéances, consulter le journal, identifier le conducteur d’une mission, accéder au pilotage et exporter. |
 | Super administrateur | Mêmes droits de gestion. |
 

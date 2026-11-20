@@ -25,7 +25,8 @@ function regles(champ) {
   if (champ.max && champ.type !== 'number') resultat.push(validationRules.maxLength(champ.max));
   if (champ.type === 'number') {
     const minimum = champ.min ?? 0;
-    resultat.push(validationRules.numeric, {
+    if (!champ.decimales) resultat.push(validationRules.numeric);
+    resultat.push({
       validate: valeur => Number(valeur) >= minimum,
       message: `La valeur doit être supérieure ou égale à ${minimum}`,
     }, validationRules.maxValue(champ.max ?? 2147483647));
@@ -64,7 +65,7 @@ function soumettre() {
                       :options="champ.options" :option-disabled="champ.optionDisabled"
                       :rules="champ.lecture ? [] : regles(champ)" :disabled="champ.lecture"
                       :min="champ.min ?? 0" :max="champ.type === 'number' ? champ.max ?? 2147483647 : null"
-                      :maxfractiondigits="0" :show-clear="!(champ.requis || champ.requisSi?.(donnees))"
+                      :maxfractiondigits="champ.decimales ?? 0" :show-clear="!(champ.requis || champ.requisSi?.(donnees))"
                       @update:model-value="erreurValidation = ''" />
     </template>
     <Button type="submit" :label="libelleAction" :loading="sauvegarde" />

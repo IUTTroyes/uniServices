@@ -10,6 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use ParcautoBundle\Entity\EcheanceEntretien;
 use ParcautoBundle\Entity\Equipement;
 use ParcautoBundle\Entity\JournalVehicule;
+use ParcautoBundle\Entity\Reservation;
 use ParcautoBundle\Entity\Vehicule;
 
 final readonly class GestionParcauto
@@ -99,9 +100,12 @@ final readonly class GestionParcauto
         return $plan;
     }
 
-    public function journal(Vehicule $vehicule, Personnel $auteur, SaisieParcauto $saisie): JournalVehicule
+    public function journal(Vehicule $vehicule, Personnel $auteur, SaisieParcauto $saisie, ?Reservation $mission = null): JournalVehicule
     {
-        $type = $saisie->choix('type', [
+        if ($mission !== null && $mission->statut !== Reservation::EN_COURS) {
+            throw new \DomainException('La mission doit être en cours pour ajouter une déclaration.');
+        }
+        $type = $saisie->choix('type', $mission !== null ? [JournalVehicule::CARBURANT, JournalVehicule::INCIDENT] : [
             JournalVehicule::CARBURANT,
             JournalVehicule::FACTURE,
             JournalVehicule::PNEUS,
@@ -109,11 +113,11 @@ final readonly class GestionParcauto
             JournalVehicule::INCIDENT,
             JournalVehicule::REMISE_SERVICE,
         ]);
-        $date = $saisie->date('date');
+        $date = $mission !== null ? SaisieParcauto::maintenant() : $saisie->date('date');
         if ($date > SaisieParcauto::maintenant()) {
             throw new \InvalidArgumentException('La date doit être passée.');
         }
-        $prestataire = $this->equipement($saisie->entier('prestataire', 1, true), Equipement::PRESTATAIRE);
+        $prestataire = $mission === null ? $this->equipement($saisie->entier('prestataire', 1, true), Equipement::PRESTATAIRE) : null;
         $libelle = $saisie->texte('libelle', 255);
         $kilometrage = null;
         $montant = null;
@@ -123,10 +127,10 @@ final readonly class GestionParcauto
 
         switch ($type) {
             case JournalVehicule::CARBURANT:
-                $kilometrage = $saisie->entier('kilometrage');
+                $kilometrage = $saisie->entier('kilometrage', $mission?->kilometrageDepart ?? 0);
                 $volume = $saisie->entier('volumeMillilitres', 1);
                 $montant = $saisie->entier('montantCentimes');
-                $carte = $this->equipement($saisie->entier('carte', 1, true), Equipement::CARTE);
+                $carte = $mission === null ? $this->equipement($saisie->entier('carte', 1, true), Equipement::CARTE) : null;
                 if ($carte?->vehicule !== null && $carte->vehicule->id !== $vehicule->id) {
                     throw new \DomainException('Cette carte carburant est affectée à un autre véhicule.');
                 }

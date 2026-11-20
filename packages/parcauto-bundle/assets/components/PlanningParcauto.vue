@@ -1,9 +1,11 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import { useToast } from 'primevue/usetoast';
 import { addDays, differenceInCalendarDays } from 'date-fns';
 import { Card, EmptyState, ListSkeleton, PermissionGuard, ValidatedInput } from '@components';
 import { gestionParcauto } from '../permissions';
+import { champEuros, champLitres, enCentimes, enMillilitres } from './parcautoUnites';
 import FormulaireParcauto from './FormulaireParcauto.vue';
 import { enregistrerParcautoService, getPlanningService } from '../service/parcautoService';
 import { dateHeure, instant, jourLocal, messageErreur, periodePlanning } from './parcautoDates';
@@ -11,6 +13,7 @@ import { dateHeure, instant, jourLocal, messageErreur, periodePlanning } from '.
 const props = defineProps({ vehicules: Array, gestion: Boolean });
 const emit = defineEmits(['actualiser']);
 const route = useRoute();
+const toast = useToast();
 const periode = ref(periodePlanning());
 const reservationCible = computed(() => String(route.query.reservation ?? ''));
 const selection = ref(null);
@@ -36,6 +39,15 @@ const champs = computed(() => {
         { nom: 'fin', label: 'Retour prévu', type: 'datetime-local', requis: true },
         { nom: 'ordreMission', label: 'Référence de l’ordre de mission', max: 120, requis: true },
       ];
+    case 'carburant':
+      return [
+        { nom: 'libelle', label: 'Station ou référence du plein', requis: true, max: 255 },
+        { nom: 'kilometrage', label: 'Kilométrage au compteur', type: 'number', requis: true, min: dialogue.value.mission.kilometrageDepart },
+        { nom: 'litres', label: 'Volume (L)', requis: true, ...champLitres },
+        { nom: 'euros', label: 'Montant (€)', requis: true, ...champEuros },
+      ];
+    case 'incident':
+      return [{ nom: 'libelle', label: 'Symptôme ou incident constaté', requis: true, max: 255 }];
     case 'depart':
     case 'retour':
       return [{ nom: 'kilometrage', label: 'Kilométrage au compteur', type: 'number', requis: true }];
@@ -130,6 +142,21 @@ async function enregistrer() {
       await enregistrerParcautoService('/reservations', {
         vehicule: donnees.vehicule, debut: instant(donnees.debut), fin: instant(donnees.fin), ordreMission: donnees.ordreMission,
       });
+    } else if (action === 'carburant' || action === 'incident') {
+      await enregistrerParcautoService(`/reservations/${mission.id}/journal`, {
+        type: action,
+        libelle: donnees.libelle,
+        ...(action === 'carburant' ? {
+          kilometrage: donnees.kilometrage,
+          volumeMillilitres: enMillilitres(donnees.litres),
+          montantCentimes: enCentimes(donnees.euros),
+        } : {}),
+      });
+      toast.add({
+        severity: 'success',
+        summary: action === 'carburant' ? 'Plein enregistré' : 'Incident enregistré',
+        life: 3500,
+      });
     } else {
       await enregistrerParcautoService(`/reservations/${mission.id}/${action}`, { kilometrage: donnees.kilometrage });
     }
@@ -211,6 +238,10 @@ watch(periode, () => {
             </PermissionGuard>
             <PermissionGuard :permission="mission.proprietaire">
               <Button v-if="mission.statut === 'validee'" label="Départ" size="small" @click="ouvrir('depart', mission)" />
+              <template v-if="mission.statut === 'en_cours'">
+                <Button label="Déclarer un plein" size="small" severity="secondary" @click="ouvrir('carburant', mission)" />
+                <Button label="Signaler un incident" size="small" severity="secondary" @click="ouvrir('incident', mission)" />
+              </template>
               <Button v-if="mission.statut === 'en_cours'" label="Retour" size="small" @click="ouvrir('retour', mission)" />
             </PermissionGuard>
             <PermissionGuard v-if="(mission.proprietaire || gestion) && ['demandee', 'validee'].includes(mission.statut)"
@@ -224,7 +255,7 @@ watch(periode, () => {
   </Card>
 
   <Dialog :visible="Boolean(dialogue)" modal :closable="!sauvegarde" :dismissable-mask="false" :style="{ width: 'min(34rem, 95vw)' }"
-          :header="{ demander: 'Demander une réservation', valider: 'Valider la réservation', annuler: 'Annuler la réservation', depart: 'Enregistrer le départ', retour: 'Enregistrer le retour' }[dialogue?.action]"
+          :header="{ demander: 'Demander une réservation', valider: 'Valider la réservation', annuler: 'Annuler la réservation', depart: 'Enregistrer le départ', retour: 'Enregistrer le retour', carburant: 'Déclarer un plein', incident: 'Signaler un incident mécanique' }[dialogue?.action]"
           @update:visible="!$event && (dialogue = null)">
     <FormulaireParcauto v-if="dialogue" :key="dialogue.action" v-model="formulaire" :champs="champs"
                         :erreur="erreur" :sauvegarde="sauvegarde" libelle-action="Confirmer" @submit="enregistrer">

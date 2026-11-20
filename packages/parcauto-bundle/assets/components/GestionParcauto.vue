@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router';
 import { Card, EmptyState, ListSkeleton, PermissionGuard } from '@components';
 import { hasPermission } from '@utils/permissions';
 import { gestionParcauto } from '../permissions';
+import { champEuros, champLitres, enCentimes, enMillilitres } from './parcautoUnites';
 import FormulaireParcauto from './FormulaireParcauto.vue';
 import { enregistrerParcautoService, getSuiviService } from '../service/parcautoService';
 import { jourLocal, messageErreur } from './parcautoDates';
@@ -82,12 +83,12 @@ function ouvrirVehicule(item = null) {
     date('misEnServiceLe', 'Date de mise en service'),
     date('reformePrevueLe', 'Date cible de réforme'),
     nombre('reformeKm', 'Kilométrage cible de réforme', false, 1),
-    nombre('achatCentimes', 'Prix d’achat (centimes €)'),
+    { nom: 'achatEuros', label: 'Prix d’achat (€)', ...champEuros },
     nombre('consommationReference', 'Consommation de référence (dixièmes de L/100 km)', false, 1),
     { ...actif, lecture: item?.actif === false },
   ];
   ouvrir(item ? 'Modifier le véhicule' : 'Ajouter un véhicule', item ? `/vehicules/${item.id}` : '/vehicules',
-    champs, item ?? { actif: true }, Boolean(item));
+    champs, item ? { ...item, achatEuros: item.achatCentimes == null ? null : item.achatCentimes / 100 } : { actif: true }, Boolean(item));
 }
 
 function ouvrirEquipement(item = null) {
@@ -125,9 +126,9 @@ function ouvrirJournal() {
     texte('libelle', 'Référence (facture, contrôle, train de pneus ou symptôme)', 255),
     liste('prestataire', 'Prestataire', choixEquipement('prestataire')),
     condition(nombre('kilometrage', 'Kilométrage lors du plein', true), (d) => d.type === 'carburant'),
-    condition(nombre('volumeMillilitres', 'Volume (mL)', true, 1), (d) => d.type === 'carburant'),
+    condition({ nom: 'litres', label: 'Volume (L)', requis: true, ...champLitres }, (d) => d.type === 'carburant'),
     condition(liste('carte', 'Carte carburant', choixEquipement('carte')), (d) => d.type === 'carburant'),
-    condition(nombre('montantCentimes', 'Montant (centimes €)', true), (d) => ['carburant', 'facture'].includes(d.type)),
+    condition({ nom: 'euros', label: 'Montant (€)', requis: true, ...champEuros }, (d) => ['carburant', 'facture'].includes(d.type)),
     condition(nombre('usureDixiemesMm', 'Profondeur restante (dixièmes de mm)', true), (d) => d.type === 'pneus'),
   ];
   ouvrir('Ajouter au journal', suiviUrl.value + '/journal', champs, { date: jourLocal() });
@@ -140,7 +141,11 @@ async function enregistrer() {
     const { chemin, modifier, champs } = dialogue.value;
     const visibles = champs.filter((champ) => !champ.visible || champ.visible(formulaire.value));
     const donnees = Object.fromEntries(visibles.map(({ nom, type }) => [nom, formulaire.value[nom] ?? (type === 'native-date' ? '' : undefined)]));
-    await enregistrerParcautoService(chemin, donnees, modifier);
+    const { achatEuros, euros, litres, ...payload } = donnees;
+    if (achatEuros != null) payload.achatCentimes = enCentimes(achatEuros);
+    if (euros != null) payload.montantCentimes = enCentimes(euros);
+    if (litres != null) payload.volumeMillilitres = enMillilitres(litres);
+    await enregistrerParcautoService(chemin, payload, modifier);
     dialogue.value = null;
     emit('actualiser');
     await chargerSuivi();

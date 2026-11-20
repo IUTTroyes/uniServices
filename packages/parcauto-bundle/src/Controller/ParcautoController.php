@@ -207,19 +207,10 @@ final class ParcautoController extends AbstractController
     #[Route('/reservations/{id<\d+>}/{action<valider|annuler|depart|retour>}', name: 'transition', methods: ['POST'])]
     public function transition(int $id, string $action, Request $request): JsonResponse
     {
-        $vehiculeId = $this->em->createQueryBuilder()
-            ->select('IDENTITY(r.vehicule) AS vehiculeId')
-            ->from(Reservation::class, 'r')
-            ->where('r.id = :id')->setParameter('id', $id)
-            ->getQuery()->getOneOrNullResult();
-        if ($vehiculeId === null) {
-            throw $this->createNotFoundException();
-        }
+        $vehiculeId = $this->vehiculeMissionId($id);
 
         return $this->ecrire($request, function (SaisieParcauto $saisie) use ($id, $action, $vehiculeId): Reservation {
-            // La première lecture transactionnelle verrouille le véhicule avant les contrôles de créneaux.
-            $this->vehiculeVerrouille((int) $vehiculeId['vehiculeId']);
-            $reservation = $this->em->find(Reservation::class, $id, LockMode::PESSIMISTIC_WRITE) ?? throw $this->createNotFoundException();
+            $reservation = $this->missionVerrouillee($id, $vehiculeId);
             $attribut = $action === 'valider' ? ParcautoVoter::GESTION : ParcautoVoter::MISSION;
             if ($action !== 'annuler' || !$this->isGranted(ParcautoVoter::GESTION)) {
                 $this->denyAccessUnlessGranted($attribut, $reservation);
@@ -374,6 +365,41 @@ final class ParcautoController extends AbstractController
         }
 
         return $utilisateur;
+    }
+
+    #[Route('/reservations/{id<\d+>}/journal', name: 'journal_mission', methods: ['POST'])]
+    public function journalMission(int $id, Request $request): JsonResponse
+    {
+        $vehiculeId = $this->vehiculeMissionId($id);
+
+        return $this->ecrire($request, function (SaisieParcauto $saisie) use ($id, $vehiculeId): JournalVehicule {
+            $reservation = $this->missionVerrouillee($id, $vehiculeId);
+            $this->denyAccessUnlessGranted(ParcautoVoter::MISSION, $reservation);
+
+            return $this->gestion->journal($reservation->vehicule, $this->personnel(), $saisie, $reservation);
+        }, 201);
+    }
+
+    private function vehiculeMissionId(int $id): int
+    {
+        $vehiculeId = $this->em->createQueryBuilder()
+            ->select('IDENTITY(r.vehicule) AS vehiculeId')
+            ->from(Reservation::class, 'r')
+            ->where('r.id = :id')->setParameter('id', $id)
+            ->getQuery()->getOneOrNullResult();
+        if ($vehiculeId === null) {
+            throw $this->createNotFoundException();
+        }
+
+        return (int) $vehiculeId['vehiculeId'];
+    }
+
+    private function missionVerrouillee(int $id, int $vehiculeId): Reservation
+    {
+        // Conserver le même ordre de verrouillage pour le journal, le départ et le retour.
+        $this->vehiculeVerrouille($vehiculeId);
+
+        return $this->em->find(Reservation::class, $id, LockMode::PESSIMISTIC_WRITE) ?? throw $this->createNotFoundException();
     }
 
     private function vehiculeVerrouille(int $id): Vehicule

@@ -45,9 +45,9 @@ class Reservation
         #[ORM\ManyToOne, ORM\JoinColumn(nullable: false)]
         public readonly Personnel $conducteur,
         #[ORM\Column]
-        public readonly \DateTimeImmutable $debut,
+        public private(set) \DateTimeImmutable $debut,
         #[ORM\Column]
-        public readonly \DateTimeImmutable $fin,
+        public private(set) \DateTimeImmutable $fin,
         #[ORM\Column(length: 120)]
         public readonly string $ordreMission,
     ) {
