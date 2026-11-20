@@ -94,15 +94,23 @@ final class ParcautoController extends AbstractController
 
             $conducteur = $this->personnel();
             $gestion = $this->isGranted(ParcautoVoter::GESTION);
+            $aujourdhui = SaisieParcauto::maintenant()
+                ->setTimezone(new \DateTimeZone('Europe/Paris'))->setTime(0, 0)
+                ->setTimezone(new \DateTimeZone('UTC'));
             $qb = $this->em->createQueryBuilder()
                 ->select('r', 'v')
                 ->from(Reservation::class, 'r')
                 ->join('r.vehicule', 'v')
-                ->where('(r.debut < :fin AND r.fin > :debut) OR (r.statut = :enCours AND r.debut < :fin)')
+                ->where('r.debut < :fin AND r.fin > :debut')
                 ->setParameter('debut', $debut)
                 ->setParameter('fin', $fin)
-                ->setParameter('enCours', Reservation::EN_COURS)
                 ->orderBy('r.debut', 'ASC');
+
+            if ($debut <= $aujourdhui && $aujourdhui < $fin) {
+                $qb->orWhere('(r.statut = :enCours AND r.fin <= :aujourdhui)')
+                    ->setParameter('enCours', Reservation::EN_COURS)
+                    ->setParameter('aujourdhui', $aujourdhui);
+            }
 
             if (!$gestion) {
                 $qb->andWhere('r.conducteur = :conducteur OR r.statut IN (:occupants)')

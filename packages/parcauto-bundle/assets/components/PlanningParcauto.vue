@@ -70,8 +70,7 @@ function occupeJour(mission, jour) {
   const debut = new Date(jour + 'T00:00:00');
   const fin = addDays(debut, 1);
   return new Date(mission.debut) < fin
-    && (new Date(mission.fin) > debut || mission.statut === 'en_cours'
-      || (mission.enCours && mission.statut === 'occupee'));
+    && (new Date(mission.fin) > debut || (mission.enCours && jour === jourLocal()));
 }
 
 const calendrier = computed(() => {
@@ -88,12 +87,16 @@ const calendrier = computed(() => {
 const jours = computed(() => {
   const groupes = new Map();
   for (const mission of filtrer.value) {
-    if (jourSelectionne.value && !occupeJour(mission, jourSelectionne.value)) continue;
-    const jour = new Date(mission.debut).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    const premierJour = calendrier.value.find(({ jour }) =>
+      (!jourSelectionne.value || jour === jourSelectionne.value) && occupeJour(mission, jour)
+    );
+    if (!premierJour) continue;
+
+    const jour = premierJour.jour;
     if (!groupes.has(jour)) groupes.set(jour, []);
     groupes.get(jour).push(mission);
   }
-  return [...groupes];
+  return [...groupes].sort(([a], [b]) => a.localeCompare(b));
 });
 
 let requete = 0;
@@ -219,7 +222,7 @@ watch(periode, () => {
     <ListSkeleton v-if="chargement" />
     <EmptyState v-else-if="!jours.length" :title="jourSelectionne ? 'Aucune réservation ce jour' : 'Aucune réservation sur la période'" icon="pi pi-calendar" compact />
     <section v-for="[jour, reservations] in jours" v-else :key="jour" class="mb-5">
-      <h2 class="mb-2 text-base font-semibold capitalize">{{ jour }}</h2>
+      <h2 class="mb-2 text-base font-semibold capitalize">{{ new Date(jour + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) }}</h2>
       <ul class="grid gap-2">
         <li v-for="(mission, index) in reservations" :key="mission.id ?? index" class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-surface-200 p-3 dark:border-surface-700">
           <div>
