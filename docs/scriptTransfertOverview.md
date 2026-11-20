@@ -1,407 +1,93 @@
-# Suivi du script de transfert V3 vers V4
+# Suivi du transfert de l’intranet V3 vers UniServices V4
 
-Pour chaque migrateur, noter le constat, la correction attendue et, si possible, un exemple ou un contrôle à effectuer.
+Audit du 20 novembre 2026. La base cible V4 était vide avant le transfert, que Cyndel a lancé elle-même. Les contrôles portent donc sur un premier import. Une ligne en double lors de ce premier import peut notamment provenir de plusieurs lignes V3 convergeant vers la même clé V4 ou d’une recherche qui ne voit pas encore les insertions du lot en cours.
 
-## Utilisateurs
+L’audit rapproche le dump cible `back.sql` du dump source disponible `intranet.sql` et du code actuellement dans le dépôt. Les deux exports représentent des instantanés distincts. Les écarts observés en V4 sont établis par comptage ou rapprochement des identifiants V3 conservés, tandis que la cause d’un écart avec la source reste à confirmer lorsque le journal du transfert ou la version exécutée manque.
 
-### EtudiantMigrator
+## Anomalies constatées dans la cible V4
 
-[Code source](../back/src/Migration/IntranetV3/Users/EtudiantMigrator.php)
+| Point | Données observées | Cause identifiée ou vérification restante |
+| --- | --- | --- |
+| **Scolarités annuelles en double** | 17 183 lignes pour 9 481 couples étudiant–année. 7 589 couples apparaissent plusieurs fois, soit 7 702 lignes excédentaires. Les 9 364 couples avec année du dump V3 sont présents, et 117 couples supplémentaires figurent dans la cible. Quatre clés étudiant–année–semestre sont également répétées. | `ScolariteMigrator` effectue un `findOneBy` SQL avant chaque création. Une scolarité mise en attente par `persist()` reste invisible à cette recherche jusqu’au `flush()`. Plusieurs semestres d’un même étudiant dans le même lot peuvent ainsi créer plusieurs dossiers annuels et répartir les semestres entre eux. Réutiliser la scolarité dans le lot, garantir l’unicité en base après consolidation, puis recontrôler résultats, notes et groupes. |
+| **Notes absentes** | 0 ligne dans `etudiant_note`, alors que le filtre d’éligibilité de `NoteMigrator` sélectionne 125 114 notes dans le dump V3. La cible contient 11 239 évaluations, dont 5 295 rattachées à un semestre V4. | Le code actuel interroge `EtudiantScolariteSemestre` avec le champ Doctrine inexistant `scolariteSemestre` et lui passe une variable initialisée à `null`. La recherche des notes d’une évaluation structurée doit utiliser `scolarite => $scolarite` et le semestre. Pour l’historique, les dossiers annuels en double rendent également le choix du dossier incertain. Le journal du transfert reste nécessaire pour expliquer l’absence totale de notes. |
+| **Prévisionnel presque vide** | 4 lignes, toutes pour des ressources, sans doublon sur la clé cible. Le dump V3 compte 2 427 lignes pour 2026–2027. En reproduisant la jointure du migrateur sur les enseignements V4, 46 lignes n’ont aucun enseignement, 614 en ont plusieurs et 1 767 en ont un seul. Parmi ces dernières, 1 740 ont aussi un personnel résolu. | Les ambiguïtés et références absentes expliquent une partie de l’écart. Même après rapprochement des lignes V3 répétées, le faible nombre de lignes cibles appelle une vérification du journal et du périmètre effectivement exécuté. Rapprocher heures et groupes par affectation après avoir choisi la règle de traitement des répétitions. |
+| **Groupes mal rattachés** | 200 des 1 748 groupes V4 n’ont aucun semestre. Le TD de S4 GEMA FI contient bien GCFF, GPRH et GEMA ALT, en plus des deux groupes GEMA FI. Sur les 6 249 liens V3 étudiant–groupe, la cible conserve 236 liens pour 79 scolarités semestrielles. Ces 236 liens sont cohérents avec les rattachements V4, lesquels peuvent eux-mêmes être erronés. | La jointure attribue tous les semestres du type de groupe sans appliquer le parcours V3. Le total de 6 249 est la source brute, avant le filtre de scolarité 2026–2027. Recalculer le périmètre éligible après correction des rattachements et des scolarités annuelles. Rechercher la cause des groupes sans semestre. |
+| **PN de diplômes inactifs** | La cible contient 55 PN, tous en 2026–2027. Douze correspondent à des diplômes inactifs du dump V3. | La sélection des PN doit s’appuyer sur les formations réellement ouvertes. Les 64 candidats du dump V3 selon le code actuel et les 55 PN observés sont deux comptages distincts. |
+| **Affectations et accès** | Parmi les 766 affectations de personnels, 450 sont actives alors que `defaut=0`. Les 290 lignes par défaut sont actives et 26 autres sont inactives. Sur 7 266 étudiants, un seul a `applications` renseigné. | Le premier transfert observé diffère de la règle `affectation = defaut` du code de travail. Revoir avec les départements les 450 affectations concernées. Le getter étudiant fournit un accès intranet par défaut quand la colonne est absente. Vérifier le parcours de connexion avant d’attribuer le problème d’accès à la seule valeur SQL. |
+| **Heures de maquette et liens SAÉ** | En V4, 84 matières, 470 occurrences de ressources et 122 occurrences de SAÉ ont au moins un volume CM/TD/TP avec PN à zéro et IUT positif. Aucun enseignement ne renseigne `sae_id`. | Le volume IUT est présent dans ces lignes. La préférence PN avec `??` dans le code de travail masque le volume IUT lorsque PN vaut zéro. Vérifier la règle métier de lecture et les associations après synchronisation Oréof. |
+| **Calendriers historiques** | Seule 2026–2027 a une date de référence, le 24 août 2026. Les huit années précédentes ont une valeur nulle. | Le calendrier actif est exploitable dans l’export. Le validateur actuel a rejeté les lignes brutes du dump V3 lors de la reproduction, ce qui explique un risque de perte sur un prochain import complet. Vérifier les écrans historiques qui exigent cette date. |
+| **Résultats consolidés** | Les 17 228 scolarités semestrielles ont une moyenne. Aucune n’a de rang V4 ni de bloc JSON `resultatsV3`. Les deux tables de moyennes détaillées sont vides. Dans le dump V3 disponible, aucun rang n’est strictement positif. | L’absence du bloc prévu par `ScolariteDetailsMigrator` mérite une vérification, notamment pour les codes décision et moyennes détaillées. Vérifier la version exécutée et l’effet des doublons de scolarité annuelle sur la résolution du semestre. |
+| **Absences et justificatifs** | 0 absence et 0 justificatif V4, face à 4 044 absences et 756 justificatifs V3 datés de 2026–2027. Aucun événement EDT V4, et aucun `edt_planning` V3 pour cette année dans le dump disponible. Deux rattrapages V4 contre dix lignes V3 de l’année. | `AbsenceActiveMigrator` exige un événement EDT résolu. Avec le dump V3 disponible, cette règle écarte toutes les absences détaillées. Le justificatif dépend de la scolarité semestrielle et doit être contrôlé séparément. Examiner les rattachements de scolarité et d’évaluation ainsi que les rejets des rattrapages. |
+| **Types HRS, documents et stages** | Aucun type HRS V4 alors que V3 en contient 14. Les HRS 2026–2027 sont absentes des deux exports. Les tables Document et Stage sont vides, face à 195 documents V3 et 16 stages liés à 16 périodes actives dans le dump disponible. | Vérifier si l’étape core `types-hrs` et les commandes séparées Document et Stage ont été exécutées. L’export seul ne permet pas d’attribuer ces tables vides à un échec des commandes dédiées. |
 
-- **Constat**
-    - Pas d'accès aux applis
-- **Correction attendue**
-    - Ajouter les droits d'accès à l'intranet
-- **Exemple ou contrôle**
-    - etudiant.applications = ['intranet']
+Les rubriques suivantes détaillent les règles du code et les autres risques à contrôler. Les écarts V4 observés ci-dessus priment pour qualifier le premier import.
 
-### PersonnelDepartementMigrator
+## Structure et année universitaire
 
-[Code source](../back/src/Migration/IntranetV3/Users/PersonnelDepartementMigrator.php)
+| Point | Constat et impact | Correction ou contrôle attendu |
+| --- | --- | --- |
+| Mapping Doctrine | `doctrine:schema:validate --skip-sync` échoue. `StructureAnneeUniversitaire::legacyDiplomes` désigne `StructureDiplome::legacyAnneesUniversitaires`, propriété absente. | Retirer le vestige ou rétablir le mapping si la relation sert encore. Vérifier ensuite le schéma de la cible. |
+| PN 2026–2027 | `PnMigrator` prend tous les diplômes présents dans `annee` et force 2026. Le dump fournit 64 candidats, dont 17 inactifs, 16 actifs datés de 2026–2027 et 31 actifs datés d’une autre année. La date seule ne suffit pas à décider de leur ouverture. Les années, semestres et enseignements suivent le PN généré. | Définir les formations réellement ouvertes avec les inscriptions et la structure V3. Décider séparément si 2025–2026 doit retrouver une maquette et quelle source contemporaine permet de la reconstituer. |
+| Année active | Le dump a une seule année active, 2026–2027. Le Core filtre la plupart des données opérationnelles sur 2026, tandis que Stage lit le drapeau V3 `active`. Une source dont le drapeau a changé peut importer des périmètres incompatibles. | Contrôler l’unicité de l’année active et aligner l’année des deux commandes avant transfert. |
+| Calendrier universitaire | Le passage des 418 lignes V3 dans le service utilisé par `CalendrierMigrator` rejette chacun des huit calendriers présents, dont 2026–2027. `date_lundi` est un `datetime(6)` en V3 et le parseur exige `Y-m-d`. Après normalisation, chaque calendrier reste rejeté à cause d’une semaine 0. La neuvième année, 2018–2019, n’a aucune ligne source et n’est pas signalée par le migrateur. | Normaliser les dates avant validation et traiter explicitement la semaine 0. En écartant cette semaine pour le calcul, le service retrouve le lundi 24 août 2026 comme semaine 1 de 2026–2027. Contrôler ensuite les références utilisées par l’EDT et la borne du 31 août N+1. Voir [le calendrier calculé](CALENDRIER_UNIVERSITAIRE.md). |
+| Diplômes et départements | Le responsable qualité est stocké dans `opt.resp_qualite` comme identifiant V3. Les responsables de diplôme et assistants ne sont pas convertis par `DiplomeMigrator`. Le retrait déjà relevé de `resp_ri` des options du département doit être suivi d’un contrôle de la permission correspondante. | Vérifier les responsabilités dans les relations V4 de département et parcours. Évaluer l’ajout de permissions à `departement_personnel_parcours_diplome` pour la qualité. Contrôler aussi les fichiers des logos repris par nom. |
+| Groupes et parcours | `GroupeMigrator` attribue à chaque groupe tous les semestres de son type de groupe, sans utiliser `groupe.apc_parcours_id`. Dans le dump, 249 groupes avec un parcours sont dans un type rattaché à plusieurs semestres. Les 127 groupes dont le type ne figure pas dans `type_groupe_semestre` sont écartés par la jointure interne, même si le type porte un semestre direct. Le premier import ajoute les liens issus de cette sélection. | Comparer les couples groupe–semestre avec le parcours, la modalité et le semestre direct. Traiter les cas sans correspondance. Contrôler GEA, S4 GEMA FI, où ont été signalés les TD GCFF, GPRH et GEMA ALT en plus de GEMA A/B. Vérifier les effectifs CM/TD/TP calculés depuis les groupes. |
+| Types et identifiants de groupe | Cinq types V3 portent une valeur vide, convertie en `Autre` pour les groupes importés. L’identifiant EduSign est repris par `setKeyEdusign()`, mais le message de bilan le présente encore comme dépourvu d’équivalent. | Corriger le bilan et contrôler les valeurs réellement persistées. |
+| Salles | Les 44 types renseignés du dump sont compatibles avec la normalisation de casse. Une salle a un type vide et devient `null`. Une valeur hors enum dans une autre source ferait échouer l’import de la ligne via `TypeSalleEnum::from()`. | Définir le traitement des types inconnus et vérifier l’impact des salles manquantes sur les rattrapages. |
 
-- **Constat**
-    - Les différentes permissions ne sont pas toujours correctement atribuées (peut-être un problème d'affectation dans la V3)
-- **Correction attendue**
-    - Révision des permissions et de l'affectation des personnels aux départements après transfert (BIATSS & ENSEIGNANTS).
-- **Exemple ou contrôle**
-    - Demande aux départements d'effectuer un contrôle de leurs personnels et de leurs permissions au lancement de l'application.
+Sources du code [structure](../back/src/Migration/IntranetV3/Structure) et [année universitaire](../back/src/Entity/Structure/StructureAnneeUniversitaire.php).
 
-### PersonnelMigrator
+## Utilisateurs et habilitations
 
-[Code source](../back/src/Migration/IntranetV3/Users/PersonnelMigrator.php)
+| Point | Constat et impact | Correction ou contrôle attendu |
+| --- | --- | --- |
+| Applications étudiantes et comptes désactivés | `EtudiantMigrator` ne renseigne pas `applications`. Le getter V4 renvoie implicitement `['intranet']` quand la colonne est vide. Le signalement d’absence d’accès doit donc être reproduit dans le parcours de connexion. Le dump contient aussi un étudiant marqué `deleted=1`, importé pour ses références historiques sans conversion de ce statut. | Vérifier les droits effectifs après connexion et les lecteurs qui accèdent directement à la colonne. Garantir l’exclusion des comptes désactivés du mécanisme d’authentification. |
+| Permissions des personnels | La conversion ignore quatre rôles présents dans le dump, soit 11 occurrences de `ROLE_STA`, 11 de `ROLE_ABS`, 8 de `ROLE_EDT` et 1 de `ROLE_PRJ`. Un JSON invalide devient une liste vide sans diagnostic spécifique. Une relance remplace les permissions et les packages par les valeurs dérivées de V3. | Valider les équivalences par bundle et vérifier les droits BIATSS et enseignants avec les départements. Définir le traitement des droits modifiés directement en V4. |
+| Affectations départementales | L’ancien constat indiquait `affectation=true` pour tous. Le code de travail utilise désormais `defaut`. Le dump compte 290 lignes par défaut et 476 autres, sans doublon personnel–département ni personnel ayant plusieurs défauts. | Comparer `affectation` et `defaut` sur les lignes du premier import, puis valider l’équivalence métier de ces deux champs. |
+| Personnel | La suppression de la relation à une année universitaire est déjà reflétée dans le migrateur. Tous les statuts rencontrés dans le dump ont une valeur dans l’enum actuelle. Les heures de service sont arrondies à l’entier et les initiales tronquées à dix caractères. Les noms de photos sont repris sans preuve de disponibilité des fichiers. | Vérifier les écarts qui affectent le calcul du service et l’affichage des profils. |
 
-- **Constat**
-    - ~~Liaison à une année universitaire = osbsolète~~
-- **Correction attendue**
-    - ~~Supprimer la liaison à l'année universitaire~~
-- **Exemple ou contrôle**
+Sources du code [utilisateurs](../back/src/Migration/IntranetV3/Users) et [entité étudiant](../back/src/Entity/Users/Etudiant.php).
 
-## Structure
+## Maquette, APC et prévisionnel
 
-### AnneeMigrator
+| Point | Constat et impact | Correction ou contrôle attendu |
+| --- | --- | --- |
+| Heures de maquette | Matières, ressources et SAÉ stockent deux volumes, `PN` depuis `*_ppn` et `IUT` depuis `*_formation`. Dans le code de travail, la synthèse par semestre préfère `PN` avec `??`, donc un zéro masque un volume IUT positif. Le dump contient au moins un CM/TD/TP dans ce cas pour 84 matières, 380 ressources et 118 SAÉ. Ces volumes concernent la source entière. | Établir la valeur attendue pour la maquette locale et distinguer zéro explicite et volume manquant. Vérifier les JSON V4 et la réponse de l’API sur un enseignement concerné, puis les totaux après correction des groupes. |
+| Prévisionnels par enseignant | Sur 2 427 lignes V3 de 2026–2027, 332 clés `personnel–type d’enseignement–id d’enseignement` sont répétées, avec 660 lignes au-delà de la première. Le migrateur ignore un enseignement ambigu entre snapshots. Lorsqu’il le résout de façon unique, il recherche la cible par personnel, année et enseignement, puis remplace les heures et les groupes. Selon le lot et les contraintes de la base, les répétitions peuvent écraser une affectation ou produire des lignes concurrentes. Les valeurs projet sont forcées à zéro. | Déterminer ce qui distingue les lignes V3 avant fusion, comparer les sommes d’heures et de groupes, vérifier les clés cibles en double et les cas d’enseignement partagé. Contrôler les enseignants absents de la saisie et le HTTP 500 précédemment signalé après rapprochement des données. |
+| SAÉ et ressources | `ApcRelationMigrator` signale que le lien multiple SAÉ–ressources n’est pas repris. Le dump contient 1 331 associations. Le suivi existant prévoit la synchronisation Oréof pour les liens SAÉ manquants, à valider avec ce jeu de données. | Comparer les associations après synchronisation, y compris une SAÉ ayant plusieurs ressources. Vérifier les apprentissages critiques et les coefficients par UE/parcours avec les bonnes occurrences semestrielles. |
+| Matières et hiérarchie | `ppn_id` et `parcours_id` restent sous forme d’anciens identifiants dans `opt`. Le coefficient d’UE est en revanche repris par `UeMigrator`. | Vérifier les usages V4 qui exigent une relation exploitable, les coefficients et les rattachements des enseignements mutualisés ou parents/enfants. |
+| HRS | Les 346 lignes HRS du dump datent de 2019–2020 à 2025–2026, dont 57 pour 2025–2026. `HrsMigrator` filtre sur 2026 et traitera donc zéro ligne avec ce dump. | Vérifier que les HRS 2026–2027 existent dans la source de transfert réelle et décider de la reprise de l’historique si nécessaire pour les bilans. |
 
-[Code source](../back/src/Migration/IntranetV3/Structure/AnneeMigrator.php)
+Sources du code [maquette](../back/src/Migration/IntranetV3/Maquette), [APC](../back/src/Migration/IntranetV3/Apc), [prévisionnels](../back/src/Migration/IntranetV3/Scolarite/PrevisionnelMigrator.php) et [synthèse par semestre](../packages/intranet-bundle/src/State/Provider/Previsionnel/PrevisionnelSemestreProvider.php).
 
-- **Constat**
-    - On a un PN créé pour chaque Diplome pour l'année universitaire 26/27 sans distinction si il existe encore ou pas.
-- **Correction attendue**
-    - Utiliser les proriétés actif et anneeUniversitaire pour ne créer que les PN pertinents. Et peut-être reconstruire l'historique, au moins 25/26 ?
-- **Exemple ou contrôle**
+## Scolarité, évaluations, notes et absences
 
-### AnneeUniversitaireMigrator
+| Point | Constat et impact | Correction ou contrôle attendu |
+| --- | --- | --- |
+| Scolarités sans année et doublons source | Sur 17 178 lignes, 70 ont une année universitaire nulle et ne peuvent être reprises dans une scolarité annuelle. Quatre clés étudiant–année–semestre sont répétées, ce qui expose l’agrégation aux doubles comptes et la reprise du détail à des écrasements ou doublons. | Identifier l’année manquante si elle est démontrable et résoudre les clés répétées avant de recalculer les totaux et moyennes. |
+| Diffusion et commentaire | L’import agrège la diffusion au niveau annuel. Le dump contient 1 559 couples étudiant–année dont les valeurs `diffuse` diffèrent entre lignes. Le maximum peut rendre public un dossier annuel dès qu’un seul semestre est diffusé. Les commentaires distincts sont condensés au niveau annuel. | Contrôler la consultation étudiante sur un dossier mixte et préserver la granularité utile à la diffusion et aux commentaires. |
+| Résultats historiques | Le code actuel prévoit de conserver le rang et le code décision dans le bloc historique du détail. Une proposition dont le libellé ne correspond à aucun semestre du PN reste sans relation structurée. Les archives peuvent n’avoir qu’un `legacyContext` pour représenter le semestre et l’enseignement. | Vérifier l’affichage des résultats historiques et la restitution du libellé d’origine. Ne créer un lien structurel historique que lorsque la maquette correspondante est connue. |
+| Affectations de groupes | `EtudiantGroupeMigrator` ne reconstruit que les affectations 2026–2027, avec une recherche fondée sur la compatibilité du groupe. Un groupe rattaché au mauvais semestre peut entraîner une affectation erronée ou écartée. | Comparer les inscriptions V4 par étudiant, semestre et groupe après correction des groupes. |
+| Évaluations et délégations | La sélection est basée sur les notes des étudiants en cours de formation, y compris pour les évaluations 2026–2027. Une évaluation saisie sans notes peut être omise et remplacée par un emplacement générique si les conditions d’initialisation sont réunies. Les 5 788 associations de `evaluation_personnel` ne sont pas lues par les migrateurs. | Comparer les évaluations sans notes, les relations parent–enfant et les droits de saisie délégués par enseignant, en priorité pour l’année active. |
+| Notes et traçabilité | Les notes des étudiants sortis sont exclues. La colonne `scolarite_semestre_id` du schéma exporté est obligatoire, et le migrateur écarte les notes qu’il ne sait pas rattacher. Le contrôle de conservation additionne aussi les lignes ignorées et en échec. Les 933 616 entrées de `modification_note` ne sont pas reprises. | Comparer les notes effectivement persistées par évaluation, contrôler le lien note–scolarité et la publication, et décider du périmètre d’archivage des modifications. |
+| Absences, justificatifs, EDT, rattrapages | Le détail est limité à 2026–2027. Un EDT dont l’enseignement ne se résout pas peut être classé `Autre`. Un événement ou une scolarité non résolus peuvent ensuite empêcher l’import d’une absence. Les justificatifs reprennent le nom du fichier sans copie dans le migrateur core. La liaison peut attribuer la fin du justificatif comme date de justification. Les salles de rattrapage sont rapprochées par libellé. | Contrôler les absences attendues par événement, les dates de justification, la disponibilité des pièces et les salles ambiguës. Distinguer les exclusions historiques des pertes sur l’année active. |
 
-[Code source](../back/src/Migration/IntranetV3/Structure/AnneeUniversitaireMigrator.php)
+Sources du code [scolarité](../back/src/Migration/IntranetV3/Scolarite) et [emploi du temps](../back/src/Migration/IntranetV3/Edt/EdtEventMigrator.php).
 
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
+## Documents, stages et autres données non reprises
 
-### CalendrierMigrator
+| Point | Constat et impact | Correction ou contrôle attendu |
+| --- | --- | --- |
+| Documents | La commande dédiée reprend les métadonnées et nécessite les chemins source et cible pour copier les fichiers. Le dump contient 195 documents, 1 069 liens document–semestre et 13 favoris. Les liens et favoris ne sont pas convertis. Une visibilité V3 inconnue provoque un rejet. | Vérifier les documents visibles par chaque public, les fichiers ouvrables et la visibilité des documents auparavant restreints à des semestres. |
+| Stages | La commande dédiée ne traite que les stages avec une période de l’année active et ne reprend que les contacts et entreprises associés. Aucun migrateur dédié ne lit les offres, avenants ou rapports. Le dump entier contient 27 avenants et 176 rapports. Le responsable principal est déduit des responsables résolus de la période. | Compter les exclusions par année et par motif, vérifier les rôles de responsable et déterminer si des dossiers actifs perdent des pièces. |
+| Autres domaines | Le dump contient notamment 1 670 lignes d’`alternance`, avec des tables de suivi et de planning. Les modalités de contrôle des connaissances, les actualités et le suivi de l’alternance n’apparaissent pas dans le plan Core ni dans les deux commandes dédiées. | Valider le périmètre fonctionnel et décider de la reprise ou de l’archivage des données encore utiles. |
 
-[Code source](../back/src/Migration/IntranetV3/Structure/CalendrierMigrator.php)
+Sources du code [document](../packages/document-bundle/src/Migration/IntranetV3) et [stage](../packages/stage-bundle/src/Migration/IntranetV3).
 
-- **Constat** : le calendrier est calculé depuis une date de référence annuelle.
-- **Correction attendue** : reprendre uniquement `dateDebutSemaineFormation` sur l’année, sans recréer de lignes hebdomadaires.
-- **Exemple ou contrôle** : vérifier la continuité, les lundis et la borne du 31 août N+1. Voir [le calendrier calculé](CALENDRIER_UNIVERSITAIRE.md).
+## Contrôle du transfert en base cible
 
-### DepartementMigrator
+Le code de sortie de la commande Core dépend du compteur `failed`. Des lignes `skipped` ou des diagnostics peuvent coexister avec un succès. En exécution normale, des lots déjà validés restent en base si un lot ultérieur échoue. Plusieurs migrateurs ajoutent ou mettent à jour les lignes sans réconcilier les valeurs disparues de la source. Une deuxième exécution peut donc laisser des liens obsolètes ou modifier des données déjà reprises.
 
-[Code source](../back/src/Migration/IntranetV3/Structure/DepartementMigrator.php)
+Sur la cible fraîchement importée, comparer pour chaque domaine le total V3 éligible, les exclusions métier, les rejets techniques et le total V4 rapproché par clé métier. Vérifier en priorité les clés répétées de prévisionnel, les scolarités et notes non rattachées, les groupes par semestre, les comptes et les droits effectifs, puis les fichiers.
 
-- **Constat**
-    - ~~On récupère "resp_ri" dans la propriété opt mais on devrait le gérer dans la propriété permissions de département_personnel.~~
-- **Correction attendue**
-    - ~~Retrait de cette information de la propriété opt.~~
-- **Exemple ou contrôle**
-
-### DiplomeMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Structure/DiplomeMigrator.php)
-
-- **Constat**
-    - On récupère "resp_qualite" dans la propriété opt
-- **Correction attendue**
-    - Gérer dans la table departement_personnel_parcours_diplome **implique d'ajouter des propriétés à la table relationnelle departement_personnel_parcours_diplome pour gérer les permissions.**
-- **Exemple ou contrôle**
-
-### GroupeMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Structure/GroupeMigrator.php)
-
-- **Constat**
-    - ~~idEduSign pas repris~~
-    - Les groupes ne sont pas répartis correctement dans les semestres.
-- **Correction attendue**
-    - ~~Reprendre idEduSign~~
-    - Revoir la répartition des groupes dans les semestres (peut-être via groupe.apc_parcours de la v3 ??).
-- **Exemple ou contrôle**
-    - Exemple en GEA le semestre S4 GEMA FI contient les groupes de TD :
-        - BUT2 GCFF S4
-        - BUT2 GEMA S4 A
-        - BUT2 GPRH S4
-        - BUT2 GEMA ALT S4
-        - BUT2 GEMA S4 B
-
-### PnMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Structure/PnMigrator.php)
-
-- cf. AnneeMigrator
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### SalleMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Structure/SalleMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### SemestreMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Structure/SemestreMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### TypeDiplomeMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Structure/TypeDiplomeMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-## Maquette
-
-### MatiereMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Maquette/MatiereMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### UeMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Maquette/UeMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-## APC
-
-### ApcApprentissageCritiqueMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Apc/ApcApprentissageCritiqueMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### ApcCompetenceMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Apc/ApcCompetenceMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### ApcDiplomeLinkMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Apc/ApcDiplomeLinkMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### ApcNiveauMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Apc/ApcNiveauMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### ApcParcoursMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Apc/ApcParcoursMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### ApcReferentielMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Apc/ApcReferentielMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### ApcRelationMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Apc/ApcRelationMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### ApcRessourceMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Apc/ApcRessourceMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### ApcSaeMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Apc/ApcSaeMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### ApcUeLinkMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Apc/ApcUeLinkMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-## Scolarité
-
-### AbsenceActiveMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Scolarite/AbsenceActiveMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### BacMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Scolarite/BacMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### EtudiantGroupeMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Scolarite/EtudiantGroupeMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### EvaluationMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Scolarite/EvaluationMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### HrsMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Scolarite/HrsMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### JustificatifActiveMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Scolarite/JustificatifActiveMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### NoteMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Scolarite/NoteMigrator.php)
-
-- **Constat**
-    - La liaison entre Note et EtudiantScolariteSemestre est facultative
-- **Correction attendue**
-    - Rendre la relation obligatoire, ou bien gérer le cas où elle est absente
-- **Exemple ou contrôle**
-    - 
-
-### PrevisionnelMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Scolarite/PrevisionnelMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### RattrapageMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Scolarite/RattrapageMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### ScolariteDetailsMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Scolarite/ScolariteDetailsMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### ScolariteMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Scolarite/ScolariteMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### TypeHrsMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Scolarite/TypeHrsMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-## Emploi du temps
-
-### EdtEventMigrator
-
-[Code source](../back/src/Migration/IntranetV3/Edt/EdtEventMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-## Documents
-
-### DocumentCategoryMigrator
-
-[Code source](../packages/document-bundle/src/Migration/IntranetV3/DocumentCategoryMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### DocumentFileMigrator
-
-[Code source](../packages/document-bundle/src/Migration/IntranetV3/DocumentFileMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### DocumentMigrator
-
-[Code source](../packages/document-bundle/src/Migration/IntranetV3/DocumentMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-## Stages
-
-### ContactMigrator
-
-[Code source](../packages/stage-bundle/src/Migration/IntranetV3/ContactMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### EntrepriseMigrator
-
-[Code source](../packages/stage-bundle/src/Migration/IntranetV3/EntrepriseMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### StageEtudiantMigrator
-
-[Code source](../packages/stage-bundle/src/Migration/IntranetV3/StageEtudiantMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
-
-### StagePeriodeMigrator
-
-[Code source](../packages/stage-bundle/src/Migration/IntranetV3/StagePeriodeMigrator.php)
-
-- **Constat**
-- **Correction attendue**
-- **Exemple ou contrôle**
+Sources du code [commande Core](../back/src/Command/MigrateIntranetV3Command.php) et [exécution des migrateurs](../back/src/Migration/IntranetV3/MigrationRunner.php).
