@@ -1,6 +1,12 @@
 {
-    "name": "Stage/Alternance",
-    "description": "Gestion des stages et alternances",
-    "urlSlug": "stage",
-    "url": "/app/stage"
+  "name": "Stage/Alternance",
+  "description": "Gestion des stages et alternances",
+  "urlSlug": "stage",
+  "url": "/app/stage",
+  "shortLabel": "Stages",
+  "primaryColor": "teal",
+  "icon": "pi pi-briefcase",
+  "aliases": [
+    "stages"
+  ]
 }

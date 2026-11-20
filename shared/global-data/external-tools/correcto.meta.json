@@ -1,5 +1,8 @@
 {
   "name": "Correcto",
   "description": "Plateforme de correction des travaux et des examens.",
-  "urlSlug": "correcto"
+  "urlSlug": "correcto",
+  "shortLabel": "Correcto",
+  "primaryColor": "rose",
+  "icon": "pi pi-pencil"
 }

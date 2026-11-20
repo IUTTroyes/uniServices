@@ -1,6 +1,9 @@
 {
-    "name": "Parcauto",
-    "description": "Bundle de gestion du parc automobile",
-    "urlSlug": "parcauto",
-    "url": "/app/parcauto"
+  "name": "Parc automobile",
+  "description": "Bundle de gestion du parc automobile",
+  "urlSlug": "parcauto",
+  "url": "/app/parcauto",
+  "shortLabel": "ParcAuto",
+  "primaryColor": "blue",
+  "icon": "pi pi-car"
 }

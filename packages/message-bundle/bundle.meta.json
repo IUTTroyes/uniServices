@@ -2,6 +2,12 @@
   "name": "Messagerie",
   "description": "Communications et annonces internes",
   "urlSlug": "message",
-  "url": "/app/message"
+  "url": "/app/message",
+  "shortLabel": "Messages",
+  "primaryColor": "cyan",
+  "icon": "pi pi-inbox",
+  "aliases": [
+    "messages",
+    "messagerie"
+  ]
 }
-

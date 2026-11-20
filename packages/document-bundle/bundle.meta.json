@@ -1,6 +1,12 @@
 {
-    "name": "Documents",
-    "description": "Gestion Électronique de Documents",
-    "urlSlug": "documents",
-    "url": "/app/documents"
+  "name": "Documents",
+  "description": "Gestion Électronique de Documents",
+  "urlSlug": "documents",
+  "url": "/app/documents",
+  "shortLabel": "Documents",
+  "primaryColor": "blue",
+  "icon": "pi pi-folder",
+  "aliases": [
+    "document"
+  ]
 }

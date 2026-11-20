@@ -1,6 +1,12 @@
 {
-    "name": "Questionnaires",
-    "description": "Création et gestion des questionnaires",
-    "urlSlug": "questionnaire",
-    "url": "/app/questionnaire"
+  "name": "Questionnaires",
+  "description": "Création et gestion des questionnaires",
+  "urlSlug": "questionnaire",
+  "url": "/app/questionnaire",
+  "shortLabel": "Questionnaires",
+  "primaryColor": "green",
+  "icon": "pi pi-check-square",
+  "aliases": [
+    "questionnaires"
+  ]
 }

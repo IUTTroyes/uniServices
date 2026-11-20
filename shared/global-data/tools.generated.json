@@ -1,62 +1,152 @@
 [
     {
+        "name": "Mon Espace / Portail",
+        "description": "Portail et espace personnel UniServices",
+        "urlSlug": "auth",
+        "url": "/app/auth/portail",
+        "shortLabel": "Portail",
+        "primaryColor": "yellow",
+        "icon": "pi pi-user",
+        "aliases": [
+            "portail"
+        ],
+        "isDefault": false,
+        "showInPortal": false
+    },
+    {
         "name": "Documents",
         "description": "Gestion \u00c9lectronique de Documents",
         "urlSlug": "documents",
-        "url": "/app/documents"
+        "url": "/app/documents",
+        "shortLabel": "Documents",
+        "primaryColor": "blue",
+        "icon": "pi pi-folder",
+        "aliases": [
+            "document"
+        ],
+        "isDefault": false,
+        "showInPortal": true
     },
     {
         "name": "Finances & Achats",
         "description": "Gestion financi\u00e8re, bons de commande et suivi budg\u00e9taire",
         "urlSlug": "finance",
-        "url": "/app/finance"
+        "url": "/app/finance",
+        "shortLabel": "Finance",
+        "primaryColor": "emerald",
+        "icon": "pi pi-wallet",
+        "aliases": [
+            "finances"
+        ],
+        "isDefault": false,
+        "showInPortal": true
     },
     {
         "name": "HelpDesk",
         "description": "Syst\u00e8me de tickets",
         "urlSlug": "helpdesk",
-        "url": "/app/helpdesk"
+        "url": "/app/helpdesk",
+        "shortLabel": "HelpDesk",
+        "primaryColor": "orange",
+        "icon": "pi pi-question-circle",
+        "aliases": [
+            "help-desk"
+        ],
+        "isDefault": false,
+        "showInPortal": true
     },
     {
         "name": "Intranet",
         "description": "Gestion des formations et \u00e9tudiants.",
         "urlSlug": "intranet",
-        "url": "/app/intranet"
+        "url": "/app/intranet",
+        "shortLabel": "Intranet",
+        "primaryColor": "violet",
+        "icon": "pi pi-desktop",
+        "aliases": [],
+        "isDefault": true,
+        "showInPortal": true
     },
     {
         "name": "Messagerie",
         "description": "Communications et annonces internes",
         "urlSlug": "message",
-        "url": "/app/message"
+        "url": "/app/message",
+        "shortLabel": "Messages",
+        "primaryColor": "cyan",
+        "icon": "pi pi-inbox",
+        "aliases": [
+            "messages",
+            "messagerie"
+        ],
+        "isDefault": false,
+        "showInPortal": true
     },
     {
-        "name": "Parcauto",
+        "name": "Parc automobile",
         "description": "Bundle de gestion du parc automobile",
         "urlSlug": "parcauto",
-        "url": "/app/parcauto"
+        "url": "/app/parcauto",
+        "shortLabel": "ParcAuto",
+        "primaryColor": "blue",
+        "icon": "pi pi-car",
+        "aliases": [],
+        "isDefault": false,
+        "showInPortal": true
     },
     {
         "name": "Questionnaires",
         "description": "Cr\u00e9ation et gestion des questionnaires",
         "urlSlug": "questionnaire",
-        "url": "/app/questionnaire"
+        "url": "/app/questionnaire",
+        "shortLabel": "Questionnaires",
+        "primaryColor": "green",
+        "icon": "pi pi-check-square",
+        "aliases": [
+            "questionnaires"
+        ],
+        "isDefault": false,
+        "showInPortal": true
     },
     {
         "name": "Stage/Alternance",
         "description": "Gestion des stages et alternances",
         "urlSlug": "stage",
-        "url": "/app/stage"
+        "url": "/app/stage",
+        "shortLabel": "Stages",
+        "primaryColor": "teal",
+        "icon": "pi pi-briefcase",
+        "aliases": [
+            "stages"
+        ],
+        "isDefault": false,
+        "showInPortal": true
     },
     {
         "name": "UniFolio",
         "description": "Outil de cr\u00e9ation et de gestion de portfolios universitaires.",
         "urlSlug": "unifolio",
-        "url": "/app/unifolio"
+        "url": "/app/unifolio",
+        "shortLabel": "UniFolio",
+        "primaryColor": "emerald",
+        "icon": "pi pi-book",
+        "aliases": [
+            "portfolio",
+            "portfolios"
+        ],
+        "isDefault": false,
+        "showInPortal": true
     },
     {
         "name": "Correcto",
         "description": "Plateforme de correction des travaux et des examens.",
         "urlSlug": "correcto",
-        "url": "/correcto"
+        "url": "/correcto",
+        "shortLabel": "Correcto",
+        "primaryColor": "rose",
+        "icon": "pi pi-pencil",
+        "aliases": [],
+        "isDefault": false,
+        "showInPortal": true
     }
 ]

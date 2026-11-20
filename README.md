@@ -205,25 +205,28 @@ Pour ajouter un nouveau bundle au projet (ex: `nom` ou `nom-bundle`), utilisez l
 php scripts/create-bundle.php nom
 ```
 
-Le script vous demandera interactivement :
-- **Nom de l'outil** (ex: `Mon Appli`)
-- **Description** (ex: `Gestion de mes données`)
-- **URL Slug** (ex: `mon-appli` pour la structure)
+Le wizard demande le nom, le libellé court, la description, l’identifiant dans l’URL, le lien du portail, la couleur principale et l’icône PrimeIcons. Il affiche les couleurs Tailwind disponibles. Le lien, la couleur et l’icône proposés par défaut sont `/app/<slug>`, `violet` et `pi pi-box`.
 
-Le lien du portail utilise `/app/<slug>` par défaut.
-
-Vous pouvez également passer ces informations via des arguments pour éviter les questions :
+Pour une création sans questions, renseignez tous les champs en arguments.
 
 ```bash
 php scripts/create-bundle.php nom \
   --display-name="Nom lisible" \
-  --description="Description de l'outil" \
-  --url-slug="slug"
+  --short-label="Nom court" \
+  --description="Description de l’outil" \
+  --url-slug="slug" \
+  --url="/app/slug" \
+  --color="violet" \
+  --icon="pi pi-car"
 ```
 
-Le logo est par défaut `LogoIut`.
+Le wizard écrit les métadonnées dans `bundle.meta.json` et régénère `shared/global-data/tools.generated.json`. Le portail, les badges et le thème du shell partagent ces métadonnées. Le shell utilise le logo de l’IUT par défaut sur le portail.
 
-Le script crée le bundle Symfony, configure son autoloading Composer et génère une vue Vue avec un manifeste. Il ajoute ce manifeste au registre du Shell et reconstruit la liste des outils du portail. L’option `--url` permet de personnaliser le lien du portail.
+Après une modification manuelle d’un fichier de métadonnées, régénérez le catalogue depuis la racine du dépôt.
+
+```bash
+php -r 'require "scripts/utils/regenerate-tools-registry.php"; regenerate_tools_registry(getcwd());'
+```
 
 Démarrez le backend et le frontend avec `make start-all`. La vue s’ouvre sur `http://localhost:3000/app/<slug>` et la commande `make build-front` l’inclut dans le build du Shell.
 

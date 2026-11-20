@@ -23,6 +23,12 @@ function regenerate_tools_registry($projectRoot) {
                             'description' => $data['description'],
                             'urlSlug' => $data['urlSlug'],
                             'url' => $data['url'] ?? "/{$data['urlSlug']}",
+                            'shortLabel' => $data['shortLabel'] ?? $data['name'],
+                            'primaryColor' => $data['primaryColor'] ?? null,
+                            'icon' => $data['icon'] ?? 'pi pi-box',
+                            'aliases' => $data['aliases'] ?? [],
+                            'isDefault' => $data['isDefault'] ?? false,
+                            'showInPortal' => $data['showInPortal'] ?? true,
                         ];
                     }
                 }

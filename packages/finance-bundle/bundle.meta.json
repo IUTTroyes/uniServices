@@ -2,5 +2,11 @@
   "name": "Finances & Achats",
   "description": "Gestion financière, bons de commande et suivi budgétaire",
   "urlSlug": "finance",
-  "url": "/app/finance"
+  "url": "/app/finance",
+  "shortLabel": "Finance",
+  "primaryColor": "emerald",
+  "icon": "pi pi-wallet",
+  "aliases": [
+    "finances"
+  ]
 }

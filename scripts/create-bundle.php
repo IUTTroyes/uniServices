@@ -24,8 +24,30 @@ function normalizeBundleKebab(string $rawName): string
     return $normalized;
 }
 
+function demande(string $invitation, string $defaut): string
+{
+    echo "$invitation [$defaut] : ";
+    $reponse = fgets(STDIN);
+    return $reponse === false || trim($reponse) === '' ? $defaut : trim($reponse);
+}
+
+function choixMetadonnee(?string $argument, string $invitation, string $defaut, callable $valide): string
+{
+    $valeur = $argument ?? demande($invitation, $defaut);
+    while (!$valide($valeur)) {
+        fwrite(STDERR, "Valeur invalide pour $invitation.
+");
+        if ($argument !== null || feof(STDIN)) {
+            exit(1);
+        }
+        $valeur = demande($invitation, $defaut);
+    }
+
+    return $valeur;
+}
+
 if ($argc < 2) {
-    echo "Usage: php scripts/create-bundle.php <bundle-name> [--display-name=Name] [--description=Text] [--url-slug=slug] [--url=/app/slug]\n";
+    echo "Usage: php scripts/create-bundle.php <bundle-name> [--display-name=Name] [--description=Text] [--url-slug=slug] [--url=/app/slug] [--short-label=Label] [--color=violet] [--icon=\"pi pi-car\"]\n";
     echo "Example: php scripts/create-bundle.php sample-bundle --display-name=Sample --description=\"Mon appli\" --url-slug=sample --url=/app/sample\n";
     exit(1);
 }
@@ -42,6 +64,9 @@ $displayName = null;
 $description = null;
 $urlSlug = null;
 $fullUrl = null;
+$shortLabel = null;
+$primaryColor = null;
+$icon = null;
 foreach ($argv as $arg) {
     if (str_starts_with($arg, '--display-name=')) {
         $displayName = substr($arg, strlen('--display-name='));
@@ -51,6 +76,12 @@ foreach ($argv as $arg) {
         $urlSlug = substr($arg, strlen('--url-slug='));
     } elseif (str_starts_with($arg, '--url=')) {
         $fullUrl = substr($arg, strlen('--url='));
+    } elseif (str_starts_with($arg, '--short-label=')) {
+        $shortLabel = substr($arg, strlen('--short-label='));
+    } elseif (str_starts_with($arg, '--color=')) {
+        $primaryColor = substr($arg, strlen('--color='));
+    } elseif (str_starts_with($arg, '--icon=')) {
+        $icon = substr($arg, strlen('--icon='));
     }
 }
 
@@ -62,33 +93,29 @@ if (!str_ends_with($bundlePascal, 'Bundle')) {
 
 $bundleShortName = preg_replace('/-bundle$/', '', $bundleKebab);
 
-// Interactive prompt for missing info
-if (empty($displayName)) {
-    $defaultName = ucwords(str_replace('-', ' ', $bundleShortName));
-    echo "Nom de l'outil (par défaut: $defaultName): ";
-    $displayName = trim(fgets(STDIN)) ?: $defaultName;
-}
-$displayName = tool_display_name($displayName, ucwords(str_replace('-', ' ', $bundleShortName)));
-if (empty($description)) {
-    $defaultDesc = "Application $displayName";
-    echo "Description de l'outil (par défaut: $defaultDesc): ";
-    $description = trim(fgets(STDIN)) ?: $defaultDesc;
-}
-if (empty($urlSlug)) {
-    $defaultSlug = $bundleShortName;
-    echo "URL Slug (ex: $defaultSlug): ";
-    $urlSlug = trim(fgets(STDIN)) ?: $defaultSlug;
-}
-
 $projectRoot = dirname(__DIR__);
 require_once $projectRoot . '/scripts/utils/regenerate-tools-registry.php';
+$palette = json_decode(file_get_contents($projectRoot . '/shared/global-data/application-colors.json'), true, flags: JSON_THROW_ON_ERROR);
 
-if (!preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $urlSlug)) {
-    echo "Error: URL slug must be in kebab-case (e.g., my-new-bundle).\n";
-    exit(1);
+$defaultName = ucwords(str_replace('-', ' ', $bundleShortName));
+$displayName = tool_display_name($displayName ?: demande("Nom de l’application", $defaultName), $defaultName);
+$shortLabel = $shortLabel ?: demande('Libellé court', $displayName);
+$description = $description ?: demande("Description de l’application", "Application $displayName");
+$urlSlug = choixMetadonnee($urlSlug, 'Identifiant dans l’URL', $bundleShortName,
+    static fn (string $slug): bool => (bool) preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/D', $slug)
+);
+$metaUrl = choixMetadonnee($fullUrl, 'Lien du portail', "/app/$urlSlug",
+    static fn (string $url): bool => (bool) preg_match('~^(?:/(?!/)|https?://)[^\s]*$~D', $url)
+);
+if ($primaryColor === null) {
+    echo 'Couleurs Tailwind disponibles : ' . implode(', ', $palette) . "\n";
 }
-
-$metaUrl = $fullUrl ?: "/app/$urlSlug";
+$primaryColor = choixMetadonnee($primaryColor, 'Couleur principale', 'violet',
+    static fn (string $couleur): bool => in_array($couleur, $palette, true)
+);
+$icon = choixMetadonnee($icon, 'Icône PrimeIcons (ex. pi pi-car)', 'pi pi-box',
+    static fn (string $classe): bool => (bool) preg_match('/^pi pi-[a-z0-9]+(?:-[a-z0-9]+)*$/D', $classe)
+);
 
 $bundlePath = $projectRoot . '/packages/' . $bundleKebab;
 
@@ -177,6 +204,9 @@ $bundleMeta = [
     'description' => $metaDescription,
     'urlSlug' => $metaUrlSlug,
     'url' => $metaUrl,
+    'shortLabel' => $shortLabel,
+    'primaryColor' => $primaryColor,
+    'icon' => $icon,
 ];
 file_put_contents($bundlePath . '/bundle.meta.json', json_encode($bundleMeta, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 

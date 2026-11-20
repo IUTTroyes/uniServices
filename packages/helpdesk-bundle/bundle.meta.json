@@ -1,6 +1,12 @@
 {
-    "name": "HelpDesk",
-    "description": "Syst\u00e8me de tickets",
-    "urlSlug": "helpdesk",
-    "url": "/app/helpdesk"
+  "name": "HelpDesk",
+  "description": "Système de tickets",
+  "urlSlug": "helpdesk",
+  "url": "/app/helpdesk",
+  "shortLabel": "HelpDesk",
+  "primaryColor": "orange",
+  "icon": "pi pi-question-circle",
+  "aliases": [
+    "help-desk"
+  ]
 }
