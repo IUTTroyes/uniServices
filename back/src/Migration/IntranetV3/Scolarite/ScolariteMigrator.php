@@ -42,6 +42,14 @@ final class ScolariteMigrator extends AbstractMigrator
             'semestre' => 0,
         ];
         $sampleCount = 0;
+        // SQL findOneBy() cannot see a newly persisted annual scolarity until flush().
+        // Several V3 semester rows belong to one V4 annual scolarity: reuse the
+        // managed object inside each UnitOfWork batch.
+        /** @var array<string, EtudiantScolarite> $pendingAnnual */
+        $pendingAnnual = [];
+        $duplicateSemesterRows = 0;
+        /** @var array<string, true> $seenLegacySemesters */
+        $seenLegacySemesters = [];
 
         $sql = <<<'SQL'
 SELECT
@@ -136,10 +144,12 @@ SQL;
                     }
                     ++$processed;
                     $this->flushBatch($context, $processed);
+                    if (0 === $processed % self::BATCH_SIZE) $pendingAnnual = [];
                     continue;
                 }
 
-                $scolarite = $scolariteRepository->findOneBy([
+                $annualKey = $etudiant->getId().'|'.$anneeUniversitaire->getId();
+                $scolarite = $pendingAnnual[$annualKey] ?? $scolariteRepository->findOneBy([
                     'etudiant' => $etudiant,
                     'anneeUniversitaire' => $anneeUniversitaire,
                 ]);
@@ -157,6 +167,8 @@ SQL;
                 } else {
                     ++$updated;
                 }
+
+                $pendingAnnual[$annualKey] = $scolarite;
 
                 $scolarite
                     ->setNbAbsences((int) $row['total_nb_absences'])
@@ -212,7 +224,17 @@ SQL;
                 ] : []);
                 $legacy['moyenneV3'] = null !== $row['moyenne'] ? (float) $row['moyenne'] : null;
                 $scolariteSemestre->setLegacyContext($legacy);
+                $scolariteSemestre->setMoyenne(null !== $row['moyenne'] ? (float) $row['moyenne'] : null);
                 $scolariteSemestre->setNbAbsences((int) ($row['nb_absences'] ?? 0));
+                $legacySemesterKey = $annualKey.'|'.(int) $row['semestre_id'];
+                if (isset($seenLegacySemesters[$legacySemesterKey])) {
+                    ++$duplicateSemesterRows;
+                    if ($sampleCount < self::MAX_DIAGNOSTIC_SAMPLES) {
+                        $messages[] = sprintf('Scolarite V3 #%s: clé étudiant-année-semestre déjà rencontrée (%s). Dernière ligne prioritaire.', $row['id'], $legacySemesterKey);
+                        ++$sampleCount;
+                    }
+                }
+                $seenLegacySemesters[$legacySemesterKey] = true;
 
                 if (!empty($row['commentaire']) && empty($scolarite->getCommentaire())) {
                     $scolarite->setCommentaire((string) $row['commentaire']);
@@ -227,6 +249,11 @@ SQL;
 
             ++$processed;
             $this->flushBatch($context, $processed);
+            if (0 === $processed % self::BATCH_SIZE) $pendingAnnual = [];
+        }
+
+        if ($duplicateSemesterRows > 0) {
+            $messages[] = sprintf('Doublons étudiant-année-semestre source détectés : %d (dernier id V3 retenu).', $duplicateSemesterRows);
         }
 
         if ($skipped > 0) {
