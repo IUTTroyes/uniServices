@@ -10,6 +10,7 @@ final class MigrationRunner
     public function __construct(
         private readonly MigrationRegistry $registry,
         private readonly EntityManagerInterface $entityManager,
+        private readonly ActiveYearGuard $activeYearGuard,
     ) {
     }
 
@@ -35,6 +36,7 @@ final class MigrationRunner
      */
     public function run(?string $name, MigrationContext $context): array
     {
+        $this->activeYearGuard->assertYear2026();
         $connection = $this->entityManager->getConnection();
 
         if ($context->dryRun) {
