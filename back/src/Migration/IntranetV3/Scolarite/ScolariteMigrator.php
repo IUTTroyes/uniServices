@@ -160,7 +160,7 @@ SQL;
                         ->setUuid($this->resolveUuid($row['uuid'] ?? null))
                         ->setEtudiant($etudiant)
                         ->setAnneeUniversitaire($anneeUniversitaire)
-                        ->setDepartement($diplome?->getDepartement())
+                        ->setDepartement($diplome->getDepartement())
                         ->setOrdre((int) $row['ordre']);
                     $this->entityManager->persist($scolarite);
                     ++$created;
@@ -176,7 +176,7 @@ SQL;
                 $scolarite->setActif($anneeUniversitaire->isActif() ?? false);
 
                 if (null === $scolarite->getDepartement()) {
-                    $scolarite->setDepartement($diplome?->getDepartement());
+                    $scolarite->setDepartement($diplome->getDepartement());
                 }
 
                 // Group membership is intentionally restarted in 2026-2027. Historical
