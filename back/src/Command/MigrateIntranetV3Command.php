@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Initialization\InitializationRunner;
+use App\Migration\IntranetV3\ActiveYearGuard;
 use App\Migration\IntranetV3\DatabaseResetter;
 use App\Migration\IntranetV3\MigrationContext;
 use App\Migration\IntranetV3\MigrationIntegrityChecker;
@@ -30,6 +31,7 @@ final class MigrateIntranetV3Command extends Command
         private readonly MigrationIntegrityChecker $integrityChecker,
         private readonly DatabaseResetter $databaseResetter,
         private readonly InitializationRunner $initializationRunner,
+        private readonly ActiveYearGuard $activeYearGuard,
         #[Autowire(param: 'kernel.environment')]
         private readonly string $kernelEnvironment,
     ) {
@@ -139,6 +141,9 @@ final class MigrateIntranetV3Command extends Command
         $initializationResults = [];
         if (null === $migration) {
             try {
+                // Before any initialization writes: Core and Stage must operate
+                // on the same sole active V3 academic year.
+                $this->activeYearGuard->assertYear2026();
                 $initializationResults = $this->initializationRunner->run(new MigrationContext(
                     dryRun: (bool) $input->getOption('dry-run'),
                     verbose: $output->isVerbose(),
