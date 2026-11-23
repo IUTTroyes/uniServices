@@ -41,7 +41,7 @@ final class CalendrierMigrator extends AbstractMigrator
                 if (null === $debut) {
                     throw new \DomainException('Aucune semaine de formation positive exploitable.');
                 }
-                if ($annee->getDateDebutSemaineFormation() !== null && $annee->getDateDebutSemaineFormation()->format('Y-m-d') !== $debut?->format('Y-m-d')) {
+                if ($annee->getDateDebutSemaineFormation() !== null && $annee->getDateDebutSemaineFormation()->format('Y-m-d') !== $debut->format('Y-m-d')) {
                     throw new \DomainException('La date déjà configurée diffère de celle du calendrier V3.');
                 }
                 foreach ($lignes as $ligne) {
