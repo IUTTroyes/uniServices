@@ -39,7 +39,13 @@ jobs:
           php-version: '8.4'
           extensions: mbstring, intl, pdo_mysql, iconv, simplexml
           coverage: none
-          tools: composer:v2
+          tools: composer:v2, phpunit:11
+
+      - name: Install backend dependencies
+        run: composer install --no-progress --no-interaction --prefer-dist
+
+      - name: Run migration regression tests
+        run: phpunit --configuration ../phpunit.xml.dist ../tests/Migration/IntranetV3
 
       - name: Run backend quality checks
-        run: make check
+        run: make composer-validate lint-container doctrine-validate phpstan
