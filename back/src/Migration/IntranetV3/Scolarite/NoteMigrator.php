@@ -155,7 +155,7 @@ SQL;
                 $scolariteSemestre = null;
                 if (null !== $semestre) {
                     $scolariteSemestre = $this->entityManager->getRepository(EtudiantScolariteSemestre::class)->findOneBy([
-                        'scolariteSemestre' => $scolariteSemestre,
+                        'scolarite' => $scolarite,
                         'semestre' => $semestre,
                     ]);
                 } else {
