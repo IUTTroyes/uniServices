@@ -106,8 +106,6 @@ WHERE e.type_matiere IN ('matiere', 'ressource', 'sae')
   AND (
       e.annee_universitaire_id IN (SELECT au.id FROM annee_universitaire au WHERE au.annee = 2026)
       OR (
-
-  AND (
       EXISTS (
           SELECT 1
           FROM note n
@@ -261,8 +259,6 @@ WHERE e.type_matiere IN ('matiere', 'ressource', 'sae')
   AND (
       e.annee_universitaire_id IN (SELECT au.id FROM annee_universitaire au WHERE au.annee = 2026)
       OR (
-
-  AND (
       EXISTS (
           SELECT 1
           FROM note n
