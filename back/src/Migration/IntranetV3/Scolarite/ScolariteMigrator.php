@@ -198,12 +198,16 @@ SQL;
 
                 // Group membership is intentionally restarted in 2026-2027. Historical
                 // scolarities remain readable, but no group relation is reconstructed.
-                $scolariteSemestre = null !== $semestre
-                    ? $scolariteSemestreRepository->findOneBy([
+                // Newly created annual scolarities do not yet have an ID.
+                // Querying by the pending entity would not be a reliable
+                // identifier for a not-yet-flushed semester registration.
+                $scolariteSemestre = null;
+                if (null !== $semestre && null !== $scolarite->getId()) {
+                    $scolariteSemestre = $scolariteSemestreRepository->findOneBy([
                         'scolarite' => $scolarite,
                         'semestre' => $semestre,
-                    ])
-                    : null;
+                    ]);
+                }
 
                 if (null === $scolariteSemestre) {
                     // Réutiliser aussi une inscription créée avant la résolution du snapshot.
