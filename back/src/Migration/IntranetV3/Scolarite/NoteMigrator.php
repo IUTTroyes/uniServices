@@ -277,7 +277,7 @@ SQL;
 
         if ($partial['scolariteSemestre'] > 0) {
             $messages[] = sprintf(
-                'Notes migrées sans rattachement semestriel précis: %d (scolarité annuelle conservée).',
+                'Notes écartées faute de rattachement semestriel: %d (aucune note créée sans inscription semestrielle).',
                 $partial['scolariteSemestre'],
             );
         }
