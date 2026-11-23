@@ -45,9 +45,26 @@ final class PnMigrator extends AbstractMigrator
             ]);
         }
 
-        $diplomeOldIds = $this->source->fetchFirstColumn(
-            'SELECT DISTINCT diplome_id FROM annee WHERE diplome_id IS NOT NULL ORDER BY diplome_id'
-        );
+        // Les maquettes V3 ne sont pas historisées. Reprendre seulement les
+        // diplômes ouverts, plus ceux ayant une inscription attestée en 2026-2027,
+        // même si leur drapeau "actif" V3 n'est plus à jour.
+        $diplomeOldIds = $this->source->fetchFirstColumn(<<<'SQL'
+SELECT DISTINCT a.diplome_id
+FROM annee a
+INNER JOIN diplome d ON d.id = a.diplome_id
+WHERE a.diplome_id IS NOT NULL
+  AND (
+      d.actif = 1
+      OR EXISTS (
+          SELECT 1
+          FROM semestre s
+          INNER JOIN scolarite sc ON sc.semestre_id = s.id
+          INNER JOIN annee_universitaire au ON au.id = sc.annee_universitaire_id
+          WHERE s.annee_id = a.id AND au.annee = 2026
+      )
+  )
+ORDER BY a.diplome_id
+SQL);
 
         foreach ($diplomeOldIds as $diplomeOldId) {
             try {
