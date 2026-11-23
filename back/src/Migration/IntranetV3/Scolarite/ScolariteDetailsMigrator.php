@@ -51,9 +51,17 @@ SELECT
     sc.moyennes_matieres,
     sc.moyennes_ues,
     sc.rang
-FROM scolarite sc
+FROM (
+    SELECT original.*,
+           ROW_NUMBER() OVER (
+               PARTITION BY original.etudiant_id, original.annee_universitaire_id, original.semestre_id
+               ORDER BY original.id DESC
+           ) AS source_rank
+    FROM scolarite original
+) sc
 INNER JOIN semestre s ON s.id = sc.semestre_id
 INNER JOIN annee a ON a.id = s.annee_id
+WHERE sc.source_rank = 1
 ORDER BY sc.id
 SQL;
 
@@ -141,6 +149,8 @@ SQL;
                     'moyennesUes' => $this->decodeLegacyArray($row['moyennes_ues']),
                 ];
                 $scolariteSemestre->setLegacyContext($legacyContext);
+                $scolariteSemestre->setDecision($this->mapDecision($row['decision']));
+                $scolariteSemestre->setRang((int) ($row['rang'] ?? 0) > 0 ? (int) $row['rang'] : null);
 
                 if (null !== $row['proposition'] && '' !== trim((string) $row['proposition'])) {
                     $proposition = null !== $pn ? $this->resolveProposition((string) $row['proposition'], $pn) : null;
@@ -149,11 +159,9 @@ SQL;
                         ++$propositionsMigrees;
                     } elseif (!in_array(strtoupper(trim((string) $row['proposition'])), ['?', 'E.C.', 'EC'], true)) {
                         ++$propositionsNonMigrees;
-                        if (!$isNativeV4Year) {
-                            $legacyContext = $scolariteSemestre->getLegacyContext() ?? ['source' => 'intranet-v3'];
-                            $legacyContext['proposition'] = (string) $row['proposition'];
-                            $scolariteSemestre->setLegacyContext($legacyContext);
-                        }
+                        $legacyContext = $scolariteSemestre->getLegacyContext() ?? ['source' => 'intranet-v3'];
+                        $legacyContext['proposition'] = (string) $row['proposition'];
+                        $scolariteSemestre->setLegacyContext($legacyContext);
                         $this->addSample($messages, $sampleCount, sprintf(
                             'Scolarite V3 #%s: proposition "%s" non résolue vers un semestre du même snapshot.',
                             $row['id'],
