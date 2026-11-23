@@ -68,7 +68,7 @@ SELECT
     s.ordre_annee AS semestre_ordre,
     a.libelle AS annee_libelle,
     SUM(sc.nb_absences) OVER (PARTITION BY sc.etudiant_id, sc.annee_universitaire_id) AS total_nb_absences,
-    MAX(sc.diffuse) OVER (PARTITION BY sc.etudiant_id, sc.annee_universitaire_id) AS public_annee
+    MIN(sc.diffuse) OVER (PARTITION BY sc.etudiant_id, sc.annee_universitaire_id) AS public_annee
 FROM scolarite sc
 INNER JOIN semestre s ON s.id = sc.semestre_id
 INNER JOIN annee_universitaire au ON au.id = sc.annee_universitaire_id
@@ -222,6 +222,11 @@ SQL;
                     ],
                     'diplome' => ['oldId' => (int) $row['diplome_id']],
                 ] : []);
+                // Les anciennes diffusions étaient par semestre ; le drapeau
+                // V4 annuel reste privé si un seul semestre V3 était privé.
+                $legacy['scolariteV3Id'] = (int) $row['id'];
+                $legacy['diffuseV3'] = (bool) $row['diffuse'];
+                $legacy['commentaireV3'] = $row['commentaire'] ?: null;
                 $legacy['moyenneV3'] = null !== $row['moyenne'] ? (float) $row['moyenne'] : null;
                 $scolariteSemestre->setLegacyContext($legacy);
                 $scolariteSemestre->setMoyenne(null !== $row['moyenne'] ? (float) $row['moyenne'] : null);
