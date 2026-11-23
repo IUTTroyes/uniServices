@@ -67,7 +67,53 @@ WHERE au.annee = 2026
 ORDER BY p.id
 SQL;
 
-        foreach ($this->source->executeQuery($sql)->iterateAssociative() as $row) {
+        // V3 peut contenir plusieurs affectations du même enseignant pour
+        // la même matière. Ne pas écraser silencieusement les heures selon
+        // l'ordre d'itération, ni créer des doublons avant flush().
+        $sourceRows = $this->source->fetchAllAssociative($sql);
+        $sourceEligible = count($sourceRows);
+        $grouped = [];
+        $sameValues = $conflictingRows = 0;
+        foreach ($sourceRows as $row) {
+            $key = implode('|', [
+                (int) $row['personnel_id'],
+                (int) $row['annee'],
+                (string) $row['type_matiere'],
+                (int) $row['id_matiere'],
+            ]);
+            $values = [
+                $row['referent'], $row['nb_hcm'], $row['nb_htd'], $row['nb_htp'],
+                $row['nb_gr_cm'], $row['nb_gr_td'], $row['nb_gr_tp'],
+            ];
+            if (!isset($grouped[$key])) {
+                $grouped[$key] = ['row' => $row, 'values' => $values, 'count' => 1, 'conflict' => false];
+            } else {
+                ++$grouped[$key]['count'];
+                if ($grouped[$key]['values'] !== $values) {
+                    $grouped[$key]['conflict'] = true;
+                }
+            }
+        }
+        unset($sourceRows);
+
+        foreach ($grouped as $key => $group) {
+            $row = $group['row'];
+            if ($group['conflict']) {
+                $skipped += $group['count'];
+                $conflictingRows += $group['count'];
+                $this->sample($messages, $sampleCount, sprintf(
+                    'Prévisionnels V3 en conflit : clé %s, ids incluant #%s, %d lignes non fusionnées (heures/groupes différents).',
+                    $key, $row['id'], $group['count'],
+                ));
+                ++$processed;
+                $this->flushBatch($context, $processed);
+                continue;
+            }
+
+            // Les répétitions strictement identiques n'ont qu'une affectation V4.
+            $sameValues += $group['count'] - 1;
+            $skipped += $group['count'] - 1;
+
             try {
                 $personnel = $this->entityManager->getRepository(Personnel::class)
                     ->findOneBy(['oldId' => (int) $row['personnel_id']]);
@@ -172,6 +218,20 @@ SQL;
         }
 
         $this->flushAndClear($context);
+
+        $messages[] = sprintf(
+            'Prévisionnels V3 2026-2027 : lignes source=%d, répétitions identiques neutralisées=%d, lignes en conflit conservées pour arbitrage=%d.',
+            $sourceEligible,
+            $sameValues,
+            $conflictingRows,
+        );
+        if ($created + $updated + $skipped + $failed !== $sourceEligible) {
+            $messages[] = sprintf(
+                'ALERTE : prévisionnels comptabilisés=%d / source=%d.',
+                $created + $updated + $skipped + $failed,
+                $sourceEligible,
+            );
+        }
 
         if (array_sum($diagnostics) > 0) {
             $messages[] = sprintf(
