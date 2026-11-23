@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Migration\IntranetV3;
 
-use App\Entity\Structure\StructureGroupe;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -18,7 +17,6 @@ final readonly class MigrationIntegrityChecker
     public function __construct(
         #[Autowire(service: 'doctrine.dbal.copy_connection')]
         private Connection $source,
-        private Connection $target,
         private EntityManagerInterface $entityManager,
     ) {
     }
@@ -29,6 +27,7 @@ final readonly class MigrationIntegrityChecker
     public function check(): array
     {
         $rows = [];
+        $target = $this->entityManager->getConnection();
 
         $expectedScolarities = (int) $this->source->fetchOne(<<<'SQL'
 SELECT COUNT(*) FROM (
@@ -38,7 +37,7 @@ SELECT COUNT(*) FROM (
     GROUP BY sc.etudiant_id, sc.annee_universitaire_id
 ) annual_records
 SQL);
-        $actualScolarities = (int) $this->target->fetchOne('SELECT COUNT(*) FROM etudiant_scolarite');
+        $actualScolarities = (int) $target->fetchOne('SELECT COUNT(*) FROM etudiant_scolarite');
         $rows[] = $this->row(
             'Scolarités annuelles',
             $expectedScolarities,
@@ -47,7 +46,7 @@ SQL);
             'Comparer les couples étudiant–année ; les inscriptions invalides sont exclues du total V3.'
         );
 
-        $duplicateScolarities = (int) $this->target->fetchOne(<<<'SQL'
+        $duplicateScolarities = (int) $target->fetchOne(<<<'SQL'
 SELECT COUNT(*) FROM (
     SELECT etudiant_id, annee_universitaire_id
     FROM etudiant_scolarite
@@ -71,7 +70,7 @@ INNER JOIN etudiant etu ON etu.id = n.etudiant_id
 WHERE e.type_matiere IN ('matiere', 'ressource', 'sae')
   AND etu.annee_sortie = 0
 SQL);
-        $notesTarget = (int) $this->target->fetchOne('SELECT COUNT(*) FROM etudiant_note');
+        $notesTarget = (int) $target->fetchOne('SELECT COUNT(*) FROM etudiant_note');
         $rows[] = $this->row(
             'Notes détaillées des étudiants en cours',
             $notesEligible,
@@ -85,7 +84,7 @@ SELECT COUNT(*) FROM previsionnel p
 INNER JOIN annee_universitaire au ON au.annee = p.annee
 WHERE au.annee = 2026
 SQL);
-        $previsionnelsV4 = (int) $this->target->fetchOne(
+        $previsionnelsV4 = (int) $target->fetchOne(
             'SELECT COUNT(*) FROM previsionnel p INNER JOIN structure_annee_universitaire au ON au.id = p.annee_universitaire_id WHERE au.annee = 2026'
         );
         $rows[] = $this->row(
@@ -109,7 +108,7 @@ DQL)->getSingleScalarResult();
             'Contrôler les groupes sans affectation et les restrictions de parcours.'
         );
 
-        $activeCalendars = (int) $this->target->fetchOne(<<<'SQL'
+        $activeCalendars = (int) $target->fetchOne(<<<'SQL'
 SELECT COUNT(*)
 FROM structure_annee_universitaire
 WHERE annee = 2026 AND date_debut_semaine_formation IS NOT NULL
