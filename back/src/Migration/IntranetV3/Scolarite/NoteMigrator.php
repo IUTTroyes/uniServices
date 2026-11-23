@@ -74,6 +74,7 @@ SELECT
     n.note,
     n.commentaire,
     n.absence_justifie,
+    HEX(n.uuid) AS note_uuid_hex,
     HEX(e.uuid) AS evaluation_uuid_hex
 FROM note n
 INNER JOIN evaluation e ON e.id = n.evaluation_id
@@ -190,7 +191,7 @@ SQL;
                 $note ??= new EtudiantNote();
 
                 $note
-                    ->setUuid($this->resolveUuid($row['uuid'] ?? null))
+                    ->setUuid($this->resolveUuid($row['note_uuid_hex'] ?? null))
                     ->setEvaluation($evaluation)
                     ->setScolariteSemestre($scolariteSemestre)
                     ->setCommentaire($row['commentaire'] ?: null)
