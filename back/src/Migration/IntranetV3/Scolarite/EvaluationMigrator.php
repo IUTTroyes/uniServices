@@ -60,6 +60,8 @@ final class EvaluationMigrator extends AbstractMigrator
 SELECT COUNT(*)
 FROM evaluation e
 WHERE e.type_matiere IN ('matiere', 'ressource', 'sae')
+  AND e.annee_universitaire_id NOT IN (SELECT au.id FROM annee_universitaire au WHERE au.annee = 2026)
+
   AND NOT EXISTS (
       SELECT 1
       FROM note n
@@ -102,6 +104,10 @@ LEFT JOIN evaluation parent ON parent.id = e.parent_id
 LEFT JOIN semestre s ON s.id = e.semestre_id
 WHERE e.type_matiere IN ('matiere', 'ressource', 'sae')
   AND (
+      e.annee_universitaire_id IN (SELECT au.id FROM annee_universitaire au WHERE au.annee = 2026)
+      OR (
+
+  AND (
       EXISTS (
           SELECT 1
           FROM note n
@@ -116,6 +122,7 @@ WHERE e.type_matiere IN ('matiere', 'ressource', 'sae')
           INNER JOIN etudiant etu ON etu.id = n.etudiant_id
           WHERE child.parent_id = e.id
             AND etu.annee_sortie = 0
+      )
       )
   )
 ORDER BY e.id
@@ -252,6 +259,10 @@ FROM evaluation e
 INNER JOIN evaluation parent ON parent.id = e.parent_id
 WHERE e.type_matiere IN ('matiere', 'ressource', 'sae')
   AND (
+      e.annee_universitaire_id IN (SELECT au.id FROM annee_universitaire au WHERE au.annee = 2026)
+      OR (
+
+  AND (
       EXISTS (
           SELECT 1
           FROM note n
@@ -266,6 +277,7 @@ WHERE e.type_matiere IN ('matiere', 'ressource', 'sae')
           INNER JOIN etudiant etu ON etu.id = n.etudiant_id
           WHERE child.parent_id = e.id
             AND etu.annee_sortie = 0
+      )
       )
   )
 SQL;
