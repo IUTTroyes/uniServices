@@ -47,9 +47,18 @@ final class ScolariteMigrator extends AbstractMigrator
         // managed object inside each UnitOfWork batch.
         /** @var array<string, EtudiantScolarite> $pendingAnnual */
         $pendingAnnual = [];
-        $duplicateSemesterRows = 0;
-        /** @var array<string, true> $seenLegacySemesters */
-        $seenLegacySemesters = [];
+        // Collisions V3 sur (étudiant, année universitaire, semestre).
+        // Retenir l'id V3 le plus récent avant le calcul des totaux annuels,
+        // sinon le SUM des absences compterait deux fois certains semestres.
+        $duplicateSemesterRows = (int) $this->source->fetchOne(<<<'SQL'
+SELECT COALESCE(SUM(duplicate_count - 1), 0) FROM (
+    SELECT COUNT(*) AS duplicate_count
+    FROM scolarite
+    WHERE annee_universitaire_id IS NOT NULL
+    GROUP BY etudiant_id, annee_universitaire_id, semestre_id
+    HAVING COUNT(*) > 1
+) duplicate_keys
+SQL);
 
         $sql = <<<'SQL'
 SELECT
@@ -69,10 +78,18 @@ SELECT
     a.libelle AS annee_libelle,
     SUM(sc.nb_absences) OVER (PARTITION BY sc.etudiant_id, sc.annee_universitaire_id) AS total_nb_absences,
     MIN(sc.diffuse) OVER (PARTITION BY sc.etudiant_id, sc.annee_universitaire_id) AS public_annee
-FROM scolarite sc
+FROM (
+    SELECT original.*,
+           ROW_NUMBER() OVER (
+               PARTITION BY original.etudiant_id, original.annee_universitaire_id, original.semestre_id
+               ORDER BY original.id DESC
+           ) AS source_rank
+    FROM scolarite original
+) sc
 INNER JOIN semestre s ON s.id = sc.semestre_id
 INNER JOIN annee_universitaire au ON au.id = sc.annee_universitaire_id
 INNER JOIN annee a ON a.id = s.annee_id
+WHERE sc.source_rank = 1
 ORDER BY sc.annee_universitaire_id, sc.etudiant_id, sc.ordre, sc.id
 SQL;
 
@@ -231,15 +248,6 @@ SQL;
                 $scolariteSemestre->setLegacyContext($legacy);
                 $scolariteSemestre->setMoyenne(null !== $row['moyenne'] ? (float) $row['moyenne'] : null);
                 $scolariteSemestre->setNbAbsences((int) ($row['nb_absences'] ?? 0));
-                $legacySemesterKey = $annualKey.'|'.(int) $row['semestre_id'];
-                if (isset($seenLegacySemesters[$legacySemesterKey])) {
-                    ++$duplicateSemesterRows;
-                    if ($sampleCount < self::MAX_DIAGNOSTIC_SAMPLES) {
-                        $messages[] = sprintf('Scolarite V3 #%s: clé étudiant-année-semestre déjà rencontrée (%s). Dernière ligne prioritaire.', $row['id'], $legacySemesterKey);
-                        ++$sampleCount;
-                    }
-                }
-                $seenLegacySemesters[$legacySemesterKey] = true;
 
                 if (!empty($row['commentaire']) && empty($scolarite->getCommentaire())) {
                     $scolarite->setCommentaire((string) $row['commentaire']);
@@ -258,7 +266,7 @@ SQL;
         }
 
         if ($duplicateSemesterRows > 0) {
-            $messages[] = sprintf('Doublons étudiant-année-semestre source détectés : %d (dernier id V3 retenu).', $duplicateSemesterRows);
+            $messages[] = sprintf('Doublons étudiant-année-semestre V3 neutralisés avant agrégation : %d (id V3 le plus récent retenu).', $duplicateSemesterRows);
         }
 
         if ($skipped > 0) {
