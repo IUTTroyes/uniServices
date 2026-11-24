@@ -1,0 +1,712 @@
+{
+  "periode": {
+    "debut": "2026-08-23",
+    "fin": "2026-11-22"
+  },
+  "vehicules": [
+    {
+      "id": 1,
+      "immatriculation": "DEMO-IUT-01",
+      "libelle": "Ford Focus",
+      "site": "IUT de Troyes",
+      "energie": "essence",
+      "kilometrage": 57165,
+      "actif": true,
+      "achatCentimes": 2190000,
+      "misEnServiceLe": "2020-11-19",
+      "reformePrevueLe": "2030-11-19",
+      "reformeKm": 160000,
+      "consommationReference": 66
+    },
+    {
+      "id": 2,
+      "immatriculation": "DEMO-IUT-02",
+      "libelle": "Renault Partner",
+      "site": "IUT de Troyes",
+      "energie": "diesel",
+      "kilometrage": 82493,
+      "actif": true,
+      "achatCentimes": 1920000,
+      "misEnServiceLe": "2018-11-19",
+      "reformePrevueLe": "2028-11-19",
+      "reformeKm": 190000,
+      "consommationReference": 59
+    },
+    {
+      "id": 3,
+      "immatriculation": "DEMO-IUT-03",
+      "libelle": "Renault Master",
+      "site": "IUT de Troyes",
+      "energie": "diesel",
+      "kilometrage": 104397,
+      "actif": true,
+      "achatCentimes": 3190000,
+      "misEnServiceLe": "2020-11-19",
+      "reformePrevueLe": "2032-11-19",
+      "reformeKm": 250000,
+      "consommationReference": 94
+    }
+  ],
+  "reservations": [
+    {
+      "id": 1,
+      "vehicule": 2,
+      "conducteur": "personnel_demo_1",
+      "nomConducteur": "Camille Perrin",
+      "debut": "2026-08-27T09:00:00+02:00",
+      "fin": "2026-08-27T10:30:00+02:00",
+      "departLe": "2026-08-27T09:05:00+02:00",
+      "retourLe": "2026-08-27T10:20:00+02:00",
+      "ordreMission": "DEMO-2026-001",
+      "ordreVerifie": true,
+      "statut": "terminee",
+      "kilometrageDepart": 82410,
+      "kilometrageRetour": 82424
+    },
+    {
+      "id": 2,
+      "vehicule": 1,
+      "conducteur": "personnel_demo_3",
+      "nomConducteur": "Lou Colin",
+      "debut": "2026-09-10T08:30:00+02:00",
+      "fin": "2026-09-10T17:30:00+02:00",
+      "departLe": "2026-09-10T08:35:00+02:00",
+      "retourLe": "2026-09-10T17:20:00+02:00",
+      "ordreMission": "DEMO-2026-002",
+      "ordreVerifie": true,
+      "statut": "terminee",
+      "kilometrageDepart": 56820,
+      "kilometrageRetour": 56838
+    },
+    {
+      "id": 3,
+      "vehicule": 3,
+      "conducteur": "personnel_demo_2",
+      "nomConducteur": "Loïs Aubert",
+      "debut": "2026-09-22T14:00:00+02:00",
+      "fin": "2026-09-22T15:30:00+02:00",
+      "departLe": "2026-09-22T14:05:00+02:00",
+      "retourLe": "2026-09-22T15:20:00+02:00",
+      "ordreMission": "DEMO-2026-003",
+      "ordreVerifie": true,
+      "statut": "terminee",
+      "kilometrageDepart": 104270,
+      "kilometrageRetour": 104286
+    },
+    {
+      "id": 4,
+      "vehicule": 1,
+      "conducteur": "personnel_demo_4",
+      "nomConducteur": "Sacha Renard",
+      "debut": "2026-10-06T07:30:00+02:00",
+      "fin": "2026-10-06T18:00:00+02:00",
+      "departLe": "2026-10-06T07:35:00+02:00",
+      "retourLe": "2026-10-06T17:50:00+02:00",
+      "ordreMission": "DEMO-2026-004",
+      "ordreVerifie": true,
+      "statut": "terminee",
+      "kilometrageDepart": 56838,
+      "kilometrageRetour": 57062
+    },
+    {
+      "id": 5,
+      "vehicule": 2,
+      "conducteur": "personnel_demo_1",
+      "nomConducteur": "Camille Perrin",
+      "debut": "2026-10-15T10:00:00+02:00",
+      "fin": "2026-10-15T11:30:00+02:00",
+      "departLe": "2026-10-15T10:05:00+02:00",
+      "retourLe": "2026-10-15T11:20:00+02:00",
+      "ordreMission": "DEMO-2026-005",
+      "ordreVerifie": true,
+      "statut": "terminee",
+      "kilometrageDepart": 82424,
+      "kilometrageRetour": 82436
+    },
+    {
+      "id": 6,
+      "vehicule": 1,
+      "conducteur": "personnel_demo_3",
+      "nomConducteur": "Lou Colin",
+      "debut": "2026-10-22T13:00:00+02:00",
+      "fin": "2026-10-22T17:00:00+02:00",
+      "departLe": "2026-10-22T13:05:00+02:00",
+      "retourLe": "2026-10-22T16:50:00+02:00",
+      "ordreMission": "DEMO-2026-006",
+      "ordreVerifie": true,
+      "statut": "terminee",
+      "kilometrageDepart": 57062,
+      "kilometrageRetour": 57073
+    },
+    {
+      "id": 7,
+      "vehicule": 3,
+      "conducteur": "personnel_demo_2",
+      "nomConducteur": "Loïs Aubert",
+      "debut": "2026-11-05T08:30:00+01:00",
+      "fin": "2026-11-05T10:30:00+01:00",
+      "departLe": "2026-11-05T08:35:00+01:00",
+      "retourLe": "2026-11-05T10:20:00+01:00",
+      "ordreMission": "DEMO-2026-007",
+      "ordreVerifie": true,
+      "statut": "terminee",
+      "kilometrageDepart": 104286,
+      "kilometrageRetour": 104305
+    },
+    {
+      "id": 8,
+      "vehicule": 2,
+      "conducteur": "personnel_demo_1",
+      "nomConducteur": "Camille Perrin",
+      "debut": "2026-11-17T14:00:00+01:00",
+      "fin": "2026-11-17T15:30:00+01:00",
+      "departLe": "2026-11-17T14:05:00+01:00",
+      "retourLe": "2026-11-17T15:20:00+01:00",
+      "ordreMission": "DEMO-2026-008",
+      "ordreVerifie": true,
+      "statut": "terminee",
+      "kilometrageDepart": 82436,
+      "kilometrageRetour": 82451
+    },
+    {
+      "id": 9,
+      "vehicule": 3,
+      "conducteur": "personnel_demo_2",
+      "nomConducteur": "Loïs Aubert",
+      "debut": "2026-11-09T08:30:00+01:00",
+      "fin": "2026-11-09T16:30:00+01:00",
+      "ordreMission": "DEMO-2026-009",
+      "ordreVerifie": true,
+      "statut": "terminee",
+      "departLe": "2026-11-09T08:32:00+01:00",
+      "retourLe": "2026-11-09T16:10:00+01:00",
+      "kilometrageDepart": 104305,
+      "kilometrageRetour": 104369
+    },
+    {
+      "id": 10,
+      "vehicule": 1,
+      "conducteur": "personnel_demo_4",
+      "nomConducteur": "Sacha Renard",
+      "debut": "2026-11-12T08:30:00+01:00",
+      "fin": "2026-11-12T16:30:00+01:00",
+      "ordreMission": "DEMO-2026-010",
+      "ordreVerifie": true,
+      "statut": "terminee",
+      "departLe": "2026-11-12T08:32:00+01:00",
+      "retourLe": "2026-11-12T16:10:00+01:00",
+      "kilometrageDepart": 57073,
+      "kilometrageRetour": 57165
+    },
+    {
+      "id": 11,
+      "vehicule": 3,
+      "conducteur": "personnel_demo_2",
+      "nomConducteur": "Loïs Aubert",
+      "debut": "2026-11-18T08:30:00+01:00",
+      "fin": "2026-11-18T16:30:00+01:00",
+      "ordreMission": "DEMO-2026-011",
+      "ordreVerifie": true,
+      "statut": "terminee",
+      "departLe": "2026-11-18T08:32:00+01:00",
+      "retourLe": "2026-11-18T16:10:00+01:00",
+      "kilometrageDepart": 104369,
+      "kilometrageRetour": 104397
+    },
+    {
+      "id": 12,
+      "vehicule": 2,
+      "conducteur": "personnel_demo_1",
+      "nomConducteur": "Camille Perrin",
+      "debut": "2026-11-20T08:30:00+01:00",
+      "fin": "2026-11-20T16:30:00+01:00",
+      "ordreMission": "DEMO-2026-012",
+      "ordreVerifie": true,
+      "statut": "terminee",
+      "departLe": "2026-11-20T08:32:00+01:00",
+      "retourLe": "2026-11-20T16:10:00+01:00",
+      "kilometrageDepart": 82451,
+      "kilometrageRetour": 82493
+    },
+    {
+      "id": 13,
+      "vehicule": 1,
+      "conducteur": "personnel_demo_3",
+      "nomConducteur": "Lou Colin",
+      "debut": "2026-11-26T08:30:00+01:00",
+      "fin": "2026-11-26T16:30:00+01:00",
+      "ordreMission": "DEMO-2026-013",
+      "ordreVerifie": true,
+      "statut": "validee",
+      "departLe": null,
+      "retourLe": null,
+      "kilometrageDepart": null,
+      "kilometrageRetour": null
+    },
+    {
+      "id": 14,
+      "vehicule": 2,
+      "conducteur": "personnel_demo_1",
+      "nomConducteur": "Camille Perrin",
+      "debut": "2026-12-01T08:30:00+01:00",
+      "fin": "2026-12-01T16:30:00+01:00",
+      "ordreMission": "DEMO-2026-014",
+      "ordreVerifie": true,
+      "statut": "validee",
+      "departLe": null,
+      "retourLe": null,
+      "kilometrageDepart": null,
+      "kilometrageRetour": null
+    },
+    {
+      "id": 15,
+      "vehicule": 3,
+      "conducteur": "personnel_demo_2",
+      "nomConducteur": "Loïs Aubert",
+      "debut": "2026-12-03T08:30:00+01:00",
+      "fin": "2026-12-03T16:30:00+01:00",
+      "ordreMission": "DEMO-2026-015",
+      "ordreVerifie": true,
+      "statut": "validee",
+      "departLe": null,
+      "retourLe": null,
+      "kilometrageDepart": null,
+      "kilometrageRetour": null
+    }
+  ],
+  "contexte": {
+    "referencesPersonnel": {
+      "personnel_demo_1": "Camille Perrin",
+      "personnel_demo_2": "Loïs Aubert",
+      "personnel_demo_3": "Lou Colin",
+      "personnel_demo_4": "Sacha Renard"
+    },
+    "missions": [
+      {
+        "reservation": 1,
+        "description": "Service général · retrait de fournitures à Troyes"
+      },
+      {
+        "reservation": 2,
+        "description": "Enseignante · journée de formation à Troyes"
+      },
+      {
+        "reservation": 3,
+        "description": "Service général · cartons et encombrants à la déchèterie"
+      },
+      {
+        "reservation": 4,
+        "description": "BIATSS · formation à Reims"
+      },
+      {
+        "reservation": 5,
+        "description": "Service général · collecte de pièces pour l’atelier à Troyes"
+      },
+      {
+        "reservation": 6,
+        "description": "Enseignante · conférence sur un autre campus troyen"
+      },
+      {
+        "reservation": 7,
+        "description": "Service général · transfert de mobilier à Troyes"
+      },
+      {
+        "reservation": 8,
+        "description": "Service général · dépôt de cartons en déchèterie"
+      },
+      {
+        "reservation": 9,
+        "description": "Livraison de postes informatiques à Romilly-sur-Seine"
+      },
+      {
+        "reservation": 10,
+        "description": "Visite d’un alternant à Bar-sur-Aube"
+      },
+      {
+        "reservation": 11,
+        "description": "Collecte de tables pour le forum entreprises"
+      },
+      {
+        "reservation": 12,
+        "description": "Retrait de consommables à Piney"
+      },
+      {
+        "reservation": 13,
+        "description": "Réunion pédagogique à Reims"
+      },
+      {
+        "reservation": 14,
+        "description": "Retrait de fournitures pour les ateliers"
+      },
+      {
+        "reservation": 15,
+        "description": "Transport de panneaux pour un salon étudiant"
+      }
+    ]
+  },
+  "journal": [
+    {
+      "id": 1,
+      "vehicule": 1,
+      "auteur": "personnel_demo_4",
+      "type": "carburant",
+      "date": "2026-11-12T15:55:00+01:00",
+      "libelle": "Plein de sans-plomb",
+      "kilometrage": 57162,
+      "montantCentimes": 4446,
+      "volumeMillilitres": 26000,
+      "prestataire": "DEMO-STA",
+      "carte": "DEMO-CARTE-1"
+    },
+    {
+      "id": 2,
+      "vehicule": 1,
+      "auteur": "personnel_demo_1",
+      "type": "entretien",
+      "date": "2026-09-11T10:00:00+02:00",
+      "libelle": "Révision annuelle et vidange",
+      "kilometrage": 56838,
+      "prestataire": "DEMO-GAR"
+    },
+    {
+      "id": 3,
+      "vehicule": 1,
+      "auteur": "personnel_demo_1",
+      "type": "entretien",
+      "date": "2026-10-07T10:00:00+02:00",
+      "libelle": "Contrôle de la pression et de l’usure des pneus",
+      "kilometrage": 57062,
+      "prestataire": "DEMO-GAR"
+    },
+    {
+      "id": 4,
+      "vehicule": 2,
+      "auteur": "personnel_demo_1",
+      "type": "carburant",
+      "date": "2026-11-20T15:55:00+01:00",
+      "libelle": "Plein de gazole",
+      "kilometrage": 82490,
+      "montantCentimes": 5130,
+      "volumeMillilitres": 30000,
+      "prestataire": "DEMO-STA",
+      "carte": "DEMO-CARTE-2"
+    },
+    {
+      "id": 5,
+      "vehicule": 2,
+      "auteur": "personnel_demo_1",
+      "type": "entretien",
+      "date": "2026-08-28T10:00:00+02:00",
+      "libelle": "Révision annuelle et vidange",
+      "kilometrage": 82424,
+      "prestataire": "DEMO-GAR"
+    },
+    {
+      "id": 6,
+      "vehicule": 2,
+      "auteur": "personnel_demo_1",
+      "type": "entretien",
+      "date": "2026-10-16T10:00:00+02:00",
+      "libelle": "Contrôle de la pression et de l’usure des pneus",
+      "kilometrage": 82436,
+      "prestataire": "DEMO-GAR"
+    },
+    {
+      "id": 7,
+      "vehicule": 3,
+      "auteur": "personnel_demo_2",
+      "type": "carburant",
+      "date": "2026-11-18T15:55:00+01:00",
+      "libelle": "Plein de gazole",
+      "kilometrage": 104394,
+      "montantCentimes": 5814,
+      "volumeMillilitres": 34000,
+      "prestataire": "DEMO-STA",
+      "carte": "DEMO-CARTE-3"
+    },
+    {
+      "id": 8,
+      "vehicule": 3,
+      "auteur": "personnel_demo_1",
+      "type": "entretien",
+      "date": "2026-09-23T10:00:00+02:00",
+      "libelle": "Révision annuelle et vidange",
+      "kilometrage": 104286,
+      "prestataire": "DEMO-GAR"
+    },
+    {
+      "id": 9,
+      "vehicule": 3,
+      "auteur": "personnel_demo_1",
+      "type": "entretien",
+      "date": "2026-11-06T10:00:00+01:00",
+      "libelle": "Contrôle de la pression et de l’usure des pneus",
+      "kilometrage": 104305,
+      "prestataire": "DEMO-GAR"
+    },
+    {
+      "id": 10,
+      "vehicule": 1,
+      "auteur": "personnel_demo_1",
+      "type": "entretien",
+      "date": "2026-11-13T16:40:00+01:00",
+      "libelle": "Contrôle technique périodique",
+      "kilometrage": 57165,
+      "prestataire": "DEMO-CT"
+    },
+    {
+      "id": 11,
+      "vehicule": 1,
+      "auteur": "personnel_demo_1",
+      "type": "facture",
+      "date": "2026-11-13T17:25:00+01:00",
+      "libelle": "Facture du contrôle technique · CT-2026-001",
+      "kilometrage": 57165,
+      "prestataire": "DEMO-CT",
+      "montantCentimes": 8200
+    },
+    {
+      "id": 12,
+      "vehicule": 1,
+      "auteur": "personnel_demo_1",
+      "type": "pneus",
+      "date": "2026-10-07T10:15:00+02:00",
+      "libelle": "Profondeur minimale relevée sur les quatre pneus",
+      "kilometrage": 57062,
+      "prestataire": "DEMO-GAR",
+      "usureDixiemesMm": 52
+    },
+    {
+      "id": 13,
+      "vehicule": 2,
+      "auteur": "personnel_demo_1",
+      "type": "entretien",
+      "date": "2026-11-20T16:40:00+01:00",
+      "libelle": "Contrôle technique périodique",
+      "kilometrage": 82493,
+      "prestataire": "DEMO-CT"
+    },
+    {
+      "id": 14,
+      "vehicule": 2,
+      "auteur": "personnel_demo_1",
+      "type": "facture",
+      "date": "2026-11-20T17:25:00+01:00",
+      "libelle": "Facture du contrôle technique · CT-2026-002",
+      "kilometrage": 82493,
+      "prestataire": "DEMO-CT",
+      "montantCentimes": 8600
+    },
+    {
+      "id": 15,
+      "vehicule": 2,
+      "auteur": "personnel_demo_1",
+      "type": "pneus",
+      "date": "2026-10-16T10:15:00+02:00",
+      "libelle": "Profondeur minimale relevée sur les quatre pneus",
+      "kilometrage": 82436,
+      "prestataire": "DEMO-GAR",
+      "usureDixiemesMm": 46
+    },
+    {
+      "id": 16,
+      "vehicule": 3,
+      "auteur": "personnel_demo_1",
+      "type": "entretien",
+      "date": "2026-11-19T16:40:00+01:00",
+      "libelle": "Contrôle technique périodique",
+      "kilometrage": 104397,
+      "prestataire": "DEMO-CT"
+    },
+    {
+      "id": 17,
+      "vehicule": 3,
+      "auteur": "personnel_demo_1",
+      "type": "facture",
+      "date": "2026-11-19T17:25:00+01:00",
+      "libelle": "Facture du contrôle technique · CT-2026-003",
+      "kilometrage": 104397,
+      "prestataire": "DEMO-CT",
+      "montantCentimes": 9700
+    },
+    {
+      "id": 18,
+      "vehicule": 3,
+      "auteur": "personnel_demo_1",
+      "type": "pneus",
+      "date": "2026-11-06T10:15:00+01:00",
+      "libelle": "Profondeur minimale relevée sur les quatre pneus",
+      "kilometrage": 104305,
+      "prestataire": "DEMO-GAR",
+      "usureDixiemesMm": 61
+    }
+  ],
+  "echeancesEntretien": [
+    {
+      "id": 1,
+      "vehicule": 1,
+      "type": "revision",
+      "libelle": "Révision annuelle et vidange",
+      "effectueLe": "2026-09-11",
+      "kilometrageControle": 56838,
+      "intervalleMois": 12,
+      "intervalleKm": 15000,
+      "echeance": "2027-09-11",
+      "echeanceKm": 71838
+    },
+    {
+      "id": 2,
+      "vehicule": 1,
+      "type": "pneus",
+      "libelle": "Contrôle de la pression et de l’usure des pneus",
+      "effectueLe": "2026-10-07",
+      "kilometrageControle": 57062,
+      "intervalleMois": 3,
+      "intervalleKm": null,
+      "echeance": "2027-01-07",
+      "echeanceKm": null
+    },
+    {
+      "id": 3,
+      "vehicule": 2,
+      "type": "revision",
+      "libelle": "Révision annuelle et vidange",
+      "effectueLe": "2026-08-28",
+      "kilometrageControle": 82424,
+      "intervalleMois": 12,
+      "intervalleKm": 15000,
+      "echeance": "2027-08-28",
+      "echeanceKm": 97424
+    },
+    {
+      "id": 4,
+      "vehicule": 2,
+      "type": "pneus",
+      "libelle": "Contrôle de la pression et de l’usure des pneus",
+      "effectueLe": "2026-10-16",
+      "kilometrageControle": 82436,
+      "intervalleMois": 3,
+      "intervalleKm": null,
+      "echeance": "2027-01-16",
+      "echeanceKm": null
+    },
+    {
+      "id": 5,
+      "vehicule": 3,
+      "type": "revision",
+      "libelle": "Révision annuelle et vidange",
+      "effectueLe": "2026-09-23",
+      "kilometrageControle": 104286,
+      "intervalleMois": 12,
+      "intervalleKm": 15000,
+      "echeance": "2027-09-23",
+      "echeanceKm": 119286
+    },
+    {
+      "id": 6,
+      "vehicule": 3,
+      "type": "pneus",
+      "libelle": "Contrôle de la pression et de l’usure des pneus",
+      "effectueLe": "2026-11-06",
+      "kilometrageControle": 104305,
+      "intervalleMois": 3,
+      "intervalleKm": null,
+      "echeance": "2027-02-06",
+      "echeanceKm": null
+    },
+    {
+      "id": 7,
+      "vehicule": 1,
+      "type": "controle_technique",
+      "libelle": "Contrôle technique périodique",
+      "effectueLe": "2026-11-13",
+      "kilometrageControle": 57165,
+      "intervalleMois": 24,
+      "intervalleKm": null,
+      "echeance": "2028-11-13",
+      "echeanceKm": null
+    },
+    {
+      "id": 8,
+      "vehicule": 2,
+      "type": "controle_technique",
+      "libelle": "Contrôle technique périodique",
+      "effectueLe": "2026-11-20",
+      "kilometrageControle": 82493,
+      "intervalleMois": 24,
+      "intervalleKm": null,
+      "echeance": "2028-11-20",
+      "echeanceKm": null
+    },
+    {
+      "id": 9,
+      "vehicule": 3,
+      "type": "controle_technique",
+      "libelle": "Contrôle technique périodique",
+      "effectueLe": "2026-11-19",
+      "kilometrageControle": 104397,
+      "intervalleMois": 24,
+      "intervalleKm": null,
+      "echeance": "2028-11-19",
+      "echeanceKm": null
+    }
+  ],
+  "equipements": [
+    {
+      "type": "prestataire",
+      "reference": "DEMO-GAR",
+      "libelle": "Garage des Ateliers",
+      "coordonnees": "atelier@example.invalid",
+      "vehicule": null,
+      "actif": true
+    },
+    {
+      "type": "prestataire",
+      "reference": "DEMO-CT",
+      "libelle": "Centre de contrôle du Parc",
+      "coordonnees": "controle@example.invalid",
+      "vehicule": null,
+      "actif": true
+    },
+    {
+      "type": "prestataire",
+      "reference": "DEMO-STA",
+      "libelle": "Station des Campus",
+      "coordonnees": "station@example.invalid",
+      "vehicule": null,
+      "actif": true
+    },
+    {
+      "type": "borne",
+      "reference": "DEMO-BORNE",
+      "libelle": "Borne de recharge du campus",
+      "coordonnees": "Parking technique · emplacement B2",
+      "vehicule": null,
+      "actif": true
+    },
+    {
+      "type": "carte",
+      "reference": "DEMO-CARTE-1",
+      "libelle": "Carte carburant · Ford Focus",
+      "coordonnees": "Pochette du véhicule DEMO-IUT-01",
+      "vehicule": 1,
+      "actif": true
+    },
+    {
+      "type": "carte",
+      "reference": "DEMO-CARTE-2",
+      "libelle": "Carte carburant · Renault Partner",
+      "coordonnees": "Pochette du véhicule DEMO-IUT-02",
+      "vehicule": 2,
+      "actif": true
+    },
+    {
+      "type": "carte",
+      "reference": "DEMO-CARTE-3",
+      "libelle": "Carte carburant · Renault Master",
+      "coordonnees": "Pochette du véhicule DEMO-IUT-03",
+      "vehicule": 3,
+      "actif": true
+    }
+  ]
+}

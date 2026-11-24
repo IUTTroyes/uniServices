@@ -8,6 +8,7 @@ import { gestionParcauto } from '../permissions';
 import { champEuros, champLitres, enCentimes, enMillilitres } from './parcautoUnites';
 import FormulaireParcauto from './FormulaireParcauto.vue';
 import { enregistrerParcautoService, getPlanningService } from '../service/parcautoService';
+import { libelleOrdreMission } from './ordreMission';
 import { dateHeure, instant, jourLocal, messageErreur, periodePlanning } from './parcautoDates';
 
 const props = defineProps({ vehicules: Array, gestion: Boolean });
@@ -37,7 +38,16 @@ const champs = computed(() => {
         },
         { nom: 'debut', label: 'Départ', type: 'datetime-local', requis: true },
         { nom: 'fin', label: 'Retour prévu', type: 'datetime-local', requis: true },
-        { nom: 'ordreMission', label: 'Référence de l’ordre de mission', max: 120, requis: true },
+        {
+          nom: 'typeOm', label: 'Votre OM permanent couvre-t-il l’ensemble du déplacement ?', requis: true,
+          options: [
+            { value: 'permanent', label: 'Oui, toutes les destinations sont couvertes' },
+            { value: 'ponctuel', label: 'Non, ou je n’ai pas d’OM permanent' },
+          ],
+        },
+        { nom: 'ordreMission', label: 'Référence de l’OM ponctuel', max: 120, requis: true, visible: d => d.typeOm === 'ponctuel' },
+        { nom: 'motif', label: 'Motif du déplacement', max: 255, requis: true },
+        { nom: 'destinations', label: 'Lieu(x) de destination', max: 500, requis: true },
       ];
     case 'carburant':
       return [
@@ -129,6 +139,9 @@ function ouvrir(action, mission = null) {
     vehicule: vehicule?.id ?? null,
     debut: jour ? jour + 'T08:00' : '',
     fin: jour ? jour + 'T09:00' : '',
+    typeOm: null,
+    motif: '',
+    destinations: '',
     ordreMission: '',
     kilometrage: null,
   };
@@ -143,7 +156,9 @@ async function enregistrer() {
     const donnees = formulaire.value;
     if (action === 'demander') {
       await enregistrerParcautoService('/reservations', {
-        vehicule: donnees.vehicule, debut: instant(donnees.debut), fin: instant(donnees.fin), ordreMission: donnees.ordreMission,
+        vehicule: donnees.vehicule, debut: instant(donnees.debut), fin: instant(donnees.fin),
+        typeOm: donnees.typeOm, motif: donnees.motif, destinations: donnees.destinations,
+        ...(donnees.typeOm === 'ponctuel' ? { ordreMission: donnees.ordreMission } : {}),
       });
     } else if (action === 'carburant' || action === 'incident') {
       await enregistrerParcautoService(`/reservations/${mission.id}/journal`, {
@@ -229,10 +244,12 @@ watch(periode, () => {
             <div class="font-semibold">{{ noms.get(mission.vehicule) }}</div>
             <div class="text-sm">{{ dateHeure(mission.debut) }} – {{ dateHeure(mission.fin) }}</div>
             <div v-if="mission.nomConducteur" class="text-sm">
-              {{ mission.nomConducteur }} · OM {{ mission.ordreMission }}{{ mission.ordreVerifie ? ' (vérifié par OMER)' : '' }}
+              {{ mission.nomConducteur }} · {{ libelleOrdreMission(mission) }}{{ mission.ordreVerifie ? ' (vérifié par OMER)' : '' }}
               <span v-if="mission.kilometrageDepart !== null"> · Départ {{ mission.kilometrageDepart }} km</span>
               <span v-if="mission.kilometrageRetour !== null"> · Retour {{ mission.kilometrageRetour }} km</span>
             </div>
+            <div v-if="mission.motif" class="text-sm">Motif · {{ mission.motif }}</div>
+            <div v-if="mission.destinations" class="text-sm">Destination(s) · {{ mission.destinations }}</div>
           </div>
           <div class="flex flex-wrap items-center gap-2">
             <Tag :value="statuts[mission.statut][0]" :severity="statuts[mission.statut][1]" />

@@ -33,6 +33,8 @@
       <sourceFolder url="file://$MODULE_DIR$/packages/message-bundle/tests" isTestSource="true" packagePrefix="MessageBundle\Tests\" />
       <sourceFolder url="file://$MODULE_DIR$/packages/questionnaire-bundle/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/packages/unifolio-bundle/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/back/../packages/parcauto-bundle/src" isTestSource="false" packagePrefix="ParcautoBundle\" />
+      <sourceFolder url="file://$MODULE_DIR$/packages/parcauto-bundle/src" isTestSource="false" packagePrefix="ParcautoBundle\" />
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/composer" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/cache" />

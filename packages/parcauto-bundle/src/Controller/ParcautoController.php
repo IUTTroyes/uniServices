@@ -178,6 +178,9 @@ final class ParcautoController extends AbstractController
             'nomConducteur' => $reservation->nomConducteur,
             'ordreMission' => $reservation->ordreMission,
             'ordreVerifie' => $reservation->ordreVerifie,
+            'typeOm' => $reservation->typeOm,
+            'motif' => $reservation->motif,
+            'destinations' => $reservation->destinations,
             'kilometrageDepart' => $reservation->kilometrageDepart,
             'kilometrageRetour' => $reservation->kilometrageRetour,
         ] : []);
@@ -195,16 +198,20 @@ final class ParcautoController extends AbstractController
             }
 
             $conducteur = $this->personnel();
-            $ordreMission = $saisie->texte('ordreMission', 120);
+            $typeOm = $saisie->choix('typeOm', ['permanent', 'ponctuel']);
+            $motif = $saisie->texte('motif', 255);
+            $destinations = $saisie->texte('destinations', 500);
+            $ordreMission = $typeOm === 'ponctuel' ? $saisie->texte('ordreMission', 120) : null;
             $existante = $this->em->getRepository(Reservation::class)->findOneBy([
                 'vehicule' => $vehicule, 'conducteur' => $conducteur, 'debut' => $debut, 'fin' => $fin,
+                'typeOm' => $typeOm, 'motif' => $motif, 'destinations' => $destinations,
                 'ordreMission' => $ordreMission, 'statut' => Reservation::DEMANDEE,
             ]);
             if ($existante !== null) {
                 return $existante;
             }
 
-            $reservation = new Reservation($vehicule, $conducteur, $debut, $fin, $ordreMission);
+            $reservation = new Reservation($vehicule, $conducteur, $debut, $fin, $ordreMission, $typeOm, $motif, $destinations);
             $this->planning->verifierDisponibilite($reservation);
             $this->em->persist($reservation);
 
@@ -350,7 +357,7 @@ final class ParcautoController extends AbstractController
             }
 
             $missions = $this->em->createQueryBuilder()
-                ->select('r.id', 'r.nomConducteur', 'r.ordreMission', 'r.departLe', 'r.retourLe')
+                ->select('r.id', 'r.nomConducteur', 'r.typeOm', 'r.ordreMission', 'r.departLe', 'r.retourLe')
                 ->from(Reservation::class, 'r')
                 ->where('r.vehicule = :vehicule AND r.departLe <= :date AND (r.retourLe > :date OR r.retourLe IS NULL)')
                 ->setParameter('vehicule', $saisie->entier('vehicule', 1))

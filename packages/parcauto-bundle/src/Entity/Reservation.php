@@ -48,8 +48,14 @@ class Reservation
         public private(set) \DateTimeImmutable $debut,
         #[ORM\Column]
         public private(set) \DateTimeImmutable $fin,
-        #[ORM\Column(length: 120)]
-        public readonly string $ordreMission,
+        #[ORM\Column(length: 120, nullable: true)]
+        public readonly ?string $ordreMission,
+        #[ORM\Column(length: 10, nullable: true)]
+        public readonly ?string $typeOm = null,
+        #[ORM\Column(length: 255, nullable: true)]
+        public readonly ?string $motif = null,
+        #[ORM\Column(length: 500, nullable: true)]
+        public readonly ?string $destinations = null,
     ) {
         $this->nomConducteur = trim($conducteur->getPrenom().' '.$conducteur->getNom());
     }

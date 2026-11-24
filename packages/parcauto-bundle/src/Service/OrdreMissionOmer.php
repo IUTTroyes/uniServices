@@ -22,7 +22,7 @@ final readonly class OrdreMissionOmer
 
     public function verifier(Reservation $reservation): bool
     {
-        if (!$this->url) {
+        if ($reservation->typeOm === 'permanent' || !$this->url) {
             return false;
         }
         if (parse_url($this->url, PHP_URL_SCHEME) !== 'https' || !$this->jeton) {
@@ -46,7 +46,8 @@ final readonly class OrdreMissionOmer
             throw new \DomainException('La vérification OMER est momentanément indisponible.');
         }
 
-        if (($reponse['valide'] ?? null) !== true || !in_array($reponse['type'] ?? null, ['permanent', 'ponctuel'], true)) {
+        $typesAcceptes = $reservation->typeOm === 'ponctuel' ? ['ponctuel'] : ['permanent', 'ponctuel'];
+        if (($reponse['valide'] ?? null) !== true || !in_array($reponse['type'] ?? null, $typesAcceptes, true)) {
             throw new \DomainException('OMER ne confirme pas un ordre de mission valide pour ce conducteur et ce créneau.');
         }
 

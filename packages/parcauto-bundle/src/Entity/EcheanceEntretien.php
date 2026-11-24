@@ -45,10 +45,10 @@ class EcheanceEntretien
         return $date >= $this->echeance || ($this->echeanceKm !== null && $kilometrage >= $this->echeanceKm);
     }
 
-    public function renouveler(\DateTimeImmutable $date, \DateTimeImmutable $echeance, ?int $echeanceKm): void
+    public function renouveler(\DateTimeImmutable $date, \DateTimeImmutable $echeance, ?int $echeanceKm, ?int $kilometrageControle = null): void
     {
         $this->effectueLe = $date;
-        $this->kilometrageControle = $this->vehicule->kilometrage;
+        $this->kilometrageControle = $kilometrageControle ?? $this->vehicule->kilometrage;
         $this->echeance = $echeance;
         $this->echeanceKm = $echeanceKm;
     }

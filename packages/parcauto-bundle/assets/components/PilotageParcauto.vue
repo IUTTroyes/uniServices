@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue';
 import { addDays, subDays } from 'date-fns';
 import { Card, EmptyState, Kpi, ListSkeleton, ValidatedInput, validationRules, validateField } from '@components';
 import { enregistrerParcautoService, exporterParcautoService, getTableauBordService } from '../service/parcautoService';
+import { libelleOrdreMission } from './ordreMission';
 import { dateHeure, instant, jourLocal, messageErreur } from './parcautoDates';
 
 const props = defineProps({ vehicules: Array });
@@ -105,7 +106,18 @@ onMounted(charger);
         </div>
         <DataTable :value="rapport.vehicules" data-key="immatriculation" paginator :rows="10">
           <template #empty><EmptyState title="Aucun véhicule dans le rapport" icon="pi pi-chart-bar" compact /></template>
-          <Column v-for="[champ, label] in colonnes" :key="champ" :field="champ" :header="label" sortable />
+          <Column v-for="[champ, label] in colonnes" :key="champ" :field="champ" :header="label" sortable>
+            <template #body="{ data }">
+              <span v-if="champ === 'consommation' && data.consommation == null" class="text-sm text-muted-color">
+                <i class="pi pi-info-circle" aria-hidden="true" />
+                Deux pleins avec un kilométrage croissant sont nécessaires sur la période.
+              </span>
+              <span v-else-if="champ === 'alertes' && !data.alertes" class="text-sm text-muted-color">
+                Aucune alerte détectée
+              </span>
+              <template v-else>{{ data[champ] }}</template>
+            </template>
+          </Column>
         </DataTable>
       </template>
     </Card>
@@ -127,7 +139,7 @@ onMounted(charger);
       <EmptyState v-if="resultats && !resultats.length" title="Aucun départ enregistré pour cet instant" icon="pi pi-search" compact />
       <ul v-else-if="resultats" class="grid gap-2">
         <li v-for="mission in resultats" :key="mission.id">
-          <strong>{{ mission.nomConducteur }}</strong> · OM {{ mission.ordreMission }} · {{ dateHeure(mission.departLe) }}
+          <strong>{{ mission.nomConducteur }}</strong> · {{ libelleOrdreMission(mission) }} · {{ dateHeure(mission.departLe) }}
           – {{ mission.retourLe ? dateHeure(mission.retourLe) : 'retour en attente' }}
         </li>
       </ul>

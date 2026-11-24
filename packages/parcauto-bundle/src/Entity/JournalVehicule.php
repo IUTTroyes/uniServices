@@ -41,11 +41,17 @@ class JournalVehicule
         #[ORM\Column(nullable: true)]
         public readonly ?int $volumeMillilitres = null,
         #[ORM\ManyToOne]
-        public readonly ?Equipement $prestataire = null,
+        public private(set) ?Equipement $prestataire = null,
         #[ORM\ManyToOne]
-        public readonly ?Equipement $carte = null,
+        public private(set) ?Equipement $carte = null,
         #[ORM\Column(nullable: true)]
         public readonly ?int $usureDixiemesMm = null,
     ) {
+    }
+
+    public function completerEquipements(Equipement $prestataire, ?Equipement $carte): void
+    {
+        $this->prestataire ??= $prestataire;
+        $this->carte ??= $carte;
     }
 }

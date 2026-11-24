@@ -26,7 +26,9 @@ La recherche d’infraction utilise l’intervalle réel à partir du départ, a
 
 ## OMER
 
-Le connecteur peut appeler une passerelle SI avec `PARCAUTO_OMER_URL` (URL HTTPS complète de vérification) et `PARCAUTO_OMER_TOKEN` (jeton serveur). Le contrat attendu par ParcAuto est un POST JSON portant `reference`, `conducteur` (identifiant UniServices), `debut` et `fin` (ISO 8601). La passerelle doit faire la correspondance d’identité et répondre `{"valide":true,"type":"permanent"}` ou `{"valide":true,"type":"ponctuel"}` si l’ordre couvre la mission. Une réponse invalide ou une panne empêche la validation quand le connecteur est activé. Sans URL configurée, le gestionnaire valide la réservation sur la base de la référence fournie. La réservation distingue ces deux cas.
+Chaque nouvelle demande indique son motif et ses destinations. Si le demandeur déclare que son OM permanent couvre toutes les étapes, le gestionnaire voit cette déclaration et peut valider sans référence ni appel à OMER. Dans les autres cas, la référence d’un OM ponctuel est obligatoire.
+
+Le connecteur peut appeler une passerelle SI avec `PARCAUTO_OMER_URL` (URL HTTPS complète de vérification) et `PARCAUTO_OMER_TOKEN` (jeton serveur). Le contrat attendu par ParcAuto est un POST JSON portant `reference`, `conducteur` (identifiant UniServices), `debut` et `fin` (ISO 8601). Pour les anciennes réservations avec référence, la passerelle peut répondre `{"valide":true,"type":"permanent"}` ou `{"valide":true,"type":"ponctuel"}` si l’ordre couvre la mission. Pour les nouvelles demandes avec référence, seul le type `ponctuel` est accepté. Une réponse invalide ou une panne empêche la validation quand le connecteur est activé. Sans URL configurée, le gestionnaire valide la réservation sur la base de la référence fournie. La réservation distingue ces deux cas.
 
 Ce contrat décrit l’interface côté UniServices. La passerelle réelle, le contrat éditeur, la correspondance des identités et les essais avec OMER restent à valider avec le SI de l’URCA.
 
