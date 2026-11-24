@@ -3,13 +3,12 @@ import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { Card, EmptyState, ListSkeleton, PermissionGuard } from '@components';
 import { hasPermission } from '@utils/permissions';
-import { gestionParcauto } from '../permissions';
 import { champEuros, champLitres, enCentimes, enMillilitres } from './parcautoUnites';
 import FormulaireParcauto from './FormulaireParcauto.vue';
 import { enregistrerParcautoService, getSuiviService } from '../service/parcautoService';
-import { jourLocal, messageErreur } from './parcautoDates';
+import { dateHeure, jourLocal, messageErreur } from './parcautoDates';
 
-const props = defineProps({ vehicules: Array, equipements: Array, gestion: Boolean });
+const props = defineProps({ vehicules: Array, equipements: Array, gestion: Boolean, entretien: Boolean });
 const emit = defineEmits(['actualiser']);
 const route = useRoute();
 const selection = ref(null);
@@ -30,7 +29,8 @@ const choixEquipement = (type) => props.equipements.filter((e) => e.type === typ
 const choixVehicule = computed(() => props.vehicules.map((v) => ({ value: v.id, label: v.libelle + ' · ' + v.immatriculation })));
 const vehicule = computed(() => props.vehicules.find((v) => v.id === selection.value));
 const visibles = computed(() => props.vehicules.filter((v) => `${v.libelle} ${v.site} ${v.immatriculation}`.toLowerCase().includes(filtre.value.toLowerCase())));
-const peutGerer = computed(() => props.gestion && hasPermission(gestionParcauto));
+const peutGerer = computed(() => props.gestion && hasPermission('canManageParcauto'));
+const peutEntretenir = computed(() => props.entretien && hasPermission('canMaintainParcauto'));
 const suiviUrl = computed(() => `/vehicules/${selection.value}`);
 
 const texte = (nom, label, max, requis = true) => ({ nom, label, max, requis });
@@ -43,7 +43,7 @@ const condition = (champ, visible) => ({ ...champ, visible });
 let requete = 0;
 async function chargerSuivi() {
   const version = ++requete;
-  if (!selection.value || !peutGerer.value) return;
+  if (!selection.value || !peutEntretenir.value) return;
   chargement.value = true;
   try {
     const resultat = await getSuiviService(selection.value);
@@ -62,7 +62,7 @@ watch(selection, () => {
 });
 
 watch(() => route.query.vehicule, (id) => {
-  if (peutGerer.value && typeof id === 'string' && props.vehicules.some(v => String(v.id) === id)) {
+  if (peutEntretenir.value && typeof id === 'string' && props.vehicules.some(v => String(v.id) === id)) {
     selection.value = Number(id);
   }
 }, { immediate: true });
@@ -104,11 +104,19 @@ function ouvrirEquipement(item = null) {
     champs, item ?? { actif: true }, Boolean(item));
 }
 
+function champTrajet() {
+  return liste('trajet', 'Trajet lié à l’intervention', [
+    { value: 0, label: 'Sur place, sans trajet' },
+    ...(suivi.value?.trajets ?? []).map(t => ({ value: t.id, label: 'Trajet n° ' + t.id + ' · ' + dateHeure(t.depart) })),
+  ], true);
+}
+
 function ouvrirPlan(plan = null) {
   const champs = [
     { ...liste('type', 'Type de contrôle', options(plans), true), lecture: Boolean(plan) },
     { ...texte('libelle', 'Opération prévue', 150), lecture: Boolean(plan) },
     { ...date('effectueLe', 'Intervention réalisée le', Boolean(plan)), requisSi: (d) => d.type === 'pneus' },
+    condition(champTrajet(), d => Boolean(d.effectueLe)),
     condition(date('echeance', 'Prochaine échéance'), (d) => d.type !== 'pneus' && !(d.intervalleMois && d.effectueLe)),
     condition(nombre('intervalleMois', 'Fréquence en mois', false, 1), (d) => d.type !== 'pneus'),
     nombre('intervalleKm', 'Fréquence en km', false, 1),
@@ -123,6 +131,7 @@ function ouvrirJournal() {
   const champs = [
     liste('type', 'Type de saisie', options(journalTypes), true),
     date('date', 'Date', true),
+    champTrajet(),
     texte('libelle', 'Référence (facture, contrôle, train de pneus ou symptôme)', 255),
     liste('prestataire', 'Prestataire', choixEquipement('prestataire')),
     condition(nombre('kilometrage', 'Kilométrage lors du plein', true), (d) => d.type === 'carburant'),
@@ -164,7 +173,7 @@ async function enregistrer() {
       <template #header-actions>
         <div class="flex flex-wrap gap-2">
           <InputText v-model="filtre" placeholder="Immatriculation, modèle, site" aria-label="Rechercher un véhicule" />
-          <PermissionGuard v-if="gestion" :permission="gestionParcauto">
+          <PermissionGuard v-if="gestion" permission="canManageParcauto">
             <Button label="Ajouter un véhicule" icon="pi pi-plus" @click="ouvrirVehicule()" />
           </PermissionGuard>
         </div>
@@ -179,22 +188,22 @@ async function enregistrer() {
         <Column header="État">
           <template #body="{ data }"><Tag :value="data.blocage || 'Réservable'" :severity="data.blocage ? 'danger' : 'success'" /></template>
         </Column>
-        <Column v-if="peutGerer" header="Actions">
+        <Column v-if="peutEntretenir" header="Actions">
           <template #body="{ data }">
             <div class="flex flex-wrap gap-1">
               <Button label="Suivi" size="small" severity="secondary" text @click="selection = data.id" />
-              <Button label="Modifier" size="small" severity="secondary" text @click="ouvrirVehicule(data)" />
+              <Button v-if="peutGerer" label="Modifier" size="small" severity="secondary" text @click="ouvrirVehicule(data)" />
             </div>
           </template>
         </Column>
       </DataTable>
     </Card>
-    <PermissionGuard v-if="vehicule && gestion" :permission="gestionParcauto">
+    <PermissionGuard v-if="vehicule" :permission="peutEntretenir">
       <Card :title="'Suivi · ' + vehicule.libelle" :subtitle="vehicule.immatriculation" icon="pi pi-wrench">
         <template #header-actions>
           <div class="flex flex-wrap gap-2">
-            <Button label="Ajouter une échéance" size="small" @click="ouvrirPlan()" />
-            <Button label="Ajouter au journal" size="small" severity="secondary" @click="ouvrirJournal" />
+            <Button label="Ajouter une échéance" :disabled="!suivi" size="small" @click="ouvrirPlan()" />
+            <Button label="Ajouter au journal" :disabled="!suivi" size="small" severity="secondary" @click="ouvrirJournal" />
           </div>
         </template>
         <ListSkeleton v-if="chargement" />
@@ -211,6 +220,7 @@ async function enregistrer() {
           <DataTable :value="suivi.journal" data-key="id" paginator :rows="10">
             <template #empty><EmptyState title="Aucune entrée dans le journal" icon="pi pi-list" compact /></template>
             <Column field="date" header="Date" />
+            <Column field="trajet" header="N° de trajet" />
             <Column field="libelle" header="Journal (100 dernières entrées)" />
             <Column header="Type"><template #body="{ data }">{{ journalTypes[data.type] || 'Entretien' }}</template></Column>
             <Column field="prestataire" header="Prestataire" />
@@ -223,9 +233,9 @@ async function enregistrer() {
         </div>
       </Card>
     </PermissionGuard>
-    <Card :title="peutGerer ? 'Prestataires, cartes et bornes' : 'Bornes de recharge URCA'" icon="pi pi-map-marker">
+    <Card :title="peutEntretenir ? 'Prestataires, cartes et bornes' : 'Bornes de recharge URCA'" icon="pi pi-map-marker">
       <template #header-actions>
-        <PermissionGuard v-if="gestion" :permission="gestionParcauto">
+        <PermissionGuard v-if="gestion" permission="canManageParcauto">
           <Button label="Ajouter une fiche" icon="pi pi-plus" @click="ouvrirEquipement()" />
         </PermissionGuard>
       </template>
@@ -248,7 +258,7 @@ async function enregistrer() {
     </Card>
   </div>
 
-  <PermissionGuard v-if="gestion" :permission="gestionParcauto">
+  <PermissionGuard :permission="peutEntretenir">
     <Dialog :visible="Boolean(dialogue)" :header="dialogue?.titre" modal :closable="!sauvegarde"
             :style="{ width: 'min(38rem, 95vw)' }" @update:visible="!$event && (dialogue = null)">
       <FormulaireParcauto v-if="dialogue" v-model="formulaire" :champs="dialogue.champs" :erreur="erreur"

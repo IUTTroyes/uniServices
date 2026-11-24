@@ -56,6 +56,8 @@ class Reservation
         public readonly ?string $motif = null,
         #[ORM\Column(length: 500, nullable: true)]
         public readonly ?string $destinations = null,
+        #[ORM\Column(options: ['default' => false])]
+        public readonly bool $urgence = false,
     ) {
         $this->nomConducteur = trim($conducteur->getPrenom().' '.$conducteur->getNom());
     }
@@ -80,7 +82,7 @@ class Reservation
 
     public function partir(int $kilometrage, \DateTimeImmutable $date): void
     {
-        $this->exigerStatut(self::VALIDEE);
+        $this->exigerStatut($this->urgence ? self::DEMANDEE : self::VALIDEE);
         if ($date < $this->debut || $date >= $this->fin) {
             throw new \DomainException('Le départ doit être saisi pendant le créneau validé.');
         }

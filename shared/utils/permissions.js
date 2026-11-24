@@ -57,6 +57,8 @@ const compositePermissions = {
     'isDirecteurEtudes'
   ],
   canEditAbsences: ['isAbsence'],
+  canManageParcauto: ['isChefServicesAdministratifs', 'isSuperAdmin'],
+  canMaintainParcauto: ['isChefServiceGeneral', 'isChefServicesAdministratifs', 'isSuperAdmin'],
   canManageStages: ['isStage'],
   canManageEdt: ['isEdt'],
   canManageNotes: ['isNote'],

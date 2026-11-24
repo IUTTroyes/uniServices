@@ -384,6 +384,7 @@ export const useUsersStore = defineStore('users', () => {
     const isChefServicesAdministratifs = computed(() => hasRole('ROLE_CHEF_SERVICES_ADMINISTRATIFS'));
     const isDirectionIut = computed(() => isPersonnel.value && IUT_DIRECTION_ROLES.some(role => hasRole(role)));
     const isDirection = computed(() => hasRole('ROLE_DIRECTION'));
+    const isChefServiceGeneral = computed(() => hasRole('ROLE_CHEF_SERVICE_GENERAL'));
     const isChefDepartement = computed(() => hasRole('ROLE_CHEF_DEPARTEMENT'));
     const isRespParcours = computed(() => isResponsableParcours(useSecurity().scopedPermissions?.ROLE_RESP_PARCOURS?.diplomeIds?.[0]));
     const isDirecteurEtudes = computed(() => hasRole('ROLE_DIRECTEUR_ETUDES'));
@@ -441,6 +442,7 @@ export const useUsersStore = defineStore('users', () => {
         isDirecteurIut,
         isDirecteurAdjointIut,
         isChefServicesAdministratifs,
+        isChefServiceGeneral,
         isChefDepartement,
         isRespParcours,
         isResponsableParcours,

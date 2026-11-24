@@ -4,7 +4,6 @@ import { useRoute } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
 import { addDays, differenceInCalendarDays } from 'date-fns';
 import { Card, EmptyState, ListSkeleton, PermissionGuard, ValidatedInput } from '@components';
-import { gestionParcauto } from '../permissions';
 import { champEuros, champLitres, enCentimes, enMillilitres } from './parcautoUnites';
 import FormulaireParcauto from './FormulaireParcauto.vue';
 import { enregistrerParcautoService, getPlanningService } from '../service/parcautoService';
@@ -27,6 +26,7 @@ const dialogue = ref(null);
 const formulaire = ref({});
 const champs = computed(() => {
   switch (dialogue.value?.action) {
+    case 'urgence':
     case 'demander':
       return [
         {
@@ -36,7 +36,9 @@ const champs = computed(() => {
           })),
           optionDisabled: 'disabled',
         },
-        { nom: 'debut', label: 'Départ', type: 'datetime-local', requis: true },
+        dialogue.value.action === 'urgence'
+          ? { nom: 'kilometrage', label: 'Kilométrage au départ', type: 'number', requis: true }
+          : { nom: 'debut', label: 'Départ', type: 'datetime-local', requis: true },
         { nom: 'fin', label: 'Retour prévu', type: 'datetime-local', requis: true },
         {
           nom: 'typeOm', label: 'Votre OM permanent couvre-t-il l’ensemble du déplacement ?', requis: true,
@@ -154,9 +156,9 @@ async function enregistrer() {
   erreur.value = '';
   try {
     const donnees = formulaire.value;
-    if (action === 'demander') {
-      await enregistrerParcautoService('/reservations', {
-        vehicule: donnees.vehicule, debut: instant(donnees.debut), fin: instant(donnees.fin),
+    if (action === 'demander' || action === 'urgence') {
+      await enregistrerParcautoService(action === 'urgence' ? '/urgences' : '/reservations', {
+        vehicule: donnees.vehicule, ...(action === 'urgence' ? { kilometrage: donnees.kilometrage } : { debut: instant(donnees.debut) }), fin: instant(donnees.fin),
         typeOm: donnees.typeOm, motif: donnees.motif, destinations: donnees.destinations,
         ...(donnees.typeOm === 'ponctuel' ? { ordreMission: donnees.ordreMission } : {}),
       });
@@ -210,6 +212,7 @@ watch(periode, () => {
 <template>
   <Card title="Calendrier des réservations" icon="pi pi-calendar">
     <template #header-actions>
+      <Button label="Prendre un véhicule en urgence" severity="warn" @click="ouvrir('urgence')" />
       <Button label="Réserver" icon="pi pi-plus" @click="ouvrir('demander')" />
     </template>
     <RouterLink v-if="reservationCible" :to="{ name: 'parcauto-planning' }" class="mb-4 inline-block text-sm font-semibold text-primary">
@@ -252,11 +255,12 @@ watch(periode, () => {
             <div v-if="mission.destinations" class="text-sm">Destination(s) · {{ mission.destinations }}</div>
           </div>
           <div class="flex flex-wrap items-center gap-2">
+            <Tag v-if="mission.urgence" severity="warn" value="Urgence · sans validation préalable" />
             <Tag :value="statuts[mission.statut][0]" :severity="statuts[mission.statut][1]" />
-            <PermissionGuard v-if="gestion && mission.statut === 'demandee'" :permission="gestionParcauto">
+            <PermissionGuard v-if="gestion && mission.statut === 'demandee'" permission="canManageParcauto">
               <Button label="Valider" size="small" @click="ouvrir('valider', mission)" />
             </PermissionGuard>
-            <PermissionGuard :permission="mission.proprietaire">
+            <PermissionGuard :permission="mission.proprietaire || (gestion && 'canManageParcauto')">
               <Button v-if="mission.statut === 'validee'" label="Départ" size="small" @click="ouvrir('depart', mission)" />
               <template v-if="mission.statut === 'en_cours'">
                 <Button label="Déclarer un plein" size="small" severity="secondary" @click="ouvrir('carburant', mission)" />
@@ -265,7 +269,7 @@ watch(periode, () => {
               <Button v-if="mission.statut === 'en_cours'" label="Retour" size="small" @click="ouvrir('retour', mission)" />
             </PermissionGuard>
             <PermissionGuard v-if="(mission.proprietaire || gestion) && ['demandee', 'validee'].includes(mission.statut)"
-                             :permission="mission.proprietaire || gestionParcauto">
+                             :permission="mission.proprietaire || 'canManageParcauto'">
               <Button label="Annuler" size="small" severity="secondary" text @click="ouvrir('annuler', mission)" />
             </PermissionGuard>
           </div>
@@ -275,7 +279,7 @@ watch(periode, () => {
   </Card>
 
   <Dialog :visible="Boolean(dialogue)" modal :closable="!sauvegarde" :dismissable-mask="false" :style="{ width: 'min(34rem, 95vw)' }"
-          :header="{ demander: 'Demander une réservation', valider: 'Valider la réservation', annuler: 'Annuler la réservation', depart: 'Enregistrer le départ', retour: 'Enregistrer le retour', carburant: 'Déclarer un plein', incident: 'Signaler un incident mécanique' }[dialogue?.action]"
+          :header="{ urgence: 'Départ immédiat en urgence', demander: 'Demander une réservation', valider: 'Valider la réservation', annuler: 'Annuler la réservation', depart: 'Enregistrer le départ', retour: 'Enregistrer le retour', carburant: 'Déclarer un plein', incident: 'Signaler un incident mécanique' }[dialogue?.action]"
           @update:visible="!$event && (dialogue = null)">
     <FormulaireParcauto v-if="dialogue" :key="dialogue.action" v-model="formulaire" :champs="champs"
                         :erreur="erreur" :sauvegarde="sauvegarde" libelle-action="Confirmer" @submit="enregistrer">

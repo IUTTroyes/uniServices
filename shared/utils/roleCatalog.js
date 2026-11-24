@@ -5,6 +5,7 @@ export const  AVAILABLE_ROLES = [
   { property: 'isDirecteurIut', label: 'Directeur de l’IUT', role: 'ROLE_DIRECTEUR_IUT', scope: 'departement' },
   { property: 'isDirecteurAdjointIut', label: 'Directeur adjoint de l’IUT', role: 'ROLE_DIRECTEUR_ADJOINT_IUT', scope: 'departement' },
   { property: 'isChefServicesAdministratifs', label: 'Chef des services administratifs', role: 'ROLE_CHEF_SERVICES_ADMINISTRATIFS', scope: 'departement' },
+  { property: 'isChefServiceGeneral', label: 'Responsable du service général', role: 'ROLE_CHEF_SERVICE_GENERAL', scope: 'departement' },
   { property: 'isChefDepartement', label: 'Chef de département', role: 'ROLE_CHEF_DEPARTEMENT', scope: 'departement' },
   { property: 'isDirecteurEtudes', label: 'Directeur des études', role: 'ROLE_DIRECTEUR_ETUDES', scope: 'departement' },
   { property: 'isRespParcours', label: 'Responsable de parcours', role: 'ROLE_RESP_PARCOURS', scope: 'diplome' },

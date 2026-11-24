@@ -10,6 +10,7 @@ class CorePermissionProvider implements PermissionProviderInterface
             new PermissionDefinition('institution.directeur', 'ROLE_DIRECTEUR_IUT', 'Directeur de l’IUT', 'intranet', []),
             new PermissionDefinition('institution.directeur_adjoint', 'ROLE_DIRECTEUR_ADJOINT_IUT', 'Directeur adjoint de l’IUT', 'intranet', []),
             new PermissionDefinition('institution.chef_services', 'ROLE_CHEF_SERVICES_ADMINISTRATIFS', 'Chef des services administratifs', 'intranet', []),
+            new PermissionDefinition('institution.chef_service_general', 'ROLE_CHEF_SERVICE_GENERAL', 'Responsable du service général', 'intranet', []),
             new PermissionDefinition('intranet.super_admin', 'SUPER_ADMIN', 'Super Administrateur', 'intranet', []),
             new PermissionDefinition('intranet.admin', 'ROLE_ADMIN', 'Administrateur', 'intranet', [
                 'ROLE_DIRECTION',

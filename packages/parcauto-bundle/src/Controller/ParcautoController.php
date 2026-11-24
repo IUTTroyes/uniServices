@@ -6,6 +6,7 @@ namespace ParcautoBundle\Controller;
 
 use App\AnneeUniversitaire\ContexteAnnuel;
 use App\Entity\Users\Personnel;
+use App\Security\UserEffectivePermissionService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
@@ -37,6 +38,7 @@ final class ParcautoController extends AbstractController
         private readonly PlanningParcauto $planning,
         private readonly GestionParcauto $gestion,
         private readonly OrdreMissionOmer $omer,
+        private readonly UserEffectivePermissionService $permissions,
     ) {
     }
 
@@ -44,6 +46,7 @@ final class ParcautoController extends AbstractController
     public function parc(): JsonResponse
     {
         $gestion = $this->isGranted(ParcautoVoter::GESTION);
+        $entretien = $this->isGranted(ParcautoVoter::ENTRETIEN);
         $maintenant = SaisieParcauto::maintenant();
         $vehicules = [];
         $plans = $this->planning->echeancesParVehicule();
@@ -67,12 +70,13 @@ final class ParcautoController extends AbstractController
         }
 
         $equipements = $this->em->getRepository(Equipement::class)->findBy(
-            $gestion ? [] : ['type' => Equipement::BORNE, 'actif' => true],
+            $gestion ? [] : ($entretien ? ['actif' => true] : ['type' => Equipement::BORNE, 'actif' => true]),
             ['libelle' => 'ASC'],
         );
 
         return $this->json([
             'gestion' => $gestion,
+            'entretien' => $entretien,
             'vehicules' => $vehicules,
             'equipements' => array_map(static fn (Equipement $e) => [
                 'id' => $e->id, 'type' => $e->type, 'reference' => $e->reference, 'libelle' => $e->libelle,
@@ -175,6 +179,7 @@ final class ParcautoController extends AbstractController
             'proprietaire' => $proprietaire,
             'enCours' => $reservation->statut === Reservation::EN_COURS,
         ] + ($visible ? [
+            'urgence' => $reservation->urgence,
             'nomConducteur' => $reservation->nomConducteur,
             'ordreMission' => $reservation->ordreMission,
             'ordreVerifie' => $reservation->ordreVerifie,
@@ -187,13 +192,16 @@ final class ParcautoController extends AbstractController
     }
 
     #[Route('/reservations', name: 'demander', methods: ['POST'])]
+    #[Route('/urgences', name: 'urgence', methods: ['POST'])]
     public function demander(Request $request): JsonResponse
     {
-        return $this->ecrire($request, function (SaisieParcauto $saisie): Reservation {
+        $urgence = $request->attributes->get('_route') === 'parcauto_urgence';
+
+        return $this->ecrire($request, function (SaisieParcauto $saisie) use ($urgence): Reservation {
             $vehicule = $this->vehiculeVerrouille($saisie->entier('vehicule', 1));
-            $debut = $saisie->date('debut');
+            $debut = $urgence ? SaisieParcauto::maintenant() : $saisie->date('debut');
             $fin = $saisie->date('fin');
-            if ($debut <= SaisieParcauto::maintenant() || $fin <= $debut || $fin > $debut->modify('+31 days')) {
+            if ((!$urgence && $debut <= SaisieParcauto::maintenant()) || $fin <= $debut || $fin > $debut->modify('+31 days')) {
                 throw new \InvalidArgumentException('Saisissez un créneau à venir de 31 jours maximum.');
             }
 
@@ -202,17 +210,25 @@ final class ParcautoController extends AbstractController
             $motif = $saisie->texte('motif', 255);
             $destinations = $saisie->texte('destinations', 500);
             $ordreMission = $typeOm === 'ponctuel' ? $saisie->texte('ordreMission', 120) : null;
+            $validationAutomatique = !$urgence && $this->permissions->hasPermission($conducteur, 'ROLE_DIRECTION');
             $existante = $this->em->getRepository(Reservation::class)->findOneBy([
                 'vehicule' => $vehicule, 'conducteur' => $conducteur, 'debut' => $debut, 'fin' => $fin,
                 'typeOm' => $typeOm, 'motif' => $motif, 'destinations' => $destinations,
-                'ordreMission' => $ordreMission, 'statut' => Reservation::DEMANDEE,
+                'ordreMission' => $ordreMission, 'urgence' => false,
+                'statut' => [Reservation::DEMANDEE, Reservation::VALIDEE],
             ]);
-            if ($existante !== null) {
+            if (!$urgence && $existante !== null && (!$validationAutomatique || $existante->statut === Reservation::VALIDEE)) {
                 return $existante;
             }
 
-            $reservation = new Reservation($vehicule, $conducteur, $debut, $fin, $ordreMission, $typeOm, $motif, $destinations);
-            $this->planning->verifierDisponibilite($reservation);
+            $reservation = (!$urgence ? $existante : null) ?? new Reservation($vehicule, $conducteur, $debut, $fin, $ordreMission, $typeOm, $motif, $destinations, $urgence);
+            $kilometrage = $urgence ? $saisie->entier('kilometrage') : null;
+            $this->planning->verifierDisponibilite($reservation, $kilometrage);
+            if ($urgence) {
+                $reservation->partir($kilometrage, $debut);
+            } elseif ($validationAutomatique) {
+                $reservation->valider($this->omer->verifier($reservation));
+            }
             $this->em->persist($reservation);
 
             return $reservation;
@@ -226,9 +242,10 @@ final class ParcautoController extends AbstractController
 
         return $this->ecrire($request, function (SaisieParcauto $saisie) use ($id, $action, $vehiculeId): Reservation {
             $reservation = $this->missionVerrouillee($id, $vehiculeId);
-            $attribut = $action === 'valider' ? ParcautoVoter::GESTION : ParcautoVoter::MISSION;
-            if ($action !== 'annuler' || !$this->isGranted(ParcautoVoter::GESTION)) {
-                $this->denyAccessUnlessGranted($attribut, $reservation);
+            if ($action === 'valider') {
+                $this->denyAccessUnlessGranted(ParcautoVoter::GESTION);
+            } elseif (!$this->isGranted(ParcautoVoter::GESTION)) {
+                $this->denyAccessUnlessGranted(ParcautoVoter::MISSION, $reservation);
             }
 
             $maintenant = SaisieParcauto::maintenant();
@@ -267,14 +284,21 @@ final class ParcautoController extends AbstractController
     }
 
     #[Route('/vehicules/{id<\d+>}/suivi', name: 'suivi', methods: ['GET'])]
-    #[IsGranted(ParcautoVoter::GESTION)]
+    #[IsGranted(ParcautoVoter::ENTRETIEN)]
     public function suivi(int $id): JsonResponse
     {
         $vehicule = $this->em->find(Vehicule::class, $id) ?? throw $this->createNotFoundException();
         $echeances = $this->em->getRepository(EcheanceEntretien::class)->findBy(['vehicule' => $vehicule], ['echeance' => 'ASC']);
         $journal = $this->em->getRepository(JournalVehicule::class)->findBy(['vehicule' => $vehicule], ['date' => 'DESC', 'id' => 'DESC'], 100);
 
+        $trajets = $this->em->getRepository(Reservation::class)->findBy([
+            'vehicule' => $vehicule, 'statut' => [Reservation::EN_COURS, Reservation::TERMINEE],
+        ], ['departLe' => 'DESC']);
+
         return $this->json([
+            'trajets' => array_map(static fn (Reservation $r) => [
+                'id' => $r->id, 'depart' => $r->departLe->format(DATE_ATOM),
+            ], $trajets),
             'echeances' => array_map(fn (EcheanceEntretien $e) => [
                 'id' => $e->id, 'type' => $e->type, 'libelle' => $e->libelle,
                 'echeance' => $this->jour($e->echeance), 'echeanceKm' => $e->echeanceKm,
@@ -282,7 +306,7 @@ final class ParcautoController extends AbstractController
                 'intervalleKm' => $e->intervalleKm,
             ], $echeances),
             'journal' => array_map(fn (JournalVehicule $j) => [
-                'id' => $j->id, 'type' => $j->type, 'libelle' => $j->libelle, 'date' => $this->jour($j->date),
+                'id' => $j->id, 'trajet' => $j->reservation?->id, 'type' => $j->type, 'libelle' => $j->libelle, 'date' => $this->jour($j->date),
                 'kilometrage' => $j->kilometrage, 'montantCentimes' => $j->montantCentimes,
                 'volumeMillilitres' => $j->volumeMillilitres, 'usureDixiemesMm' => $j->usureDixiemesMm,
                 'prestataire' => $j->prestataire?->libelle, 'carte' => $j->carte?->reference,
@@ -292,7 +316,7 @@ final class ParcautoController extends AbstractController
 
     #[Route('/vehicules/{id<\d+>}/echeances', name: 'echeance_creer', methods: ['POST'])]
     #[Route('/vehicules/{id<\d+>}/echeances/{planId<\d+>}', name: 'echeance_renouveler', methods: ['PUT'])]
-    #[IsGranted(ParcautoVoter::GESTION)]
+    #[IsGranted(ParcautoVoter::ENTRETIEN)]
     public function echeance(int $id, Request $request, ?int $planId = null): JsonResponse
     {
         return $this->ecrire($request, function (SaisieParcauto $saisie) use ($id, $planId): EcheanceEntretien {
@@ -307,7 +331,7 @@ final class ParcautoController extends AbstractController
     }
 
     #[Route('/vehicules/{id<\d+>}/journal', name: 'journal', methods: ['POST'])]
-    #[IsGranted(ParcautoVoter::GESTION)]
+    #[IsGranted(ParcautoVoter::ENTRETIEN)]
     public function journal(int $id, Request $request): JsonResponse
     {
         return $this->ecrire($request, fn (SaisieParcauto $saisie) =>
@@ -389,7 +413,9 @@ final class ParcautoController extends AbstractController
 
         return $this->ecrire($request, function (SaisieParcauto $saisie) use ($id, $vehiculeId): JournalVehicule {
             $reservation = $this->missionVerrouillee($id, $vehiculeId);
-            $this->denyAccessUnlessGranted(ParcautoVoter::MISSION, $reservation);
+            if (!$this->isGranted(ParcautoVoter::GESTION)) {
+                $this->denyAccessUnlessGranted(ParcautoVoter::MISSION, $reservation);
+            }
 
             return $this->gestion->journal($reservation->vehicule, $this->personnel(), $saisie, $reservation);
         }, 201);

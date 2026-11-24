@@ -94,7 +94,7 @@ final readonly class GestionParcauto
         if ($date !== null) {
             $plan->renouveler($date, $echeance, $echeanceKm);
             $prestataire = $this->equipement($saisie->entier('prestataire', 1, true), Equipement::PRESTATAIRE);
-            $this->em->persist(new JournalVehicule($vehicule, $auteur, JournalVehicule::ENTRETIEN, $date, $libelle, $vehicule->kilometrage, prestataire: $prestataire));
+            $this->em->persist(new JournalVehicule($vehicule, $auteur, JournalVehicule::ENTRETIEN, $date, $libelle, $vehicule->kilometrage, prestataire: $prestataire, reservation: $this->trajetIntervention($vehicule, $saisie, $date)));
         }
 
         return $plan;
@@ -160,10 +160,30 @@ final readonly class GestionParcauto
                 break;
         }
 
-        $entree = new JournalVehicule($vehicule, $auteur, $type, $date, $libelle, $kilometrage, $montant, $volume, $prestataire, $carte, $usure);
+        $entree = new JournalVehicule($vehicule, $auteur, $type, $date, $libelle, $kilometrage, $montant, $volume, $prestataire, $carte, $usure,
+            $mission ?? $this->trajetIntervention($vehicule, $saisie, $date));
         $this->em->persist($entree);
 
         return $entree;
+    }
+
+    private function trajetIntervention(Vehicule $vehicule, SaisieParcauto $saisie, \DateTimeImmutable $date): ?Reservation
+    {
+        // La valeur zéro représente une intervention réalisée sur place.
+        $id = $saisie->entier('trajet');
+        if ($id === 0) {
+            return null;
+        }
+
+        $trajet = $this->em->getRepository(Reservation::class)->findOneBy(['id' => $id, 'vehicule' => $vehicule]);
+        $zone = new \DateTimeZone('Europe/Paris');
+        $jour = $date->setTimezone($zone)->format('Y-m-d');
+        if ($trajet?->departLe === null || $jour < $trajet->departLe->setTimezone($zone)->format('Y-m-d')
+            || $jour > ($trajet->retourLe ?? SaisieParcauto::maintenant())->setTimezone($zone)->format('Y-m-d')) {
+            throw new \InvalidArgumentException('Choisissez un trajet de ce véhicule couvrant la date de l’intervention.');
+        }
+
+        return $trajet;
     }
 
     public function equipement(?int $id, string $type): ?Equipement

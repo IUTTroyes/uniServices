@@ -46,6 +46,8 @@ class JournalVehicule
         public private(set) ?Equipement $carte = null,
         #[ORM\Column(nullable: true)]
         public readonly ?int $usureDixiemesMm = null,
+        #[ORM\ManyToOne]
+        public readonly ?Reservation $reservation = null,
     ) {
     }
 

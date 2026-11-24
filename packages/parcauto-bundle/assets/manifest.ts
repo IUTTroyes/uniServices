@@ -1,11 +1,10 @@
 import AppLayout from '@components/components/layout/AppLayout.vue';
 
-import { gestionParcauto } from './permissions';
 
 const pages = [
   { path: 'planning', name: 'parcauto-planning', label: 'Réservations', icon: 'pi pi-calendar' },
   { path: 'vehicules', name: 'parcauto-vehicules', label: 'Véhicules et équipements', icon: 'pi pi-car' },
-  { path: 'pilotage', name: 'parcauto-pilotage', label: 'Pilotage', icon: 'pi pi-chart-bar', permission: gestionParcauto },
+  { path: 'pilotage', name: 'parcauto-pilotage', label: 'Pilotage', icon: 'pi pi-chart-bar', permission: 'canManageParcauto' },
 ];
 
 export default {

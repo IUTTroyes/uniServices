@@ -31,6 +31,7 @@ function lien(reservation) {
         <RouterLink :to="lien(reservation)" class="flex items-center justify-between gap-3 py-3 hover:text-primary">
           <div>
             <div class="font-semibold">{{ vehicules.get(reservation.vehicule)?.libelle }} · {{ vehicules.get(reservation.vehicule)?.immatriculation }}</div>
+            <Tag v-if="reservation.urgence" severity="warn" value="Urgence · sans validation préalable" />
             <div class="text-sm text-muted-color">
               <span v-if="gestion">{{ reservation.nomConducteur }} · </span>
               {{ reservation.enCours ? 'Retour prévu ' + dateHeure(reservation.fin) : dateHeure(reservation.debut) + ' – ' + dateHeure(reservation.fin) }}

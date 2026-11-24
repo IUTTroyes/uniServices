@@ -12,7 +12,7 @@ Le tableau de bord affiche les demandes personnelles, les départs confirmés et
 | Gestionnaire | Valider et annuler les demandes, gérer les fiches et les échéances, consulter le journal, identifier le conducteur d’une mission, accéder au pilotage et exporter. |
 | Super administrateur | Mêmes droits de gestion. |
 
-L’activation du paquet `parcauto` sur l’affectation active donne accès au profil demandeur. Le rôle `ROLE_PARCAUTO_GESTION` figure dans le registre de permissions du paquet `parcauto`. Il s’attribue sur l’affectation active via le système de droits UniServices. Les créneaux des autres conducteurs restent anonymes pour le personnel. Les informations des permis restent dans OMER.
+L’activation du paquet `parcauto` sur l’affectation active donne accès au profil demandeur. Le chef des services administratifs gère le parc. Le responsable du service général tient le journal et les échéances d’entretien. Ces responsabilités sont attribuées via les rôles institutionnels de l’intranet. Les créneaux des autres conducteurs restent anonymes pour le personnel. Les informations des permis restent dans OMER.
 
 ## Paramétrage et exploitation
 

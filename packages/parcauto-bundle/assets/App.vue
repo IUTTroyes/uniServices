@@ -1,7 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { ActionButtonVertical, Card, EmptyState, HeaderComponent, Kpi, ListSkeleton, PermissionGuard } from '@components';
-import { gestionParcauto } from './permissions';
 import ReservationsAccueil from './components/ReservationsAccueil.vue';
 import { messageErreur } from './components/parcautoDates';
 import { getAccueilService, getParcService } from './service/parcautoService';
@@ -56,7 +55,7 @@ onMounted(charger);
   <Message v-if="erreur" severity="error">{{ erreur }}</Message>
   <ListSkeleton v-if="!accueil && chargement" />
   <div v-if="accueil" class="grid gap-5">
-    <PermissionGuard :permission="Boolean(gestion) && gestionParcauto" show-fallback>
+    <PermissionGuard :permission="Boolean(gestion) && 'canManageParcauto'" show-fallback>
       <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi label="Demandes à valider" :value="accueil.reservations.aValider.total" icon="pi pi-calendar-plus" color="amber" />
         <Kpi label="Retours en retard" :value="accueil.reservations.retoursEnRetard.total" icon="pi pi-clock" color="red" />

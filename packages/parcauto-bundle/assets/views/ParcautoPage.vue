@@ -5,7 +5,6 @@ import GestionParcauto from '../components/GestionParcauto.vue';
 import PilotageParcauto from '../components/PilotageParcauto.vue';
 import PlanningParcauto from '../components/PlanningParcauto.vue';
 import { messageErreur } from '../components/parcautoDates';
-import { gestionParcauto } from '../permissions';
 import { getParcService } from '../service/parcautoService';
 
 defineProps({ page: String, titre: String, icon: String });
@@ -39,7 +38,7 @@ onMounted(charger);
   <template v-if="parc">
     <PlanningParcauto v-if="page === 'planning'" :vehicules="parc.vehicules" :gestion="parc.gestion" @actualiser="charger" />
     <GestionParcauto v-else-if="page === 'vehicules'" v-bind="parc" @actualiser="charger" />
-    <PermissionGuard v-else :permission="parc.gestion && gestionParcauto" show-fallback>
+    <PermissionGuard v-else :permission="parc.gestion && 'canManageParcauto'" show-fallback>
       <PilotageParcauto :vehicules="parc.vehicules" />
       <template #fallback>
         <Message severity="warn">L’accès au pilotage est réservé aux gestionnaires du parc.</Message>
