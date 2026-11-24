@@ -33,6 +33,16 @@ final readonly class SaisieParcauto
         return $valeur;
     }
 
+    public function details(string $champ): self
+    {
+        $details = $this->valeurs[$champ] ?? null;
+        if (!is_array($details)) {
+            throw new \InvalidArgumentException("Renseignez les détails du champ $champ.");
+        }
+
+        return new self($details);
+    }
+
     public function booleen(string $champ): bool
     {
         $valeur = $this->valeurs[$champ] ?? null;

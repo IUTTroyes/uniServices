@@ -17,6 +17,8 @@ final class ParcautoVoter extends Voter
     public const ACCES = 'PARCAUTO_ACCES';
     public const GESTION = 'PARCAUTO_GESTION';
     public const ENTRETIEN = 'PARCAUTO_ENTRETIEN';
+    public const ARBITRAGE = 'PARCAUTO_ARBITRAGE';
+    public const DECIDER = 'PARCAUTO_DECIDER';
     public const MISSION = 'PARCAUTO_MISSION';
 
     public function __construct(private readonly UserEffectivePermissionService $permissions, private readonly UserPackageResolver $packages)
@@ -25,8 +27,8 @@ final class ParcautoVoter extends Voter
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return in_array($attribute, [self::ACCES, self::GESTION, self::ENTRETIEN], true)
-            || ($attribute === self::MISSION && $subject instanceof Reservation);
+        return in_array($attribute, [self::ACCES, self::GESTION, self::ENTRETIEN, self::ARBITRAGE], true)
+            || (in_array($attribute, [self::MISSION, self::DECIDER], true) && $subject instanceof Reservation);
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
@@ -42,6 +44,26 @@ final class ParcautoVoter extends Voter
 
         if (!$this->packages->hasPackage($user, 'parcauto')) {
             return false;
+        }
+
+        if ($attribute === self::ARBITRAGE) {
+            return $this->permissions->isSuperAdmin($user) || $this->permissions->hasAnyPermission($user, [
+                'ROLE_DIRECTEUR_IUT', 'ROLE_CHEF_SERVICES_ADMINISTRATIFS',
+            ]);
+        }
+
+        if ($attribute === self::DECIDER) {
+            if ($subject->statut !== Reservation::DEMANDEE) {
+                return false;
+            }
+            if ($this->permissions->isSuperAdmin($user)) {
+                return true;
+            }
+            if ($this->permissions->isTeacher($subject->conducteur) && !$this->permissions->isBiatss($subject->conducteur)) {
+                return $this->permissions->hasPermission($user, 'ROLE_DIRECTEUR_IUT');
+            }
+
+            return $this->permissions->hasPermission($user, 'ROLE_CHEF_SERVICES_ADMINISTRATIFS');
         }
 
         return $attribute === self::ACCES

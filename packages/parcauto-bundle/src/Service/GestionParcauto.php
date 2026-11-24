@@ -47,8 +47,8 @@ final readonly class GestionParcauto
             );
             $this->em->persist($vehicule);
         } else {
-            if ($actif && !$vehicule->actif) {
-                throw new \DomainException('Enregistrez une remise en service après contrôle.');
+            if ($actif !== $vehicule->actif) {
+                throw new \DomainException('Modifiez la disponibilité depuis le journal en indiquant le motif.');
             }
             $vehicule->modifier($libelle, $site, $energie, $actif);
         }
@@ -118,7 +118,7 @@ final readonly class GestionParcauto
         }
         $type = $mission === null
             ? $this->codeReferentiel('journal', $saisie->texte('type', 25))
-            : $saisie->choix('type', [JournalVehicule::CARBURANT, JournalVehicule::INCIDENT]);
+            : $saisie->choix('type', [JournalVehicule::CARBURANT, JournalVehicule::INCIDENT, JournalVehicule::TELEPEAGE]);
         $date = $mission !== null ? SaisieParcauto::maintenant() : $saisie->date('date');
         if ($date > SaisieParcauto::maintenant()) {
             throw new \InvalidArgumentException('La date doit être passée.');
@@ -130,6 +130,9 @@ final readonly class GestionParcauto
         $volume = null;
         $carte = null;
         $usure = null;
+        $pass = null;
+        $numeroFacture = $saisie->texte('numeroFacture', 120, true);
+
 
         switch ($type) {
             case JournalVehicule::CARBURANT:
@@ -143,6 +146,13 @@ final readonly class GestionParcauto
                 if ($kilometrage > $vehicule->kilometrage) {
                     $vehicule->releverKilometrage($kilometrage);
                 }
+                break;
+            case JournalVehicule::TELEPEAGE:
+                $pass = $this->equipement($saisie->entier('pass', 1, true), Equipement::PASS);
+                if ($pass?->vehicule !== null && $pass->vehicule->id !== $vehicule->id) {
+                    throw new \DomainException('Ce pass est affecté à un autre véhicule.');
+                }
+                $montant = $saisie->entier('montantCentimes', 0, true);
                 break;
             case JournalVehicule::FACTURE:
                 if ($prestataire === null) {
@@ -158,16 +168,18 @@ final readonly class GestionParcauto
             case JournalVehicule::REMPLACEMENT_PNEUS:
                 $kilometrage = $vehicule->kilometrage;
                 break;
+            case JournalVehicule::HORS_SERVICE:
             case JournalVehicule::REMISE_SERVICE:
-                if ($vehicule->actif || $prestataire === null) {
-                    throw new \DomainException('La remise en service exige un véhicule à l’arrêt et un centre de contrôle enregistré.');
+                $enService = $type === JournalVehicule::REMISE_SERVICE;
+                if ($vehicule->actif === $enService) {
+                    throw new \DomainException('Le véhicule est déjà dans cet état.');
                 }
-                $vehicule->modifier($vehicule->libelle, $vehicule->site, $vehicule->energie, true);
+                $vehicule->modifier($vehicule->libelle, $vehicule->site, $vehicule->energie, $enService);
                 break;
         }
 
         $entree = new JournalVehicule($vehicule, $auteur, $type, $date, $libelle, $kilometrage, $montant, $volume, $prestataire, $carte, $usure,
-            $mission ?? $this->trajetIntervention($vehicule, $saisie, $date));
+            $mission ?? $this->trajetIntervention($vehicule, $saisie, $date), $pass, $numeroFacture === '' ? null : $numeroFacture);
         $this->em->persist($entree);
 
         return $entree;

@@ -82,7 +82,7 @@ function ouvrirVehicule(item = null) {
     nombre('reformeKm', 'Kilométrage cible de réforme', false, 1),
     { nom: 'achatEuros', label: 'Prix d’achat (€)', ...champEuros },
     nombre('consommationReference', 'Consommation de référence (dixièmes de L/100 km)', false, 1),
-    { ...actif, lecture: item?.actif === false },
+    { ...actif, lecture: Boolean(item) },
   ];
   ouvrir(item ? 'Modifier le véhicule' : 'Ajouter un véhicule', item ? `/vehicules/${item.id}` : '/vehicules',
     champs, item ? { ...item, achatEuros: item.achatCentimes == null ? null : item.achatCentimes / 100 } : { actif: true }, Boolean(item));
@@ -94,7 +94,7 @@ function ouvrirEquipement(item = null) {
     { ...texte('reference', 'Référence interne (sans numéro complet de carte)', 120), lecture: Boolean(item) },
     texte('libelle', 'Nom', 150),
     texte('coordonnees', 'Site, adresse ou coordonnées', 255, false),
-    condition(liste('vehicule', 'Affectation (vide pour une carte volante)', choixVehicule.value), (d) => d.type === 'carte'),
+    condition(liste('vehicule', 'Affectation (vide pour un équipement partagé)', choixVehicule.value), (d) => ['carte', 'pass_telepeage'].includes(d.type)),
     actif,
   ];
   ouvrir(item ? 'Modifier la fiche' : 'Ajouter une fiche', item ? `/equipements/${item.id}` : '/equipements',
@@ -125,19 +125,30 @@ function ouvrirPlan(plan = null) {
 }
 
 function ouvrirJournal() {
+  const changementEtat = d => ['hors_service', 'remise_service'].includes(d.type);
+  const types = options('journal').filter(option => option.value !== (vehicule.value.actif ? 'remise_service' : 'hors_service'));
   const champs = [
-    liste('type', 'Type de saisie', options('journal'), true),
+    liste('type', 'Type de saisie', types, true),
     date('date', 'Date', true),
     champTrajet(),
-    texte('libelle', 'Référence (facture, contrôle, train de pneus ou symptôme)', 255),
+    condition(texte('libelle', 'Motif du changement de disponibilité', 255), changementEtat),
+    condition(texte('libelle', 'Référence (facture, contrôle, train de pneus ou symptôme)', 255), d => !changementEtat(d)),
     liste('prestataire', 'Prestataire', choixEquipement('prestataire')),
     condition(nombre('kilometrage', 'Kilométrage lors du plein', true), (d) => d.type === 'carburant'),
     condition({ nom: 'litres', label: 'Volume (L)', requis: true, ...champLitres }, (d) => d.type === 'carburant'),
+    condition(liste('pass', 'Pass utilisé', choixEquipement('pass_telepeage')), d => d.type === 'telepeage'),
+    condition(texte('numeroFacture', 'N° de facture ou de ticket', 120, false), d => ['telepeage', 'carburant'].includes(d.type)),
     condition(liste('carte', 'Carte carburant', choixEquipement('carte')), (d) => d.type === 'carburant'),
-    condition({ nom: 'euros', label: 'Montant (€)', requis: true, ...champEuros }, (d) => ['carburant', 'facture'].includes(d.type)),
+    condition({ nom: 'euros', label: 'Montant (€)', requisSi: d => d.type !== 'telepeage', ...champEuros }, (d) => ['carburant', 'facture', 'telepeage'].includes(d.type)),
     condition(nombre('usureDixiemesMm', 'Profondeur restante (dixièmes de mm)', true), (d) => d.type === 'pneus'),
   ];
   ouvrir('Ajouter au journal', suiviUrl.value + '/journal', champs, { date: jourLocal() });
+}
+
+function ouvrirFacturation(entree) {
+  ouvrir('Facturation du télépéage', suiviUrl.value + '/journal/' + entree.id + '/facturation',
+    [texte('numeroFacture', 'N° de facture', 120, false), { nom: 'euros', label: 'Montant (€)', ...champEuros }],
+    { numeroFacture: entree.numeroFacture, euros: entree.montantCentimes == null ? null : entree.montantCentimes / 100 }, true);
 }
 
 async function enregistrer() {
@@ -222,6 +233,11 @@ async function enregistrer() {
             <Column header="Type"><template #body="{ data }">{{ libelle('journal', data.type) }}</template></Column>
             <Column field="prestataire" header="Prestataire" />
             <Column field="carte" header="Carte" />
+            <Column field="pass" header="Pass" />
+            <Column field="numeroFacture" header="N° de facture / ticket" />
+            <Column header="Facturation"><template #body="{ data }">
+              <Button v-if="data.type === 'telepeage'" label="Renseigner" text size="small" @click="ouvrirFacturation(data)" />
+            </template></Column>
             <Column field="kilometrage" header="Km" />
             <Column header="Montant (€)"><template #body="{ data }">{{ data.montantCentimes === null ? '' : data.montantCentimes / 100 }}</template></Column>
             <Column header="Volume (L)"><template #body="{ data }">{{ data.volumeMillilitres === null ? '' : data.volumeMillilitres / 1000 }}</template></Column>
@@ -230,7 +246,7 @@ async function enregistrer() {
         </div>
       </Card>
     </PermissionGuard>
-    <Card :title="peutEntretenir ? 'Prestataires, cartes et bornes' : 'Bornes de recharge URCA'" icon="pi pi-map-marker">
+    <Card :title="peutEntretenir ? 'Prestataires, cartes, pass et bornes' : 'Bornes de recharge URCA'" icon="pi pi-map-marker">
       <template #header-actions>
         <PermissionGuard v-if="gestion" permission="canManageParcauto">
           <Button label="Ajouter une fiche" icon="pi pi-plus" @click="ouvrirEquipement()" />
@@ -243,7 +259,7 @@ async function enregistrer() {
         <Column field="coordonnees" header="Site ou coordonnées" />
         <Column v-if="peutGerer" field="reference" header="Référence" />
         <Column v-if="peutGerer" header="Affectation">
-          <template #body="{ data }">{{ data.type === 'carte' ? (choixVehicule.find((v) => v.value === data.vehicule)?.label || 'Volante') : '' }}</template>
+          <template #body="{ data }">{{ ['carte', 'pass_telepeage'].includes(data.type) ? (choixVehicule.find((v) => v.value === data.vehicule)?.label || 'Partagé') : '' }}</template>
         </Column>
         <Column v-if="peutGerer" header="État">
           <template #body="{ data }"><Tag :value="data.actif ? 'Actif' : 'Inactif'" :severity="data.actif ? 'success' : 'secondary'" /></template>

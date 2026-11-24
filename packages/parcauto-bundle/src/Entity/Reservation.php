@@ -16,6 +16,11 @@ class Reservation
     public const VALIDEE = 'validee';
     public const EN_COURS = 'en_cours';
     public const TERMINEE = 'terminee';
+    public const REFUSEE = 'refusee';
+
+    #[ORM\Column(length: 255, nullable: true)]
+    public private(set) ?string $motifRefus = null;
+
     public const ANNULEE = 'annulee';
 
     #[ORM\Id, ORM\GeneratedValue, ORM\Column]
@@ -72,6 +77,13 @@ class Reservation
         $this->statut = self::VALIDEE;
     }
 
+    public function refuser(?string $motif): void
+    {
+        $this->exigerStatut(self::DEMANDEE);
+        $this->motifRefus = $motif;
+        $this->statut = self::REFUSEE;
+    }
+
     public function annuler(): void
     {
         if (!in_array($this->statut, [self::DEMANDEE, self::VALIDEE], true)) {
@@ -83,9 +95,6 @@ class Reservation
     public function partir(int $kilometrage, \DateTimeImmutable $date): void
     {
         $this->exigerStatut($this->urgence ? self::DEMANDEE : self::VALIDEE);
-        if ($date < $this->debut || $date >= $this->fin) {
-            throw new \DomainException('Le départ doit être saisi pendant le créneau validé.');
-        }
         $this->vehicule->releverKilometrage($kilometrage);
         $this->kilometrageDepart = $kilometrage;
         $this->departLe = $date;

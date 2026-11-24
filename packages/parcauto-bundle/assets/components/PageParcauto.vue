@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
-import { ActionButtonVertical, HeaderComponent, ListSkeleton } from '@components';
-import { messageErreur } from '../components/parcautoDates';
+import { HeaderComponent, ListSkeleton } from '@components';
+import { messageErreur } from './parcautoDates.js';
 import { getParcService } from '../service/parcautoService';
 
 defineProps({ titre: String, icon: String });
@@ -25,11 +25,7 @@ onMounted(charger);
 </script>
 
 <template>
-  <HeaderComponent :titre="titre" :icon="icon" color="blue">
-    <template #actions>
-      <ActionButtonVertical label="Actualiser le parc" icon="pi pi-refresh" severity="secondary" :disabled="chargement" @click="charger" />
-    </template>
-  </HeaderComponent>
+  <HeaderComponent :titre="titre" :icon="icon" color="blue" description="Gestion du parc automobile" />
   <Message v-if="erreur" severity="error">{{ erreur }}</Message>
   <ListSkeleton v-if="!parc && chargement" />
   <slot v-if="parc" :parc="parc" :actualiser="charger" />

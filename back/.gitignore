@@ -38,3 +38,5 @@ phpstan.dist.neon
 !/migrations/Version20261120120000.php
 !/migrations/Version20261124090000.php
 !/migrations/Version20261124140000.php
+!/migrations/Version20261124160000.php
+!/migrations/Version20261124190000.php

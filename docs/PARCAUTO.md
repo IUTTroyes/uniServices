@@ -2,14 +2,15 @@
 
 Le module est accessible depuis UniServices à l’adresse `/app/parcauto`. Il réutilise la connexion de l’application. Les données du parc et du planning sont indépendantes de l’année universitaire sélectionnée.
 
-Le tableau de bord affiche les demandes personnelles, les départs confirmés et les missions en cours. Les gestionnaires voient également les demandes à valider, les restitutions en retard et les motifs de blocage des véhicules. Chaque réservation affichée ouvre le créneau correspondant. La barre latérale donne accès au planning, aux véhicules et équipements, ainsi qu’au pilotage pour les gestionnaires.
+Le tableau de bord affiche les demandes personnelles, les départs autorisés et les missions en cours. Les gestionnaires voient également les demandes à valider, les restitutions en retard et les motifs de blocage des véhicules. Chaque réservation affichée ouvre le créneau correspondant. La barre latérale donne accès au planning, aux véhicules et équipements, ainsi qu’au pilotage pour les gestionnaires.
 
 ## Droits d’accès
 
 | Profil | Opérations |
 | --- | --- |
 | Personnel avec accès au paquet ParcAuto | Consulter les véhicules, les créneaux occupés et les bornes. Demander ou annuler ses réservations puis relever les compteurs de départ et de retour. Pendant une mission, le conducteur peut saisir plusieurs pleins et signaler un incident depuis le planning. Ces déclarations sont horodatées et enregistrées dans le journal du véhicule avec leur auteur. |
-| Gestionnaire | Valider et annuler les demandes, gérer les fiches et les échéances, consulter le journal, identifier le conducteur d’une mission, accéder au pilotage et exporter. |
+| Directeur de l’IUT | Autoriser ou refuser les demandes des enseignants sans profil BIATSS depuis le tableau de bord ou le planning. |
+| Chef des services administratifs | Autoriser ou refuser les demandes des BIATSS (y compris les enseignants également BIATSS) et des personnels sans aucun de ces deux profils, annuler les réservations, gérer les fiches et les échéances, consulter le journal, identifier le conducteur d’une mission, accéder au pilotage et exporter. |
 | Super administrateur | Mêmes droits de gestion. |
 
 L’activation du paquet `parcauto` sur l’affectation active donne accès au profil demandeur. Le chef des services administratifs gère le parc. Le responsable du service général tient le journal et les échéances d’entretien. Ces responsabilités sont attribuées via les rôles institutionnels de l’intranet. Les créneaux des autres conducteurs restent anonymes pour le personnel. Les informations des permis restent dans OMER.
@@ -18,7 +19,7 @@ L’activation du paquet `parcauto` sur l’affectation active donne accès au p
 
 La migration `Version20261120120000` crée les tables du module. Avant d’ouvrir le planning, renseigner les véhicules et leurs échéances, dont le dernier contrôle des pneus et le contrôle technique. Le contrôle des pneus est à renouveler trois mois calendaires après la date saisie. Les autres opérations configurées peuvent cumuler une échéance à date et au compteur.
 
-Un véhicule est bloqué si une échéance est atteinte, si les contrôles obligatoires manquent, s’il est à l’arrêt ou si sa date de réforme est atteinte. Les vérifications sont réalisées à la demande, à la validation et au départ. Deux gestionnaires ne peuvent pas valider en parallèle des créneaux qui se recouvrent pour le même véhicule. Une mission peut être clôturée après l’heure prévue, y compris si une échéance a été franchie pendant le trajet. Les missions déjà validées restent visibles quand un véhicule se bloque. Leur départ est refusé jusqu’à régularisation.
+Un véhicule est bloqué si une échéance est atteinte, si les contrôles obligatoires manquent, s’il est à l’arrêt ou si sa date de réforme est atteinte. Les vérifications sont réalisées à la demande, à la validation et au départ. Deux gestionnaires ne peuvent pas valider en parallèle des créneaux qui se recouvrent pour le même véhicule. Le conducteur peut signaler son départ avant ou après le créneau autorisé si le véhicule est disponible. Une mission peut être clôturée après l’heure prévue, y compris si une échéance a été franchie pendant le trajet. Les missions déjà validées restent visibles quand un véhicule se bloque. Leur départ est refusé jusqu’à régularisation.
 
 Un véhicule à l’arrêt peut être remis en service depuis le journal après un contrôle renseigné avec le prestataire et une référence. Renouveler les échéances obligatoires lors d’interventions documentées. La remise en service ne neutralise aucun contrôle expiré. Pour suivre un train de pneus, garder le même libellé pour ses mesures inscrire le retrait avec ce libellé et saisir les mesures du nouveau train avec un libellé distinct. Les cartes sans affectation sont volantes. Les factures se saisissent par référence, montant et prestataire, et les achats de carburant dans une entrée distincte. Pour éviter le double comptage, ventiler un achat entre ces deux types de saisie une seule fois.
 

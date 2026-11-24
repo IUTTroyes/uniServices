@@ -30,12 +30,17 @@ function lien(reservation) {
       <li v-for="reservation in groupe.reservations" :key="reservation.id">
         <RouterLink :to="lien(reservation)" class="flex items-center justify-between gap-3 py-3 hover:text-primary">
           <div>
-            <div class="font-semibold">{{ vehicules.get(reservation.vehicule)?.libelle }} · {{ vehicules.get(reservation.vehicule)?.immatriculation }}</div>
+            <div class="font-semibold">{{ vehicules.get(reservation.vehicule)?.libelle }} · {{ vehicules.get(reservation.vehicule)?.immatriculation }} <span v-if="reservation.blocage" class="mt-1 flex items-center gap-2 text-sm">
+              <span aria-hidden="true" class="h-2 w-2 shrink-0 rounded-full" :class="reservation.blocage ? 'bg-red-500' : 'bg-emerald-500'" />
+              <span>{{ reservation.blocage ? 'Bloqué · ' + reservation.blocage : 'Opérationnel' }}</span>
+            </span></div>
             <Tag v-if="reservation.urgence" severity="warn" value="Urgence · sans validation préalable" />
-            <div class="text-sm text-muted-color">
-              <span v-if="gestion">{{ reservation.nomConducteur }} · </span>
-              {{ reservation.enCours ? 'Retour prévu ' + dateHeure(reservation.fin) : dateHeure(reservation.debut) + ' – ' + dateHeure(reservation.fin) }}
-            </div>
+            <slot name="details" :reservation="reservation">
+              <div class="text-sm text-muted-color">
+                <span v-if="gestion">{{ reservation.nomConducteur }} · </span>
+                {{ reservation.enCours ? 'Retour prévu ' + dateHeure(reservation.fin) : dateHeure(reservation.debut) + ' – ' + dateHeure(reservation.fin) }}
+              </div>
+            </slot>
           </div>
           <i class="pi pi-chevron-right" aria-hidden="true" />
         </RouterLink>

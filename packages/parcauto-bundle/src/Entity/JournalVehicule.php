@@ -14,10 +14,12 @@ class JournalVehicule
 {
     public const ENTRETIEN = 'entretien';
     public const CARBURANT = 'carburant';
+    public const TELEPEAGE = 'telepeage';
     public const FACTURE = 'facture';
     public const PNEUS = 'pneus';
     public const REMPLACEMENT_PNEUS = 'remplacement_pneus';
     public const INCIDENT = 'incident';
+    public const HORS_SERVICE = 'hors_service';
     public const REMISE_SERVICE = 'remise_service';
 
     #[ORM\Id, ORM\GeneratedValue, ORM\Column]
@@ -37,7 +39,7 @@ class JournalVehicule
         #[ORM\Column(nullable: true)]
         public readonly ?int $kilometrage = null,
         #[ORM\Column(nullable: true)]
-        public readonly ?int $montantCentimes = null,
+        public ?int $montantCentimes = null,
         #[ORM\Column(nullable: true)]
         public readonly ?int $volumeMillilitres = null,
         #[ORM\ManyToOne]
@@ -48,6 +50,10 @@ class JournalVehicule
         public readonly ?int $usureDixiemesMm = null,
         #[ORM\ManyToOne]
         public readonly ?Reservation $reservation = null,
+        #[ORM\ManyToOne]
+        public readonly ?Equipement $pass = null,
+        #[ORM\Column(length: 120, nullable: true)]
+        public ?string $numeroFacture = null,
     ) {
     }
 

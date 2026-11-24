@@ -13,6 +13,7 @@ class Equipement
 {
     public const PRESTATAIRE = 'prestataire';
     public const CARTE = 'carte';
+    public const PASS = 'pass_telepeage';
     public const BORNE = 'borne';
 
     #[ORM\Id, ORM\GeneratedValue, ORM\Column]

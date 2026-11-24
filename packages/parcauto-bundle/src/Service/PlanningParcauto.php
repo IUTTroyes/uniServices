@@ -55,9 +55,11 @@ final readonly class PlanningParcauto
         return null;
     }
 
-    public function verifierDisponibilite(Reservation $reservation, ?int $kilometrage = null): void
+    public function verifierDisponibilite(Reservation $reservation, ?int $kilometrage = null, ?\DateTimeImmutable $departReel = null): void
     {
-        $blocage = $this->blocage($reservation->vehicule, $reservation->fin, $kilometrage ?? $reservation->vehicule->kilometrage);
+        $debut = $departReel ?? $reservation->debut;
+        $fin = max($reservation->fin, $debut->modify('+1 second'));
+        $blocage = $this->blocage($reservation->vehicule, $fin, $kilometrage ?? $reservation->vehicule->kilometrage);
         if ($blocage !== null) {
             throw new \DomainException($blocage);
         }
@@ -71,8 +73,8 @@ final readonly class PlanningParcauto
             ->setParameter('enCours', Reservation::EN_COURS)
             ->setParameter('maintenant', SaisieParcauto::maintenant())
             ->setParameter('validee', Reservation::VALIDEE)
-            ->setParameter('debut', $reservation->debut)
-            ->setParameter('fin', $reservation->fin);
+            ->setParameter('debut', $debut)
+            ->setParameter('fin', $fin);
 
         if ($reservation->id !== null) {
             $conflits->andWhere('r.id <> :id')->setParameter('id', $reservation->id);

@@ -77,6 +77,9 @@ final class ParcautoController extends AbstractController
         );
 
         return $this->json([
+            'passTelepeage' => array_map(static fn (Equipement $pass) => [
+                'value' => $pass->id, 'label' => $pass->libelle, 'vehicule' => $pass->vehicule?->id,
+            ], $this->em->getRepository(Equipement::class)->findBy(['type' => Equipement::PASS, 'actif' => true], ['libelle' => 'ASC'])),
             'referentiels' => $this->em->getRepository(ValeurReferentiel::class)->findBy([], ['groupe' => 'ASC', 'libelle' => 'ASC']),
             'gestion' => $gestion,
             'entretien' => $entretien,
@@ -149,18 +152,17 @@ final class ParcautoController extends AbstractController
                 ->orderBy('r.debut', 'ASC');
 
             if ($debut <= $aujourdhui && $aujourdhui < $fin) {
-                $qb->orWhere('(r.statut = :enCours AND r.fin <= :aujourdhui)')
-                    ->setParameter('enCours', Reservation::EN_COURS)
-                    ->setParameter('aujourdhui', $aujourdhui);
+                $qb->orWhere('(r.statut = :enCours AND r.departLe < :fin)')
+                    ->setParameter('enCours', Reservation::EN_COURS);
             }
 
             if (!$gestion) {
                 $qb->andWhere('r.conducteur = :conducteur OR r.statut IN (:occupants)')
                     ->setParameter('conducteur', $conducteur)
-                    ->setParameter('occupants', [Reservation::VALIDEE, Reservation::EN_COURS]);
+                    ->setParameter('occupants', [Reservation::DEMANDEE, Reservation::VALIDEE, Reservation::EN_COURS]);
             }
 
-            return array_map(fn (Reservation $reservation) => $this->reservationData($reservation, $gestion), $qb->getQuery()->getResult());
+            return array_map(fn (Reservation $r) => $this->reservationData($r, $gestion), $qb->getQuery()->getResult());
         });
     }
 
@@ -179,8 +181,11 @@ final class ParcautoController extends AbstractController
             'mesDeparts' => [Reservation::VALIDEE, true, 'r.fin > :maintenant'],
             'mesMissions' => [Reservation::EN_COURS, true, 'r.departLe <= :maintenant'],
         ];
-        if ($gestion) {
+        if ($this->isGranted(ParcautoVoter::ARBITRAGE)) {
             $groupes['aValider'] = [Reservation::DEMANDEE, false, 'r.fin > :maintenant'];
+        }
+        if ($gestion) {
+            $groupes['missionsEnCours'] = [Reservation::EN_COURS, false, 'r.departLe <= :maintenant'];
             $groupes['retoursEnRetard'] = [Reservation::EN_COURS, false, 'r.fin <= :maintenant'];
         }
 
@@ -189,6 +194,16 @@ final class ParcautoController extends AbstractController
             $qb = (clone $base)->andWhere($condition)->setParameter('statut', $statut);
             if ($personnel) {
                 $qb->andWhere('r.conducteur = :conducteur')->setParameter('conducteur', $this->personnel());
+            }
+
+            if ($cle === 'aValider') {
+                $demandes = $qb->select('r', 'v')->orderBy('r.debut', 'ASC')->addOrderBy('r.id', 'ASC')->getQuery()->getResult();
+                $demandes = array_filter($demandes, fn (Reservation $r) => $this->isGranted(ParcautoVoter::DECIDER, $r));
+                $resultat[$cle] = [
+                    'total' => count($demandes),
+                    'reservations' => array_map(fn (Reservation $r) => $this->reservationData($r, $gestion), array_slice($demandes, 0, 5)),
+                ];
+                continue;
             }
 
             $total = (int) (clone $qb)->select('COUNT(r.id)')->getQuery()->getSingleScalarResult();
@@ -210,26 +225,33 @@ final class ParcautoController extends AbstractController
     private function reservationData(Reservation $reservation, bool $gestion): array
     {
         $proprietaire = $this->isGranted(ParcautoVoter::MISSION, $reservation);
-        $visible = $gestion || $proprietaire;
+        $peutDecider = $reservation->statut === Reservation::DEMANDEE && $this->isGranted(ParcautoVoter::DECIDER, $reservation);
+        $visible = $gestion || $proprietaire || $peutDecider;
 
         return [
             'id' => $visible ? $reservation->id : null,
             'vehicule' => $reservation->vehicule->id,
             'debut' => $reservation->debut->format(DATE_ATOM),
             'fin' => $reservation->fin->format(DATE_ATOM),
-            'statut' => $visible ? $reservation->statut : 'occupee',
+            'statut' => ($visible || $reservation->statut === Reservation::DEMANDEE) ? $reservation->statut : 'occupee',
             'proprietaire' => $proprietaire,
+            'peutDecider' => $peutDecider,
+            'debutOccupation' => ($reservation->departLe ?? $reservation->debut)->format(DATE_ATOM),
             'enCours' => $reservation->statut === Reservation::EN_COURS,
         ] + ($visible ? [
+            'pleinsDeclares' => $reservation->statut === Reservation::EN_COURS
+                ? $this->em->getRepository(JournalVehicule::class)->count(['reservation' => $reservation, 'type' => JournalVehicule::CARBURANT]) : 0,
             'urgence' => $reservation->urgence,
             'nomConducteur' => $reservation->nomConducteur,
             'ordreMission' => $reservation->ordreMission,
             'ordreVerifie' => $reservation->ordreVerifie,
             'typeOm' => $reservation->typeOm,
             'motif' => $reservation->motif,
+            'motifRefus' => $reservation->motifRefus,
             'destinations' => $reservation->destinations,
             'kilometrageDepart' => $reservation->kilometrageDepart,
             'kilometrageRetour' => $reservation->kilometrageRetour,
+            'retourLe' => $reservation->retourLe?->format(DATE_ATOM),
         ] : []);
     }
 
@@ -252,7 +274,7 @@ final class ParcautoController extends AbstractController
             $motif = $saisie->texte('motif', 255);
             $destinations = $saisie->texte('destinations', 500);
             $ordreMission = $typeOm === 'ponctuel' ? $saisie->texte('ordreMission', 120) : null;
-            $validationAutomatique = !$urgence && $this->permissions->hasPermission($conducteur, 'ROLE_DIRECTION');
+            $validationAutomatique = !$urgence && $this->permissions->hasAnyPermission($conducteur, ['ROLE_DIRECTEUR_IUT', 'ROLE_DIRECTION']);
             $existante = $this->em->getRepository(Reservation::class)->findOneBy([
                 'vehicule' => $vehicule, 'conducteur' => $conducteur, 'debut' => $debut, 'fin' => $fin,
                 'typeOm' => $typeOm, 'motif' => $motif, 'destinations' => $destinations,
@@ -277,15 +299,15 @@ final class ParcautoController extends AbstractController
         }, 201);
     }
 
-    #[Route('/reservations/{id<\d+>}/{action<valider|annuler|depart|retour>}', name: 'transition', methods: ['POST'])]
+    #[Route('/reservations/{id<\d+>}/{action<valider|refuser|annuler|depart|retour>}', name: 'transition', methods: ['POST'])]
     public function transition(int $id, string $action, Request $request): JsonResponse
     {
         $vehiculeId = $this->vehiculeMissionId($id);
 
         return $this->ecrire($request, function (SaisieParcauto $saisie) use ($id, $action, $vehiculeId): Reservation {
             $reservation = $this->missionVerrouillee($id, $vehiculeId);
-            if ($action === 'valider') {
-                $this->denyAccessUnlessGranted(ParcautoVoter::GESTION);
+            if (in_array($action, ['valider', 'refuser'], true)) {
+                $this->denyAccessUnlessGranted(ParcautoVoter::DECIDER, $reservation);
             } elseif (!$this->isGranted(ParcautoVoter::GESTION)) {
                 $this->denyAccessUnlessGranted(ParcautoVoter::MISSION, $reservation);
             }
@@ -299,15 +321,34 @@ final class ParcautoController extends AbstractController
                     $this->planning->verifierDisponibilite($reservation);
                     $reservation->valider($this->omer->verifier($reservation));
                     break;
+                case 'refuser':
+                    $motif = $saisie->texte('motifRefus', 255, true);
+                    $reservation->refuser($motif === '' ? null : $motif);
+                    break;
                 case 'annuler':
                     $reservation->annuler();
                     break;
                 case 'depart':
                     $kilometrage = $saisie->entier('kilometrage');
-                    $this->planning->verifierDisponibilite($reservation, $kilometrage);
+                    $this->planning->verifierDisponibilite($reservation, $kilometrage, $maintenant);
                     $reservation->partir($kilometrage, $maintenant);
                     break;
                 case 'retour':
+                    foreach (['plein' => JournalVehicule::CARBURANT, 'telepeage' => JournalVehicule::TELEPEAGE] as $champ => $type) {
+                        if ($saisie->booleen($champ)) {
+                            $details = $saisie->details($champ.'Details');
+                            if ($details->texte('type', 25) !== $type) {
+                                throw new \InvalidArgumentException('Type de dépense incorrect.');
+                            }
+                            $this->gestion->journal($reservation->vehicule, $this->personnel(), $details, $reservation);
+                        }
+                    }
+                    $incident = $saisie->texte('descriptionIncident', 255, true);
+                    if ($incident !== '') {
+                        $this->gestion->journal($reservation->vehicule, $this->personnel(), new SaisieParcauto([
+                            'type' => JournalVehicule::INCIDENT, 'libelle' => $incident,
+                        ]), $reservation);
+                    }
                     $reservation->retourner($saisie->entier('kilometrage'), $maintenant);
                     break;
             }
@@ -351,6 +392,7 @@ final class ParcautoController extends AbstractController
                 'id' => $j->id, 'trajet' => $j->reservation?->id, 'type' => $j->type, 'libelle' => $j->libelle, 'date' => $this->jour($j->date),
                 'kilometrage' => $j->kilometrage, 'montantCentimes' => $j->montantCentimes,
                 'volumeMillilitres' => $j->volumeMillilitres, 'usureDixiemesMm' => $j->usureDixiemesMm,
+                'pass' => $j->pass?->libelle, 'numeroFacture' => $j->numeroFacture,
                 'prestataire' => $j->prestataire?->libelle, 'carte' => $j->carte?->reference,
             ], $journal),
         ]);
@@ -380,6 +422,23 @@ final class ParcautoController extends AbstractController
             $this->gestion->journal($this->vehiculeVerrouille($id), $this->personnel(), $saisie), 201);
     }
 
+    #[Route('/vehicules/{id<\d+>}/journal/{entreeId<\d+>}/facturation', name: 'facturation_telepeage', methods: ['PUT'])]
+    #[IsGranted(ParcautoVoter::ENTRETIEN)]
+    public function facturation(int $id, int $entreeId, Request $request): JsonResponse
+    {
+        return $this->ecrire($request, function (SaisieParcauto $saisie) use ($id, $entreeId): JournalVehicule {
+            $vehicule = $this->vehiculeVerrouille($id);
+            $entree = $this->em->getRepository(JournalVehicule::class)->findOneBy([
+                'id' => $entreeId, 'vehicule' => $vehicule, 'type' => JournalVehicule::TELEPEAGE,
+            ]) ?? throw $this->createNotFoundException();
+            $numero = $saisie->texte('numeroFacture', 120, true);
+            $entree->numeroFacture = $numero === '' ? null : $numero;
+            $entree->montantCentimes = $saisie->entier('montantCentimes', 0, true);
+
+            return $entree;
+        });
+    }
+
     #[Route('/equipements', name: 'equipement_creer', methods: ['POST'])]
     #[Route('/equipements/{id<\d+>}', name: 'equipement_modifier', methods: ['PUT'])]
     #[IsGranted(ParcautoVoter::GESTION)]
@@ -389,8 +448,8 @@ final class ParcautoController extends AbstractController
             $equipement = $id === null ? null : ($this->em->find(Equipement::class, $id, LockMode::PESSIMISTIC_WRITE) ?? throw $this->createNotFoundException());
             $type = $equipement !== null ? $equipement->type : $this->gestion->codeReferentiel('equipement', $saisie->texte('type', 20));
             $vehiculeId = $saisie->entier('vehicule', 1, true);
-            if ($type !== Equipement::CARTE && $vehiculeId !== null) {
-                throw new \InvalidArgumentException('Seule une carte peut être affectée à un véhicule.');
+            if (!in_array($type, [Equipement::CARTE, Equipement::PASS], true) && $vehiculeId !== null) {
+                throw new \InvalidArgumentException('Seuls une carte et un pass peuvent être affectés à un véhicule.');
             }
             $vehicule = $vehiculeId === null ? null : ($this->em->find(Vehicule::class, $vehiculeId) ?? throw $this->createNotFoundException());
             $libelle = $saisie->texte('libelle', 150);

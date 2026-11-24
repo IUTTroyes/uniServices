@@ -30,7 +30,7 @@ const colonnes = [
   ['litres', 'Carburant (L)'], ['consommation', 'L/100 km'], ['depenses', 'Dépenses (€)'],
   ['coutTotal', 'Coût de possession estimé (€)'], ['coutKm', '€/km'], ['reforme', 'Réforme estimée'], ['alertes', 'Alertes'],
 ];
-const statuts = { demandee: 'Demandées', validee: 'Confirmées', en_cours: 'En cours', annulee: 'Annulées', terminee: 'Terminées' };
+const statuts = { demandee: 'Demandées', validee: 'Autorisées', en_cours: 'En cours', refusee: 'Refusées', annulee: 'Annulées', terminee: 'Terminées' };
 const graphique = computed(() => {
   const mois = rapport.value?.activiteMensuelle ?? [];
   return {
