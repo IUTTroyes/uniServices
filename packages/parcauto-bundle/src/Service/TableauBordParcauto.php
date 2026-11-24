@@ -60,7 +60,13 @@ final readonly class TableauBordParcauto
             if (!isset($parVehicule[$id])) {
                 continue;
             }
-            $parVehicule[$id]['depenses'] += $entree->montantCentimes ?? 0;
+            if ($entree->date >= $debut) {
+                $parVehicule[$id]['depenses'] += $entree->montantCentimes ?? 0;
+                if ($entree->kilometrage !== null && $entree->reservation?->kilometrageRetour !== null
+                    && ($entree->kilometrage < $entree->reservation->kilometrageDepart || $entree->kilometrage > $entree->reservation->kilometrageRetour)) {
+                    $parVehicule[$id]['incoherences'][] = sprintf('Kilométrage incohérent · journal n° %d, trajet n° %d', $entree->id, $entree->reservation->id);
+                }
+            }
             if ($entree->type === JournalVehicule::INCIDENT && $entree->date >= $debutIncidents) {
                 $cle = mb_strtolower($entree->libelle);
                 $parVehicule[$id]['incidents'][$cle][] = $entree;
@@ -78,6 +84,10 @@ final readonly class TableauBordParcauto
         }
 
         $duree = max(1, $fin->getTimestamp() - $debut->getTimestamp());
+        $derniers = $this->em->createQueryBuilder()->select('IDENTITY(r.vehicule) AS vehicule', 'MAX(r.departLe) AS depart')
+            ->from(Reservation::class, 'r')->where('r.departLe < :fin')->setParameter('fin', $fin)
+            ->groupBy('r.vehicule')->getQuery()->getArrayResult();
+        $derniers = array_column($derniers, 'depart', 'vehicule');
         $lignes = [];
         $maintenant = SaisieParcauto::maintenant();
         $plans = $this->planning->echeancesParVehicule();
@@ -104,7 +114,7 @@ final readonly class TableauBordParcauto
                 $projection = SaisieParcauto::maintenant()->modify("+$secondesRestantes seconds");
                 $reforme = $reforme === null ? $projection : min($projection, $reforme);
             }
-            $alertes = [];
+            $alertes = $donnees['incoherences'] ?? [];
             foreach ($donnees['incidents'] as $incidents) {
                 if (count($incidents) >= 2) {
                     $alertes[] = sprintf('%s · %d incidents en 90 jours', $incidents[0]->libelle, count($incidents));
@@ -145,10 +155,16 @@ final readonly class TableauBordParcauto
                 'coutKm' => $distance > 0 ? round($cout / $distance, 2) : null,
                 'reforme' => $reforme?->setTimezone(new \DateTimeZone('Europe/Paris'))->format('Y-m-d'),
                 'alertes' => implode(' · ', $alertes),
+                'dernierDepart' => isset($derniers[$vehicule->id]) ? (new \DateTimeImmutable($derniers[$vehicule->id], new \DateTimeZone('UTC')))->setTimezone(new \DateTimeZone('Europe/Paris'))->format('d/m/Y') : null,
             ];
         }
 
-        return ['vehicules' => $lignes, 'permutations' => $this->permutations($lignes)];
+        $statuts = $this->em->createQueryBuilder()->select('r.statut', 'COUNT(r.id) AS nombre')->from(Reservation::class, 'r')
+            ->where('r.debut >= :debut AND r.debut < :fin')->setParameter('debut', $debut)->setParameter('fin', $fin)
+            ->groupBy('r.statut')->getQuery()->getArrayResult();
+
+        return ['vehicules' => $lignes, 'activiteMensuelle' => $this->activiteMensuelle($fin),
+            'statuts' => array_column($statuts, 'nombre', 'statut')];
     }
 
     private function projectionPneus(array $releves, int $kilometrage): ?int
@@ -171,31 +187,65 @@ final readonly class TableauBordParcauto
         return max(0, (int) ($distance + $dernier->kilometrage - $kilometrage));
     }
 
-    private function permutations(array $lignes): array
+    public function preparerDeparts(): array
     {
-        $resultat = [];
-        foreach ($lignes as $sollicite) {
-            if (!$sollicite['disponible'] || $sollicite['missions'] < 5) {
-                continue;
+        $maintenant = SaisieParcauto::maintenant();
+        $plans = $this->planning->echeancesParVehicule();
+        $departs = [];
+        $priorites = [];
+        $reservations = $this->em->createQueryBuilder()->select('r', 'v')->from(Reservation::class, 'r')
+            ->join('r.vehicule', 'v')->where('r.statut = :validee AND r.fin > :maintenant')
+            ->setParameter('validee', Reservation::VALIDEE)->setParameter('maintenant', $maintenant)
+            ->orderBy('r.debut', 'ASC')->addOrderBy('r.id', 'ASC')->getQuery()->getResult();
+        foreach ($reservations as $r) {
+            $v = $r->vehicule;
+            $blocage = $this->planning->blocage($v, $r->fin, $v->kilometrage, $plans[$v->id] ?? []);
+            $ligne = ['id' => $r->id, 'vehicule' => $v->id, 'debut' => $r->debut->format(DATE_ATOM),
+                'conducteur' => $r->nomConducteur, 'blocage' => $blocage];
+            if (count($departs) < 5) {
+                $departs[] = $ligne;
             }
-            foreach ($lignes as $reserve) {
-                if (
-                    $reserve['disponible']
-                    && $reserve['site'] !== $sollicite['site']
-                    && $reserve['energie'] === $sollicite['energie']
-                    && $reserve['utilisation'] + 20 <= $sollicite['utilisation']
-                    && $reserve['missions'] < $sollicite['missions']
-                ) {
-                    $resultat[] = sprintf(
-                        '%s (%s, %s %%) ↔ %s (%s, %s %%)',
-                        $sollicite['immatriculation'], $sollicite['site'], $sollicite['utilisation'],
-                        $reserve['immatriculation'], $reserve['site'], $reserve['utilisation'],
-                    );
-                    break;
-                }
+            if ($blocage !== null) {
+                $priorites[] = $ligne;
             }
         }
 
-        return $resultat;
+        $entretiens = [];
+        foreach ($plans as $echeances) {
+            foreach ($echeances as $plan) {
+                $v = $plan->vehicule;
+                if (!$v->actif) {
+                    continue;
+                }
+                $entretiens[] = ['id' => $plan->id, 'vehicule' => $v->id, 'libelle' => $plan->libelle,
+                    'date' => $plan->echeance->setTimezone(new \DateTimeZone('Europe/Paris'))->format('Y-m-d'),
+                    'km' => $plan->echeanceKm, 'depassee' => $plan->estDepassee($maintenant, $v->kilometrage)];
+            }
+        }
+        usort($entretiens, static fn (array $a, array $b) =>
+            ($b['depassee'] <=> $a['depassee']) ?: ($a['date'] <=> $b['date']) ?: ($a['id'] <=> $b['id']));
+
+        return compact('departs', 'priorites', 'entretiens');
+    }
+
+    private function activiteMensuelle(\DateTimeImmutable $fin): array
+    {
+        $zone = new \DateTimeZone('Europe/Paris');
+        $debut = $fin->setTimezone($zone)->modify('-1 second')->modify('first day of this month')->setTime(0, 0)->modify('-11 months');
+        $mois = [];
+        for ($i = 0; $i < 12; ++$i) {
+            $cle = $debut->modify("+$i months")->format('Y-m');
+            $mois[$cle] = ['mois' => $cle, 'classiques' => 0, 'urgences' => 0];
+        }
+        $departs = $this->em->createQueryBuilder()->select('r.departLe', 'r.urgence')->from(Reservation::class, 'r')
+            ->where('r.departLe >= :debut AND r.departLe < :fin')
+            ->setParameter('debut', $debut->setTimezone(new \DateTimeZone('UTC')))->setParameter('fin', $fin)
+            ->getQuery()->getArrayResult();
+        foreach ($departs as $r) {
+            $cle = $r['departLe']->setTimezone($zone)->format('Y-m');
+            ++$mois[$cle][$r['urgence'] ? 'urgences' : 'classiques'];
+        }
+
+        return array_values($mois);
     }
 }

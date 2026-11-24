@@ -46,7 +46,7 @@ final class TableauBordParcautoController extends AbstractController
             fputcsv($flux, [
                 'Véhicule', 'Immatriculation', 'Site', 'Énergie', 'Disponible', 'Utilisation (%)', 'Missions',
                 'Distance (km)', 'Carburant (L)', 'Consommation (L/100 km)', 'Dépenses (€)',
-                'Coût total estimé (€)', 'Coût au km (€)', 'Réforme estimée', 'Alertes',
+                'Coût total estimé (€)', 'Coût au km (€)', 'Réforme estimée', 'Alertes', 'Dernier départ',
             ], ';', '"', '');
             foreach ($donnees['vehicules'] as $ligne) {
                 $valeurs = array_map(static fn (mixed $valeur) =>

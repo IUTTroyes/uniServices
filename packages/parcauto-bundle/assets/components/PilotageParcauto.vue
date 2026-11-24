@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
-import { addDays, subDays } from 'date-fns';
+import Chart from 'primevue/chart';
+import { addDays, startOfMonth, subMonths } from 'date-fns';
 import { Card, EmptyState, Kpi, ListSkeleton, ValidatedInput, validationRules, validateField } from '@components';
 import { enregistrerParcautoService, exporterParcautoService, getTableauBordService } from '../service/parcautoService';
 import { libelleOrdreMission } from './ordreMission';
@@ -11,7 +12,7 @@ const choixVehicules = computed(() => props.vehicules.map(v => ({
   value: v.id, label: v.immatriculation + ' · ' + v.libelle,
 })));
 const obligatoire = [validationRules.required];
-const periode = ref({ debut: jourLocal(subDays(new Date(), 30)), fin: jourLocal(addDays(new Date(), 1)) });
+const periode = ref({ debut: jourLocal(startOfMonth(subMonths(new Date(), 11))), fin: jourLocal(addDays(new Date(), 1)) });
 const rapport = ref(null);
 const periodeChargee = ref(null);
 const recherche = ref({ vehicule: null, date: '' });
@@ -24,11 +25,28 @@ const erreurRecherche = ref('');
 const euros = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
 const total = (champ) => rapport.value?.vehicules.reduce((somme, v) => somme + v[champ], 0) ?? 0;
 const colonnes = [
-  ['vehicule', 'Véhicule'], ['immatriculation', 'Immatriculation'], ['site', 'Site'],
+  ['vehicule', 'Véhicule'], ['immatriculation', 'Immatriculation'], ['dernierDepart', 'Dernier départ avant la fin de période'],
   ['utilisation', 'Utilisation (%)'], ['missions', 'Missions'], ['kilometres', 'Distance (km)'],
   ['litres', 'Carburant (L)'], ['consommation', 'L/100 km'], ['depenses', 'Dépenses (€)'],
   ['coutTotal', 'Coût de possession estimé (€)'], ['coutKm', '€/km'], ['reforme', 'Réforme estimée'], ['alertes', 'Alertes'],
 ];
+const statuts = { demandee: 'Demandées', validee: 'Confirmées', en_cours: 'En cours', annulee: 'Annulées', terminee: 'Terminées' };
+const graphique = computed(() => {
+  const mois = rapport.value?.activiteMensuelle ?? [];
+  return {
+    labels: mois.map(m => new Date(m.mois + '-01T12:00:00').toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })),
+    datasets: [
+      { label: 'Trajets classiques', data: mois.map(m => m.classiques), backgroundColor: '#2563eb' },
+      { label: 'Urgences', data: mois.map(m => m.urgences), backgroundColor: '#d97706' },
+    ],
+  };
+});
+const optionsGraphique = {
+  responsive: true, maintainAspectRatio: false,
+  scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } } },
+};
+const urgences = computed(() => rapport.value?.activiteMensuelle.reduce((n, m) => n + m.urgences, 0) ?? 0);
+const departs = computed(() => rapport.value?.activiteMensuelle.reduce((n, m) => n + m.classiques + m.urgences, 0) ?? 0);
 const exportDisponible = computed(() => rapport.value?.vehicules.length && !chargement.value);
 
 async function charger() {
@@ -99,10 +117,15 @@ onMounted(charger);
       <Message v-if="erreur" severity="error">{{ erreur }}</Message>
       <ListSkeleton v-if="chargement" />
       <template v-else-if="rapport">
-        <div class="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div class="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <Kpi label="Missions terminées" :value="total('missions')" icon="pi pi-calendar" color="violet" />
           <Kpi label="Kilomètres parcourus" :value="total('kilometres')" icon="pi pi-map" color="blue" />
+          <Kpi label="Dépenses enregistrées" :value="euros.format(total('depenses'))" icon="pi pi-wallet" color="blue" />
           <Kpi label="Coût de possession estimé" :value="euros.format(total('coutTotal'))" icon="pi pi-euro" color="emerald" />
+        </div>
+        <h3 class="mb-2 font-semibold">Réservations par statut · départ prévu sur la période</h3>
+        <div class="mb-5 flex flex-wrap gap-2">
+          <Tag v-for="(libelle, statut) in statuts" :key="statut" severity="secondary" :value="libelle + ' · ' + (rapport.statuts[statut] ?? 0)" />
         </div>
         <DataTable :value="rapport.vehicules" data-key="immatriculation" paginator :rows="10">
           <template #empty><EmptyState title="Aucun véhicule dans le rapport" icon="pi pi-chart-bar" compact /></template>
@@ -115,17 +138,17 @@ onMounted(charger);
               <span v-else-if="champ === 'alertes' && !data.alertes" class="text-sm text-muted-color">
                 Aucune alerte détectée
               </span>
+              <Tag v-else-if="champ === 'alertes'" severity="warn" :value="data.alertes" />
+              <span v-else-if="champ === 'dernierDepart' && !data.dernierDepart">Aucun départ enregistré</span>
               <template v-else>{{ data[champ] }}</template>
             </template>
           </Column>
         </DataTable>
       </template>
     </Card>
-    <Card v-if="rapport" title="Permutations à étudier" icon="pi pi-arrow-right-arrow-left">
-      <EmptyState v-if="!rapport.permutations.length" title="Aucune permutation suggérée sur la période" icon="pi pi-car" compact />
-      <ul v-else class="grid gap-2">
-        <li v-for="suggestion in rapport.permutations" :key="suggestion">{{ suggestion }}</li>
-      </ul>
+    <Card v-if="rapport" title="Trajets commencés sur 12 mois" icon="pi pi-chart-bar">
+      <p class="mb-3">{{ urgences }} en urgence sur {{ departs }} trajet(s) · jusqu’au {{ new Date(periodeChargee.fin + 'T00:00:00').toLocaleDateString('fr-FR') }} exclu</p>
+      <Chart type="bar" :data="graphique" :options="optionsGraphique" class="h-72" aria-label="Départs mensuels classiques et urgents" />
     </Card>
     <Card title="Identifier un conducteur" icon="pi pi-search">
       <form class="mb-4 flex flex-wrap items-end gap-3" @submit.prevent="rechercher">

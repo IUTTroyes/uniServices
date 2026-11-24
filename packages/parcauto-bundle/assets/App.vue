@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { ActionButtonVertical, Card, EmptyState, HeaderComponent, Kpi, ListSkeleton, PermissionGuard } from '@components';
 import ReservationsAccueil from './components/ReservationsAccueil.vue';
-import { messageErreur } from './components/parcautoDates';
+import { dateHeure, jourLocal, messageErreur } from './components/parcautoDates';
 import { getAccueilService, getParcService } from './service/parcautoService';
 
 const accueil = ref(null);
@@ -56,6 +56,13 @@ onMounted(charger);
   <ListSkeleton v-if="!accueil && chargement" />
   <div v-if="accueil" class="grid gap-5">
     <PermissionGuard :permission="Boolean(gestion) && 'canManageParcauto'" show-fallback>
+      <h2 class="text-lg font-semibold">À traiter aujourd’hui</h2>
+      <Message v-for="depart in accueil.reservations.preparation.priorites" :key="depart.id" severity="warn">
+        <RouterLink :to="{ ...parc, query: { vehicule: String(depart.vehicule) } }" class="font-semibold underline">
+          {{ vehicules.get(depart.vehicule)?.libelle }} · départ prévu le {{ dateHeure(depart.debut) }}
+        </RouterLink>
+        · {{ depart.blocage }}
+      </Message>
       <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi label="Demandes à valider" :value="accueil.reservations.aValider.total" icon="pi pi-calendar-plus" color="amber" />
         <Kpi label="Retours en retard" :value="accueil.reservations.retoursEnRetard.total" icon="pi pi-clock" color="red" />
@@ -66,19 +73,41 @@ onMounted(charger);
         <ReservationsAccueil v-for="section in sectionsGestion" :key="section.cle"
                              v-bind="section" :groupe="accueil.reservations[section.cle]" :vehicules="vehicules" gestion />
       </div>
-      <Card title="Véhicules bloqués" icon="pi pi-wrench" color="red">
+      <Card title="État des véhicules" icon="pi pi-wrench" color="red">
         <template #header-actions>
           <RouterLink :to="parc" class="text-sm font-semibold text-primary">Consulter le parc</RouterLink>
         </template>
-        <EmptyState v-if="!bloques.length" title="Aucun véhicule bloqué" icon="pi pi-check" compact />
-        <ul v-else class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <li v-for="vehicule in bloques.slice(0, 6)" :key="vehicule.id">
-            <RouterLink :to="{ ...parc, query: { vehicule: String(vehicule.id) } }" class="font-semibold hover:text-primary">
-              {{ vehicule.libelle }} · {{ vehicule.immatriculation }}
-            </RouterLink>
-            <div class="text-sm text-muted-color">{{ vehicule.site }} · {{ vehicule.blocage }}</div>
-          </li>
-        </ul>
+        <DataTable :value="accueil.parc.vehicules" data-key="id" :paginator="vehicules.size > 5" :rows="5">
+          <template #empty><EmptyState title="Aucun véhicule renseigné" compact /></template>
+          <Column header="Véhicule"><template #body="{ data }">
+            <RouterLink :to="{ ...parc, query: { vehicule: String(data.id) } }" class="font-semibold text-primary">{{ data.libelle }} · {{ data.immatriculation }}</RouterLink>
+          </template></Column>
+          <Column header="État technique"><template #body="{ data }"><Tag :value="data.blocage ? 'Bloqué' : 'Opérationnel'" :severity="data.blocage ? 'danger' : 'success'" /></template></Column>
+          <Column field="blocage" header="Motif du blocage" />
+        </DataTable>
+      </Card>
+      <Card title="Prochains départs confirmés" icon="pi pi-calendar">
+        <DataTable :value="accueil.reservations.preparation.departs" data-key="id">
+          <template #empty><EmptyState title="Aucun départ confirmé à venir" compact /></template>
+          <Column header="Départ"><template #body="{ data }">
+            <RouterLink class="text-primary" :to="{ ...planning, query: { reservation: String(data.id), date: jourLocal(new Date(data.debut)) } }">{{ dateHeure(data.debut) }}</RouterLink>
+          </template></Column>
+          <Column header="Véhicule"><template #body="{ data }">{{ vehicules.get(data.vehicule)?.libelle }}</template></Column>
+          <Column field="conducteur" header="Conducteur" />
+          <Column header="État pour le trajet"><template #body="{ data }"><Tag :severity="data.blocage ? 'danger' : 'success'" :value="data.blocage || 'Opérationnel'" /></template></Column>
+        </DataTable>
+      </Card>
+      <Card title="Entretien à anticiper" icon="pi pi-wrench">
+        <DataTable :value="accueil.reservations.preparation.entretiens" data-key="id" :paginator="accueil.reservations.preparation.entretiens.length > 5" :rows="5">
+          <template #empty><EmptyState title="Aucune échéance renseignée" compact /></template>
+          <Column header="Véhicule"><template #body="{ data }">
+            <RouterLink class="text-primary" :to="{ ...parc, query: { vehicule: String(data.vehicule) } }">{{ vehicules.get(data.vehicule)?.libelle }}</RouterLink>
+          </template></Column>
+          <Column field="libelle" header="Contrôle ou intervention" />
+          <Column header="Échéance"><template #body="{ data }">{{ new Date(data.date + 'T12:00:00').toLocaleDateString('fr-FR') }}</template></Column>
+          <Column header="Échéance au compteur"><template #body="{ data }">{{ data.km == null ? '—' : data.km.toLocaleString('fr-FR') + ' km' }}</template></Column>
+          <Column header="État"><template #body="{ data }"><Tag :severity="data.depassee ? 'danger' : 'secondary'" :value="data.depassee ? 'Échéance atteinte' : 'À venir'" /></template></Column>
+        </DataTable>
       </Card>
       <h2 class="text-lg font-semibold">Mes réservations</h2>
       <template #fallback>

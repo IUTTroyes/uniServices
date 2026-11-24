@@ -20,6 +20,7 @@ use ParcautoBundle\Service\GestionParcauto;
 use ParcautoBundle\Service\OrdreMissionOmer;
 use ParcautoBundle\Service\PlanningParcauto;
 use ParcautoBundle\Service\SaisieParcauto;
+use ParcautoBundle\Service\TableauBordParcauto;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Exception\JsonException;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -127,7 +128,7 @@ final class ParcautoController extends AbstractController
     }
 
     #[Route('/accueil', name: 'accueil', methods: ['GET'])]
-    public function accueil(): JsonResponse
+    public function accueil(TableauBordParcauto $tableau): JsonResponse
     {
         $gestion = $this->isGranted(ParcautoVoter::GESTION);
         $base = $this->em->createQueryBuilder()
@@ -160,6 +161,10 @@ final class ParcautoController extends AbstractController
                 'total' => $total,
                 'reservations' => array_map(fn (Reservation $reservation) => $this->reservationData($reservation, $gestion), $reservations),
             ];
+        }
+
+        if ($gestion) {
+            $resultat['preparation'] = $tableau->preparerDeparts();
         }
 
         return $this->json($resultat);
