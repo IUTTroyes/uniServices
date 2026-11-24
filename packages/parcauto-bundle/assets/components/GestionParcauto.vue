@@ -8,7 +8,7 @@ import FormulaireParcauto from './FormulaireParcauto.vue';
 import { enregistrerParcautoService, getSuiviService } from '../service/parcautoService';
 import { dateHeure, jourLocal, messageErreur } from './parcautoDates';
 
-const props = defineProps({ vehicules: Array, equipements: Array, gestion: Boolean, entretien: Boolean });
+const props = defineProps({ vehicules: Array, equipements: Array, referentiels: Array, gestion: Boolean, entretien: Boolean });
 const emit = defineEmits(['actualiser']);
 const route = useRoute();
 const selection = ref(null);
@@ -20,11 +20,8 @@ const erreur = ref('');
 const dialogue = ref(null);
 const formulaire = ref({});
 
-const energies = { essence: 'Essence', diesel: 'Diesel', hybride: 'Hybride', electrique: 'Électrique', autre: 'Autre' };
-const types = { prestataire: 'Prestataire', carte: 'Carte carburant', borne: 'Borne URCA' };
-const plans = { controle_technique: 'Contrôle technique', revision: 'Révision', pneus: 'Contrôle des pneus', entretien: 'Entretien constructeur' };
-const journalTypes = { carburant: 'Plein de carburant', facture: 'Facture', pneus: 'Mesure d’un train de pneus', remplacement_pneus: 'Retrait d’un train de pneus', incident: 'Incident mécanique', remise_service: 'Remise en service' };
-const options = (liste) => Object.entries(liste).map(([value, label]) => ({ value, label }));
+const options = groupe => props.referentiels.filter(v => v.groupe === groupe).map(v => ({ value: v.code, label: v.libelle }));
+const libelle = (groupe, code) => props.referentiels.find(v => v.groupe === groupe && v.code === code)?.libelle ?? code;
 const choixEquipement = (type) => props.equipements.filter((e) => e.type === type && e.actif).map((e) => ({ value: e.id, label: e.libelle }));
 const choixVehicule = computed(() => props.vehicules.map((v) => ({ value: v.id, label: v.libelle + ' · ' + v.immatriculation })));
 const vehicule = computed(() => props.vehicules.find((v) => v.id === selection.value));
@@ -78,7 +75,7 @@ function ouvrirVehicule(item = null) {
     { ...texte('immatriculation', 'Immatriculation', 24), lecture: Boolean(item) },
     texte('libelle', 'Marque / modèle', 150),
     texte('site', 'Site d’affectation', 120),
-    liste('energie', 'Énergie', options(energies), true),
+    liste('energie', 'Énergie', options('energie'), true),
     { ...nombre('kilometrage', 'Kilométrage au compteur', true), lecture: Boolean(item) },
     date('misEnServiceLe', 'Date de mise en service'),
     date('reformePrevueLe', 'Date cible de réforme'),
@@ -93,7 +90,7 @@ function ouvrirVehicule(item = null) {
 
 function ouvrirEquipement(item = null) {
   const champs = [
-    { ...liste('type', 'Catégorie', options(types), true), lecture: Boolean(item) },
+    { ...liste('type', 'Catégorie', options('equipement'), true), lecture: Boolean(item) },
     { ...texte('reference', 'Référence interne (sans numéro complet de carte)', 120), lecture: Boolean(item) },
     texte('libelle', 'Nom', 150),
     texte('coordonnees', 'Site, adresse ou coordonnées', 255, false),
@@ -113,7 +110,7 @@ function champTrajet() {
 
 function ouvrirPlan(plan = null) {
   const champs = [
-    { ...liste('type', 'Type de contrôle', options(plans), true), lecture: Boolean(plan) },
+    { ...liste('type', 'Type de contrôle', options('plan'), true), lecture: Boolean(plan) },
     { ...texte('libelle', 'Opération prévue', 150), lecture: Boolean(plan) },
     { ...date('effectueLe', 'Intervention réalisée le', Boolean(plan)), requisSi: (d) => d.type === 'pneus' },
     condition(champTrajet(), d => Boolean(d.effectueLe)),
@@ -129,7 +126,7 @@ function ouvrirPlan(plan = null) {
 
 function ouvrirJournal() {
   const champs = [
-    liste('type', 'Type de saisie', options(journalTypes), true),
+    liste('type', 'Type de saisie', options('journal'), true),
     date('date', 'Date', true),
     champTrajet(),
     texte('libelle', 'Référence (facture, contrôle, train de pneus ou symptôme)', 255),
@@ -183,7 +180,7 @@ async function enregistrer() {
         <Column field="libelle" header="Véhicule" sortable />
         <Column field="immatriculation" header="Immatriculation" />
         <Column field="site" header="Site" sortable />
-        <Column header="Énergie"><template #body="{ data }">{{ energies[data.energie] }}</template></Column>
+        <Column header="Énergie"><template #body="{ data }">{{ libelle('energie', data.energie) }}</template></Column>
         <Column field="kilometrage" header="Kilométrage" />
         <Column header="État">
           <template #body="{ data }"><Tag :value="data.blocage || 'Réservable'" :severity="data.blocage ? 'danger' : 'success'" /></template>
@@ -211,7 +208,7 @@ async function enregistrer() {
           <DataTable :value="suivi.echeances" data-key="id">
             <template #empty><EmptyState title="Aucune échéance renseignée" icon="pi pi-wrench" compact /></template>
             <Column field="libelle" header="Plan d’entretien" />
-            <Column header="Type"><template #body="{ data }">{{ plans[data.type] }}</template></Column>
+            <Column header="Type"><template #body="{ data }">{{ libelle('plan', data.type) }}</template></Column>
             <Column field="effectueLe" header="Dernière intervention" />
             <Column field="echeance" header="Prochaine échéance" />
             <Column field="echeanceKm" header="Échéance (km)" />
@@ -222,7 +219,7 @@ async function enregistrer() {
             <Column field="date" header="Date" />
             <Column field="trajet" header="N° de trajet" />
             <Column field="libelle" header="Journal (100 dernières entrées)" />
-            <Column header="Type"><template #body="{ data }">{{ journalTypes[data.type] || 'Entretien' }}</template></Column>
+            <Column header="Type"><template #body="{ data }">{{ libelle('journal', data.type) }}</template></Column>
             <Column field="prestataire" header="Prestataire" />
             <Column field="carte" header="Carte" />
             <Column field="kilometrage" header="Km" />
@@ -241,7 +238,7 @@ async function enregistrer() {
       </template>
       <DataTable :value="equipements" data-key="id" paginator :rows="10">
         <template #empty><EmptyState title="Aucune fiche" icon="pi pi-map-marker" compact /></template>
-        <Column header="Catégorie"><template #body="{ data }">{{ types[data.type] }}</template></Column>
+        <Column header="Catégorie"><template #body="{ data }">{{ libelle('equipement', data.type) }}</template></Column>
         <Column field="libelle" header="Nom" />
         <Column field="coordonnees" header="Site ou coordonnées" />
         <Column v-if="peutGerer" field="reference" header="Référence" />

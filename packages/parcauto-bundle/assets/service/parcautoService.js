@@ -26,3 +26,6 @@ export async function exporterParcautoService(params) {
   lien.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+export const supprimerValeurReferentielService = (groupe, code) =>
+  api.delete(prefixe + '/referentiels/' + encodeURIComponent(groupe) + '/' + encodeURIComponent(code), options);

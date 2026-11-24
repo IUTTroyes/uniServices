@@ -12,6 +12,7 @@ use ParcautoBundle\Entity\Equipement;
 use ParcautoBundle\Entity\JournalVehicule;
 use ParcautoBundle\Entity\Reservation;
 use ParcautoBundle\Entity\Vehicule;
+use ParcautoBundle\Entity\ValeurReferentiel;
 
 final readonly class GestionParcauto
 {
@@ -19,11 +20,21 @@ final readonly class GestionParcauto
     {
     }
 
+    public function codeReferentiel(string $groupe, string $code): string
+    {
+        $valeur = $this->em->find(ValeurReferentiel::class, ['groupe' => $groupe, 'code' => $code], LockMode::PESSIMISTIC_READ);
+        if ($valeur === null) {
+            throw new \InvalidArgumentException('Valeur inconnue dans le référentiel.');
+        }
+
+        return $valeur->code;
+    }
+
     public function vehicule(SaisieParcauto $saisie, ?Vehicule $vehicule): Vehicule
     {
         $libelle = $saisie->texte('libelle', 150);
         $site = $saisie->texte('site', 120);
-        $energie = $saisie->choix('energie', ['essence', 'diesel', 'hybride', 'electrique', 'autre']);
+        $energie = $this->codeReferentiel('energie', $saisie->texte('energie', 30));
         $actif = $saisie->booleen('actif');
         if ($vehicule === null) {
             $vehicule = new Vehicule(
@@ -56,7 +67,7 @@ final readonly class GestionParcauto
 
     public function echeance(Vehicule $vehicule, Personnel $auteur, SaisieParcauto $saisie, ?EcheanceEntretien $plan): EcheanceEntretien
     {
-        $type = $plan !== null ? $plan->type : $saisie->choix('type', ['revision', 'controle_technique', 'pneus', 'entretien']);
+        $type = $plan !== null ? $plan->type : $this->codeReferentiel('plan', $saisie->texte('type', 30));
         $libelle = $plan !== null ? $plan->libelle : $saisie->texte('libelle', 150);
         $date = $saisie->date('effectueLe', true);
         $maintenant = SaisieParcauto::maintenant();
@@ -105,14 +116,9 @@ final readonly class GestionParcauto
         if ($mission !== null && $mission->statut !== Reservation::EN_COURS) {
             throw new \DomainException('La mission doit être en cours pour ajouter une déclaration.');
         }
-        $type = $saisie->choix('type', $mission !== null ? [JournalVehicule::CARBURANT, JournalVehicule::INCIDENT] : [
-            JournalVehicule::CARBURANT,
-            JournalVehicule::FACTURE,
-            JournalVehicule::PNEUS,
-            JournalVehicule::REMPLACEMENT_PNEUS,
-            JournalVehicule::INCIDENT,
-            JournalVehicule::REMISE_SERVICE,
-        ]);
+        $type = $mission === null
+            ? $this->codeReferentiel('journal', $saisie->texte('type', 25))
+            : $saisie->choix('type', [JournalVehicule::CARBURANT, JournalVehicule::INCIDENT]);
         $date = $mission !== null ? SaisieParcauto::maintenant() : $saisie->date('date');
         if ($date > SaisieParcauto::maintenant()) {
             throw new \InvalidArgumentException('La date doit être passée.');

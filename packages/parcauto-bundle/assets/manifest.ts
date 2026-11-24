@@ -2,9 +2,10 @@ import AppLayout from '@components/components/layout/AppLayout.vue';
 
 
 const pages = [
-  { path: 'planning', name: 'parcauto-planning', label: 'Réservations', icon: 'pi pi-calendar' },
-  { path: 'vehicules', name: 'parcauto-vehicules', label: 'Véhicules et équipements', icon: 'pi pi-car' },
-  { path: 'pilotage', name: 'parcauto-pilotage', label: 'Pilotage', icon: 'pi pi-chart-bar', permission: 'canManageParcauto' },
+  { component: () => import('./views/PlanningView.vue'), path: 'planning', name: 'parcauto-planning', label: 'Réservations', icon: 'pi pi-calendar' },
+  { component: () => import('./views/VehiculesView.vue'), path: 'vehicules', name: 'parcauto-vehicules', label: 'Véhicules et équipements', icon: 'pi pi-car' },
+  { component: () => import('./views/PilotageView.vue'), path: 'pilotage', name: 'parcauto-pilotage', label: 'Pilotage', icon: 'pi pi-chart-bar', permission: 'canManageParcauto' },
+  { component: () => import('./views/ReferentielsView.vue'), path: 'referentiels', name: 'parcauto-referentiels', label: 'Référentiels', icon: 'pi pi-list', permission: 'canManageParcauto' },
 ];
 
 export default {
@@ -24,12 +25,11 @@ export default {
       props: { appName: 'Parc automobile' },
       meta: { title: 'Parc automobile', package: 'parcauto', permission: 'isPersonnel' },
       children: [
-        { path: '', name: 'parcauto-home', component: () => import('./App.vue') },
-        ...pages.map(({ path, name, label, icon, permission }) => ({
+        { path: '', name: 'parcauto-home', component: () => import('./views/DashboardView.vue') },
+        ...pages.map(({ path, name, label, component, permission }) => ({
           path,
           name,
-          component: () => import('./views/ParcautoPage.vue'),
-          props: { page: path, titre: label, icon },
+          component,
           meta: { title: label, ...(permission ? { permission } : {}) },
         })),
       ],

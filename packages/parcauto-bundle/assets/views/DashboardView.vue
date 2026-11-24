@@ -1,9 +1,9 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { ActionButtonVertical, Card, EmptyState, HeaderComponent, Kpi, ListSkeleton, PermissionGuard } from '@components';
-import ReservationsAccueil from './components/ReservationsAccueil.vue';
-import { dateHeure, jourLocal, messageErreur } from './components/parcautoDates';
-import { getAccueilService, getParcService } from './service/parcautoService';
+import ReservationsAccueil from '../components/ReservationsAccueil.vue';
+import { dateHeure, jourLocal, messageErreur } from '../components/parcautoDates';
+import { getAccueilService, getParcService } from '../service/parcautoService';
 
 const accueil = ref(null);
 const chargement = ref(false);

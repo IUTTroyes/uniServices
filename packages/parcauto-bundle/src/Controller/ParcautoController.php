@@ -15,6 +15,7 @@ use ParcautoBundle\Entity\Equipement;
 use ParcautoBundle\Entity\JournalVehicule;
 use ParcautoBundle\Entity\Reservation;
 use ParcautoBundle\Entity\Vehicule;
+use ParcautoBundle\Entity\ValeurReferentiel;
 use ParcautoBundle\Security\ParcautoVoter;
 use ParcautoBundle\Service\GestionParcauto;
 use ParcautoBundle\Service\OrdreMissionOmer;
@@ -76,6 +77,7 @@ final class ParcautoController extends AbstractController
         );
 
         return $this->json([
+            'referentiels' => $this->em->getRepository(ValeurReferentiel::class)->findBy([], ['groupe' => 'ASC', 'libelle' => 'ASC']),
             'gestion' => $gestion,
             'entretien' => $entretien,
             'vehicules' => $vehicules,
@@ -84,6 +86,41 @@ final class ParcautoController extends AbstractController
                 'coordonnees' => $e->coordonnees, 'vehicule' => $e->vehicule?->id, 'actif' => $e->actif,
             ], $equipements),
         ]);
+    }
+
+    #[Route('/referentiels/{groupe}', name: 'referentiel_creer', methods: ['POST'])]
+    #[Route('/referentiels/{groupe}/{code}', name: 'referentiel_modifier', methods: ['PUT', 'DELETE'])]
+    #[IsGranted(ParcautoVoter::GESTION)]
+    public function referentiel(Request $request, string $groupe, ?string $code = null): JsonResponse
+    {
+        if (!isset(ValeurReferentiel::GROUPES[$groupe])) {
+            throw $this->createNotFoundException();
+        }
+
+        return $this->executer(fn () => $this->em->wrapInTransaction(function () use ($request, $groupe, $code): array {
+            if ($code === null) {
+                $saisie = new SaisieParcauto($request->toArray());
+                $code = $saisie->texte('code', 20);
+                if (!preg_match('/^[a-z][a-z0-9_]*$/D', $code)) {
+                    throw new \InvalidArgumentException('Le code doit commencer par une lettre et contenir des minuscules, chiffres ou tirets bas.');
+                }
+                $this->em->persist(new ValeurReferentiel($groupe, $code, $saisie->texte('libelle', 120)));
+            } else {
+                $valeur = $this->em->find(ValeurReferentiel::class, ['groupe' => $groupe, 'code' => $code], LockMode::PESSIMISTIC_WRITE)
+                    ?? throw $this->createNotFoundException();
+                if ($request->isMethod('DELETE')) {
+                    [$classe, $champ] = ValeurReferentiel::GROUPES[$groupe];
+                    if ($valeur->protegee || $this->em->getRepository($classe)->count([$champ => $code]) > 0) {
+                        throw new \DomainException('Cette valeur est utilisée par le parc ou par une règle métier.');
+                    }
+                    $this->em->remove($valeur);
+                } else {
+                    $valeur->libelle = (new SaisieParcauto($request->toArray()))->texte('libelle', 120);
+                }
+            }
+
+            return ['code' => $code];
+        }), $code === null ? 201 : 200);
     }
 
     #[Route('/planning', name: 'planning', methods: ['GET'])]
@@ -350,7 +387,7 @@ final class ParcautoController extends AbstractController
     {
         return $this->ecrire($request, function (SaisieParcauto $saisie) use ($id): Equipement {
             $equipement = $id === null ? null : ($this->em->find(Equipement::class, $id, LockMode::PESSIMISTIC_WRITE) ?? throw $this->createNotFoundException());
-            $type = $equipement !== null ? $equipement->type : $saisie->choix('type', [Equipement::PRESTATAIRE, Equipement::CARTE, Equipement::BORNE]);
+            $type = $equipement !== null ? $equipement->type : $this->gestion->codeReferentiel('equipement', $saisie->texte('type', 20));
             $vehiculeId = $saisie->entier('vehicule', 1, true);
             if ($type !== Equipement::CARTE && $vehiculeId !== null) {
                 throw new \InvalidArgumentException('Seule une carte peut être affectée à un véhicule.');
