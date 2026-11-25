@@ -43,6 +43,29 @@ final readonly class SaisieParcauto
         return new self($details);
     }
 
+    public function contient(string $champ): bool
+    {
+        return array_key_exists($champ, $this->valeurs);
+    }
+
+    public function identifiants(string $champ): array
+    {
+        $ids = $this->valeurs[$champ] ?? [];
+        if (!is_array($ids) || !array_is_list($ids)) {
+            throw new \InvalidArgumentException("Liste $champ invalide.");
+        }
+        foreach ($ids as $id) {
+            if (!is_int($id) || $id < 1) {
+                throw new \InvalidArgumentException("Identifiant $champ invalide.");
+            }
+        }
+
+        $ids = array_unique($ids);
+        sort($ids, SORT_NUMERIC);
+
+        return $ids;
+    }
+
     public function booleen(string $champ): bool
     {
         $valeur = $this->valeurs[$champ] ?? null;

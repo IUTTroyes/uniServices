@@ -77,6 +77,10 @@ final class ParcautoController extends AbstractController
         );
 
         return $this->json([
+            'portatifs' => array_map(static fn (Equipement $e) => [
+                'value' => $e->id, 'label' => $e->libelle.' · '.$e->reference,
+                'vehicule' => $e->vehicule?->id, 'sorti' => $e->sortie !== null,
+            ], $this->em->getRepository(Equipement::class)->findBy(['portatif' => true, 'actif' => true], ['libelle' => 'ASC'])),
             'passTelepeage' => array_map(static fn (Equipement $pass) => [
                 'value' => $pass->id, 'label' => $pass->libelle, 'vehicule' => $pass->vehicule?->id,
             ], $this->em->getRepository(Equipement::class)->findBy(['type' => Equipement::PASS, 'actif' => true], ['libelle' => 'ASC'])),
@@ -86,6 +90,7 @@ final class ParcautoController extends AbstractController
             'vehicules' => $vehicules,
             'equipements' => array_map(static fn (Equipement $e) => [
                 'id' => $e->id, 'type' => $e->type, 'reference' => $e->reference, 'libelle' => $e->libelle,
+                'portatif' => $e->portatif, 'sorti' => $e->sortie !== null,
                 'coordonnees' => $e->coordonnees, 'vehicule' => $e->vehicule?->id, 'actif' => $e->actif,
             ], $equipements),
         ]);
@@ -247,6 +252,9 @@ final class ParcautoController extends AbstractController
             'ordreVerifie' => $reservation->ordreVerifie,
             'typeOm' => $reservation->typeOm,
             'motif' => $reservation->motif,
+            'equipementsEmportes' => array_values($reservation->equipementsEmportes->map(
+                static fn (Equipement $e) => $e->libelle.' · '.$e->reference
+            )->toArray()),
             'motifRefus' => $reservation->motifRefus,
             'destinations' => $reservation->destinations,
             'kilometrageDepart' => $reservation->kilometrageDepart,
@@ -290,6 +298,7 @@ final class ParcautoController extends AbstractController
             $this->planning->verifierDisponibilite($reservation, $kilometrage);
             if ($urgence) {
                 $reservation->partir($kilometrage, $debut);
+                $this->gestion->emporterEquipements($reservation, $saisie);
             } elseif ($validationAutomatique) {
                 $reservation->valider($this->omer->verifier($reservation));
             }
@@ -332,6 +341,7 @@ final class ParcautoController extends AbstractController
                     $kilometrage = $saisie->entier('kilometrage');
                     $this->planning->verifierDisponibilite($reservation, $kilometrage, $maintenant);
                     $reservation->partir($kilometrage, $maintenant);
+                    $this->gestion->emporterEquipements($reservation, $saisie);
                     break;
                 case 'retour':
                     foreach (['plein' => JournalVehicule::CARBURANT, 'telepeage' => JournalVehicule::TELEPEAGE] as $champ => $type) {
@@ -464,6 +474,13 @@ final class ParcautoController extends AbstractController
                 $equipement->coordonnees = $coordonnees;
                 $equipement->vehicule = $vehicule;
                 $equipement->actif = $actif;
+            }
+
+            if ($equipement->sortie !== null) {
+                throw new \DomainException('Cet équipement est sorti. Sa fiche pourra être modifiée à son retour.');
+            }
+            if ($saisie->contient('portatif')) {
+                $equipement->portatif = $saisie->booleen('portatif');
             }
 
             return $equipement;

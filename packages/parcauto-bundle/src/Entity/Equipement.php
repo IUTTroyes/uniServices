@@ -19,6 +19,9 @@ class Equipement
     #[ORM\Id, ORM\GeneratedValue, ORM\Column]
     public private(set) ?int $id = null;
 
+    #[ORM\ManyToOne]
+    public ?Reservation $sortie = null;
+
     public function __construct(
         #[ORM\Column(length: 20)]
         public readonly string $type,
@@ -32,6 +35,8 @@ class Equipement
         public ?Vehicule $vehicule,
         #[ORM\Column]
         public bool $actif,
+        #[ORM\Column(options: ['default' => false])]
+        public bool $portatif = false,
     ) {
     }
 }

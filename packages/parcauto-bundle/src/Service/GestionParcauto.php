@@ -20,6 +20,20 @@ final readonly class GestionParcauto
     {
     }
 
+    public function emporterEquipements(Reservation $reservation, SaisieParcauto $saisie): void
+    {
+        foreach ($saisie->identifiants('equipements') as $id) {
+            $equipement = $this->em->find(Equipement::class, $id, LockMode::PESSIMISTIC_WRITE);
+            if (!$equipement?->actif || !$equipement->portatif || $equipement->sortie !== null
+                || ($equipement->vehicule !== null && $equipement->vehicule !== $reservation->vehicule)) {
+                throw new \DomainException('Un équipement sélectionné est indisponible pour ce trajet.');
+            }
+
+            $equipement->sortie = $reservation;
+            $reservation->equipementsEmportes->add($equipement);
+        }
+    }
+
     public function codeReferentiel(string $groupe, string $code): string
     {
         $valeur = $this->em->find(ValeurReferentiel::class, ['groupe' => $groupe, 'code' => $code], LockMode::PESSIMISTIC_READ);

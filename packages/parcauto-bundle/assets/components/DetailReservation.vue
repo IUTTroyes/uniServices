@@ -18,6 +18,7 @@ defineEmits(['action']);
         <span v-if="mission.kilometrageDepart !== null"> · Départ {{ mission.kilometrageDepart }} km</span>
         <span v-if="mission.kilometrageRetour !== null"> · Retour {{ mission.kilometrageRetour }} km</span>
       </div>
+      <div v-if="mission.equipementsEmportes?.length" class="text-sm">Équipements emportés · {{ mission.equipementsEmportes.join(', ') }}</div>
       <div v-if="mission.motif" class="text-sm">Motif · {{ mission.motif }}</div>
       <div v-if="mission.motifRefus" class="text-sm">Motif du refus · {{ mission.motifRefus }}</div>
       <div v-if="mission.destinations" class="text-sm">Destination(s) · {{ mission.destinations }}</div>

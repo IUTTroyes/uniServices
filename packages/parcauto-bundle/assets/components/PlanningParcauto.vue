@@ -11,7 +11,7 @@ import FormulaireParcauto from './FormulaireParcauto.vue';
 import { enregistrerParcautoService, getPlanningService } from '../service/parcautoService';
 import { dateHeure, instant, jourLocal, messageErreur } from './parcautoDates';
 
-const props = defineProps({ vehicules: Array, passTelepeage: Array, gestion: Boolean });
+const props = defineProps({ vehicules: Array, passTelepeage: Array, portatifs: Array, gestion: Boolean });
 const emit = defineEmits(['actualiser']);
 const route = useRoute();
 const mois = ref(startOfMonth(new Date()));
@@ -41,6 +41,22 @@ function champsPlein(mission) {
         ];
 }
 
+const champEquipements = computed(() => {
+  const vehicule = dialogue.value?.mission?.vehicule ?? formulaire.value.vehicule;
+  return {
+    nom: 'equipements', label: 'Équipements emportés', type: 'multiple',
+    options: props.portatifs.filter(e => e.vehicule == null || e.vehicule === vehicule)
+      .map(e => ({ ...e, label: e.sorti ? e.label + ' (sorti)' : e.label })),
+    optionDisabled: 'sorti',
+  };
+});
+watch(() => formulaire.value.vehicule, () => {
+  if (dialogue.value?.action === 'urgence') {
+    const disponibles = champEquipements.value.options.filter(e => !e.sorti).map(e => e.value);
+    formulaire.value.equipements = formulaire.value.equipements.filter(id => disponibles.includes(id));
+  }
+});
+
 const champs = computed(() => {
   switch (dialogue.value?.action) {
     case 'urgence':
@@ -56,6 +72,7 @@ const champs = computed(() => {
         dialogue.value.action === 'urgence'
           ? { nom: 'kilometrage', label: 'Kilométrage au départ', type: 'number', requis: true }
           : { nom: 'debut', label: 'Départ', type: 'datetime-local', requis: true },
+        ...(dialogue.value.action === 'urgence' ? [champEquipements.value] : []),
         { nom: 'fin', label: 'Retour prévu', type: 'datetime-local', requis: true },
         {
           nom: 'typeOm', label: 'Votre OM permanent couvre-t-il l’ensemble du déplacement ?', requis: true,
@@ -90,7 +107,7 @@ const champs = computed(() => {
     case 'refuser':
       return [{ nom: 'motifRefus', label: 'Motif du refus (facultatif)', max: 255 }];
     case 'depart':
-      return [{ nom: 'kilometrage', label: 'Kilométrage au compteur', type: 'number', requis: true }];
+      return [{ nom: 'kilometrage', label: 'Kilométrage au compteur', type: 'number', requis: true }, champEquipements.value];
     default:
       return [];
   }
@@ -149,6 +166,7 @@ function ouvrir(action, mission = null) {
   const vehicule = props.vehicules.find((v) => v.id === selection.value && !v.blocage);
   formulaire.value = {
     vehicule: vehicule?.id ?? null,
+    equipements: [],
     debut: jour ? jour + 'T08:00' : '',
     fin: jour ? jour + 'T09:00' : '',
     typeOm: null,
@@ -168,7 +186,7 @@ async function enregistrer() {
     const donnees = formulaire.value;
     if (action === 'demander' || action === 'urgence') {
       await enregistrerParcautoService(action === 'urgence' ? '/urgences' : '/reservations', {
-        vehicule: donnees.vehicule, ...(action === 'urgence' ? { kilometrage: donnees.kilometrage } : { debut: instant(donnees.debut) }), fin: instant(donnees.fin),
+        vehicule: donnees.vehicule, ...(action === 'urgence' ? { kilometrage: donnees.kilometrage, equipements: donnees.equipements } : { debut: instant(donnees.debut) }), fin: instant(donnees.fin),
         typeOm: donnees.typeOm, motif: donnees.motif, destinations: donnees.destinations,
         ...(donnees.typeOm === 'ponctuel' ? { ordreMission: donnees.ordreMission } : {}),
       });
@@ -184,7 +202,7 @@ async function enregistrer() {
           montantCentimes: donnees.prixPeage == null ? null : enCentimes(donnees.prixPeage) } : undefined,
       });
     } else {
-      await enregistrerParcautoService(`/reservations/${mission.id}/${action}`, action === 'refuser' ? { motifRefus: donnees.motifRefus } : { kilometrage: donnees.kilometrage });
+      await enregistrerParcautoService(`/reservations/${mission.id}/${action}`, action === 'refuser' ? { motifRefus: donnees.motifRefus } : { kilometrage: donnees.kilometrage, equipements: donnees.equipements });
     }
     dialogue.value = null;
     emit('actualiser');
@@ -277,6 +295,7 @@ watch(periode, () => {
                         :erreur="erreur" :sauvegarde="sauvegarde" libelle-action="Confirmer" @submit="enregistrer">
       <Message v-if="['depart', 'urgence'].includes(dialogue.action)" severity="info">Au retour, indiquez les pleins, les passages au télépéage et tout incident constaté. Gardez les références et montants disponibles.</Message>
       <Message v-if="dialogue.action === 'retour'" severity="info">Retour prévu le {{ dateHeure(dialogue.mission.fin) }}. Vous pouvez confirmer votre retour en avance ou en retard. L’heure de confirmation sera enregistrée.</Message>
+      <Message v-if="dialogue.action === 'retour' && dialogue.mission.equipementsEmportes?.length" severity="info">Équipements à restituer : {{ dialogue.mission.equipementsEmportes.join(', ') }}.</Message>
       <Message v-if="dialogue.action === 'retour' && dialogue.mission.pleinsDeclares" severity="info">Pleins déjà enregistrés pour ce trajet : {{ dialogue.mission.pleinsDeclares }}.</Message>
       <p v-if="!champs.length">{{ noms.get(dialogue.mission.vehicule) }} · {{ dateHeure(dialogue.mission.debut) }} · {{ dialogue.mission.nomConducteur }}</p>
     </FormulaireParcauto>

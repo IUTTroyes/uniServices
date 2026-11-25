@@ -95,10 +95,11 @@ function ouvrirEquipement(item = null) {
     texte('libelle', 'Nom', 150),
     texte('coordonnees', 'Site, adresse ou coordonnées', 255, false),
     condition(liste('vehicule', 'Affectation (vide pour un équipement partagé)', choixVehicule.value), (d) => ['carte', 'pass_telepeage'].includes(d.type)),
+    { nom: 'portatif', label: 'Équipement portatif', type: 'boolean' },
     actif,
   ];
   ouvrir(item ? 'Modifier la fiche' : 'Ajouter une fiche', item ? `/equipements/${item.id}` : '/equipements',
-    champs, item ?? { actif: true }, Boolean(item));
+    champs, item ?? { actif: true, portatif: false }, Boolean(item));
 }
 
 function champTrajet() {
@@ -256,6 +257,9 @@ async function enregistrer() {
         <template #empty><EmptyState title="Aucune fiche" icon="pi pi-map-marker" compact /></template>
         <Column header="Catégorie"><template #body="{ data }">{{ libelle('equipement', data.type) }}</template></Column>
         <Column field="libelle" header="Nom" />
+        <Column v-if="peutEntretenir" header="Disponibilité"><template #body="{ data }">
+          <Tag v-if="data.portatif" :value="data.sorti ? 'Sorti' : data.actif ? 'Disponible' : 'Inactif'" :severity="data.sorti ? 'warn' : data.actif ? 'success' : 'secondary'" />
+        </template></Column>
         <Column field="coordonnees" header="Site ou coordonnées" />
         <Column v-if="peutGerer" field="reference" header="Référence" />
         <Column v-if="peutGerer" header="Affectation">
@@ -265,7 +269,7 @@ async function enregistrer() {
           <template #body="{ data }"><Tag :value="data.actif ? 'Actif' : 'Inactif'" :severity="data.actif ? 'success' : 'secondary'" /></template>
         </Column>
         <Column v-if="peutGerer" header="Action">
-          <template #body="{ data }"><Button label="Modifier" size="small" text @click="ouvrirEquipement(data)" /></template>
+          <template #body="{ data }"><Button label="Modifier" size="small" text :disabled="data.sorti" @click="ouvrirEquipement(data)" /></template>
         </Column>
       </DataTable>
     </Card>

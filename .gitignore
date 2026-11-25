@@ -31,6 +31,9 @@
 *.sql
 *.dump
 
+# Migrations
+/back/migrations/*.php
+
 # IDE and editors
 *.swp
 *.swo

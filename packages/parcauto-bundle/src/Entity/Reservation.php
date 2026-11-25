@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace ParcautoBundle\Entity;
 
 use App\Entity\Users\Personnel;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -44,6 +46,11 @@ class Reservation
     #[ORM\Column(length: 200)]
     public readonly string $nomConducteur;
 
+    /** @var Collection<int, Equipement> */
+    #[ORM\ManyToMany(targetEntity: Equipement::class)]
+    #[ORM\JoinTable(name: 'parcauto_reservation_equipement')]
+    public private(set) Collection $equipementsEmportes;
+
     public function __construct(
         #[ORM\ManyToOne, ORM\JoinColumn(nullable: false)]
         public readonly Vehicule $vehicule,
@@ -64,6 +71,7 @@ class Reservation
         #[ORM\Column(options: ['default' => false])]
         public readonly bool $urgence = false,
     ) {
+        $this->equipementsEmportes = new ArrayCollection();
         $this->nomConducteur = trim($conducteur->getPrenom().' '.$conducteur->getNom());
     }
 
@@ -106,6 +114,9 @@ class Reservation
         $this->exigerStatut(self::EN_COURS);
         $this->vehicule->releverKilometrage($kilometrage);
         $this->kilometrageRetour = $kilometrage;
+        foreach ($this->equipementsEmportes as $equipement) {
+            $equipement->sortie = null;
+        }
         $this->retourLe = $date;
         $this->statut = self::TERMINEE;
     }

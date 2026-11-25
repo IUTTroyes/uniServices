@@ -59,6 +59,11 @@ function soumettre() {
         {{ champ.label }}
         <ToggleSwitch v-model="donnees[champ.nom]" :input-id="'parcauto-' + champ.nom" :disabled="champ.lecture" />
       </label>
+      <label v-else-if="champ.type === 'multiple'" :for="'parcauto-' + champ.nom" class="grid gap-1 text-sm">
+        {{ champ.label }}
+        <MultiSelect v-model="donnees[champ.nom]" :input-id="'parcauto-' + champ.nom" :options="champ.options" option-label="label"
+                     option-value="value" :option-disabled="champ.optionDisabled" placeholder="Aucun équipement" display="chip" />
+      </label>
       <ValidatedInput v-else v-model="donnees[champ.nom]"
                       :name="'parcauto-' + champ.nom" :label="champ.label"
                       :type="champ.options ? 'select' : champ.type ?? 'text'"
