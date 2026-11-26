@@ -973,13 +973,13 @@ const confirmDeletePeriod = async (p) => {
   <div class="space-y-6">
 
     <!-- 1. Header component for General Dashboard -->
-    <HeaderComponent v-if="viewMode === 'dashboard'" :icon="ChartBarIcon" color="indigo"
+    <HeaderComponent app="stage" v-if="viewMode === 'dashboard'" :icon="ChartBarIcon"
       titre="Espace Responsable des Stages"
       description="Gérez les conventions de stage, supervisez le parcours des étudiants et paramétrez les périodes.">
     </HeaderComponent>
 
     <!-- 2. Header component for Specific Period View -->
-    <HeaderComponent v-else :icon="CalendarIcon" color="violet" :titre="activePeriodName"
+    <HeaderComponent app="stage" v-else :icon="CalendarIcon" :titre="activePeriodName"
       :description="activePeriodDatesAndInfo">
     </HeaderComponent>
 

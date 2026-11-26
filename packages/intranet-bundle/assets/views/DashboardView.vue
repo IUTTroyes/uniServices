@@ -111,7 +111,7 @@ const actions = [
 </script>
 
 <template>
-  <HeaderComponent icon="pi pi-desktop" titre="Intranet"
+  <HeaderComponent app="intranet"
                    description="Retrouvez vos outils et le suivi de vos activités." :show-back="false" />
   <div class="flex flex-col gap-6 pb-8">
     <section aria-labelledby="workspace-actions">

@@ -2,10 +2,13 @@ import dashboardRoutes from './router/modules/dashboardRoutes.js';
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
 import LayoutComponent from '@components/components/layout/AppLayout.vue';
 import './assets/forms.css';
+import { getApplicationMeta } from '@utils/applicationColors';
+
+const app = getApplicationMeta('stage');
 
 const stageMenu = {
-  label: 'Stages',
-  icon: 'pi pi-fw pi-briefcase',
+  label: app.name,
+  icon: `${app.icon} pi-fw`,
   items: [
     { label: 'Tableau de Bord', icon: 'pi pi-fw pi-home', to: '/stage/' },
     { label: 'Espace Étudiant', icon: 'pi pi-fw pi-user', to: '/stage/etudiant', permission: 'isEtudiant' },
@@ -39,7 +42,7 @@ export default {
       component: LayoutComponent,
       props: route => ({
         logoUrl: Logo,
-        appName: 'UniStages',
+        appName: app.name,
         breadcrumbItems: typeof route.meta.breadcrumb === 'function'
           ? route.meta.breadcrumb(route)
           : (route.meta.breadcrumb || [])

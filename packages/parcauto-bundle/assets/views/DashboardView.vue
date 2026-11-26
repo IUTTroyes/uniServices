@@ -47,11 +47,10 @@ onMounted(charger);
 </script>
 
 <template>
-  <HeaderComponent titre="Tableau de bord du parc automobile"
+  <HeaderComponent app="parcauto"
                    :description="gestion ? 'Demandes à arbitrer, suivi du parc et missions personnelles.'
                      : utilisateur.isDirecteurIut ? 'Demandes des enseignants à arbitrer et suivi de vos missions.'
-                     : 'Demandes, prochains départs et missions en cours.'"
-                   icon="pi pi-car" color="blue">
+                     : 'Demandes, prochains départs et missions en cours.'">
     <template #actions>
       <div class="flex flex-wrap gap-2">
         <ActionButtonVertical label="Réserver un véhicule" icon="pi pi-plus" :to="{ ...planning, query: { action: 'reserver' } }" />

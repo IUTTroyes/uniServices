@@ -36,9 +36,4 @@ class AuthWidgetProvider implements WidgetProviderInterface
     {
         return 'auth';
     }
-
-    public function getBundleLabel(): string
-    {
-        return 'Auth';
-    }
 }

@@ -1,5 +1,6 @@
 <script setup>
 import { defineProps, computed } from "vue";
+import { getApplicationMeta } from "@utils/applicationColors";
 
 const props = defineProps({
   icon: {
@@ -8,7 +9,12 @@ const props = defineProps({
   },
   titre: {
     type: String,
-    required: true
+    default: ''
+  },
+  /** Identifiant d'application : fournit le nom, l'icône et la couleur depuis son bundle.meta.json. */
+  app: {
+    type: String,
+    default: ''
   },
   description: {
     type: String,
@@ -104,7 +110,12 @@ const colorMap = {
   }
 };
 
+const application = computed(() => (props.app ? getApplicationMeta(props.app) : null));
+const title = computed(() => props.titre || application.value?.name);
+const headerIcon = computed(() => props.icon || application.value?.icon);
+
 const colorClasses = computed(() => {
+  if (!props.color && application.value) return application.value.headerClasses;
   if (!props.color) return null;
   return colorMap[props.color] || colorMap.blue;
 });
@@ -115,18 +126,18 @@ const colorClasses = computed(() => {
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
         <h1 class="text-[length:var(--ui-page-title-size)] font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-3 mb-0!">
-        <span v-if="icon" :class="[
+        <span v-if="headerIcon" :class="[
           colorClasses ? 'w-10 h-10 rounded-xl flex items-center justify-center border transition-all shrink-0' : '',
           colorClasses ? `${colorClasses.bg} ${colorClasses.text} ${colorClasses.border}` : '',
           iconBgClass
         ]">
           <!-- Support PrimeIcons string and Heroicons component -->
-          <i v-if="typeof icon === 'string'" :class="[icon, colorClasses ? 'text-lg' : 'text-primary-500 text-2xl!', colorClasses ? '' : iconClass]" />
-          <component v-else :is="icon" :class="[colorClasses ? 'w-5 h-5' : 'w-7 h-7 text-primary-500', colorClasses ? '' : iconClass]" />
+          <i v-if="typeof headerIcon === 'string'" :class="[headerIcon, colorClasses ? 'text-lg' : 'text-primary-500 text-2xl!', colorClasses ? '' : iconClass]" />
+          <component v-else :is="headerIcon" :class="[colorClasses ? 'w-5 h-5' : 'w-7 h-7 text-primary-500', colorClasses ? '' : iconClass]" />
         </span>
-          <span>{{ props.titre }}</span>
+          <span>{{ title }}</span>
         </h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-1" :class="[icon && colorClasses ? 'pl-[52px]' : '']">
+        <p class="text-gray-600 dark:text-gray-400 mt-1" :class="[headerIcon && colorClasses ? 'pl-[52px]' : '']">
           {{ props.description }}
         </p>
       </div>

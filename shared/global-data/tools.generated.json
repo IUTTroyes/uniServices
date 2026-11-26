@@ -5,24 +5,41 @@
         "urlSlug": "auth",
         "url": "/app/auth/portail",
         "shortLabel": "UniService",
-        "brand": "service",
+        "brand": {
+            "key": "service",
+            "tagline": "Accéder à tous ses services",
+            "color": "#4D3677",
+            "accent": "#F9B000",
+            "colorOnDark": "#FFFFFF",
+            "accentOnDark": "#F9B000",
+            "pictogram": null
+        },
         "primaryColor": "uni-service",
         "icon": "pi pi-user",
         "aliases": [
-            "portail"
+            "portail",
+            "core"
         ],
         "isDefault": false,
         "showInPortal": false
     },
     {
-        "name": "Documents",
-        "description": "Gestion \u00c9lectronique de Documents",
+        "name": "UniDocs",
+        "description": "Gestion électronique de documents",
         "urlSlug": "documents",
         "url": "/app/documents",
-        "shortLabel": "Documents",
-        "brand": null,
-        "primaryColor": "blue",
-        "icon": "pi pi-folder",
+        "shortLabel": "UniDocs",
+        "brand": {
+            "key": "docs",
+            "tagline": "Classer et partager les documents",
+            "color": "#3730A3",
+            "accent": "#8B87CA",
+            "colorOnDark": "#A5B4FC",
+            "accentOnDark": "#7178AE",
+            "pictogram": "M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2ZM14 3v5h5M9 13h6M9 17h4"
+        },
+        "primaryColor": "uni-docs",
+        "icon": "pi pi-file",
         "aliases": [
             "document"
         ],
@@ -31,13 +48,21 @@
     },
     {
         "name": "UniFinance",
-        "description": "Gestion financi\u00e8re, bons de commande et suivi budg\u00e9taire",
+        "description": "Demandes d’achat, bons de commande et suivi budgétaire",
         "urlSlug": "finance",
         "url": "/app/finance",
         "shortLabel": "UniFinance",
-        "brand": "finance",
+        "brand": {
+            "key": "finance",
+            "tagline": "Piloter les budgets",
+            "color": "#475569",
+            "accent": "#949CA8",
+            "colorOnDark": "#CBD5E1",
+            "accentOnDark": "#898C9E",
+            "pictogram": "M18 6.500a7 7 0 1 0 0 11M4 10h10M4 14h9"
+        },
         "primaryColor": "uni-finance",
-        "icon": "pi pi-wallet",
+        "icon": "pi pi-euro",
         "aliases": [
             "finances"
         ],
@@ -45,14 +70,22 @@
         "showInPortal": true
     },
     {
-        "name": "HelpDesk",
-        "description": "Syst\u00e8me de tickets",
+        "name": "UniTicket",
+        "description": "Assistance et suivi des demandes",
         "urlSlug": "helpdesk",
         "url": "/app/helpdesk",
-        "shortLabel": "HelpDesk",
-        "brand": null,
-        "primaryColor": "orange",
-        "icon": "pi pi-question-circle",
+        "shortLabel": "UniTicket",
+        "brand": {
+            "key": "ticket",
+            "tagline": "Signaler et suivre les demandes",
+            "color": "#7A5B00",
+            "accent": "#B2A06B",
+            "colorOnDark": "#FFD666",
+            "accentOnDark": "#A98D51",
+            "pictogram": "M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4ZM14 6v2M14 11v2M14 16v2"
+        },
+        "primaryColor": "uni-ticket",
+        "icon": "pi pi-ticket",
         "aliases": [
             "help-desk"
         ],
@@ -61,13 +94,21 @@
     },
     {
         "name": "UniTranet",
-        "description": "Gestion des formations et \u00e9tudiants.",
+        "description": "Gestion des formations et des étudiants",
         "urlSlug": "intranet",
         "url": "/app/intranet",
         "shortLabel": "UniTranet",
-        "brand": "tranet",
+        "brand": {
+            "key": "tranet",
+            "tagline": "S’informer au quotidien",
+            "color": "#1D5FBF",
+            "accent": "#7CA2DA",
+            "colorOnDark": "#8CC0FF",
+            "accentOnDark": "#617FB0",
+            "pictogram": "M5.5 8a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0M3 20c0-4 3-6 6-6s6 2 6 6M16 5.5a3 3 0 0 1 0 6M17.500 14.500c2.300 0.600 3.500 2.500 3.500 5.500"
+        },
         "primaryColor": "uni-tranet",
-        "icon": "pi pi-desktop",
+        "icon": "pi pi-users",
         "aliases": [],
         "isDefault": true,
         "showInPortal": true
@@ -78,9 +119,17 @@
         "urlSlug": "message",
         "url": "/app/message",
         "shortLabel": "UniMessage",
-        "brand": "message",
+        "brand": {
+            "key": "message",
+            "tagline": "Échanger simplement",
+            "color": "#86279E",
+            "accent": "#B982C7",
+            "colorOnDark": "#E0A8FF",
+            "accentOnDark": "#9670B0",
+            "pictogram": "M4 5h16v11H10l-6 4Z"
+        },
         "primaryColor": "uni-message",
-        "icon": "pi pi-inbox",
+        "icon": "pi pi-comment",
         "aliases": [
             "messages",
             "messagerie"
@@ -90,11 +139,19 @@
     },
     {
         "name": "UniFlotte",
-        "description": "Bundle de gestion du parc automobile",
+        "description": "Gestion du parc automobile et des réservations",
         "urlSlug": "parcauto",
         "url": "/app/parcauto",
         "shortLabel": "UniFlotte",
-        "brand": "flotte",
+        "brand": {
+            "key": "flotte",
+            "tagline": "Gérer les véhicules",
+            "color": "#0B7270",
+            "accent": "#71ADAC",
+            "colorOnDark": "#5EDDD0",
+            "accentOnDark": "#459193",
+            "pictogram": "M5 17H3v-5l2.500-6h13l2.500 6v5h-2M9 17h6M3 12h18M5 17a2 2 0 1 0 4 0a2 2 0 1 0-4 0M15 17a2 2 0 1 0 4 0a2 2 0 1 0-4 0"
+        },
         "primaryColor": "uni-flotte",
         "icon": "pi pi-car",
         "aliases": [],
@@ -102,14 +159,22 @@
         "showInPortal": true
     },
     {
-        "name": "UniQualit\u00e9",
-        "description": "Cr\u00e9ation et gestion des questionnaires",
+        "name": "UniQualité",
+        "description": "Création et gestion des questionnaires",
         "urlSlug": "questionnaire",
         "url": "/app/questionnaire",
-        "shortLabel": "UniQualit\u00e9",
-        "brand": "qualite",
+        "shortLabel": "UniQualité",
+        "brand": {
+            "key": "qualite",
+            "tagline": "Améliorer les formations",
+            "color": "#3F6B1C",
+            "accent": "#90A97B",
+            "colorOnDark": "#B5E27A",
+            "accentOnDark": "#7B945E",
+            "pictogram": "M4 7l1.500 1.500 3-3M12 7h8M4 17l1.500 1.500 3-3M12 17h8"
+        },
         "primaryColor": "uni-qualite",
-        "icon": "pi pi-check-square",
+        "icon": "pi pi-list-check",
         "aliases": [
             "questionnaires"
         ],
@@ -122,7 +187,15 @@
         "urlSlug": "stage",
         "url": "/app/stage",
         "shortLabel": "UniStages",
-        "brand": "stages",
+        "brand": {
+            "key": "stages",
+            "tagline": "Suivre stages et alternances",
+            "color": "#9A4308",
+            "accent": "#C49270",
+            "colorOnDark": "#FFA566",
+            "accentOnDark": "#A96E51",
+            "pictogram": "M3 10a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2ZM9 8V5h6v3M3 13h18"
+        },
         "primaryColor": "uni-stages",
         "icon": "pi pi-briefcase",
         "aliases": [
@@ -133,13 +206,21 @@
     },
     {
         "name": "UniFolio",
-        "description": "Outil de cr\u00e9ation et de gestion de portfolios universitaires.",
+        "description": "Création et gestion de portfolios universitaires",
         "urlSlug": "unifolio",
         "url": "/app/unifolio",
         "shortLabel": "UniFolio",
-        "brand": "folio",
+        "brand": {
+            "key": "folio",
+            "tagline": "Valoriser ses compétences",
+            "color": "#A92064",
+            "accent": "#CD7EA5",
+            "colorOnDark": "#FF9BCB",
+            "accentOnDark": "#A96890",
+            "pictogram": "M3 7a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"
+        },
         "primaryColor": "uni-folio",
-        "icon": "pi pi-book",
+        "icon": "pi pi-folder",
         "aliases": [
             "portfolio",
             "portfolios"
@@ -149,11 +230,19 @@
     },
     {
         "name": "UniCorrection",
-        "description": "Plateforme de correction des travaux et des examens.",
+        "description": "Correction des travaux et des examens",
         "urlSlug": "correcto",
         "url": "/correcto",
         "shortLabel": "UniCorrection",
-        "brand": "correction",
+        "brand": {
+            "key": "correction",
+            "tagline": "Corriger et faire progresser",
+            "color": "#B42318",
+            "accent": "#D47F79",
+            "colorOnDark": "#FF9C93",
+            "accentOnDark": "#A9696D",
+            "pictogram": "M4 20l1-4L16 5l3 3L8 19ZM13.500 7.500l3 3"
+        },
         "primaryColor": "uni-correction",
         "icon": "pi pi-pencil",
         "aliases": [

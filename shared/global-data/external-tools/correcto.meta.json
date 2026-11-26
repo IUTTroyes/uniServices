@@ -1,12 +1,16 @@
 {
   "name": "UniCorrection",
-  "description": "Plateforme de correction des travaux et des examens.",
+  "description": "Correction des travaux et des examens",
   "urlSlug": "correcto",
-  "shortLabel": "UniCorrection",
-  "brand": "correction",
-  "primaryColor": "uni-correction",
   "icon": "pi pi-pencil",
   "aliases": [
     "correction"
-  ]
+  ],
+  "brand": {
+    "key": "correction",
+    "tagline": "Corriger et faire progresser",
+    "color": "#B42318",
+    "colorOnDark": "#FF9C93",
+    "pictogram": "M4 20l1-4L16 5l3 3L8 19ZM13.500 7.500l3 3"
+  }
 }

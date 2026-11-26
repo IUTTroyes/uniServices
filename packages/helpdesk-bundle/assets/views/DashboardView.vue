@@ -73,7 +73,7 @@ onMounted(() => {
 
 <template>
   <div class="space-y-6">
-    <HeaderComponent titre="Assistance" :description="`Bonjour${userStore.user?.prenom ? ', ' + userStore.user.prenom : ''} · ${formatDateLong(date)}`" icon="pi pi-question-circle" color="orange" :show-back="false">
+    <HeaderComponent app="helpdesk" :description="`Bonjour${userStore.user?.prenom ? ', ' + userStore.user.prenom : ''} · ${formatDateLong(date)}`" :show-back="false">
       <template #actions>
         <ActionButtonVertical icon="pi pi-plus" label="Créer un ticket" severity="primary" @click="goToNewTicket" />
       </template>

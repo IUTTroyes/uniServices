@@ -12,11 +12,6 @@ class MessageWidgetProvider implements WidgetProviderInterface
         return 'message';
     }
 
-    public function getBundleLabel(): string
-    {
-        return 'Messagerie';
-    }
-
     public function getWidgets(): array
     {
         return [

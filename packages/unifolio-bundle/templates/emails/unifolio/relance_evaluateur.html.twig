@@ -1,6 +1,6 @@
 {% extends 'emails/layout.html.twig' %}
 
-{% block subject %}[UniFolio] {{ nb_a_evaluer }} évaluation(s) en attente — {{ campagne_libelle }}{% endblock %}
+{% block subject %}{{ nb_a_evaluer }} évaluation(s) en attente — {{ campagne_libelle }}{% endblock %}
 
 {% block preheader %}{{ nb_a_evaluer }} élément(s) attendent votre évaluation.{% endblock %}
 

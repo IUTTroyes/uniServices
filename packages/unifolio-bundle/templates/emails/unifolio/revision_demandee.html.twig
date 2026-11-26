@@ -1,6 +1,6 @@
 {% extends 'emails/layout.html.twig' %}
 
-{% block subject %}[UniFolio] Une révision vous est demandée : {{ trace_titre }}{% endblock %}
+{% block subject %}Une révision vous est demandée : {{ trace_titre }}{% endblock %}
 
 {% block preheader %}{{ evaluateur_nom }} vous demande de réviser « {{ trace_titre }} ».{% endblock %}
 

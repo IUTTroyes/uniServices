@@ -12,11 +12,6 @@ class IntranetWidgetProvider implements WidgetProviderInterface
         return 'intranet';
     }
 
-    public function getBundleLabel(): string
-    {
-        return 'Intranet';
-    }
-
     public function getWidgets(): array
     {
         return [

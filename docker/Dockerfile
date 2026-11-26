@@ -16,7 +16,6 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # Copier les package.json de chaque workspace AVANT le code
 # pour profiter du cache Docker layer
 COPY packages/auth-bundle/package.json     ./packages/auth-bundle/
-COPY packages/edt-bundle/package.json      ./packages/edt-bundle/
 COPY packages/intranet-bundle/package.json ./packages/intranet-bundle/
 COPY packages/unifolio-bundle/package.json ./packages/unifolio-bundle/
 
@@ -116,7 +115,6 @@ COPY --from=php-deps /build/back/vendor ./back/vendor
 
 # Assets buildés depuis le stage frontend
 COPY --from=frontend-builder /build/packages/auth-bundle/src/Resources/public     ./back/public/build/auth-bundle
-COPY --from=frontend-builder /build/packages/edt-bundle/src/Resources/public      ./back/public/build/edt-bundle
 COPY --from=frontend-builder /build/packages/intranet-bundle/src/Resources/public ./back/public/build/intranet-bundle
 COPY --from=frontend-builder /build/packages/unifolio-bundle/src/Resources/public ./back/public/build/unifolio-bundle
 

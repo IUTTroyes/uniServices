@@ -1,11 +1,10 @@
 import { updatePreset } from '@primeuix/themes';
 import { getApplicationMeta } from '../../../../shared/utils/applicationColors';
 import { bundles } from '../bundles-registry';
-
-const favicons = import.meta.glob('../../../../shared/images/logo/uniservice/*.svg', { eager: true, query: '?url', import: 'default' });
+import { faviconUrl } from '../../../../shared/components/components/Brand/uniBrand';
 
 function applyFavicon(brand) {
-  const href = favicons[`../../../../shared/images/logo/uniservice/uni-${brand}.svg`];
+  const href = faviconUrl(brand);
   const link = document.querySelector('link[rel="icon"]');
   if (link && href) link.setAttribute('href', href);
 }

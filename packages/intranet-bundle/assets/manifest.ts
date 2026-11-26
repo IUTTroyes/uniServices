@@ -10,10 +10,13 @@ import superAdministrationRoutes from './router/modules/superAdministrationRoute
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
 import LayoutComponent from '@components/components/layout/AppLayout.vue';
 import { registerWidgets } from './components/Personnel/dashboard/registerWidgets';
+import { getApplicationMeta } from '@utils/applicationColors';
+
+const app = getApplicationMeta('intranet');
 
 const intranetMenu = {
-  label: 'Intranet',
-  icon: 'pi pi-fw pi-desktop',
+  label: app.name,
+  icon: `${app.icon} pi-fw`,
   items: [
     { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/intranet/' },
     { label: 'Agenda', icon: 'pi pi-fw pi-calendar', to: '/intranet/agenda' },
@@ -72,7 +75,7 @@ export default {
       component: LayoutComponent,
       props: route => ({
         logoUrl: Logo,
-        appName: 'UniTranet',
+        appName: app.name,
         breadcrumbItems: typeof route.meta.breadcrumb === 'function'
           ? route.meta.breadcrumb(route)
           : (route.meta.breadcrumb || [])

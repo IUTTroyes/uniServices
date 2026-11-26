@@ -41,11 +41,8 @@ onMounted(async () => {
 </script>
 <template>
   <div class="min-h-screen space-y-6">
-    <HeaderComponent
-      icon="pi pi-chart-bar"
-      color="blue"
+    <HeaderComponent app="questionnaire"
       :show-back="false"
-      titre="Portail Évaluation & Qualité"
       description="Pilotez les enquêtes de votre département, consultez vos évaluations d'enseignant et suivez la participation."
     >
       <template #actions>

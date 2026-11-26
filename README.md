@@ -205,7 +205,7 @@ Pour ajouter un nouveau bundle au projet (ex: `nom` ou `nom-bundle`), utilisez l
 php scripts/create-bundle.php nom
 ```
 
-Le wizard demande le nom, le libellé court, la description, l’identifiant dans l’URL, le lien du portail, la couleur principale et l’icône PrimeIcons. Il affiche les couleurs Tailwind disponibles. Le lien, la couleur et l’icône proposés par défaut sont `/app/<slug>`, `violet` et `pi pi-box`.
+Le wizard demande le nom, le libellé court, la description, l’identifiant dans l’URL, le lien du portail, la couleur principale et l’icône PrimeIcons. Pour donner à l’application une identité UniService (logo, palette, favicon), remplacez `--color` par `--brand-color="#RRGGBB"` et `--tagline` ([guide](docs/IDENTITE_APPLICATIONS.md)). Il affiche les couleurs Tailwind disponibles. Le lien, la couleur et l’icône proposés par défaut sont `/app/<slug>`, `violet` et `pi pi-box`.
 
 Pour une création sans questions, renseignez tous les champs en arguments.
 
@@ -220,12 +220,12 @@ php scripts/create-bundle.php nom \
   --icon="pi pi-car"
 ```
 
-Le wizard écrit les métadonnées dans `bundle.meta.json` et régénère `shared/global-data/tools.generated.json`. Le portail, les badges et le thème du shell partagent ces métadonnées. Le shell utilise le logo de l’IUT par défaut sur le portail.
+Le wizard écrit les métadonnées dans `bundle.meta.json`, source unique de l’identité de l’application, puis régénère le registre et les couleurs. Le portail, les menus, les en-têtes, les badges, le thème du shell et le serveur partagent ces métadonnées.
 
 Après une modification manuelle d’un fichier de métadonnées, régénérez le catalogue depuis la racine du dépôt.
 
 ```bash
-php -r 'require "scripts/utils/regenerate-tools-registry.php"; regenerate_tools_registry(getcwd());'
+pnpm registry
 ```
 
 Démarrez le backend et le frontend avec `make start-all`. La vue s’ouvre sur `http://localhost:3000/app/<slug>` et la commande `make build-front` l’inclut dans le build du Shell.

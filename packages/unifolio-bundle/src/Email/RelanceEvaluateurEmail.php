@@ -2,6 +2,7 @@
 
 namespace UnifolioBundle\Email;
 
+use App\Application\ApplicationCatalog;
 use App\Service\Email\AbstractEmailDefinition;
 
 final class RelanceEvaluateurEmail extends AbstractEmailDefinition
@@ -23,7 +24,7 @@ final class RelanceEvaluateurEmail extends AbstractEmailDefinition
 
     public function getDefaultSubject(): string
     {
-        return '[UniFolio] {{ nb_a_evaluer }} évaluation(s) en attente — {{ campagne_libelle }}';
+        return '[' . ApplicationCatalog::nom('unifolio') . '] {{ nb_a_evaluer }} évaluation(s) en attente — {{ campagne_libelle }}';
     }
 
     public function getHtmlTemplatePath(): string

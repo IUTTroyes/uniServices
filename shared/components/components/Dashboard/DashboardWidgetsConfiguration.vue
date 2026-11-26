@@ -67,7 +67,7 @@ const updateWidget = async (widget) => {
           <div class="flex flex-col">
             <div class="font-semibold">{{ widget.label }}</div>
             <div v-if="widget.bundle" class="mt-1">
-              <ApplicationBadge :app="widget.bundle" size="xs" show-dot />
+              <ApplicationBadge :app="widget.bundle" size="xs" />
             </div>
           </div>
           <Badge :value="widget.enabled ? 'Actif' : 'Inactif'" :severity="widget.enabled ? 'success' : 'danger'" />

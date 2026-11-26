@@ -10,6 +10,4 @@ interface WidgetProviderInterface
     public function getWidgets(): array;
 
     public function getBundleCode(): string;
-
-    public function getBundleLabel(): string;
 }

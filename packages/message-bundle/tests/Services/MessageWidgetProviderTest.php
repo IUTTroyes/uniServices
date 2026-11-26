@@ -13,7 +13,6 @@ class MessageWidgetProviderTest extends TestCase
         $provider = new MessageWidgetProvider();
 
         $this->assertSame('message', $provider->getBundleCode());
-        $this->assertSame('Messagerie', $provider->getBundleLabel());
 
         $widgets = $provider->getWidgets();
         $this->assertCount(1, $widgets);

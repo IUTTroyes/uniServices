@@ -3,12 +3,16 @@
   "description": "Communications et annonces internes",
   "urlSlug": "message",
   "url": "/app/message",
-  "shortLabel": "UniMessage",
-  "brand": "message",
-  "primaryColor": "uni-message",
-  "icon": "pi pi-inbox",
+  "icon": "pi pi-comment",
   "aliases": [
     "messages",
     "messagerie"
-  ]
+  ],
+  "brand": {
+    "key": "message",
+    "tagline": "Échanger simplement",
+    "color": "#86279E",
+    "colorOnDark": "#E0A8FF",
+    "pictogram": "M4 5h16v11H10l-6 4Z"
+  }
 }

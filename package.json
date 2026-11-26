@@ -8,6 +8,7 @@
     ],
     "scripts": {
         "dev": "npm run dev:shell",
+        "registry": "php scripts/regenerate-registry.php",
         "dev:shell": "cd packages/shell && vite",
         "build:shell": "cd packages/shell && vite build",
         "build:unifolio-renderer": "cd packages/unifolio-bundle/renderer && vite build -c vite.ssr.config.js && vite build -c vite.css.config.js && rm -f dist/style.tmp.js",

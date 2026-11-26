@@ -4,10 +4,13 @@ import TicketListAdminView from './views/PersonnelService/TicketListAdminView.vu
 import dashboardRoutes from './router/modules/dashboardRoutes.js';
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
 import LayoutComponent from '@components/components/layout/AppLayout.vue';
+import { getApplicationMeta } from '@utils/applicationColors';
+
+const app = getApplicationMeta('helpdesk');
 
 const helpdeskMenu = {
-  label: 'Assistance',
-  icon: 'pi pi-fw pi-question-circle',
+  label: app.name,
+  icon: `${app.icon} pi-fw`,
   items: [
     { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/helpdesk/' },
     { label: 'Dashboard Service', icon: 'pi pi-fw pi-building', to: '/helpdesk/service', permission: 'isPersonnelService' },
@@ -33,7 +36,7 @@ export default {
       component: LayoutComponent,
       props: route => ({
         logoUrl: Logo,
-        appName: 'Helpdesk',
+        appName: app.name,
         breadcrumbItems: typeof route.meta.breadcrumb === 'function'
           ? route.meta.breadcrumb(route)
           : (route.meta.breadcrumb || [])

@@ -366,9 +366,8 @@ const getInitials = (name) => {
 
 
     <!-- Top Header -->
-    <HeaderComponent
+    <HeaderComponent app="stage"
       :icon="UsersIcon"
-      color="violet"
       titre="Mes Étudiants en Stage"
       description="Suivez l'avancement des stages dont vous êtes le tuteur universitaire désigné."
     />

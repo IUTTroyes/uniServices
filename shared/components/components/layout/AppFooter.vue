@@ -1,4 +1,7 @@
 <script setup>
+import { getApplicationMeta } from '@utils/applicationColors';
+
+const portail = getApplicationMeta('auth');
 import { useVersion } from '@helpers/useVersion.js';
 
 const { version } = useVersion();
@@ -8,7 +11,7 @@ const { version } = useVersion();
 <template>
   <div class="flex justify-between items-center border-t pt-6">
     <div class="flex items-center gap-2">
-      <span class="font-bold">UniService</span>
+      <span class="font-bold">{{ portail.name }}</span>
       <span>Copyright &copy; 2026</span>
       <span><a class="underline" href="">@David Annebicque</a></span>
       <span>-</span>

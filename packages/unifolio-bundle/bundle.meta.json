@@ -1,14 +1,18 @@
 {
   "name": "UniFolio",
-  "description": "Outil de création et de gestion de portfolios universitaires.",
+  "description": "Création et gestion de portfolios universitaires",
   "urlSlug": "unifolio",
   "url": "/app/unifolio",
-  "shortLabel": "UniFolio",
-  "brand": "folio",
-  "primaryColor": "uni-folio",
-  "icon": "pi pi-book",
+  "icon": "pi pi-folder",
   "aliases": [
     "portfolio",
     "portfolios"
-  ]
+  ],
+  "brand": {
+    "key": "folio",
+    "tagline": "Valoriser ses compétences",
+    "color": "#A92064",
+    "colorOnDark": "#FF9BCB",
+    "pictogram": "M3 7a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"
+  }
 }

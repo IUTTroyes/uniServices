@@ -53,27 +53,27 @@ Définis dans `back/src/Security/CorePermissionProvider.php`.
 | Rôle | Libellé | Usage |
 | --- | --- | --- |
 | `ROLE_RELAI_COMM` | Référent communication | Gère les actualités du département avec les administrateurs et chefs de département. |
-| `ROLE_REFERENT` | Référent UniServices | Référent applicatif du département. |
-| `ROLE_REFERENT_INTRANET` | Référent Intranet | Contenus de l'intranet. |
+| `ROLE_REFERENT` | Référent UniService | Référent applicatif du département. |
+| `ROLE_REFERENT_INTRANET` | Référent UniTranet | Contenus de l'application UniTranet. |
 | `ROLE_REFERENT_PROJET` | Référent Projet | Suivi de projets. |
 | `ROLE_INFORMATIQUE` | Service informatique | Repère de service. |
-| `ROLE_COMPTA` (inclut `ROLE_COMPTABILITE`) | Service comptabilité | Consultation et édition des heures du prévisionnel (HRS). **Distinct** du service financier du module Finances. |
+| `ROLE_COMPTA` (inclut `ROLE_COMPTABILITE`) | Service comptabilité | Consultation et édition des heures du prévisionnel (HRS). **Distinct** du service financier du module UniFinance. |
 | `ROLE_QUALITE` | Service qualité | Crée, modifie, publie les questionnaires ; supprime. |
 
 ## 3. Rôles des modules
 
 | Module | Rôle | Libellé | Ce qu'il permet |
 | --- | --- | --- | --- |
-| Finances (`finance`) | `ROLE_FINANCE_VIEW` | Accès aux finances | Accès au module, suivi de ses propres demandes. Accordé par défaut avec le module. |
+| UniFinance (`finance`) | `ROLE_FINANCE_VIEW` | Accès aux finances | Accès au module, suivi de ses propres demandes. Accordé par défaut avec le module. |
 |  | `ROLE_FINANCE_DEMANDEUR` | Demandeur | Crée des demandes d'achat dans ses départements (ou pour un service, dans n'importe lequel), dépose le PDF signé, constate le service fait. Inclut VIEW. |
 |  | `ROLE_FINANCE_VALIDEUR` | Valideur | Voit les demandes de ses départements et rend l'avis de l'étape 1. Inclut VIEW. |
 |  | `ROLE_FINANCE_MANAGER` | Gestionnaire = **service financier** | Toutes les demandes de l'établissement (voir §4). Inclut VIEW et DEMANDEUR. |
-| Stages (`stages`) | `ROLE_STAGE_VIEW` | Voir les stages | Lecture des stages du département. Accordé par défaut avec le module. |
+| UniStages (`stages`) | `ROLE_STAGE_VIEW` | Voir les stages | Lecture des stages du département. Accordé par défaut avec le module. |
 |  | `ROLE_STAGE_MANAGER` | Responsable des stages | Gère périodes, dossiers, avenants, soutenances de **son** département. Inclut VIEW. |
-| Helpdesk (`helpdesk`) | `ROLE_HELPDESK_AGENT` | Agent de support | Traite les tickets. |
-|  | `ROLE_HELPDESK_ADMIN` | Administrateur Helpdesk | Administration ; inclut AGENT. |
-| Questionnaires (`questionnaire`) | `ROLE_QUESTIONNAIRE_MANAGER` | Administrateur Questionnaires | Gestion des questionnaires du module. |
-| Portfolio (`unifolio`) | `ROLE_REFERENT_PORTFOLIO` | Référent Portfolio | Pilote les campagnes et modèles. |
+| UniTicket (`helpdesk`) | `ROLE_HELPDESK_AGENT` | Agent de support | Traite les tickets. |
+|  | `ROLE_HELPDESK_ADMIN` | Administrateur UniTicket | Administration ; inclut AGENT. |
+| UniQualité (`questionnaire`) | `ROLE_QUESTIONNAIRE_MANAGER` | Administrateur UniQualité | Gestion des questionnaires du module. |
+| UniFolio (`unifolio`) | `ROLE_REFERENT_PORTFOLIO` | Référent Portfolio | Pilote les campagnes et modèles. |
 |  | `ROLE_PORTFOLIO_CORRECTOR` | Correcteur | Évalue les portfolios. |
 |  | `ROLE_PORTFOLIO_PUBLISHER` | Responsable publication | Publie les portfolios. |
 
@@ -123,8 +123,8 @@ Une demande est imputée à un **département** (rempli d'après la personne con
 | APC (référentiels) | ● | ● | — | ● | — | — | — | — | — |
 | Prévisionnel | ● | ● | ● | ● | — | ○ | — | ○ | ses heures |
 | Plans de cours | ● | ● | ● | ● | — | — | — | — | les siens |
-| Questionnaires | ● | ● | ○ | ● | — | — | — | ○ | — |
-| Stages | ● | ● | — | — | ○ | — | — | — | — |
+| UniQualité | ● | ● | ○ | ● | — | — | — | ○ | — |
+| UniStages | ● | ● | — | — | ○ | — | — | — | — |
 | Documents du département | ● | ● | — | — | — | — | — | — | — |
 | Actualités | ● | ● | — | — | — | — | — | — | — |
 

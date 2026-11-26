@@ -2,6 +2,7 @@
 
 namespace UnifolioBundle\Email;
 
+use App\Application\ApplicationCatalog;
 use App\Service\Email\AbstractEmailDefinition;
 
 final class RevisionDemandeeEmail extends AbstractEmailDefinition
@@ -23,7 +24,7 @@ final class RevisionDemandeeEmail extends AbstractEmailDefinition
 
     public function getDefaultSubject(): string
     {
-        return '[UniFolio] Une révision vous est demandée : {{ trace_titre }}';
+        return '[' . ApplicationCatalog::nom('unifolio') . '] Une révision vous est demandée : {{ trace_titre }}';
     }
 
     public function getHtmlTemplatePath(): string

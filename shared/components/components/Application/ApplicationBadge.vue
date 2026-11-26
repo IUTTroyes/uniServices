@@ -14,7 +14,7 @@ const props = defineProps({
   },
   showIcon: {
     type: Boolean,
-    default: false,
+    default: true,
   },
   showDot: {
     type: Boolean,
@@ -77,7 +77,7 @@ const iconSizeClasses = computed(() => {
     ]"
   >
     <template #icon>
-      <i v-if="props.showIcon && meta.icon" :class="[meta.icon, iconSizeClasses, 'shrink-0']" />
+      <i v-if="props.showIcon && meta.icon" :class="[meta.icon, iconSizeClasses, 'shrink-0']" aria-hidden="true" />
     </template>
   </Chip>
 </template>

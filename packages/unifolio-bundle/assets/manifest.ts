@@ -2,8 +2,11 @@ import Logo from '@images/logo/logo_intranet_iut_troyes.svg';
 import LayoutComponent from '@components/components/layout/AppLayout.vue';
 import { registerWidgets } from './widgets/registerWidgets';
 import { unifolioSections } from './navigation';
+import { getApplicationMeta } from '@utils/applicationColors';
 
-const racine = { label: 'UniFolio', route: '/unifolio', icon: 'pi pi-folder' };
+const app = getApplicationMeta('unifolio');
+
+const racine = { label: app.name, route: '/unifolio', icon: app.icon };
 
 const nomRoute = (path: string) => `unifolio-${path.replace(/[/:]+/g, '-')}`;
 
@@ -44,7 +47,7 @@ export default {
       component: LayoutComponent,
       props: (route) => ({
         logoUrl: Logo,
-        appName: 'UniFolio',
+        appName: app.name,
         breadcrumbItems: route.meta.breadcrumb || [{ ...racine, route: null }],
       }),
       children: [
@@ -59,8 +62,8 @@ export default {
     },
   ],
   menu: {
-    label: 'Portfolios',
-    icon: 'pi pi-fw pi-folder',
+    label: app.name,
+    icon: `${app.icon} pi-fw`,
     items: [
       { label: 'Accueil', icon: 'pi pi-fw pi-home', to: '/unifolio' },
       ...unifolioSections.flatMap((section) =>

@@ -10,6 +10,12 @@ function buildColorClasses(color) {
       badgeClasses: 'bg-surface-100 text-surface-700 border-surface-200 dark:bg-surface-800 dark:text-surface-300 dark:border-surface-700',
       iconBgClasses: 'text-surface-600 bg-surface-50 dark:bg-surface-900 border-surface-200 dark:border-surface-800',
       dotClass: 'bg-surface-400',
+      textClass: 'text-primary-500',
+      cardClasses: 'border-surface-300 hover:bg-surface-400/10',
+      headerClasses: {
+        bg: 'bg-surface-100 dark:bg-surface-900', text: 'text-surface-600 dark:text-surface-300',
+        border: 'border-surface-200 dark:border-surface-700',
+      },
     };
   }
 
@@ -17,6 +23,13 @@ function buildColorClasses(color) {
     badgeClasses: `bg-${color}-100! text-${color}-800! border-${color}-200! dark:bg-${color}-950/60! dark:text-${color}-300! dark:border-${color}-800!`,
     iconBgClasses: `text-${color}-600! bg-${color}-50! dark:bg-${color}-950/40! border-${color}-200! dark:border-${color}-800!`,
     dotClass: `bg-${color}-500`,
+    textClass: `text-${color}-600 dark:text-${color}-400`,
+    cardClasses: `border-${color}-400 hover:bg-${color}-400/10`,
+    headerClasses: {
+      bg: `bg-${color}-100 dark:bg-${color}-950/20`,
+      text: `text-${color}-600 dark:text-${color}-400`,
+      border: `border-${color}-100 dark:border-${color}-900/30`,
+    },
   };
 }
 
@@ -25,8 +38,9 @@ export const APPLICATION_REGISTRY = Object.fromEntries(tools.map(tool => {
   return [tool.urlSlug, {
     slug: tool.urlSlug,
     name: tool.name,
+    description: tool.description,
     shortLabel: tool.shortLabel ?? tool.name,
-    brand: tool.brand ?? null,
+    brand: tool.brand?.key ?? null,
     primaryColor,
     color: primaryColor,
     icon: tool.icon ?? 'pi pi-box',

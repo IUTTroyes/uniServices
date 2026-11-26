@@ -539,11 +539,10 @@ const openOfferModal = (offer) => {
   <div class="mx-auto space-y-6 pb-12">
 
     <!-- Main Header Component from Shared Library -->
-    <HeaderComponent
+    <HeaderComponent app="stage"
       icon="pi pi-user"
       titre="Mon Parcours de Stage"
       description="Consultez les informations de vos périodes, téléchargez les documents types et suivez l'avancement de vos demandes."
-      color="violet"
       :showBack="false"
     >
       <template #actions>

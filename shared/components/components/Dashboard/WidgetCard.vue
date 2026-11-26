@@ -2,6 +2,7 @@
 import { computed, defineProps, ref } from 'vue';
 import { resolveWidgetComponent } from './widgets/widgetRegistry';
 import ApplicationBadge from '../Application/ApplicationBadge.vue';
+import { getApplicationMeta } from '@utils/applicationColors';
 
 const isEditing = ref(false);
 
@@ -64,14 +65,14 @@ const toggleWidget = () => {
     emit('toggle', props.widget);
 };
 
+// Application d'origine du widget : les codes du serveur (« portfolio », « document ») sont résolus par les alias.
+const application = computed(() => (props.widget?.bundle ? getApplicationMeta(props.widget.bundle) : null));
+
 const showBundleBadge = computed(() => {
-    if (!props.widget?.bundle) return false;
-    // Sur le portail, on n'affiche pas le badge pour les widgets natifs du portail (auth)
-    if (props.isPortail) {
-        return props.widget.bundle !== 'auth';
-    }
-    // Sur un dashboard dédié (ex: intranet), on affiche si le widget provient d'un autre bundle
-    return props.widget.bundle !== 'intranet';
+    if (!application.value) return false;
+    // Sur le portail, on n'affiche pas le badge pour les widgets natifs du portail ;
+    // sur un tableau de bord dédié (ex : intranet), seulement pour les widgets venus d'une autre application.
+    return application.value.slug !== (props.isPortail ? 'auth' : 'intranet');
 });
 </script>
 
@@ -99,11 +100,11 @@ const showBundleBadge = computed(() => {
     <div class="mb-3 flex items-start justify-between gap-2">
         <div class="flex flex-col">
             <div class="font-semibold flex items-start gap-2">
-                <i :class="`${widget.icon} text-primary-500`"/>
+                <i :class="[widget.icon, application?.textClass ?? 'text-primary-500']" aria-hidden="true"/>
                 <span>{{ widget.label }}</span>
             </div>
             <div v-if="showBundleBadge" class="mt-1">
-                <ApplicationBadge :app="widget.bundle" size="xs" show-dot />
+                <ApplicationBadge :app="widget.bundle" size="xs" />
             </div>
         </div>
         <Button v-if="!isEditing" icon="pi pi-cog" size="small" text rounded title="Configurer le widget" @click="isEditing = !isEditing"/>

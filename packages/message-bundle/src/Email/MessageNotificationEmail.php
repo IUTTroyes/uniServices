@@ -2,6 +2,7 @@
 
 namespace MessageBundle\Email;
 
+use App\Application\ApplicationCatalog;
 use App\Service\Email\AbstractEmailDefinition;
 
 class MessageNotificationEmail extends AbstractEmailDefinition
@@ -23,7 +24,7 @@ class MessageNotificationEmail extends AbstractEmailDefinition
 
     public function getDefaultSubject(): string
     {
-        return '[Messagerie] {{ message.sujet }}';
+        return '[' . ApplicationCatalog::nom('message') . '] {{ message.sujet }}';
     }
 
     public function getHtmlTemplatePath(): string

@@ -7,6 +7,9 @@ import ResetPasswordConfirmView from "./views/ResetPasswordConfirmView.vue";
 import LogoIut from "@images/logo/logo_iut.png";
 import LayoutComponent from '@components/components/layout/AppLayout.vue';
 import { registerWidgets } from './widgets/registerWidgets';
+import { getApplicationMeta } from '@utils/applicationColors';
+
+const app = getApplicationMeta('auth');
 
 const authMenu = {
   label: 'Mon Espace',
@@ -56,7 +59,7 @@ export default {
       component: AppPortail,
       props: route => ({
         logoUrl: LogoIut,
-        appName: 'UniService',
+        appName: app.name,
       }),
       children: [
         {
@@ -71,7 +74,7 @@ export default {
       component: LayoutComponent,
       props: route => ({
         logoUrl: LogoIut,
-        appName: 'UniService',
+        appName: app.name,
         breadcrumbItems: typeof route.meta.breadcrumb === 'function'
           ? route.meta.breadcrumb(route)
           : (route.meta.breadcrumb || [])
@@ -85,7 +88,7 @@ export default {
       component: LayoutComponent,
       props: () => ({
         logoUrl: LogoIut,
-        appName: 'UniService',
+        appName: app.name,
         breadcrumbItems: [{ label: 'Portail', route: '/portail' }, { label: 'Notifications', route: null }]
       }),
       children: [
@@ -101,7 +104,7 @@ export default {
       component: LayoutComponent,
       props: () => ({
         logoUrl: LogoIut,
-        appName: 'UniService',
+        appName: app.name,
         breadcrumbItems: [{ label: 'Portail', route: '/portail' }, { label: 'Profil', route: '/profil' }, { label: 'Comprendre mes accès', route: null }]
       }),
       children: [
