@@ -152,13 +152,6 @@ class StructureAnneeUniversitaire implements TimestampableInterface
     #[ORM\OneToMany(targetEntity: PersonnelEnseignantHrs::class, mappedBy: 'annee_universitaire')]
     private Collection $enseignantHrs;
 
-    /**
-     * @var Collection<int, StructureDiplome>
-     */
-    #[ORM\ManyToMany(targetEntity: StructureDiplome::class, mappedBy: 'legacyAnneesUniversitaires')]
-    // Stockage historique conservé sans lecture/écriture métier. La liste publique est calculée via les PN.
-    private Collection $legacyDiplomes;
-
     /** Sélection explicite du formulaire d'initialisation ; null signifie « ne pas modifier les PN ». */
     #[Groups(['annee_universitaire:write'])]
     private ?array $diplomeIds = null;
@@ -173,7 +166,6 @@ class StructureAnneeUniversitaire implements TimestampableInterface
         $this->annee = (int) date('Y');
         $this->previsionnels = new ArrayCollection();
         $this->enseignantHrs = new ArrayCollection();
-        $this->legacyDiplomes = new ArrayCollection();
     }
 
     public function getId(): ?int
