@@ -6,6 +6,7 @@ import Logo from '@components/components/Logo.vue';
 import { useAnneeUnivStore, useUsersStore } from "@stores";
 import { useRoute, useRouter } from 'vue-router';
 import { tools } from '@config/uniServices.js';
+import { estInstalle } from '../../../utils/distribution.js';
 import noImage from "@images/photos_etudiants/noimage.png";
 import { PermissionGuard } from "@components";
 import ApplicationBadge from '../Application/ApplicationBadge.vue';
@@ -59,9 +60,10 @@ const selectedRoles = computed({
 
 const selectedAnneeUniversitaire = ref(null);
 const unreadMessagesCount = ref(0);
+const messagerieInstallee = estInstalle('message');
 
 const fetchUnreadMessages = async () => {
-  if (!userStore.user) return;
+  if (!userStore.user || !messagerieInstallee) return;
   try {
     const res = await api.get('/api/messages/unread-count');
     unreadMessagesCount.value = res.data?.unreadCount ?? 0;
@@ -324,6 +326,7 @@ const selectAnneeUniversitaire = (annee) => {
           </Popover>
 
           <button
+            v-if="messagerieInstallee"
             type="button"
             class="layout-topbar-action relative"
             @click="goToMessages"

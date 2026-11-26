@@ -4,7 +4,14 @@ declare(strict_types=1);
 
 namespace App\AnneeUniversitaire;
 
-/** Chemins ORM explicites : aucun filtre Doctrine global ni recherche heuristique de relations. */
+use App\Extension\PerimetreAnnuelProviderInterface;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
+use Symfony\Component\HttpFoundation\Request;
+
+/**
+ * Chemins ORM explicites : aucun filtre Doctrine global ni recherche heuristique de relations.
+ * Le cœur déclare ses classes ; chaque bundle apporte les siennes par un PerimetreAnnuelProviderInterface.
+ */
 final class PerimetreAnnuelRegistry
 {
     private const PATHS = [
@@ -24,41 +31,6 @@ final class PerimetreAnnuelRegistry
         'EtudiantNote' => 'scolariteSemestre.scolarite.anneeUniversitaire',
         'PersonnelEnseignantHrs' => 'annee_universitaire',
         'EdtEvent' => 'anneeUniversitaire',
-        'EdtContraintesSemestre' => 'anneeUniversitaire',
-        'EdtAppel' => 'edtEvent.anneeUniversitaire',
-        'Previsionnel' => 'anneeUniversitaire',
-        'EtudiantAbsence' => 'scolariteSemestre.scolarite.anneeUniversitaire',
-        'EtudiantAbsenceJustificatif' => 'scolariteSemestre.scolarite.anneeUniversitaire',
-        'MoyenneUe' => 'etudiantScolariteSemestre.scolarite.anneeUniversitaire',
-        'MoyenneEnseignement' => 'etudiantScolariteSemestre.scolarite.anneeUniversitaire',
-        'PlanCours' => 'anneeUniversitaire', 'PlanCoursRealise' => 'planCours.anneeUniversitaire', 'PlanCoursSequence' => 'planCours.anneeUniversitaire',
-        'AvancementEnseignement' => 'anneeUniversitaire',
-        'SousCommission' => 'semestre.annee.pn.anneeUniversitaire',
-        'SousCommissionRevision' => 'sousCommission.semestre.annee.pn.anneeUniversitaire',
-        'ResultatSousCommission' => 'inscription.scolarite.anneeUniversitaire',
-        'StagePeriode' => 'anneeUniversitaire',
-        'StageEtudiant' => 'stagePeriode.anneeUniversitaire',
-        'StageAvenant' => 'stageEtudiant.stagePeriode.anneeUniversitaire',
-        'StageSoutenance' => 'stagePeriode.anneeUniversitaire',
-        'StageEvaluationEntreprise' => 'stageEtudiant.stagePeriode.anneeUniversitaire',
-        'StageContexte' => 'stageEtudiant.stagePeriode.anneeUniversitaire',
-        'StageEvaluationCritere' => 'stagePeriode.anneeUniversitaire',
-        'StagePeriodeInterruption' => 'stagePeriode.anneeUniversitaire',
-        'StagePeriodeSoutenance' => 'stagePeriode.anneeUniversitaire',
-        'Questionnaire' => 'anneeUniversitaire',
-        'QuestionnaireSection' => 'questionnaire.anneeUniversitaire',
-        'QuestionnaireQuestion' => 'section.questionnaire.anneeUniversitaire',
-        'QuestionnaireSectionInstance' => 'questionnaire.anneeUniversitaire',
-        'QuestionnaireInvitation' => 'questionnaire.anneeUniversitaire',
-        'QuestionnaireAnswer' => 'invitation.questionnaire.anneeUniversitaire',
-        'QuestionnaireRetour' => 'sectionInstance.questionnaire.anneeUniversitaire',
-        'QuestionnaireDiffusion' => 'sectionInstance.questionnaire.anneeUniversitaire',
-        'Campagne' => 'anneeUniversitaire', 'CampagneAffectation' => 'campagne.anneeUniversitaire',
-        'Portfolio' => 'scolarite.anneeUniversitaire', 'PortfolioPage' => 'portfolio.scolarite.anneeUniversitaire',
-        'PortfolioPublication' => 'portfolio.scolarite.anneeUniversitaire',
-        'Trace' => 'scolarite.anneeUniversitaire', 'TraceMedia' => 'trace.scolarite.anneeUniversitaire',
-        'TraceRattachement' => 'trace.scolarite.anneeUniversitaire', 'Commentaire' => 'trace.scolarite.anneeUniversitaire',
-        'AutoEvaluation' => 'scolarite.anneeUniversitaire',
     ];
 
     private const INDEPENDANTS = [
@@ -67,40 +39,115 @@ final class PerimetreAnnuelRegistry
         'ApcReferentiel', 'ApcCompetence', 'ApcParcours', 'ApcNiveau', 'ApcApprentissageCritique',
         'Etablissement', 'Universite', 'ResetToken', 'RefreshToken', 'EmailTemplate', 'DepartementActualite', 'LienUtile',
         'Notification', 'PreferenceNotification', 'DashboardPreference', 'SchedulerTask',
-        'FinanceBonCommande', 'FinanceReception', 'FinanceReceptionDocument', 'FinanceFournisseur', 'FinanceTauxTva',
-        'HelpdeskCategorie', 'HelpdeskTicket', 'HelpdeskMessage', 'Document', 'DocumentCategory',
-        'StageEntreprise', 'StageContact', 'StageConventionTemplate',
-        'Message', 'MessageDestinataire', 'MessagePieceJointe',
-        'Cv', 'CvFormation', 'CvExperience', 'Grille', 'GrilleVersion', 'GrilleCritere', 'GrilleEchelon', 'PortfolioModele',
-        'ParametrageFormation', 'MigrationV1Lien', 'ReponseCritere',
     ];
 
-    private const DTO_MODES = [
-        'QuestionnaireAnalyticsDto' => 'ressource', 'PublishOutputDto' => 'ressource',
-        'PreviewIndexDto' => 'ressource', 'PreviewSectionDto' => 'ressource',
-        'InvitationIndexDto' => 'ressource', 'InvitationSectionResource' => 'ressource',
-        'SaveAnswersResource' => 'ressource', 'SubmitResource' => 'ressource',
-        'DuplicateOutputDto' => 'annuel', 'MesInvitationDto' => 'transversal',
-    ];
+    private const TOUTES_LES_ANNEES = ['Etudiant', 'StructureDiplome', 'EtudiantScolarite', 'EtudiantScolariteSemestre'];
+
+    /** @var array<string, string> */
+    private array $paths = self::PATHS;
+    /** @var list<string> */
+    private array $independants = self::INDEPENDANTS;
+    /** @var array<string, string> */
+    private array $dtoModes = [];
+    /** @var list<string> */
+    private array $toutes = self::TOUTES_LES_ANNEES;
+    /** @var list<PerimetreAnnuelProviderInterface> */
+    private array $providers = [];
+
+    /** @param iterable<PerimetreAnnuelProviderInterface> $providers */
+    public function __construct(
+        #[AutowireIterator('app.perimetre_annuel')]
+        iterable $providers = [],
+    ) {
+        foreach ($providers as $provider) {
+            $this->providers[] = $provider;
+            $this->paths = array_merge($this->paths, $provider->chemins());
+            $this->independants = array_merge($this->independants, $provider->independants());
+            $this->dtoModes = array_merge($this->dtoModes, $provider->modesDto());
+            $this->toutes = array_merge($this->toutes, $provider->consultablesSurToutesLesAnnees());
+        }
+    }
 
     public function mode(string $class): string
     {
-        $name = substr($class, strrpos($class, '\\') + 1);
-        return self::DTO_MODES[$name] ?? ($this->path($class) === null ? 'independant' : 'annuel');
+        return $this->dtoModes[$this->nom($class)] ?? ($this->path($class) === null ? 'independant' : 'annuel');
     }
 
     public function path(string $class): ?string
     {
-        $name = substr($class, strrpos($class, '\\') + 1);
-        if (str_starts_with($class, 'ApiPlatform\\') || isset(self::DTO_MODES[$name])) return null;
-        if ($name === 'Evaluation' && str_starts_with($class, 'UnifolioBundle\\')) return 'scolarite.anneeUniversitaire';
-        if (array_key_exists($name, self::PATHS)) return self::PATHS[$name];
-        if (in_array($name, self::INDEPENDANTS, true)) return null;
+        $name = $this->nom($class);
+        if (str_starts_with($class, 'ApiPlatform\\') || isset($this->dtoModes[$name])) {
+            return null;
+        }
+        // Une déclaration par nom complet l'emporte sur le nom court.
+        if (isset($this->paths[$class]) || isset($this->paths[$name])) {
+            return $this->paths[$class] ?? $this->paths[$name];
+        }
+        if (\in_array($class, $this->independants, true) || \in_array($name, $this->independants, true)) {
+            return null;
+        }
         throw new \LogicException('Politique annuelle non déclarée pour '.$class.'.');
     }
 
     public function autoriseToutes(string $class): bool
     {
-        return in_array(substr($class, strrpos($class, '\\') + 1), ['Etudiant', 'StructureDiplome', 'EtudiantScolarite', 'EtudiantScolariteSemestre', 'Portfolio', 'Trace', 'Campagne'], true);
+        return \in_array($class, $this->toutes, true) || \in_array($this->nom($class), $this->toutes, true);
+    }
+
+    /** Les contrôleurs du cœur et des bundles concernés doivent déclarer leur politique annuelle. */
+    public function politiqueObligatoire(string $classeControleur): bool
+    {
+        $racine = explode('\\', $classeControleur)[0];
+        if ($racine === 'App') {
+            return true;
+        }
+        foreach ($this->providers as $provider) {
+            if ($provider->espaceDeNoms() === $racine) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** @param array<mixed> $corps */
+    public function requeteHorsAnnee(string $classe, Request $request, array $corps = []): bool
+    {
+        foreach ($this->providers as $provider) {
+            if ($provider->requeteHorsAnnee($classe, $request, $corps)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function conditionHorsAnnee(string $classe, string $alias): ?string
+    {
+        foreach ($this->providers as $provider) {
+            if (($condition = $provider->conditionHorsAnnee($classe, $alias)) !== null) {
+                return $condition;
+            }
+        }
+
+        return null;
+    }
+
+    public function entiteDeContexte(string $classe, Request $request): ?object
+    {
+        foreach ($this->providers as $provider) {
+            if (($entite = $provider->entiteDeContexte($classe, $request)) !== null) {
+                return $entite;
+            }
+        }
+
+        return null;
+    }
+
+    private function nom(string $class): string
+    {
+        $position = strrpos($class, '\\');
+
+        return $position === false ? $class : substr($class, $position + 1);
     }
 }

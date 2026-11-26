@@ -7,7 +7,7 @@ import AppSidebar from './AppSidebar.vue';
 import AppTopbar from './AppTopbar.vue';
 import AppBreadcrumb from "./AppBreadcrumb.vue";
 import { hasPermission } from '@utils/permissions';
-import { bundles } from '../../../../packages/shell/assets/bundles-registry';
+import { bundles } from '@bundles-registry';
 
 const props = defineProps({
   menuItems: {

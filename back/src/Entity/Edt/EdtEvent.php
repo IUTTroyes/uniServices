@@ -29,8 +29,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use IntranetBundle\Entity\Edt\EdtAppel;
-use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Uid\UuidV4;
 
@@ -189,18 +187,9 @@ class EdtEvent implements TimestampableInterface
     #[ORM\Column(nullable: true)]
     private ?int $ordreSeance = null;
 
-    /** @var Collection<int, EtudiantAbsence> */
-    #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'event')]
-    private Collection $absences;
-
-    #[ORM\OneToOne(mappedBy: 'edtEvent')]
-    #[Groups(['edt_pointage:read'])]
-    private ?EdtAppel $appel = null;
-
     public function __construct()
     {
         $this->uuid = new UuidV4();
-        $this->absences = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -541,44 +530,4 @@ class EdtEvent implements TimestampableInterface
 
         return $this;
     }
-
-    /**
-     * @return Collection<int, EtudiantAbsence>
-     */
-    public function getAbsences(): Collection
-    {
-        return $this->absences;
-    }
-
-    public function addAbsence(EtudiantAbsence $absence): static
-    {
-        if (!$this->absences->contains($absence)) {
-            $this->absences->add($absence);
-            $absence->setEvent($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAbsence(EtudiantAbsence $absence): static
-    {
-        if ($this->absences->removeElement($absence)) {
-            if ($absence->getEvent() === $this) {
-                $absence->setEvent(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function getAppel(): ?EdtAppel
-    {
-        return $this->appel;
-    }
-
-    public function setAppel(?EdtAppel $appel): void
-    {
-        $this->appel = $appel;
-    }
-
 }

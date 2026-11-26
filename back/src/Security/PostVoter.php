@@ -2,8 +2,6 @@
 
 namespace App\Security;
 
-use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
-use IntranetBundle\Entity\Etudiant\EtudiantAbsenceJustificatif;
 use App\Entity\Etudiant\EtudiantNote;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
@@ -11,13 +9,14 @@ use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
+use App\Service\Enseignement\AffectationsEnseignement;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 /**
  * Voter pour les opérations POST/PATCH/DELETE sur les entités principales
- * Gère les droits d'accès pour : Etudiant, Scolarité, Evaluation, Notes, Absences
+ * Gère les droits d'accès pour : Etudiant, Scolarité, Evaluation, Notes
  */
 class PostVoter extends Voter
 {
@@ -46,16 +45,6 @@ class PostVoter extends Voter
     public const CAN_EDIT_NOTES = 'CAN_EDIT_NOTES';
     public const CAN_DELETE_NOTES = 'CAN_DELETE_NOTES';
 
-    // Permissions Absences
-    public const CAN_VIEW_ABSENCE = 'CAN_VIEW_ABSENCE';
-    public const CAN_EDIT_ABSENCE = 'CAN_EDIT_ABSENCE';
-    public const CAN_DELETE_ABSENCE = 'CAN_DELETE_ABSENCE';
-
-    // Permissions Justificatifs d'absence
-    public const CAN_VIEW_JUSTIFICATIF = 'CAN_VIEW_JUSTIFICATIF';
-    public const CAN_EDIT_JUSTIFICATIF = 'CAN_EDIT_JUSTIFICATIF';
-    public const CAN_DELETE_JUSTIFICATIF = 'CAN_DELETE_JUSTIFICATIF';
-
     // Permissions Année Universitaire
     public const CAN_VIEW_ANNEE_UNIV = 'CAN_VIEW_ANNEE_UNIV';
     public const CAN_EDIT_ANNEE_UNIV = 'CAN_EDIT_ANNEE_UNIV';
@@ -81,12 +70,6 @@ class PostVoter extends Voter
         self::CAN_VIEW_NOTES,
         self::CAN_EDIT_NOTES,
         self::CAN_DELETE_NOTES,
-        self::CAN_VIEW_ABSENCE,
-        self::CAN_EDIT_ABSENCE,
-        self::CAN_DELETE_ABSENCE,
-        self::CAN_VIEW_JUSTIFICATIF,
-        self::CAN_EDIT_JUSTIFICATIF,
-        self::CAN_DELETE_JUSTIFICATIF,
         self::CAN_VIEW_ANNEE_UNIV,
         self::CAN_EDIT_ANNEE_UNIV,
         self::CAN_VIEW_ETABLISSEMENT,
@@ -95,7 +78,8 @@ class PostVoter extends Voter
     ];
 
     public function __construct(
-        private readonly UserEffectivePermissionService $effectivePermissionService
+        private readonly UserEffectivePermissionService $effectivePermissionService,
+        private readonly AffectationsEnseignement $affectations,
     ) {}
 
     public function supportsAttribute(string $attribute): bool
@@ -149,16 +133,6 @@ class PostVoter extends Voter
             self::CAN_VIEW_NOTES => $this->canViewNotes($subject, $user),
             self::CAN_EDIT_NOTES => $this->canEditNotes($subject, $user),
             self::CAN_DELETE_NOTES => $this->canDeleteNotes($subject, $user),
-
-            // Absences
-            self::CAN_VIEW_ABSENCE => $this->canViewAbsence($subject, $user),
-            self::CAN_EDIT_ABSENCE => $this->canEditAbsence($subject, $user),
-            self::CAN_DELETE_ABSENCE => $this->canDeleteAbsence($subject, $user),
-
-            // Justificatifs d'absence
-            self::CAN_VIEW_JUSTIFICATIF => $this->canViewJustificatif($subject, $user),
-            self::CAN_EDIT_JUSTIFICATIF => $this->canEditJustificatif($subject, $user),
-            self::CAN_DELETE_JUSTIFICATIF => $this->canDeleteJustificatif($subject, $user),
 
             // Scolarité Etudiant
             self::CAN_VIEW_ETUDIANT_SCOLARITE => $this->canViewEtudiantScolarite($subject, $user),
@@ -326,7 +300,7 @@ class PostVoter extends Voter
         }
 
         if ($subject->getPersonnelAutorise()->contains($user)
-            || in_array($user->getId(), $subject->getIntervenantIdsPourInitialisation(), true)) {
+            || in_array($user->getId(), $this->affectations->intervenantsPourInitialisation($subject), true)) {
             return true;
         }
 
@@ -431,106 +405,6 @@ class PostVoter extends Voter
             'ROLE_ADMIN',
             'ROLE_NOTES_MANAGER'
         ], $subject);
-    }
-
-    // ========== Absences ==========
-
-    private function canViewAbsence(mixed $subject, Personnel|Etudiant $user): bool
-    {
-        if ($user instanceof Personnel) {
-            return $this->hasAnyRole($user, [
-                'SUPER_ADMIN',
-                'ROLE_ADMIN',
-                'ROLE_SCOLARITE',
-                'ROLE_CHEF_DEPT',
-                'ROLE_ASSISTANT',
-                'ROLE_DIRECTEUR_ETUDES',
-                'ROLE_PERMANENT'
-            ]);
-        }
-
-        // Un étudiant peut voir ses propres absences
-        if ($user instanceof Etudiant && $subject instanceof EtudiantAbsence) {
-            $scolariteSemestre = $subject->getScolariteSemestre();
-            if ($scolariteSemestre) {
-                $etudiant = $scolariteSemestre->getScolarite()?->getEtudiant();
-                return $etudiant === $user;
-            }
-        }
-
-        return false;
-    }
-
-    private function canEditAbsence(mixed $subject, Personnel|Etudiant $user): bool
-    {
-        return $user instanceof Personnel && $subject instanceof EtudiantAbsence
-            && $this->effectivePermissionService->hasAnyPermissionForResource($user, [
-                'ROLE_ADMIN', 'ROLE_SCOLARITE', 'ROLE_CHEF_DEPT', 'ROLE_DIRECTEUR_ETUDES', 'ROLE_PERMANENT',
-            ], $subject);
-    }
-
-    private function canDeleteAbsence(mixed $subject, Personnel|Etudiant $user): bool
-    {
-        return $user instanceof Personnel && $subject instanceof EtudiantAbsence
-            && $this->effectivePermissionService->hasAnyPermissionForResource(
-                $user, ['ROLE_ADMIN', 'ROLE_SCOLARITE'], $subject,
-            );
-    }
-
-    // ========== Justificatifs d'absence ==========
-
-    private function canViewJustificatif(mixed $subject, Personnel|Etudiant $user): bool
-    {
-        if ($user instanceof Personnel) {
-            return $this->hasAnyRole($user, [
-                'SUPER_ADMIN',
-                'ROLE_ADMIN',
-                'ROLE_SCOLARITE',
-                'ROLE_CHEF_DEPT',
-                'ROLE_ASSISTANT',
-                'ROLE_DIRECTEUR_ETUDES'
-            ]);
-        }
-
-        // Un étudiant peut voir ses propres justificatifs
-        if ($user instanceof Etudiant && $subject instanceof EtudiantAbsenceJustificatif) {
-            $absences = $subject->getAbsence();
-            foreach ($absences as $absence) {
-                $scolariteSemestre = $absence->getScolariteSemestre();
-                if ($scolariteSemestre) {
-                    $etudiant = $scolariteSemestre->getScolarite()?->getEtudiant();
-                    if ($etudiant === $user) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private function canEditJustificatif(mixed $subject, Personnel|Etudiant $user): bool
-    {
-        if (!$subject instanceof EtudiantAbsenceJustificatif) {
-            return false;
-        }
-
-        if ($user instanceof Personnel) {
-            return $this->effectivePermissionService->hasAnyPermissionForResource($user, [
-                'ROLE_ADMIN', 'ROLE_SCOLARITE', 'ROLE_CHEF_DEPT', 'ROLE_DIRECTEUR_ETUDES',
-            ], $subject);
-        }
-
-        // L’étudiant soumet un justificatif pour sa propre scolarité.
-        return $subject->getId() === null && $subject->getScolariteSemestre()?->getScolarite()?->getEtudiant() === $user;
-    }
-
-    private function canDeleteJustificatif(mixed $subject, Personnel|Etudiant $user): bool
-    {
-        return $user instanceof Personnel && $subject instanceof EtudiantAbsenceJustificatif
-            && $this->effectivePermissionService->hasAnyPermissionForResource(
-                $user, ['ROLE_ADMIN', 'ROLE_SCOLARITE'], $subject,
-            );
     }
 
     // ========== Scolarité Etudiant ==========

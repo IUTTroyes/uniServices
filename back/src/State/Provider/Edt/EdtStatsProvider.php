@@ -7,7 +7,6 @@ use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use IntranetBundle\Repository\Previsionnel\PrevisionnelRepository;
 use DateTime;
 use App\ApiDto\Edt\EdtStatsDto;
 
@@ -18,7 +17,6 @@ class EdtStatsProvider implements ProviderInterface
         private CollectionProvider $collectionProvider,
 
         private ItemProvider $itemProvider,
-        private PrevisionnelRepository $previsionnelRepository,
     ) {}
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null

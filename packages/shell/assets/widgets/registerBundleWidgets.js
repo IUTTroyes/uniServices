@@ -1,4 +1,4 @@
-import { bundles } from '../bundles-registry';
+import { bundles } from '@bundles-registry';
 
 let widgetsAreRegistered = false;
 

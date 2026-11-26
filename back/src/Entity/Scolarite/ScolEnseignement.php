@@ -12,7 +12,6 @@ use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Structure\StructureDiplome;
-use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use App\Entity\Traits\ApogeeTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Enum\TypeEnseignementEnum;
@@ -150,7 +149,6 @@ class ScolEnseignement
     #[Groups(['enseignement:detail'])]
     private Collection $apprentissageCritique;
 
-
     /**
      * @var Collection<int, ScolEvaluation>
      */
@@ -171,13 +169,6 @@ class ScolEnseignement
     #[Groups(['enseignement:detail'])]
     private Collection $enseignementUes;
 
-    /**
-     * @var Collection<int, Previsionnel>
-     */
-    #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'enseignement', cascade: ['remove'], orphanRemoval: true)]
-    #[Groups(['enseignement:detail', 'edt_event:read:agenda'])]
-    private Collection $previsionnels;
-
     public function __construct()
     {
         $this->enfants = new ArrayCollection();
@@ -185,7 +176,6 @@ class ScolEnseignement
         $this->evaluations = new ArrayCollection();
         $this->edtEvents = new ArrayCollection();
         $this->enseignementUes = new ArrayCollection();
-        $this->previsionnels = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -471,7 +461,6 @@ class ScolEnseignement
         return $this;
     }
 
-
     /**
      * @return Collection<int, ScolEvaluation>
      */
@@ -563,36 +552,6 @@ class ScolEnseignement
     }
 
     /**
-     * @return Collection<int, Previsionnel>
-     */
-    public function getPrevisionnels(): Collection
-    {
-        return $this->previsionnels;
-    }
-
-    public function addPrevisionnel(Previsionnel $previsionnel): static
-    {
-        if (!$this->previsionnels->contains($previsionnel)) {
-            $this->previsionnels->add($previsionnel);
-            $previsionnel->setEnseignement($this);
-        }
-
-        return $this;
-    }
-
-    public function removePrevisionnel(Previsionnel $previsionnel): static
-    {
-        if ($this->previsionnels->removeElement($previsionnel)) {
-            // set the owning side to null (unless already changed)
-            if ($previsionnel->getEnseignement() === $this) {
-                $previsionnel->setEnseignement(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection<int, ScolEnseignement>
      */
     public function getEnfants(): Collection
@@ -656,5 +615,4 @@ class ScolEnseignement
     {
         return $this->getSemestre()?->getAnnee()?->getId();
     }
-
 }

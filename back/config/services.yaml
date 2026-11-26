@@ -4,6 +4,9 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+  # Réglages surchargés par distribution (config/distributions/<nom>.yaml).
+  app.paquets_implicites: []
+  app.applications_etudiant: ['intranet']
   default_etablissement_pays: 'France'
   default_email_from_address: 'no-reply@univ-reims.fr'
   default_email_from_name: 'UniServices'
@@ -130,10 +133,3 @@ services:
     tags:
       - { name: api_platform.doctrine.orm.query_extension.collection, priority: 64 }
       - { name: api_platform.doctrine.orm.query_extension.item, priority: 64 }
-
-  ParcautoBundle\:
-    resource: "../../packages/parcauto-bundle/src/"
-    exclude:
-      - "../../packages/parcauto-bundle/src/Entity/"
-      - "../../packages/parcauto-bundle/src/ParcautoBundle.php"
-      - "../../packages/parcauto-bundle/src/Service/SaisieParcauto.php"

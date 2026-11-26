@@ -76,13 +76,6 @@ class EtudiantScolariteSemestre
     private ?array $legacyContext = null;
 
     /**
-     * @var Collection<int, \IntranetBundle\Entity\Etudiant\EtudiantAbsence>
-     */
-    #[ORM\OneToMany(targetEntity: \IntranetBundle\Entity\Etudiant\EtudiantAbsence::class, mappedBy: 'scolariteSemestre')]
-    #[Groups(['scolarite-semestre:absence'])]
-    private Collection $absence;
-
-    /**
      * @var Collection<int, EtudiantNote>
      */
     #[ORM\OneToMany(targetEntity: EtudiantNote::class, mappedBy: 'scolariteSemestre')]
@@ -122,7 +115,6 @@ class EtudiantScolariteSemestre
 
     public function __construct()
     {
-        $this->absence = new ArrayCollection();
         $this->note = new ArrayCollection();
         $this->groupes = new ArrayCollection();
     }
@@ -152,32 +144,6 @@ class EtudiantScolariteSemestre
     public function setLegacyContext(?array $legacyContext): static
     {
         $this->legacyContext = $legacyContext;
-
-        return $this;
-    }
-
-    public function getAbsence(): Collection
-    {
-        return $this->absence;
-    }
-
-    public function addAbsence(\IntranetBundle\Entity\Etudiant\EtudiantAbsence $absence): static
-    {
-        if (!$this->absence->contains($absence)) {
-            $this->absence->add($absence);
-            $absence->setScolariteSemestre($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAbsence(\IntranetBundle\Entity\Etudiant\EtudiantAbsence $absence): static
-    {
-        if ($this->absence->removeElement($absence)) {
-            if ($absence->getScolariteSemestre() === $this) {
-                $absence->setScolariteSemestre(null);
-            }
-        }
 
         return $this;
     }

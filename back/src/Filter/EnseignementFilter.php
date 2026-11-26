@@ -6,11 +6,16 @@ use ApiPlatform\Doctrine\Orm\Filter\FilterInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\BackwardCompatibleFilterDescriptionTrait;
 use ApiPlatform\Metadata\Operation;
+use App\Service\Enseignement\AffectationsEnseignement;
 use Doctrine\ORM\QueryBuilder;
 
 class EnseignementFilter implements FilterInterface
 {
     use BackwardCompatibleFilterDescriptionTrait;
+
+    public function __construct(private readonly AffectationsEnseignement $affectations)
+    {
+    }
 
     public function apply(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
@@ -49,22 +54,21 @@ class EnseignementFilter implements FilterInterface
         }
 
         if ('personnel' === $property) {
-            $previsionnelAlias = $queryNameGenerator->generateJoinAlias('previsionnel');
-            $personnelAlias = $queryNameGenerator->generateJoinAlias('personnel');
-            $anneeUniversitaireAlias = $queryNameGenerator->generateJoinAlias('anneeUniversitaire');
-
-            $queryBuilder
-                // si il y a des previsionnels avec des personnels
-                ->join("$alias.previsionnels", $previsionnelAlias)
-                ->join("$previsionnelAlias.personnel", $personnelAlias)
-                ->andWhere("$personnelAlias.id = :personnel")
-                ->setParameter("personnel", $value);
+            $source = $this->affectations->source();
+            if ($source === null) {
+                $queryBuilder->andWhere('1 = 0');
+            } else {
+                $personnel = $queryNameGenerator->generateParameterName('personnel');
+                $queryBuilder->setParameter($personnel, $value);
+                $anneeParametre = null;
                 if ($context['filters']['anneeUniversitaire'] ?? null) {
-                    $queryBuilder
-                        ->join("$previsionnelAlias.anneeUniversitaire", $anneeUniversitaireAlias)
-                        ->andWhere("$anneeUniversitaireAlias.id = :anneeUniversitaireId")
-                        ->setParameter("anneeUniversitaireId", $context['filters']['anneeUniversitaire']);
+                    $anneeParametre = $queryNameGenerator->generateParameterName('anneeUniversitaireId');
+                    $queryBuilder->setParameter($anneeParametre, $context['filters']['anneeUniversitaire']);
                 }
+                $queryBuilder->andWhere(sprintf('%s.id IN (%s)', $alias, $source->dqlEnseignements(
+                    $queryNameGenerator->generateJoinAlias('affectation'), $personnel, $anneeParametre,
+                )));
+            }
         }
 
         if ('annee' === $property) {

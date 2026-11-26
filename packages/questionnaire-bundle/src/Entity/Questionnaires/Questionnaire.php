@@ -2,6 +2,7 @@
 
 namespace QuestionnaireBundle\Entity\Questionnaires;
 
+use App\Extension\HorsAnneeInterface;
 use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Doctrine\Orm\Filter\ExistsFilter;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
@@ -54,7 +55,7 @@ use Symfony\Component\Uid\Uuid;
 #[ApiFilter(ExistsFilter::class, properties: ['departement'])]
 #[ApiFilter(BooleanFilter::class, properties: ['estModele'])]
 #[ApiFilter(OrderFilter::class, properties: ['createdAt', 'title', 'openingDate', 'closingDate'], arguments: ['orderParameterName' => 'order'])]
-class Questionnaire implements TimestampableInterface
+class Questionnaire implements TimestampableInterface, HorsAnneeInterface
 {
     use TimestampableTrait;
     use OptionTrait;
@@ -675,5 +676,10 @@ class Questionnaire implements TimestampableInterface
         $this->completionNotifiedAt = $completionNotifiedAt;
 
         return $this;
+    }
+
+    public function estHorsAnnee(): bool
+    {
+        return $this->isEstModele();
     }
 }

@@ -4,6 +4,7 @@ namespace QuestionnaireBundle\Services\Diffusion;
 
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Users\Personnel;
+use App\Service\Enseignement\AffectationsEnseignement;
 use Doctrine\ORM\EntityManagerInterface;
 use QuestionnaireBundle\Entity\Questionnaires\Questionnaire;
 use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireDiffusion;
@@ -26,13 +27,11 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
  */
 class DiffusionService
 {
-    /** Le prévisionnel appartient au package intranet : lu seulement s'il est installé (pas de dépendance dure). */
-    private const PREVISIONNEL = 'IntranetBundle\Entity\Previsionnel\Previsionnel';
-
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly QuestionnaireReglages $reglages,
         private readonly QuestionnaireNotifier $notifier,
+        private readonly AffectationsEnseignement $affectations,
     ) {
     }
 
@@ -58,22 +57,12 @@ class DiffusionService
         }
         $annee = $section->getQuestionnaire()?->getAnneeUniversitaire();
 
-        if (class_exists(self::PREVISIONNEL)) {
-            $qb = $this->em->getRepository(self::PREVISIONNEL)->createQueryBuilder('p')
-                ->where('p.enseignement = :enseignement')->setParameter('enseignement', $enseignement)
-                ->andWhere('p.personnel IS NOT NULL')
-                ->orderBy('p.referent', 'DESC');
-            if ($annee !== null) {
-                $qb->andWhere('p.anneeUniversitaire = :annee')->setParameter('annee', $annee);
-            }
-            $personnels = [];
-            foreach ($qb->getQuery()->getResult() as $previsionnel) {
-                $personnel = $previsionnel->getPersonnel();
-                $personnels[$personnel->getId()] ??= [$personnel, QuestionnaireDiffusion::ORIGINE_PREVISIONNEL];
-            }
-            if ($personnels !== []) {
-                return array_values($personnels);
-            }
+        $personnels = array_map(
+            static fn (Personnel $p) => [$p, QuestionnaireDiffusion::ORIGINE_PREVISIONNEL],
+            $this->affectations->personnels($enseignement, $annee),
+        );
+        if ($personnels !== []) {
+            return $personnels;
         }
 
         $qb = $this->em->getRepository(EdtEvent::class)->createQueryBuilder('e')

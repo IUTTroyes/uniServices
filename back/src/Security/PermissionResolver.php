@@ -4,11 +4,15 @@ namespace App\Security;
 
 use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Structure\StructureDiplome;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class PermissionResolver
 {
+    /** @param list<string> $paquetsImplicites paquets actifs sur toute affectation, selon la distribution */
     public function __construct(
-        private readonly PermissionRegistry $registry
+        private readonly PermissionRegistry $registry,
+        #[Autowire('%app.paquets_implicites%')]
+        private readonly array $paquetsImplicites = [],
     ) {}
 
     /**
@@ -23,7 +27,7 @@ class PermissionResolver
     {
         $activePackages = array_values(array_unique(array_map(
             static fn (string $package): string => $package === 'stage' ? 'stages' : $package,
-            $activePackages
+            array_merge($activePackages, $this->paquetsImplicites)
         )));
         // A scoped role must never be granted by a flat role list or inheritance.
         $assignedRoles = array_values(array_diff($assignedRoles, ['ROLE_RESP_PARCOURS']));
@@ -73,7 +77,7 @@ class PermissionResolver
         $permissions = $this->resolve($assignment->getPermissions(), $assignment->getPackages());
         if ($diplome !== null
             && $assignment->isResponsableParcoursForDiplome($diplome)
-            && in_array('intranet', $assignment->getPackages(), true)
+            && in_array('intranet', array_merge($assignment->getPackages(), $this->paquetsImplicites), true)
             && in_array('ROLE_RESP_PARCOURS', $assignment->getPermissions(), true)
             && $diplome->getDepartement()?->getId() === $assignment->getDepartement()?->getId()
         ) {

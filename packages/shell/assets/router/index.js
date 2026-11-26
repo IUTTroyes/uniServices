@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { bundles } from '../bundles-registry';
+import { bundles } from '@bundles-registry';
 import { useUsersStore, useSecurity } from '@stores';
 import { hasPermission } from '@utils';
 import { applyBundleTheme } from '../composables/useBundleTheme';

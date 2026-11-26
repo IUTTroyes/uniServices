@@ -1,6 +1,6 @@
 import { updatePreset } from '@primeuix/themes';
 import { getApplicationMeta } from '../../../../shared/utils/applicationColors';
-import { bundles } from '../bundles-registry';
+import { bundles } from '@bundles-registry';
 
 export function applyBundleTheme(route) {
   const rootPath = route.matched[0]?.path;

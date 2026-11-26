@@ -3,6 +3,7 @@ import { Card, HeaderComponent, Kpi } from '@components';
 import { GROUPES, MATRICE, MATRICE_COLONNES, POINTS_VIGILANCE, RESERVE_SUPER_ADMIN, ROLES } from '@utils/aideAcces';
 import CatalogueRoles from '../../components/CatalogueRoles.vue';
 import PrincipesAcces from '../../components/PrincipesAcces.vue';
+import { estInstalle } from '@utils/distribution';
 import TableauFinance from '../../components/TableauFinance.vue';
 
 /** Vue globale des rôles et accès pour le super administrateur. Source : docs/ROLES_ET_ACCES.md. */
@@ -54,6 +55,6 @@ import TableauFinance from '../../components/TableauFinance.vue';
             </div>
         </Card>
 
-        <TableauFinance />
+        <TableauFinance v-if="estInstalle('finance')" />
     </div>
 </template>

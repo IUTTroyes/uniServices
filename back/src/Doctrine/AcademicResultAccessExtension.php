@@ -9,11 +9,9 @@ use ApiPlatform\Metadata\Operation;
 use App\Entity\Scolarite\ScolEvaluationRattrapage;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
+use App\Service\Enseignement\AffectationsEnseignement;
 use App\Security\UserEffectivePermissionService;
 use Doctrine\ORM\QueryBuilder;
-use IntranetBundle\Entity\Etudiant\MoyenneEnseignement;
-use IntranetBundle\Entity\Etudiant\MoyenneUe;
-use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use Symfony\Bundle\SecurityBundle\Security;
 
 final class AcademicResultAccessExtension implements QueryCollectionExtensionInterface, QueryItemExtensionInterface
@@ -21,6 +19,7 @@ final class AcademicResultAccessExtension implements QueryCollectionExtensionInt
     public function __construct(
         private readonly Security $security,
         private readonly UserEffectivePermissionService $permissions,
+        private readonly AffectationsEnseignement $affectations,
     ) {}
 
     public function applyToCollection(
@@ -46,7 +45,7 @@ final class AcademicResultAccessExtension implements QueryCollectionExtensionInt
 
     private function restrict(QueryBuilder $query, QueryNameGeneratorInterface $names, string $resource): void
     {
-        if (!in_array($resource, [MoyenneEnseignement::class, MoyenneUe::class, ScolEvaluationRattrapage::class], true)) {
+        if ($resource !== ScolEvaluationRattrapage::class) {
             return;
         }
 
@@ -56,14 +55,10 @@ final class AcademicResultAccessExtension implements QueryCollectionExtensionInt
         }
 
         $root = $query->getRootAliases()[0];
-        $retake = $resource === ScolEvaluationRattrapage::class;
-        $semester = $retake
-            ? $this->join($query, $names, $root, 'evaluation')
-            : $this->join($query, $names, $root, 'etudiantScolariteSemestre');
-        $record = $retake ? $root : $this->join($query, $names, $semester, 'scolarite');
+        $evaluation = $this->join($query, $names, $root, 'evaluation');
         $account = $names->generateParameterName('result_account');
         if ($user instanceof Etudiant) {
-            $query->andWhere(sprintf('%s.etudiant = :%s', $record, $account))->setParameter($account, $user);
+            $query->andWhere(sprintf('%s.etudiant = :%s', $root, $account))->setParameter($account, $user);
             return;
         }
 
@@ -73,29 +68,16 @@ final class AcademicResultAccessExtension implements QueryCollectionExtensionInt
         }
 
         $criteria = $query->expr()->orX(sprintf('%s.personnel = :%s', $root, $account));
-        if ($retake) {
-            $criteria->add(sprintf(':%s MEMBER OF %s.personnelAutorise', $account, $semester));
-        }
+        $criteria->add(sprintf(':%s MEMBER OF %s.personnelAutorise', $account, $evaluation));
 
-        // Le prévisionnel doit correspondre à l’année du résultat.
-        $planned = $names->generateJoinAlias('previsionnel_result');
-        $teaching = $names->generateJoinAlias('teaching_result');
-        $assignment = $query->getEntityManager()->createQueryBuilder()
-            ->select('1')
-            ->from(Previsionnel::class, $planned)
-            ->where(sprintf('%s.personnel = :%s', $planned, $account));
-        if ($resource === MoyenneUe::class) {
-            $link = $names->generateJoinAlias('ue_result');
-            $assignment->innerJoin($planned.'.enseignement', $teaching)
-                ->innerJoin($teaching.'.enseignementUes', $link)
-                ->andWhere(sprintf('%s.ue = %s.ue', $link, $root));
-        } else {
-            $assignment->andWhere(sprintf('%s.enseignement = %s.enseignement', $planned, $retake ? $semester : $root));
+        // L’affectation doit correspondre à l’année du résultat.
+        $source = $this->affectations->source();
+        if ($source !== null) {
+            $criteria->add($query->expr()->exists($source->dqlAffectation(
+                $names->generateJoinAlias('affectation_result'), $account,
+                $evaluation.'.enseignement', $evaluation.'.anneeUniversitaire',
+            )));
         }
-        $assignment->andWhere(sprintf(
-            '%s.anneeUniversitaire = %s.anneeUniversitaire', $planned, $retake ? $semester : $record,
-        ));
-        $criteria->add($query->expr()->exists($assignment->getDQL()));
         $query->setParameter($account, $user);
 
         $departments = [];
@@ -108,12 +90,9 @@ final class AcademicResultAccessExtension implements QueryCollectionExtensionInt
             }
         }
         if ($departments !== []) {
-            $owner = $record;
-            if ($retake) {
-                $owner = $this->join($query, $names, $semester, 'semestre');
-                foreach (['annee', 'pn', 'diplome'] as $field) {
-                    $owner = $this->join($query, $names, $owner, $field);
-                }
+            $owner = $this->join($query, $names, $evaluation, 'semestre');
+            foreach (['annee', 'pn', 'diplome'] as $field) {
+                $owner = $this->join($query, $names, $owner, $field);
             }
             $parameter = $names->generateParameterName('result_departments');
             $criteria->add(sprintf('IDENTITY(%s.departement) IN (:%s)', $owner, $parameter));

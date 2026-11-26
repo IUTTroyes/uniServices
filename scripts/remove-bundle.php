@@ -115,8 +115,17 @@ $bundleShortName = preg_replace('/-bundle$/', '', $bundleKebab);
 $bundleBasePascal = preg_replace('/Bundle$/', '', $bundlePascal);
 
 $projectRoot = dirname(__DIR__);
+require_once $projectRoot . '/scripts/utils/distributions.php';
+
+// Vérifié avant toute suppression : une distribution ne doit pas perdre un package à son insu.
+$citations = distributions_utilisant($projectRoot, $bundleKebab, $bundlePascal);
+if ($citations !== []) {
+    fwrite(STDERR, "Suppression refusée : $bundlePascal est utilisé par " . implode(', ', $citations) . ".\n");
+    fwrite(STDERR, "Retirez-le d'abord de ces distributions.\n");
+    exit(1);
+}
+
 $bundlesConfigPath = $projectRoot . '/back/config/bundles.php';
-$doctrineConfigPath = $projectRoot . '/back/config/packages/doctrine.yaml';
 $frontBundlesRegistryPath = $projectRoot . '/packages/shell/assets/bundles-registry.js';
 $rootPackagePath = $projectRoot . '/package.json';
 $rootComposerPath = $projectRoot . '/composer.json';
@@ -251,18 +260,7 @@ if (file_exists($bundlesConfigPath)) {
     }
 }
 
-// 5b. Update Doctrine mappings to avoid references to disabled/removed bundles
-if (file_exists($doctrineConfigPath)) {
-    $doctrineConfigRaw = file_get_contents($doctrineConfigPath);
-    $mappingPattern = '/^\s{20}' . preg_quote($bundlePascal, '/') . ':\R(?:^\s{24}[^\r\n]*\R)*/m';
-    if (preg_match($mappingPattern, $doctrineConfigRaw)) {
-        $doctrineConfigRaw = preg_replace($mappingPattern, '', $doctrineConfigRaw);
-        file_put_contents($doctrineConfigPath, $doctrineConfigRaw);
-        echo "Updated back/config/packages/doctrine.yaml\n";
-    }
-}
-
-// 5c. Update front bundles registry (shell/widgets)
+// 5b. Update front bundles registry (shell/widgets)
 if (file_exists($frontBundlesRegistryPath)) {
     $frontRegistryRaw = file_get_contents($frontBundlesRegistryPath);
     $changed = false;
@@ -311,3 +309,4 @@ echo "\nBundle $bundlePascal removed successfully!\n";
 echo "Next steps:\n";
 echo "1. Vérifiez que la navigation n'affiche plus l'outil supprimé (tools.generated.json régénéré).\n";
 echo "2. Redémarrez les serveurs dev si nécessaire pour recharger les scripts package.json.\n";
+echo "3. Les tables du package et ses lignes de doctrine_migration_versions restent en base : les retirer par une migration.\n";

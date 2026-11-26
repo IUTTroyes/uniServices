@@ -1,0 +1,5 @@
+parameters:
+  # Les rôles de la plateforme (super administrateur, enseignant...) appartiennent au paquet « intranet » :
+  # sans le package, il reste actif sur toutes les affectations.
+  app.paquets_implicites: ['intranet', 'unifolio']
+  app.applications_etudiant: ['unifolio']

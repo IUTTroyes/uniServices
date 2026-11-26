@@ -17,6 +17,7 @@ export default defineConfig({
           return this.resolve(path.resolve(base, source), importer, { skipSelf: true });
         },
       },
+      { find: '@bundles-registry', replacement: path.resolve(__dirname, 'packages/shell/assets/bundles-registry.js') },
       { find: '@types', replacement: path.resolve(__dirname, 'shared/types') },
       { find: '@components', replacement: path.resolve(__dirname, 'shared/components') },
       { find: '@config', replacement: path.resolve(__dirname, 'shared/global-data') },

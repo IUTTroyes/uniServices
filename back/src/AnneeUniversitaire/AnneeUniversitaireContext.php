@@ -132,10 +132,7 @@ final readonly class AnneeUniversitaireContext
 
     public function isModele(object $entity): bool
     {
-        if ($entity instanceof \QuestionnaireBundle\Entity\Questionnaires\Questionnaire) return $entity->isEstModele();
-        if ($entity instanceof \QuestionnaireBundle\Entity\Questionnaires\QuestionnaireSection) return $entity->getQuestionnaire()?->isEstModele() ?? false;
-        if ($entity instanceof \QuestionnaireBundle\Entity\Questionnaires\QuestionnaireQuestion) return $entity->getSection()?->getQuestionnaire()?->isEstModele() ?? false;
-        return false;
+        return $entity instanceof \App\Extension\HorsAnneeInterface && $entity->estHorsAnnee();
     }
 
     public function apply(\Doctrine\ORM\QueryBuilder $qb, string $class, string $alias, ?int $year = null): void

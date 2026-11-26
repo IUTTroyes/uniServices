@@ -2,6 +2,7 @@
 
 namespace QuestionnaireBundle\Entity\Questionnaires;
 
+use App\Extension\HorsAnneeInterface;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
@@ -41,7 +42,7 @@ use Symfony\Component\Uid\Uuid;
     ]
 )]
 #[ORM\Index(name: 'idx_question_section_ordre', columns: ['section_id', 'sort_order'])]
-class QuestionnaireQuestion
+class QuestionnaireQuestion implements HorsAnneeInterface
 {
     use OptionTrait;
 
@@ -284,5 +285,10 @@ class QuestionnaireQuestion
         }
 
         return $this;
+    }
+
+    public function estHorsAnnee(): bool
+    {
+        return $this->getSection()?->getQuestionnaire()?->isEstModele() ?? false;
     }
 }

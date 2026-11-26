@@ -17,7 +17,6 @@ use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
 use App\Filter\AnneeUniversitaireFilter;
-use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Contracts\TimestampableInterface;
 use App\Entity\Traits\TimestampableTrait;
@@ -141,12 +140,6 @@ class StructureAnneeUniversitaire implements TimestampableInterface
     private Collection $edtEvents;
 
     /**
-     * @var Collection<int, Previsionnel>
-     */
-    #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'anneeUniversitaire')]
-    private Collection $previsionnels;
-
-    /**
      * @var Collection<int, PersonnelEnseignantHrs>
      */
     #[ORM\OneToMany(targetEntity: PersonnelEnseignantHrs::class, mappedBy: 'annee_universitaire')]
@@ -164,7 +157,6 @@ class StructureAnneeUniversitaire implements TimestampableInterface
         $this->edtEvents = new ArrayCollection();
 
         $this->annee = (int) date('Y');
-        $this->previsionnels = new ArrayCollection();
         $this->enseignantHrs = new ArrayCollection();
     }
 
@@ -340,37 +332,6 @@ class StructureAnneeUniversitaire implements TimestampableInterface
 
         return $this;
     }
-
-    /**
-     * @return Collection<int, Previsionnel>
-     */
-    public function getPrevisionnels(): Collection
-    {
-        return $this->previsionnels;
-    }
-
-    public function addPrevisionnel(Previsionnel $previsionnel): static
-    {
-        if (!$this->previsionnels->contains($previsionnel)) {
-            $this->previsionnels->add($previsionnel);
-            $previsionnel->setAnneeUniversitaire($this);
-        }
-
-        return $this;
-    }
-
-    public function removePrevisionnel(Previsionnel $previsionnel): static
-    {
-        if ($this->previsionnels->removeElement($previsionnel)) {
-            // set the owning side to null (unless already changed)
-            if ($previsionnel->getAnneeUniversitaire() === $this) {
-                $previsionnel->setAnneeUniversitaire(null);
-            }
-        }
-
-        return $this;
-    }
-
 
     /**
      * @return Collection<int, PersonnelEnseignantHrs>

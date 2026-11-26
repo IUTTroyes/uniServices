@@ -14,8 +14,7 @@ use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructureSemestre;
-use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
-use IntranetBundle\Entity\Etudiant\EtudiantAbsenceJustificatif;
+use App\Extension\RattachementPerimetreInterface;
 
 final class DepartmentScope
 {
@@ -31,8 +30,7 @@ final class DepartmentScope
             $subject instanceof EtudiantScolarite,
             $subject instanceof ApcReferentiel => $subject->getDepartement(),
             $subject instanceof ScolEnseignementUe => $subject->getUe()?->getSemestre()?->getDepartement(),
-            $subject instanceof EtudiantAbsence,
-            $subject instanceof EtudiantAbsenceJustificatif => self::fromSubject($subject->getScolariteSemestre()),
+            $subject instanceof RattachementPerimetreInterface => self::fromSubject($subject->getSujetDePerimetre()),
             $subject instanceof EtudiantScolariteSemestre => $subject->getScolarite()?->getDepartement(),
             $subject instanceof ApcCompetence => $subject->getReferentiel()?->getDepartement(),
             $subject instanceof ApcNiveau => self::fromSubject($subject->getCompetence()),

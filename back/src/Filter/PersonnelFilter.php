@@ -8,10 +8,15 @@ use ApiPlatform\Metadata\BackwardCompatibleFilterDescriptionTrait;
 use ApiPlatform\Metadata\Operation;
 use Doctrine\ORM\QueryBuilder;
 use App\Entity\Structure\StructureDepartementPersonnel;
+use App\Service\Enseignement\AffectationsEnseignement;
 
 class PersonnelFilter implements FilterInterface
 {
     use BackwardCompatibleFilterDescriptionTrait;
+
+    public function __construct(private readonly AffectationsEnseignement $affectations)
+    {
+    }
 
     public function apply(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
@@ -54,15 +59,17 @@ class PersonnelFilter implements FilterInterface
                 ->setParameter('departement', $value);
         }
         if ('enseignement' === $property) {
-            $enseignementPersonnelAlias = $queryNameGenerator->generateJoinAlias('enseignementPersonnels');
-            $enseignementAlias = $queryNameGenerator->generateJoinAlias('enseignement');
-
-            $queryBuilder
-                ->leftJoin(sprintf('%s.previsionnels', $alias), $enseignementPersonnelAlias)
-                ->leftJoin(sprintf('%s.enseignement', $enseignementPersonnelAlias), $enseignementAlias)
-                ->andWhere(sprintf('%s.id = :enseignement', $enseignementAlias))
-                ->setParameter('enseignement', $value);
+            $source = $this->affectations->source();
+            if ($source === null) {
+                $queryBuilder->andWhere('1 = 0');
+            } else {
+                $enseignement = $queryNameGenerator->generateParameterName('enseignement');
+                $queryBuilder->setParameter($enseignement, $value)->andWhere(sprintf('%s.id IN (%s)', $alias, $source->dqlPersonnels(
+                    $queryNameGenerator->generateJoinAlias('affectation'), $enseignement,
+                )));
+            }
         }
+
         if (in_array($property, ['enseignant', 'biatss'], true) && filter_var($value, FILTER_VALIDATE_BOOLEAN)) {
             $role = $property === 'enseignant' ? 'ROLE_TEACHER' : 'ROLE_BIATSS';
             $functionAlias = $queryNameGenerator->generateJoinAlias('fonctionPersonnel');
