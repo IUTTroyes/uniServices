@@ -2,7 +2,6 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useUsersStore } from '@stores';
 import { getReferentiels } from '@requests';
-import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
 import api from '@helpers/axios';
 import {
@@ -12,14 +11,13 @@ import {
   HeaderComponent
 } from "@components";
 import AfficheReferentielCompetences from "@/components/Pn/AfficheReferentielCompetences.vue";
+import SynchronisationOrebut from "@/components/Pn/SynchronisationOrebut.vue";
 
 const usersStore = useUsersStore();
-const confirm = useConfirm();
 const toast = useToast();
 
 const hasError = ref(false);
 const isLoading = ref(true);
-const isSyncing = ref(false);
 const isCreating = ref(false);
 const createDialogVisible = ref(false);
 
@@ -31,8 +29,7 @@ const selectedReferentiel = ref<any>(null);
 const newReferentiel = ref({
   libelle: '',
   anneePublication: new Date().getFullYear(),
-  description: '',
-  oreofId: ''
+  description: ''
 });
 
 // Liste des départements rattachés à l'utilisateur courant
@@ -113,66 +110,14 @@ const selectReferentiel = (referentiel: any) => {
   selectedReferentiel.value = referentiel;
 };
 
-const synchronisationOreof = () => {
-  if (!selectedDepartementId.value) return;
-
-  confirm.require({
-    message: `Voulez-vous synchroniser les référentiels de compétences pour le département ${currentDepartement.value?.libelle || ''} depuis ORéOF ? Les données existantes seront mises à jour.`,
-    header: 'Synchronisation ORéOF',
-    icon: 'pi pi-exclamation-triangle',
-    rejectProps: {
-      label: 'Annuler',
-      severity: 'secondary',
-      outlined: true
-    },
-    acceptProps: {
-      label: 'Lancer la synchronisation',
-      icon: 'pi pi-refresh'
-    },
-    accept: async () => {
-      try {
-        isSyncing.value = true;
-        toast.add({
-          severity: 'info',
-          summary: 'Synchronisation lancée',
-          detail: 'Récupération du référentiel en cours...',
-          life: 3000
-        });
-
-        await api.post('/api/oreof/ref-competences/synchronisation', {
-          departementId: selectedDepartementId.value,
-          diplomeId: null
-        });
-
-        toast.add({
-          severity: 'success',
-          summary: 'Succès',
-          detail: 'Synchronisation terminée avec succès.',
-          life: 3000
-        });
-
-        await loadReferentiels();
-      } catch (error) {
-        console.error('Erreur lors de la synchronisation:', error);
-        toast.add({
-          severity: 'error',
-          summary: 'Erreur',
-          detail: 'Une erreur est survenue lors de la synchronisation.',
-          life: 4000
-        });
-      } finally {
-        isSyncing.value = false;
-      }
-    }
-  });
-};
+const syncVisible = ref(false);
+const ouvrirSynchronisation = () => { syncVisible.value = true; };
 
 const openCreateDialog = () => {
   newReferentiel.value = {
     libelle: '',
     anneePublication: new Date().getFullYear(),
-    description: '',
-    oreofId: ''
+    description: ''
   };
   createDialogVisible.value = true;
 };
@@ -252,8 +197,7 @@ const handleCreateReferentiel = async () => {
             severity="secondary"
             outlined
             size="small"
-            :loading="isSyncing"
-            @click="synchronisationOreof"
+            @click="ouvrirSynchronisation"
           />
           <Button
             label="Ajouter un référentiel"
@@ -318,13 +262,12 @@ const handleCreateReferentiel = async () => {
 
                 <div class="flex items-center gap-2">
                   <Button
-                    label="Re-synchroniser"
+                    label="Synchroniser depuis ORéBUT"
                     icon="pi pi-sync"
                     severity="secondary"
                     text
                     size="small"
-                    :loading="isSyncing"
-                    @click="synchronisationOreof"
+                    @click="ouvrirSynchronisation"
                   />
                 </div>
               </div>
@@ -355,15 +298,14 @@ const handleCreateReferentiel = async () => {
           </h3>
           <p class="text-sm text-muted-color max-w-md mx-auto mt-2 leading-relaxed">
             Aucun référentiel n'est actuellement rattaché au département <strong>{{ currentDepartement?.libelle }}</strong>.
-            Vous pouvez synchroniser depuis ORéOF ou créer un nouveau référentiel.
+            Vous pouvez synchroniser depuis ORéBUT ou créer un nouveau référentiel.
           </p>
           <div class="flex items-center justify-center gap-3 mt-6">
             <Button
-              label="Synchroniser depuis ORéOF"
+              label="Synchroniser depuis ORéBUT"
               icon="pi pi-refresh"
               severity="primary"
-              :loading="isSyncing"
-              @click="synchronisationOreof"
+              @click="ouvrirSynchronisation"
             />
             <Button
               label="Créer manuellement"
@@ -376,6 +318,8 @@ const handleCreateReferentiel = async () => {
         </div>
       </div>
     </div>
+
+    <SynchronisationOrebut v-model:visible="syncVisible" :departement-id="selectedDepartementId" @synchronise="loadReferentiels" />
 
     <!-- Dialog Nouveau Référentiel -->
     <Dialog
@@ -397,7 +341,7 @@ const handleCreateReferentiel = async () => {
           />
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid gap-3">
           <div class="flex flex-col gap-1.5">
             <label for="ref-annee" class="font-medium text-sm text-surface-700 dark:text-surface-200">
               Année de publication
@@ -407,18 +351,6 @@ const handleCreateReferentiel = async () => {
               v-model="newReferentiel.anneePublication"
               type="number"
               placeholder="Ex : 2024"
-              class="w-full"
-            />
-          </div>
-
-          <div class="flex flex-col gap-1.5">
-            <label for="ref-oreof" class="font-medium text-sm text-surface-700 dark:text-surface-200">
-              ID ORéOF (optionnel)
-            </label>
-            <InputText
-              id="ref-oreof"
-              v-model="newReferentiel.oreofId"
-              placeholder="Ex : 687"
               class="w-full"
             />
           </div>

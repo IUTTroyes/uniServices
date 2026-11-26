@@ -2,7 +2,6 @@
 
 namespace App\Controller\oreof;
 
-use App\Service\OReOF\SynchroRefCompetences;
 use App\Service\OReOF\SynchroRefFormation;
 use App\Repository\Structure\StructureDiplomeRepository;
 use App\Utils\JsonRequest;
