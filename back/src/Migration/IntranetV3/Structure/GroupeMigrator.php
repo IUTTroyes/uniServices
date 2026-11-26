@@ -43,45 +43,30 @@ final class GroupeMigrator extends AbstractMigrator
                 continue;
             }
 
-            if ($hasJoinTable) {
-                $groupSql = <<<'SQL'
-SELECT DISTINCT g.id, g.parent_id, g.libelle, g.code_apogee, g.ordre, g.id_edu_sign, tg.type
+            // A V3 group can have a direct legacy semester even when the
+            // type_groupe_semestre pivot exists. Use both relations, with
+            // explicit Parcour/APC parcours restrictions to prevent cross-track
+            // groups (e.g. GEMA FI/ALT) leaking into other diplomas.
+            $semesterJoin = $hasJoinTable
+                ? 'LEFT JOIN type_groupe_semestre tgs ON tgs.type_groupe_id = tg.id\nINNER JOIN semestre s ON s.id = COALESCE(tgs.semestre_id, tg.semestre_id)'
+                : 'INNER JOIN semestre s ON s.id = tg.semestre_id';
+            $commonFrom = <<<'SQL'
 FROM groupe g
 INNER JOIN type_groupe tg ON tg.id = g.type_groupe_id
-INNER JOIN type_groupe_semestre tgs ON tgs.type_groupe_id = tg.id
-INNER JOIN semestre s ON s.id = tgs.semestre_id
+%s
 INNER JOIN annee a ON a.id = s.annee_id
+INNER JOIN diplome d ON d.id = a.diplome_id
 WHERE a.diplome_id = :diplome_id
-ORDER BY g.id
+  AND (g.apc_parcours_id IS NULL OR g.apc_parcours_id = d.apc_parcours_id)
+  AND (g.parcours_id IS NULL OR EXISTS (
+      SELECT 1 FROM parcour legacy_path
+      WHERE legacy_path.id = g.parcours_id AND legacy_path.semestre_id = s.id
+  ))
 SQL;
-                $linkSql = <<<'SQL'
-SELECT DISTINCT g.id AS groupe_id, tgs.semestre_id
-FROM groupe g
-INNER JOIN type_groupe tg ON tg.id = g.type_groupe_id
-INNER JOIN type_groupe_semestre tgs ON tgs.type_groupe_id = tg.id
-INNER JOIN semestre s ON s.id = tgs.semestre_id
-INNER JOIN annee a ON a.id = s.annee_id
-WHERE a.diplome_id = :diplome_id
-SQL;
-            } else {
-                $groupSql = <<<'SQL'
-SELECT DISTINCT g.id, g.parent_id, g.libelle, g.code_apogee, g.ordre, g.id_edu_sign, tg.type
-FROM groupe g
-INNER JOIN type_groupe tg ON tg.id = g.type_groupe_id
-INNER JOIN semestre s ON s.id = tg.semestre_id
-INNER JOIN annee a ON a.id = s.annee_id
-WHERE a.diplome_id = :diplome_id
-ORDER BY g.id
-SQL;
-                $linkSql = <<<'SQL'
-SELECT DISTINCT g.id AS groupe_id, tg.semestre_id
-FROM groupe g
-INNER JOIN type_groupe tg ON tg.id = g.type_groupe_id
-INNER JOIN semestre s ON s.id = tg.semestre_id
-INNER JOIN annee a ON a.id = s.annee_id
-WHERE a.diplome_id = :diplome_id
-SQL;
-            }
+            $from = sprintf($commonFrom, $semesterJoin);
+            $groupSql = 'SELECT DISTINCT g.id, g.parent_id, g.libelle, g.code_apogee, g.ordre, g.id_edu_sign, tg.type\n'
+                .$from.'\nORDER BY g.id';
+            $linkSql = 'SELECT DISTINCT g.id AS groupe_id, s.id AS semestre_id\n'.$from;
 
             $rows = $this->source->fetchAllAssociative($groupSql, ['diplome_id' => $diplomeOldId]);
             $snapshotGroups = [];
@@ -157,7 +142,7 @@ SQL;
             )).'.';
         }
         if ($legacyEduSignIds > 0) {
-            $messages[] = sprintf('Occurrences groupe V3 avec idEduSign sans équivalent dans StructureGroupe V4: %d.', $legacyEduSignIds);
+            $messages[] = sprintf('Occurrences groupe V3 avec idEduSign reprises via keyEdusign: %d.', $legacyEduSignIds);
         }
 
         return new MigrationResult($created, $updated, $skipped, $failed, $messages);

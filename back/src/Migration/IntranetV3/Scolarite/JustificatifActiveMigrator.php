@@ -112,19 +112,25 @@ SQL;
                     'scolariteSemestre' => $scolariteSemestre,
                 ]) as $absence) {
                     $event = $absence->getEvent();
-                    if (null === $event?->getDate() || null === $event->getDebut()) {
+                    if (null !== $event?->getDate() && null !== $event->getDebut()) {
+                        $eventDebut = $this->combineDateTime($event->getDate(), $event->getDebut());
+                        $eventFin = null !== $event->getFin()
+                            ? $this->combineDateTime($event->getDate(), $event->getFin())
+                            : clone $eventDebut;
+                    } elseif (null !== $absence->getDateReference()) {
+                        // Source V3 sans EDT : conserver les justificatifs grâce
+                        // à l'instant réel de l'absence, sans événement inventé.
+                        $eventDebut = \DateTime::createFromInterface($absence->getDateReference());
+                        $eventFin = clone $eventDebut;
+                    } else {
                         continue;
                     }
-
-                    $eventDebut = $this->combineDateTime($event->getDate(), $event->getDebut());
-                    $eventFin = null !== $event->getFin()
-                        ? $this->combineDateTime($event->getDate(), $event->getFin())
-                        : clone $eventDebut;
 
                     if ($justificatif->couvre($eventDebut, $eventFin)) {
                         if ($absence->getAbsenceJustificatif() !== $justificatif) {
                             $absence->setAbsenceJustificatif($justificatif);
-                            $absence->setDateJustification($justificatif->getEtat() === EtatJustificatifEnum::VALIDE ? $fin : null);
+                            // La date de justification V3 appartient à l'absence ;
+                            // ne pas la remplacer par la fin de période du justificatif.
                             ++$linkedAbsences;
                         }
                     }

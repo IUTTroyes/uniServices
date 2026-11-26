@@ -24,6 +24,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtudiantScolariteRepository::class)]
+#[ORM\UniqueConstraint(name: 'UNIQ_SCOLARITE_ETUDIANT_ANNEE', columns: ['etudiant_id', 'annee_universitaire_id'])]
 #[ApiResource(
     operations: [
         new Get(security: "is_granted('CAN_VIEW_ETUDIANT_SCOLARITE', object)", normalizationContext: ['groups' => ['scolarite:detail', 'etudiant:light', 'annee:light', 'annee-univ:light']]),

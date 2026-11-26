@@ -21,7 +21,15 @@ final class CalendrierMigrator extends AbstractMigrator
         $updated = $skipped = $failed = 0;
         $messages = [];
         $groupes = [];
+        $ignoredWeekZero = 0;
         foreach ($this->source->fetchAllAssociative('SELECT semaine_formation, semaine_reelle, date_lundi, annee_universitaire_id FROM calendrier ORDER BY annee_universitaire_id, semaine_formation') as $row) {
+            // DBAL returns V3 DATETIME(6) as a timestamp. The calendar service
+            // intentionally validates civil dates only.
+            $row['date_lundi'] = substr((string) $row['date_lundi'], 0, 10);
+            if ((int) $row['semaine_formation'] === 0) {
+                ++$ignoredWeekZero;
+                continue; // week 0 precedes the first teaching week
+            }
             $groupes[$row['annee_universitaire_id']][] = $row;
         }
         $service = new CalendrierUniversitaireService();
@@ -30,7 +38,10 @@ final class CalendrierMigrator extends AbstractMigrator
                 $annee = $this->entityManager->getRepository(StructureAnneeUniversitaire::class)->findOneBy(['oldId' => (int) $oldId]);
                 if ($annee === null) { ++$skipped; continue; }
                 $debut = $service->getDateDebutDepuisCorrespondances($lignes);
-                if ($annee->getDateDebutSemaineFormation() !== null && $annee->getDateDebutSemaineFormation()->format('Y-m-d') !== $debut?->format('Y-m-d')) {
+                if (null === $debut) {
+                    throw new \DomainException('Aucune semaine de formation positive exploitable.');
+                }
+                if ($annee->getDateDebutSemaineFormation() !== null && $annee->getDateDebutSemaineFormation()->format('Y-m-d') !== $debut->format('Y-m-d')) {
                     throw new \DomainException('La date déjà configurée diffère de celle du calendrier V3.');
                 }
                 foreach ($lignes as $ligne) {
@@ -46,6 +57,9 @@ final class CalendrierMigrator extends AbstractMigrator
             }
         }
         $this->flush($context);
+        if ($ignoredWeekZero > 0) {
+            $messages[] = sprintf('Semaines 0 V3 ignorées pour calculer le premier lundi de formation : %d.', $ignoredWeekZero);
+        }
         return new MigrationResult(0, $updated, $skipped, $failed, $messages);
     }
 }

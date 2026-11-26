@@ -35,14 +35,14 @@ class AbsenceEpisodeProvider implements ProviderInterface
                 return $studentA <=> $studentB;
             }
 
-            $dateA = $a->getEvent()?->getDate()?->format('Y-m-d') ?? '0000-00-00';
-            $dateB = $b->getEvent()?->getDate()?->format('Y-m-d') ?? '0000-00-00';
+            $dateA = $a->getDateReference()?->format('Y-m-d') ?? '0000-00-00';
+            $dateB = $b->getDateReference()?->format('Y-m-d') ?? '0000-00-00';
             if ($dateA !== $dateB) {
                 return $dateA <=> $dateB;
             }
 
-            $debutA = $a->getEvent()?->getDebut()?->format('H:i:s') ?? '00:00:00';
-            $debutB = $b->getEvent()?->getDebut()?->format('H:i:s') ?? '00:00:00';
+            $debutA = ($a->getEvent()?->getDebut()?->format('H:i:s') ?? $a->getDateReference()?->format('H:i:s')) ?? '00:00:00';
+            $debutB = ($b->getEvent()?->getDebut()?->format('H:i:s') ?? $b->getDateReference()?->format('H:i:s')) ?? '00:00:00';
 
             return $debutA <=> $debutB;
         });
@@ -94,7 +94,7 @@ class AbsenceEpisodeProvider implements ProviderInterface
         $currentEpisode = null;
 
         foreach ($absences as $absence) {
-            $currentDate = $absence->getEvent()?->getDate();
+            $currentDate = $absence->getDateReference();
             if (!$currentDate) {
                 continue;
             }
@@ -152,7 +152,7 @@ class AbsenceEpisodeProvider implements ProviderInterface
      */
     private function newEpisode(EtudiantAbsence $absence): array
     {
-        $date = $absence->getEvent()?->getDate()?->format('Y-m-d');
+        $date = $absence->getDateReference()?->format('Y-m-d');
         $student = $absence->getScolariteSemestre()?->getScolarite()?->getEtudiant();
 
         return [
@@ -182,7 +182,7 @@ class AbsenceEpisodeProvider implements ProviderInterface
      */
     private function buildFlatRow(EtudiantAbsence $absence): array
     {
-        $date = $absence->getEvent()?->getDate()?->format('Y-m-d');
+        $date = $absence->getDateReference()?->format('Y-m-d');
         $student = $absence->getScolariteSemestre()?->getScolarite()?->getEtudiant();
 
         return [
@@ -207,14 +207,18 @@ class AbsenceEpisodeProvider implements ProviderInterface
     private function mapEvent(EtudiantAbsence $absence): array
     {
         $event = $absence->getEvent();
+        $legacy = $absence->getLegacyContext() ?? [];
+        $legacyStart = $absence->getDateReference()?->format(DATE_ATOM);
 
         return [
             'id' => $event?->getId(),
-            'date' => $event?->getDate()?->format('Y-m-d'),
-            'debut' => $event?->getDebut()?->format(DATE_ATOM),
-            'fin' => $event?->getFin()?->format(DATE_ATOM),
+            'date' => $absence->getDateReference()?->format('Y-m-d'),
+            'debut' => $event?->getDebut()?->format(DATE_ATOM) ?? $legacyStart,
+            'fin' => $event?->getFin()?->format(DATE_ATOM) ?? $legacyStart,
             'codeModule' => $event?->getCodeModule(),
-            'libModule' => $event?->getLibModule(),
+            'libModule' => $event?->getLibModule() ?? (isset($legacy['typeMatiere'])
+                ? sprintf('%s #%s (V3)', $legacy['typeMatiere'], $legacy['enseignementOldId'] ?? '?')
+                : null),
             'libGroupe' => $event?->getLibGroupe(),
             'codeGroupe' => $event?->getCodeGroupe(),
             'salle' => $event?->getSalle(),

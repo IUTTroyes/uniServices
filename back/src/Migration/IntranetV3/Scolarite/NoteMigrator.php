@@ -74,6 +74,7 @@ SELECT
     n.note,
     n.commentaire,
     n.absence_justifie,
+    HEX(n.uuid) AS note_uuid_hex,
     HEX(e.uuid) AS evaluation_uuid_hex
 FROM note n
 INNER JOIN evaluation e ON e.id = n.evaluation_id
@@ -155,7 +156,7 @@ SQL;
                 $scolariteSemestre = null;
                 if (null !== $semestre) {
                     $scolariteSemestre = $this->entityManager->getRepository(EtudiantScolariteSemestre::class)->findOneBy([
-                        'scolariteSemestre' => $scolariteSemestre,
+                        'scolarite' => $scolarite,
                         'semestre' => $semestre,
                     ]);
                 } else {
@@ -190,7 +191,7 @@ SQL;
                 $note ??= new EtudiantNote();
 
                 $note
-                    ->setUuid($this->resolveUuid($row['uuid'] ?? null))
+                    ->setUuid($this->resolveUuid($row['note_uuid_hex'] ?? null))
                     ->setEvaluation($evaluation)
                     ->setScolariteSemestre($scolariteSemestre)
                     ->setCommentaire($row['commentaire'] ?: null)
@@ -276,7 +277,7 @@ SQL;
 
         if ($partial['scolariteSemestre'] > 0) {
             $messages[] = sprintf(
-                'Notes migrées sans rattachement semestriel précis: %d (scolarité annuelle conservée).',
+                'Notes écartées faute de rattachement semestriel: %d (aucune note créée sans inscription semestrielle).',
                 $partial['scolariteSemestre'],
             );
         }

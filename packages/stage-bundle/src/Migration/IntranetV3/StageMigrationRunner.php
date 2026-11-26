@@ -6,6 +6,7 @@ use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
+use App\Migration\IntranetV3\ActiveYearGuard;
 use App\Migration\IntranetV3\Contract\MigratorInterface;
 use App\Migration\IntranetV3\MigrationContext;
 use App\Migration\IntranetV3\MigrationResult;
@@ -21,6 +22,7 @@ final class StageMigrationRunner
         EntrepriseMigrator $entrepriseMigrator,
         StageEtudiantMigrator $etudiantMigrator,
         private readonly EntityManagerInterface $entityManager,
+        private readonly ActiveYearGuard $activeYearGuard,
     ) {
         $this->migrators = [
             $periodeMigrator->getName() => $periodeMigrator,
@@ -37,6 +39,7 @@ final class StageMigrationRunner
     /** @return array<string, MigrationResult> */
     public function run(?string $name, MigrationContext $context): array
     {
+        $this->activeYearGuard->assertYear2026();
         if (null !== $name && !isset($this->migrators[$name])) throw new \InvalidArgumentException(sprintf('Migration Stage inconnue "%s".', $name));
         $connection = $this->entityManager->getConnection(); if ($context->dryRun) $connection->beginTransaction();
         try {

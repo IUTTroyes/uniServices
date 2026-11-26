@@ -105,12 +105,11 @@ SQL;
                     ? $this->entityManager->getRepository(EdtEvent::class)->findOneBy(['oldId' => (int) $row['edt_planning_id']])
                     : null;
                 if (null === $event) {
-                    ++$skipped;
                     ++$diagnostics['event'];
-                    $this->addSample($messages, $sampleCount, sprintf('Absence V3 #%s ignorée: événement EDT correspondant non résolu.', $row['id']));
-                    ++$processed;
-                    $this->flushBatch($context, $processed);
-                    continue;
+                    $this->addSample($messages, $sampleCount, sprintf(
+                        'Absence V3 #%s conservée sans EDT (date et enseignement V3 archivés).',
+                        $row['id']
+                    ));
                 }
 
                 $uuid = $this->resolveUuid($row['uuid_hex'] ?? $row['uuid'] ?? null);
@@ -127,6 +126,15 @@ SQL;
                     ->setPersonnel($personnel)
                     ->setScolariteSemestre($scolariteSemestre)
                     ->setEvent($event)
+                    ->setLegacyContext(null === $event ? [
+                        'source' => 'intranet-v3',
+                        'oldId' => (int) $row['id'],
+                        'dateHeure' => (string) $row['date_heure'],
+                        'semestreOldId' => (int) $row['semestre_id'],
+                        'anneeUniversitaireOldId' => (int) $row['annee_universitaire_id'],
+                        'enseignementOldId' => (int) $row['id_matiere'],
+                        'typeMatiere' => (string) $row['type_matiere'],
+                    ] : null)
                     ->setDateJustification(!empty($row['date_justifie']) ? new \DateTime((string) $row['date_justifie']) : null);
 
                 $absence->setKeyEduSign($row['id_edu_sign'] ?: null);
@@ -151,7 +159,7 @@ SQL;
 
         if (array_sum($diagnostics) > 0) {
             $messages[] = sprintf(
-                'Résumé absences actives non migrées: étudiants=%d, scolarités semestrielles=%d, événements EDT=%d.',
+                'Résumé absences actives: étudiants non résolus=%d, inscriptions non résolues=%d, absences conservées sans EDT=%d.',
                 $diagnostics['etudiant'],
                 $diagnostics['scolariteSemestre'],
                 $diagnostics['event'],

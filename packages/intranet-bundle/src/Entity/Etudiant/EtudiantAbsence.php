@@ -112,8 +112,34 @@ class EtudiantAbsence implements TimestampableInterface
 
     #[ORM\ManyToOne(inversedBy: 'absences')]
     #[Groups(['absence:administration', 'absence:write:administration', 'justificatif:administration'])]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?EdtEvent $event = null;
+
+    /** Date et enseignement V3 conservés si aucun EDT V4 n'existe. */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    #[Groups(['absence:administration', 'justificatif:administration'])]
+    private ?array $legacyContext = null;
+
+    public function getLegacyContext(): ?array
+    {
+        return $this->legacyContext;
+    }
+
+    public function setLegacyContext(?array $legacyContext): static
+    {
+        $this->legacyContext = $legacyContext;
+        return $this;
+    }
+
+    /** Date civile de l'absence, même sans événement EDT importé. */
+    public function getDateReference(): ?\DateTimeImmutable
+    {
+        if (null !== $this->event?->getDate()) {
+            return \DateTimeImmutable::createFromInterface($this->event->getDate());
+        }
+        $value = $this->legacyContext['dateHeure'] ?? null;
+        return is_string($value) && '' !== $value ? new \DateTimeImmutable($value) : null;
+    }
 
     public function getId(): ?int
     {

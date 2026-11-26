@@ -42,6 +42,23 @@ final class ScolariteMigrator extends AbstractMigrator
             'semestre' => 0,
         ];
         $sampleCount = 0;
+        // SQL findOneBy() cannot see a newly persisted annual scolarity until flush().
+        // Several V3 semester rows belong to one V4 annual scolarity: reuse the
+        // managed object inside each UnitOfWork batch.
+        /** @var array<string, EtudiantScolarite> $pendingAnnual */
+        $pendingAnnual = [];
+        // Collisions V3 sur (étudiant, année universitaire, semestre).
+        // Retenir l'id V3 le plus récent avant le calcul des totaux annuels,
+        // sinon le SUM des absences compterait deux fois certains semestres.
+        $duplicateSemesterRows = (int) $this->source->fetchOne(<<<'SQL'
+SELECT COALESCE(SUM(duplicate_count - 1), 0) FROM (
+    SELECT COUNT(*) AS duplicate_count
+    FROM scolarite
+    WHERE annee_universitaire_id IS NOT NULL
+    GROUP BY etudiant_id, annee_universitaire_id, semestre_id
+    HAVING COUNT(*) > 1
+) duplicate_keys
+SQL);
 
         $sql = <<<'SQL'
 SELECT
@@ -60,11 +77,19 @@ SELECT
     s.ordre_annee AS semestre_ordre,
     a.libelle AS annee_libelle,
     SUM(sc.nb_absences) OVER (PARTITION BY sc.etudiant_id, sc.annee_universitaire_id) AS total_nb_absences,
-    MAX(sc.diffuse) OVER (PARTITION BY sc.etudiant_id, sc.annee_universitaire_id) AS public_annee
-FROM scolarite sc
+    MIN(sc.diffuse) OVER (PARTITION BY sc.etudiant_id, sc.annee_universitaire_id) AS public_annee
+FROM (
+    SELECT original.*,
+           ROW_NUMBER() OVER (
+               PARTITION BY original.etudiant_id, original.annee_universitaire_id, original.semestre_id
+               ORDER BY original.id DESC
+           ) AS source_rank
+    FROM scolarite original
+) sc
 INNER JOIN semestre s ON s.id = sc.semestre_id
 INNER JOIN annee_universitaire au ON au.id = sc.annee_universitaire_id
 INNER JOIN annee a ON a.id = s.annee_id
+WHERE sc.source_rank = 1
 ORDER BY sc.annee_universitaire_id, sc.etudiant_id, sc.ordre, sc.id
 SQL;
 
@@ -136,10 +161,12 @@ SQL;
                     }
                     ++$processed;
                     $this->flushBatch($context, $processed);
+                    if (0 === $processed % self::BATCH_SIZE) $pendingAnnual = [];
                     continue;
                 }
 
-                $scolarite = $scolariteRepository->findOneBy([
+                $annualKey = $etudiant->getId().'|'.$anneeUniversitaire->getId();
+                $scolarite = $pendingAnnual[$annualKey] ?? $scolariteRepository->findOneBy([
                     'etudiant' => $etudiant,
                     'anneeUniversitaire' => $anneeUniversitaire,
                 ]);
@@ -150,7 +177,7 @@ SQL;
                         ->setUuid($this->resolveUuid($row['uuid'] ?? null))
                         ->setEtudiant($etudiant)
                         ->setAnneeUniversitaire($anneeUniversitaire)
-                        ->setDepartement($diplome?->getDepartement())
+                        ->setDepartement($diplome->getDepartement())
                         ->setOrdre((int) $row['ordre']);
                     $this->entityManager->persist($scolarite);
                     ++$created;
@@ -158,23 +185,29 @@ SQL;
                     ++$updated;
                 }
 
+                $pendingAnnual[$annualKey] = $scolarite;
+
                 $scolarite
                     ->setNbAbsences((int) $row['total_nb_absences'])
                     ->setPublic((bool) $row['public_annee']);
                 $scolarite->setActif($anneeUniversitaire->isActif() ?? false);
 
                 if (null === $scolarite->getDepartement()) {
-                    $scolarite->setDepartement($diplome?->getDepartement());
+                    $scolarite->setDepartement($diplome->getDepartement());
                 }
 
                 // Group membership is intentionally restarted in 2026-2027. Historical
                 // scolarities remain readable, but no group relation is reconstructed.
-                $scolariteSemestre = null !== $semestre
-                    ? $scolariteSemestreRepository->findOneBy([
+                // Newly created annual scolarities do not yet have an ID.
+                // Querying by the pending entity would not be a reliable
+                // identifier for a not-yet-flushed semester registration.
+                $scolariteSemestre = null;
+                if (null !== $semestre && null !== $scolarite->getId()) {
+                    $scolariteSemestre = $scolariteSemestreRepository->findOneBy([
                         'scolarite' => $scolarite,
                         'semestre' => $semestre,
-                    ])
-                    : null;
+                    ]);
+                }
 
                 if (null === $scolariteSemestre) {
                     // Réutiliser aussi une inscription créée avant la résolution du snapshot.
@@ -210,8 +243,14 @@ SQL;
                     ],
                     'diplome' => ['oldId' => (int) $row['diplome_id']],
                 ] : []);
+                // Les anciennes diffusions étaient par semestre ; le drapeau
+                // V4 annuel reste privé si un seul semestre V3 était privé.
+                $legacy['scolariteV3Id'] = (int) $row['id'];
+                $legacy['diffuseV3'] = (bool) $row['diffuse'];
+                $legacy['commentaireV3'] = $row['commentaire'] ?: null;
                 $legacy['moyenneV3'] = null !== $row['moyenne'] ? (float) $row['moyenne'] : null;
                 $scolariteSemestre->setLegacyContext($legacy);
+                $scolariteSemestre->setMoyenne(null !== $row['moyenne'] ? (float) $row['moyenne'] : null);
                 $scolariteSemestre->setNbAbsences((int) ($row['nb_absences'] ?? 0));
 
                 if (!empty($row['commentaire']) && empty($scolarite->getCommentaire())) {
@@ -227,6 +266,11 @@ SQL;
 
             ++$processed;
             $this->flushBatch($context, $processed);
+            if (0 === $processed % self::BATCH_SIZE) $pendingAnnual = [];
+        }
+
+        if ($duplicateSemesterRows > 0) {
+            $messages[] = sprintf('Doublons étudiant-année-semestre V3 neutralisés avant agrégation : %d (id V3 le plus récent retenu).', $duplicateSemesterRows);
         }
 
         if ($skipped > 0) {

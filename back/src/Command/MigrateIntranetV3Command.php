@@ -3,8 +3,10 @@
 namespace App\Command;
 
 use App\Initialization\InitializationRunner;
+use App\Migration\IntranetV3\ActiveYearGuard;
 use App\Migration\IntranetV3\DatabaseResetter;
 use App\Migration\IntranetV3\MigrationContext;
+use App\Migration\IntranetV3\MigrationIntegrityChecker;
 use App\Migration\IntranetV3\MigrationRegistry;
 use App\Migration\IntranetV3\MigrationRunner;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -26,8 +28,10 @@ final class MigrateIntranetV3Command extends Command
     public function __construct(
         private readonly MigrationRunner $runner,
         private readonly MigrationRegistry $registry,
+        private readonly MigrationIntegrityChecker $integrityChecker,
         private readonly DatabaseResetter $databaseResetter,
         private readonly InitializationRunner $initializationRunner,
+        private readonly ActiveYearGuard $activeYearGuard,
         #[Autowire(param: 'kernel.environment')]
         private readonly string $kernelEnvironment,
     ) {
@@ -40,6 +44,7 @@ final class MigrateIntranetV3Command extends Command
             ->addArgument('migration', InputArgument::OPTIONAL, 'Migration name. Omit to run all migrations.')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Run without writing data.')
             ->addOption('list', null, InputOption::VALUE_NONE, 'List available migrations.')
+            ->addOption('check', null, InputOption::VALUE_NONE, 'Contrôle les écarts V3 → V4 sans importer.')
             ->addOption('no-progress', null, InputOption::VALUE_NONE, 'Disable progress bars.')
             ->addOption('reset-db', null, InputOption::VALUE_NONE, 'Empty the target application tables and stop (dev/test only).')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Skip confirmation for --reset-db.');
@@ -55,6 +60,33 @@ final class MigrateIntranetV3Command extends Command
             $io->listing($names ?: ['No migration registered.']);
 
             return Command::SUCCESS;
+        }
+
+        if ($input->getOption('check')) {
+            if (null !== $input->getArgument('migration')) {
+                $io->error('--check concerne le transfert Core complet : ne pas fournir de migration.');
+                return Command::INVALID;
+            }
+            try {
+                $report = $this->integrityChecker->check();
+            } catch (\Throwable $exception) {
+                $io->error('Contrôle V3/V4 impossible : '.$exception->getMessage());
+                return Command::FAILURE;
+            }
+
+            $io->title('Contrôle d’intégrité du transfert V3 → V4');
+            $io->table(
+                ['État', 'Contrôle', 'Source V3', 'Cible V4', 'Interprétation'],
+                array_map(static fn (array $row): array => [
+                    $row['status'], $row['control'], $row['source'],
+                    $row['target'], $row['details'],
+                ], $report),
+            );
+
+            $errors = count(array_filter($report, static fn (array $row): bool => $row['status'] === 'ERROR'));
+            $warnings = count(array_filter($report, static fn (array $row): bool => $row['status'] === 'WARNING'));
+            $io->writeln(sprintf('%d erreur(s) bloquante(s), %d avertissement(s) à examiner.', $errors, $warnings));
+            return $errors > 0 ? Command::FAILURE : Command::SUCCESS;
         }
 
         if ($input->getOption('reset-db')) {
@@ -109,6 +141,9 @@ final class MigrateIntranetV3Command extends Command
         $initializationResults = [];
         if (null === $migration) {
             try {
+                // Before any initialization writes: Core and Stage must operate
+                // on the same sole active V3 academic year.
+                $this->activeYearGuard->assertYear2026();
                 $initializationResults = $this->initializationRunner->run(new MigrationContext(
                     dryRun: (bool) $input->getOption('dry-run'),
                     verbose: $output->isVerbose(),
