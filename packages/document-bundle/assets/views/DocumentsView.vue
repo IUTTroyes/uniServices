@@ -3,7 +3,7 @@
     <Toast />
     <ConfirmDialog />
 
-    <HeaderComponent titre="Documents" description="Retrouvez, classez et partagez vos documents." icon="pi pi-folder" color="blue" :show-back="false" />
+    <HeaderComponent app="documents" description="Retrouvez, classez et partagez vos documents." :show-back="false" />
     <div class="flex flex-col lg:flex-row gap-4 items-start">
     <!-- Sidebar -->
     <Sidebar

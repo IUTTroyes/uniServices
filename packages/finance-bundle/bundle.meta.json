@@ -1,12 +1,17 @@
 {
-  "name": "Finances & Achats",
-  "description": "Gestion financière, bons de commande et suivi budgétaire",
+  "name": "UniFinance",
+  "description": "Demandes d’achat, bons de commande et suivi budgétaire",
   "urlSlug": "finance",
   "url": "/app/finance",
-  "shortLabel": "Finance",
-  "primaryColor": "emerald",
-  "icon": "pi pi-wallet",
+  "icon": "pi pi-euro",
   "aliases": [
     "finances"
-  ]
+  ],
+  "brand": {
+    "key": "finance",
+    "tagline": "Piloter les budgets",
+    "color": "#475569",
+    "colorOnDark": "#CBD5E1",
+    "pictogram": "M18 6.500a7 7 0 1 0 0 11M4 10h10M4 14h9"
+  }
 }

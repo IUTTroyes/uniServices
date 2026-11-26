@@ -57,7 +57,6 @@ const getPackageFromPath = (path) => {
   if (!first) return null;
   if (first === 'intranet') return 'intranet';
   if (first === 'stage') return 'stages';
-  if (first === 'edt') return 'edt';
   if (first === 'helpdesk') return 'helpdesk';
   if (first === 'questionnaire') return 'questionnaire';
   if (first === 'unifolio') return 'unifolio';

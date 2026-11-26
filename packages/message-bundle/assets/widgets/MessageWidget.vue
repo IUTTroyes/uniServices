@@ -4,6 +4,9 @@ import { useRouter } from 'vue-router';
 import { EmptyState } from '@components';
 import Button from 'primevue/button';
 import Badge from 'primevue/badge';
+import { getApplicationMeta } from '@utils/applicationColors';
+
+const app = getApplicationMeta('message');
 
 const props = defineProps({
   data: {
@@ -32,8 +35,8 @@ const goToMessage = (id) => {
     <div>
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
-          <i class="pi pi-inbox text-teal-600 text-lg" />
-          <span class="font-bold text-gray-900 dark:text-white text-sm">Messagerie interne</span>
+          <i :class="[app.icon, app.textClass, 'text-lg']" aria-hidden="true" />
+          <span class="font-bold text-gray-900 dark:text-white text-sm">{{ app.name }}</span>
         </div>
         <Badge
           v-if="props.data?.unreadCount > 0"

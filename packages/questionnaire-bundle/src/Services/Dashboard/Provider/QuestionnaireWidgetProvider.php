@@ -12,11 +12,6 @@ class QuestionnaireWidgetProvider implements WidgetProviderInterface
         return 'questionnaire';
     }
 
-    public function getBundleLabel(): string
-    {
-        return 'Questionnaire';
-    }
-
     public function getWidgets(): array
     {
         return [

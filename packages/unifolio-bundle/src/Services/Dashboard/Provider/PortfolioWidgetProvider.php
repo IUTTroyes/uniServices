@@ -12,11 +12,6 @@ class PortfolioWidgetProvider implements WidgetProviderInterface
         return 'portfolio';
     }
 
-    public function getBundleLabel(): string
-    {
-        return 'Portfolio';
-    }
-
     public function getWidgets(): array
     {
         return [

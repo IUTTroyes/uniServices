@@ -47,7 +47,7 @@ function choixMetadonnee(?string $argument, string $invitation, string $defaut, 
 }
 
 if ($argc < 2) {
-    echo "Usage: php scripts/create-bundle.php <bundle-name> [--display-name=Name] [--description=Text] [--url-slug=slug] [--url=/app/slug] [--short-label=Label] [--color=violet] [--icon=\"pi pi-car\"]\n";
+    echo "Usage: php scripts/create-bundle.php <bundle-name> [--display-name=Name] [--description=Text] [--url-slug=slug] [--url=/app/slug] [--short-label=Label] [--color=violet | --brand-color=#RRGGBB [--tagline=Texte]] [--icon=\"pi pi-car\"]\n";
     echo "Example: php scripts/create-bundle.php sample-bundle --display-name=Sample --description=\"Mon appli\" --url-slug=sample --url=/app/sample\n";
     exit(1);
 }
@@ -66,6 +66,8 @@ $urlSlug = null;
 $fullUrl = null;
 $shortLabel = null;
 $primaryColor = null;
+$brandColor = null;
+$tagline = '';
 $icon = null;
 foreach ($argv as $arg) {
     if (str_starts_with($arg, '--display-name=')) {
@@ -80,6 +82,10 @@ foreach ($argv as $arg) {
         $shortLabel = substr($arg, strlen('--short-label='));
     } elseif (str_starts_with($arg, '--color=')) {
         $primaryColor = substr($arg, strlen('--color='));
+    } elseif (str_starts_with($arg, '--brand-color=')) {
+        $brandColor = substr($arg, strlen('--brand-color='));
+    } elseif (str_starts_with($arg, '--tagline=')) {
+        $tagline = substr($arg, strlen('--tagline='));
     } elseif (str_starts_with($arg, '--icon=')) {
         $icon = substr($arg, strlen('--icon='));
     }
@@ -96,6 +102,12 @@ $bundleShortName = preg_replace('/-bundle$/', '', $bundleKebab);
 $projectRoot = dirname(__DIR__);
 require_once $projectRoot . '/scripts/utils/regenerate-tools-registry.php';
 $palette = json_decode(file_get_contents($projectRoot . '/shared/global-data/application-colors.json'), true, flags: JSON_THROW_ON_ERROR);
+// Les couleurs « uni-* » appartiennent à une identité : elles ne se choisissent pas à la place d'une autre application.
+$palette = array_values(array_filter($palette, static fn (string $c): bool => !str_starts_with($c, 'uni-')));
+if ($brandColor !== null && !preg_match('/^#[0-9A-Fa-f]{6}$/D', $brandColor)) {
+    fwrite(STDERR, "La couleur d'identité (--brand-color) doit s'écrire #RRGGBB.\n");
+    exit(1);
+}
 
 $defaultName = ucwords(str_replace('-', ' ', $bundleShortName));
 $displayName = tool_display_name($displayName ?: demande("Nom de l’application", $defaultName), $defaultName);
@@ -107,12 +119,14 @@ $urlSlug = choixMetadonnee($urlSlug, 'Identifiant dans l’URL', $bundleShortNam
 $metaUrl = choixMetadonnee($fullUrl, 'Lien du portail', "/app/$urlSlug",
     static fn (string $url): bool => (bool) preg_match('~^(?:/(?!/)|https?://)[^\s]*$~D', $url)
 );
-if ($primaryColor === null) {
-    echo 'Couleurs Tailwind disponibles : ' . implode(', ', $palette) . "\n";
+if ($brandColor === null) {
+    if ($primaryColor === null) {
+        echo 'Couleurs Tailwind disponibles : ' . implode(', ', $palette) . "\n";
+    }
+    $primaryColor = choixMetadonnee($primaryColor, 'Couleur principale', 'violet',
+        static fn (string $couleur): bool => in_array($couleur, $palette, true)
+    );
 }
-$primaryColor = choixMetadonnee($primaryColor, 'Couleur principale', 'violet',
-    static fn (string $couleur): bool => in_array($couleur, $palette, true)
-);
 $icon = choixMetadonnee($icon, 'Icône PrimeIcons (ex. pi pi-car)', 'pi pi-box',
     static fn (string $classe): bool => (bool) preg_match('/^pi pi-[a-z0-9]+(?:-[a-z0-9]+)*$/D', $classe)
 );
@@ -205,36 +219,49 @@ $bundleMeta = [
     'urlSlug' => $metaUrlSlug,
     'url' => $metaUrl,
     'shortLabel' => $shortLabel,
-    'primaryColor' => $primaryColor,
     'icon' => $icon,
 ];
-file_put_contents($bundlePath . '/bundle.meta.json', json_encode($bundleMeta, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+if ($brandColor === null) {
+    $bundleMeta['primaryColor'] = $primaryColor;
+} else {
+    $bundleMeta['brand'] = [
+        'key' => str_replace('-', '', $metaUrlSlug),
+        'tagline' => $tagline,
+        'color' => strtoupper($brandColor),
+    ];
+}
+file_put_contents($bundlePath . '/bundle.meta.json', json_encode($bundleMeta, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
 
 // 5. Create the view and register its route in the Shell.
 $appVueContent = <<<VUE
+<script setup>
+import { HeaderComponent } from '@components';
+import { getApplicationMeta } from '@utils/applicationColors';
+
+// Nom, icône, couleur et description viennent de bundle.meta.json
+const app = getApplicationMeta('$metaUrlSlug');
+</script>
+
 <template>
   <main class="bundle-home">
-    <h1>$metaName</h1>
-    <p>$metaDescription</p>
+    <HeaderComponent app="$metaUrlSlug" :description="app.description" />
     <p>Bienvenue sur la vue d'accueil du bundle <strong>$bundlePascal</strong>.</p>
   </main>
 </template>
 
 <style scoped>
 .bundle-home {
-  min-height: 100vh;
-  display: grid;
-  place-content: center;
-  gap: 0.75rem;
-  text-align: center;
   padding: 2rem;
 }
 </style>
 VUE;
 file_put_contents($bundlePath . '/assets/App.vue', $appVueContent);
 
-$manifestTitle = json_encode($metaName, JSON_THROW_ON_ERROR);
 $manifest = <<<JS
+import { getApplicationMeta } from '@utils/applicationColors';
+
+const app = getApplicationMeta('$metaUrlSlug');
+
 export default {
   name: '$metaUrlSlug',
   routes: [
@@ -242,7 +269,7 @@ export default {
       path: '/$metaUrlSlug',
       name: '$metaUrlSlug-home',
       component: () => import('./App.vue'),
-      meta: { title: $manifestTitle },
+      meta: { title: app.name },
     },
   ],
 };

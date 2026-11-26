@@ -101,9 +101,8 @@ onMounted(charger);
 
 <template>
     <div class="space-y-6">
-        <HeaderComponent
+        <HeaderComponent app="finance"
             icon="pi pi-sliders-h"
-            color="emerald"
             titre="Configuration — Finances & Achats"
             description="Taux de TVA proposés à la saisie d'une demande d'achat."
             :back-url="{ name: 'finance_dashboard' }"

@@ -1,10 +1,15 @@
 {
-  "name": "Intranet",
-  "description": "Gestion des formations et étudiants.",
+  "name": "UniTranet",
+  "description": "Gestion des formations et des étudiants",
   "urlSlug": "intranet",
   "url": "/app/intranet",
-  "shortLabel": "Intranet",
-  "primaryColor": "violet",
-  "icon": "pi pi-desktop",
-  "isDefault": true
+  "icon": "pi pi-users",
+  "isDefault": true,
+  "brand": {
+    "key": "tranet",
+    "tagline": "S’informer au quotidien",
+    "color": "#1D5FBF",
+    "colorOnDark": "#8CC0FF",
+    "pictogram": "M5.5 8a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0-7 0M3 20c0-4 3-6 6-6s6 2 6 6M16 5.5a3 3 0 0 1 0 6M17.500 14.500c2.300 0.600 3.500 2.500 3.500 5.500"
+  }
 }

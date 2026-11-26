@@ -1,10 +1,13 @@
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
 import LayoutComponent from '@components/components/layout/AppLayout.vue';
 import { registerWidgets } from './widgets/registerWidgets';
+import { getApplicationMeta } from '@utils/applicationColors';
+
+const app = getApplicationMeta('message');
 
 const messageMenu = {
-  label: 'Messagerie',
-  icon: 'pi pi-fw pi-inbox',
+  label: app.name,
+  icon: `${app.icon} pi-fw`,
   items: [
     { label: 'Boîte de réception', icon: 'pi pi-fw pi-inbox', to: '/message' },
     { label: 'Messages envoyés', icon: 'pi pi-fw pi-send', to: '/message/envoyes', permission: 'isPersonnel' },
@@ -21,10 +24,10 @@ export default {
       component: LayoutComponent,
       props: (route) => ({
         logoUrl: Logo,
-        appName: 'Messagerie',
+        appName: app.name,
         breadcrumbItems: typeof route.meta.breadcrumb === 'function'
           ? route.meta.breadcrumb(route)
-          : (route.meta.breadcrumb || [{ label: 'Messagerie', route: null, icon: 'pi pi-inbox' }]),
+          : (route.meta.breadcrumb || [{ label: app.name, route: null, icon: 'pi pi-inbox' }]),
       }),
       children: [
         {
@@ -32,7 +35,7 @@ export default {
           name: 'message-inbox',
           component: () => import('./views/MessagesInboxView.vue'),
           meta: {
-            breadcrumb: [{ label: 'Messagerie', route: null, icon: 'pi pi-inbox' }],
+            breadcrumb: [{ label: app.name, route: null, icon: 'pi pi-inbox' }],
           },
         },
         {
@@ -42,7 +45,7 @@ export default {
           meta: {
             permission: 'isPersonnel',
             breadcrumb: [
-              { label: 'Messagerie', route: '/message', icon: 'pi pi-inbox' },
+              { label: app.name, route: '/message', icon: 'pi pi-inbox' },
               { label: 'Nouveau message', route: null, icon: 'pi pi-pencil' },
             ],
           },
@@ -54,7 +57,7 @@ export default {
           meta: {
             permission: 'isPersonnel',
             breadcrumb: [
-              { label: 'Messagerie', route: '/message', icon: 'pi pi-inbox' },
+              { label: app.name, route: '/message', icon: 'pi pi-inbox' },
               { label: 'Messages envoyés', route: null, icon: 'pi pi-send' },
             ],
           },
@@ -65,7 +68,7 @@ export default {
           component: () => import('./views/MessageDetailView.vue'),
           meta: {
             breadcrumb: [
-              { label: 'Messagerie', route: '/message', icon: 'pi pi-inbox' },
+              { label: app.name, route: '/message', icon: 'pi pi-inbox' },
               { label: 'Lecture du message', route: null },
             ],
           },

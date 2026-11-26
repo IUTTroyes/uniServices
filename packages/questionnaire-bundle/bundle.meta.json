@@ -1,12 +1,17 @@
 {
-  "name": "Questionnaires",
+  "name": "UniQualité",
   "description": "Création et gestion des questionnaires",
   "urlSlug": "questionnaire",
   "url": "/app/questionnaire",
-  "shortLabel": "Questionnaires",
-  "primaryColor": "green",
-  "icon": "pi pi-check-square",
+  "icon": "pi pi-list-check",
   "aliases": [
     "questionnaires"
-  ]
+  ],
+  "brand": {
+    "key": "qualite",
+    "tagline": "Améliorer les formations",
+    "color": "#3F6B1C",
+    "colorOnDark": "#B5E27A",
+    "pictogram": "M4 7l1.500 1.500 3-3M12 7h8M4 17l1.500 1.500 3-3M12 17h8"
+  }
 }

@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { TopbarComponent, WidgetCard, GlobalLoader, HeaderComponent, PermissionGuard } from '@components';
 import { getApplicationMeta, normalizeAppSlug } from '@utils';
 import { tools } from '@config/uniServices.js';
+import UniLogo from '@components/components/Brand/UniLogo.vue';
 import { getWidgetDataByCodeService, getWidgetsCatalogService, updateDashboardWidgetLayoutService, getActualitesService } from '@requests';
 import { useUsersStore, useAnneeUnivStore, useEtablissementStore } from "@stores";
 import { formatDateLong } from "@helpers/date";
@@ -27,17 +28,6 @@ defineProps({
     default: '',
   },
 });
-
-const bundleColorClasses = {
-  violet: 'border-violet-400 hover:bg-violet-400/10',
-  teal: 'border-teal-400 hover:bg-teal-400/10',
-  green: 'border-green-400 hover:bg-green-400/10',
-  blue: 'border-blue-400 hover:bg-blue-400/10',
-  orange: 'border-orange-400 hover:bg-orange-400/10',
-  lime: 'border-lime-400 hover:bg-lime-400/10',
-  yellow: 'border-yellow-400 hover:bg-yellow-400/10',
-  rose: 'border-rose-400 hover:bg-rose-400/10',
-};
 
 const activatedBundles = computed(() => {
   const userApps = (userStore.applications || []).map(normalizeAppSlug);
@@ -213,10 +203,11 @@ watch(() => route.path, async (newPath, oldPath) => {
                     :href="bundle.url"
                     :class="[
                       'flex items-center gap-3 p-1.5 border rounded-md transition-colors duration-200',
-                      bundleColorClasses[bundle.color] ?? 'border-surface-300 hover:bg-surface-300/20]',
+                      bundle.meta.cardClasses,
                     ]"
                 >
-                  <span class="flex items-center justify-center shrink-0 w-10 h-10 border rounded-md text-lg" :class="bundle.meta.iconBgClasses" aria-hidden="true">
+                  <UniLogo v-if="bundle.meta.brand" :service="bundle.meta.brand" variant="icone" decorative class="shrink-0" />
+                  <span v-else class="flex items-center justify-center shrink-0 w-10 h-10 border rounded-md text-lg" :class="bundle.meta.iconBgClasses" aria-hidden="true">
                     <i :class="bundle.icon || 'pi pi-th-large'" />
                   </span>
                   <span class="flex flex-col gap-1 min-w-0">

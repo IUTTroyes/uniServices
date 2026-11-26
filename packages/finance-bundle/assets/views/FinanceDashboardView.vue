@@ -133,10 +133,7 @@ onMounted(charger);
 
 <template>
     <div class="space-y-6">
-        <HeaderComponent
-            icon="pi pi-wallet"
-            color="emerald"
-            titre="Finances & Achats"
+        <HeaderComponent app="finance"
             description="Suivez les demandes d'achat : avis, engagement, service fait et paiement."
             :show-back="false"
         >

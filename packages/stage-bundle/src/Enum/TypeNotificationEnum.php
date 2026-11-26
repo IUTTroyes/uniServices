@@ -2,6 +2,7 @@
 
 namespace StageBundle\Enum;
 
+use App\Application\ApplicationCatalog;
 use App\Enum\ModeNotificationEnum;
 use App\Notification\NotificationType;
 
@@ -136,7 +137,7 @@ enum TypeNotificationEnum: string
         return new NotificationType(
             cle: $this->cle(),
             source: self::SOURCE,
-            sourceLibelle: 'Stages',
+            sourceLibelle: ApplicationCatalog::nom(self::SOURCE),
             libelle: $this->getLibelle(),
             description: $this->getDescription(),
             rubrique: $this->getRubrique(),

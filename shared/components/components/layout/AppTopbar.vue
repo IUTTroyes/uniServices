@@ -3,6 +3,7 @@ import { useLayout } from './composables/layout.js';
 import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import { AVAILABLE_ROLES } from "@utils/permissions";
 import Logo from '@components/components/Logo.vue';
+import UniLogo from '../Brand/UniLogo.vue';
 import { useAnneeUnivStore, useUsersStore } from "@stores";
 import { useRoute, useRouter } from 'vue-router';
 import { tools } from '@config/uniServices.js';
@@ -10,7 +11,7 @@ import noImage from "@images/photos_etudiants/noimage.png";
 import { PermissionGuard } from "@components";
 import ApplicationBadge from '../Application/ApplicationBadge.vue';
 import NotificationBell from './NotificationBell.vue';
-import { normalizeAppSlug } from '@utils';
+import { getApplicationMeta, normalizeAppSlug } from '@utils';
 import api from '@helpers/axios';
 
 const anneeUnivStore = useAnneeUnivStore();
@@ -142,6 +143,9 @@ const { onMenuToggle, toggleDarkMode, isDarkTheme } = useLayout();
 
 const search = ref('');
 
+// Identité de l'application courante, déduite du premier segment de la route.
+const brandKey = computed(() => getApplicationMeta(route.path?.split('/').filter(Boolean)[0]).brand);
+
 const anneeMenu = ref();
 const toolsMenu = ref();
 const profileMenu = ref();
@@ -255,7 +259,10 @@ const selectAnneeUniversitaire = (annee) => {
       </button>
 
       <router-link to="/" class="layout-topbar-logo">
-        <Logo :logo-url="logoUrl" alt="logo" class="rounded-xl p-2" /> <span class="text-lg">{{ appName }}</span>
+        <UniLogo v-if="brandKey" :service="brandKey" :dark="isDarkTheme" class="topbar-brand" />
+        <template v-else>
+          <Logo :logo-url="logoUrl" alt="" class="rounded-xl p-2" /> <span class="text-lg">{{ appName }}</span>
+        </template>
       </router-link>
     </div>
 
@@ -386,3 +393,10 @@ const selectAnneeUniversitaire = (annee) => {
   </section>
   </header>
 </template>
+
+<style scoped>
+.topbar-brand {
+  --uni-logo-height: 2rem;
+  margin-inline: 0.5rem;
+}
+</style>

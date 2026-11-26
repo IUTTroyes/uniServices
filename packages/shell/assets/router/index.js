@@ -4,8 +4,11 @@ import { useUsersStore, useSecurity } from '@stores';
 import { hasPermission } from '@utils';
 import { applyBundleTheme } from '../composables/useBundleTheme';
 import { initializeAppData } from '@requests/initializeData';
+import { getApplicationMeta } from '../../../../shared/utils/applicationColors';
 
 let privateDataInitialization;
+
+const portalName = getApplicationMeta('auth').name;
 
 // Gather routes from all registered bundles
 const bundleRoutes = [];
@@ -64,8 +67,10 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from) => {
-  // Update document title
-  document.title = to.meta.title ? (to.meta.title + ' | Uniservices') : 'Uniservices';
+  // Titre de l'onglet : la page, à défaut l'application, suivie du nom du portail
+  const application = getApplicationMeta(to.path.split('/')[1]);
+  const page = to.meta.title || (application.brand ? application.name : portalName);
+  document.title = page === portalName ? portalName : `${page} | ${portalName}`;
 
   const userStore = useUsersStore();
 

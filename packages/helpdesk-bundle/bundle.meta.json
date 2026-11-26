@@ -1,12 +1,17 @@
 {
-  "name": "HelpDesk",
-  "description": "Système de tickets",
+  "name": "UniTicket",
+  "description": "Assistance et suivi des demandes",
   "urlSlug": "helpdesk",
   "url": "/app/helpdesk",
-  "shortLabel": "HelpDesk",
-  "primaryColor": "orange",
-  "icon": "pi pi-question-circle",
+  "icon": "pi pi-ticket",
   "aliases": [
     "help-desk"
-  ]
+  ],
+  "brand": {
+    "key": "ticket",
+    "tagline": "Signaler et suivre les demandes",
+    "color": "#7A5B00",
+    "colorOnDark": "#FFD666",
+    "pictogram": "M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4ZM14 6v2M14 11v2M14 16v2"
+  }
 }

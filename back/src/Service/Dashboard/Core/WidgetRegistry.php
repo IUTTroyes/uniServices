@@ -2,6 +2,7 @@
 
 namespace App\Service\Dashboard\Core;
 
+use App\Application\ApplicationCatalog;
 use App\Domain\Dashboard\WidgetDefinition;
 use App\Domain\Dashboard\WidgetProviderInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
@@ -28,7 +29,7 @@ class WidgetRegistry
         foreach ($providers as $provider) {
             $this->bundles[] = [
                 'code' => $provider->getBundleCode(),
-                'label' => $provider->getBundleLabel(),
+                'label' => ApplicationCatalog::nom($provider->getBundleCode()),
             ];
 
             //ici on recupere tout les widgets du provider

@@ -2,10 +2,13 @@ import documentRoutes from './router/modules/documentRoutes.js';
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
 import LayoutComponent from '@components/components/layout/AppLayout.vue';
 import { registerWidgets } from './widgets/registerWidgets';
+import { getApplicationMeta } from '@utils/applicationColors';
+
+const app = getApplicationMeta('documents');
 
 const documentMenu = {
-  label: 'Documents',
-  icon: 'pi pi-fw pi-folder',
+  label: app.name,
+  icon: `${app.icon} pi-fw`,
   items: [
     { label: 'Tous les documents', icon: 'pi pi-fw pi-file', to: '/documents' },
   ],
@@ -28,7 +31,7 @@ export default {
       component: LayoutComponent,
       props: (route: any) => ({
         logoUrl: Logo,
-        appName: 'Documents',
+        appName: app.name,
         breadcrumbItems: typeof route.meta.breadcrumb === 'function'
           ? route.meta.breadcrumb(route)
           : (route.meta.breadcrumb || [])

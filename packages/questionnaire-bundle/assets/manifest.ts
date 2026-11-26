@@ -4,12 +4,15 @@ import qualiteRoutes from './router/modules/questionnaireAdministrationRoutes.js
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
 import LayoutComponent from '@components/components/layout/AppLayout.vue';
 import { registerWidgets } from './widgets/registerWidgets';
+import { getApplicationMeta } from '@utils/applicationColors';
+
+const app = getApplicationMeta('questionnaire');
 
 const GESTIONNAIRES = ['ROLE_QUESTIONNAIRE_MANAGER', 'isQualite', 'SUPER_ADMIN'];
 
 const questionnaireMenu = {
-  label: 'Questionnaires',
-  icon: 'pi pi-fw pi-check-square',
+  label: app.name,
+  icon: `${app.icon} pi-fw`,
   items: [
     { label: 'Tableau de bord', icon: 'pi pi-fw pi-home', to: '/questionnaire/' },
     // Gestion : mêmes rôles que côté serveur (QuestionnaireAccess), dans le département actif.
@@ -43,7 +46,7 @@ export default {
       component: LayoutComponent,
       props: route => ({
         logoUrl: Logo,
-        appName: 'Questionnaires',
+        appName: app.name,
         breadcrumbItems: typeof route.meta.breadcrumb === 'function'
           ? route.meta.breadcrumb(route)
           : (route.meta.breadcrumb || [])

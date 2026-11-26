@@ -110,12 +110,9 @@ const getInitiales = (nom, prenom) => {
 </script>
 
 <template>
-  <HeaderComponent
-    icon="pi pi-inbox"
-    titre="Messagerie interne"
+  <HeaderComponent app="message"
     description="Consultez les annonces, consignes et messages officiels de vos enseignants et de votre département."
     :show-back="false"
-    color="teal"
   >
     <template #actions>
       <PermissionGuard permission="isPersonnel">

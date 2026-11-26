@@ -1,9 +1,14 @@
 {
-  "name": "Parc automobile",
-  "description": "Bundle de gestion du parc automobile",
+  "name": "UniFlotte",
+  "description": "Gestion du parc automobile et des réservations",
   "urlSlug": "parcauto",
   "url": "/app/parcauto",
-  "shortLabel": "ParcAuto",
-  "primaryColor": "blue",
-  "icon": "pi pi-car"
+  "icon": "pi pi-car",
+  "brand": {
+    "key": "flotte",
+    "tagline": "Gérer les véhicules",
+    "color": "#0B7270",
+    "colorOnDark": "#5EDDD0",
+    "pictogram": "M5 17H3v-5l2.500-6h13l2.500 6v5h-2M9 17h6M3 12h18M5 17a2 2 0 1 0 4 0a2 2 0 1 0-4 0M15 17a2 2 0 1 0 4 0a2 2 0 1 0-4 0"
+  }
 }

@@ -2,6 +2,7 @@
 
 namespace QuestionnaireBundle\Enum;
 
+use App\Application\ApplicationCatalog;
 use App\Enum\ModeNotificationEnum;
 use App\Notification\NotificationType;
 
@@ -33,7 +34,7 @@ enum TypeNotificationEnum: string
         return new NotificationType(
             cle: $this->cle(),
             source: self::SOURCE,
-            sourceLibelle: 'Questionnaires',
+            sourceLibelle: ApplicationCatalog::nom(self::SOURCE),
             libelle: $this->libelle(),
             description: $this->description(),
             rubrique: $this->rubrique(),

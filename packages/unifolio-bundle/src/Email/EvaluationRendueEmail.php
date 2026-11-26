@@ -2,6 +2,7 @@
 
 namespace UnifolioBundle\Email;
 
+use App\Application\ApplicationCatalog;
 use App\Service\Email\AbstractEmailDefinition;
 
 final class EvaluationRendueEmail extends AbstractEmailDefinition
@@ -23,7 +24,7 @@ final class EvaluationRendueEmail extends AbstractEmailDefinition
 
     public function getDefaultSubject(): string
     {
-        return '[UniFolio] Votre travail a été évalué';
+        return '[' . ApplicationCatalog::nom('unifolio') . '] Votre travail a été évalué';
     }
 
     public function getHtmlTemplatePath(): string

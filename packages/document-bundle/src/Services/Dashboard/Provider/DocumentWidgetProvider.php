@@ -12,11 +12,6 @@ class DocumentWidgetProvider implements WidgetProviderInterface
         return 'document';
     }
 
-    public function getBundleLabel(): string
-    {
-        return 'Documents (GED)';
-    }
-
     public function getWidgets(): array
     {
         return [

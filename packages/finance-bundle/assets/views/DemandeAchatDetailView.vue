@@ -305,9 +305,8 @@ onMounted(async () => {
 
 <template>
     <div class="space-y-6">
-        <HeaderComponent
+        <HeaderComponent app="finance"
             icon="pi pi-wallet"
-            color="emerald"
             :titre="titre"
             :description="nouvelle ? 'Renseignez l\'objet, les montants et le département, puis enregistrez.' : 'Circuit de la demande : avis, vérification, engagement, service fait et paiement.'"
             :back-url="{ name: 'finance_dashboard' }"

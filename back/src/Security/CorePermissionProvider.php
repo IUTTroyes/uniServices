@@ -2,6 +2,8 @@
 
 namespace App\Security;
 
+use App\Application\ApplicationCatalog;
+
 class CorePermissionProvider implements PermissionProviderInterface
 {
     public function getPermissions(): array
@@ -33,13 +35,13 @@ class CorePermissionProvider implements PermissionProviderInterface
             new PermissionDefinition('intranet.chef_dept', 'ROLE_CHEF_DEPT', 'Chef Département', 'intranet', []),
             new PermissionDefinition('intranet.directeur_etudes', 'ROLE_DIRECTEUR_ETUDES', 'Directeur Études', 'intranet', []),
             new PermissionDefinition('intranet.resp_parcours', 'ROLE_RESP_PARCOURS', 'Responsable de parcours', 'intranet', []),
-            new PermissionDefinition('intranet.referent', 'ROLE_REFERENT', 'Référent UniServices', 'intranet', []),
+            new PermissionDefinition('intranet.referent', 'ROLE_REFERENT', 'Référent ' . ApplicationCatalog::nom('auth'), 'intranet', []),
             new PermissionDefinition('intranet.notes_manager', 'ROLE_NOTES_MANAGER', 'Responsable des notes', 'intranet', []),
             new PermissionDefinition('intranet.absences', 'ROLE_ABSENCE', 'Responsable des absences', 'intranet', []),
             new PermissionDefinition('intranet.edt', 'ROLE_EDT', 'Responsable des emplois du temps', 'intranet', []),
             new PermissionDefinition('intranet.edusign', 'ROLE_EDUSIGN', 'Référent Edusign', 'intranet', []),
             new PermissionDefinition('intranet.communication', 'ROLE_RELAI_COMM', 'Référent communication', 'intranet', []),
-            new PermissionDefinition('intranet.referent_intranet', 'ROLE_REFERENT_INTRANET', 'Référent Intranet', 'intranet', []),
+            new PermissionDefinition('intranet.referent_intranet', 'ROLE_REFERENT_INTRANET', 'Référent ' . ApplicationCatalog::nom('intranet'), 'intranet', []),
             new PermissionDefinition('intranet.referent_projet', 'ROLE_REFERENT_PROJET', 'Référent Projet', 'intranet', []),
             new PermissionDefinition('intranet.informatique', 'ROLE_INFORMATIQUE', 'Service informatique', 'intranet', []),
             new PermissionDefinition('intranet.compta', 'ROLE_COMPTA', 'Service comptabilité', 'intranet', ['ROLE_COMPTABILITE']),

@@ -5,8 +5,11 @@ import LogoIut from '@images/logo/logo_iut.png';
 import axios from 'axios';
 import { tools } from '@config/uniServices.js';
 import {ValidatedInput, validationRules} from "@components";
+import UniLogo from '@components/components/Brand/UniLogo.vue';
+import { useLayout } from '@components/components/layout/composables/layout.js';
 import {resolveLogoEtablissementUrl} from "@helpers";
 
+const { isDarkTheme } = useLayout();
 const username = ref('');
 const password = ref('');
 const checked = ref(false);
@@ -112,7 +115,10 @@ onMounted(async () => {
         <div class="flex items-center w-full gap-4">
           <Logo :logo-url="logoUrl" alt="logo de l'iut" class="w-16 rounded-lg shrink-0"/>
           <div>
-            <div class="text-xl font-bold">Bienvenue sur UniServices</div>
+            <h1 class="m-0! text-xl! font-bold flex flex-col items-start gap-2">
+              <span>Bienvenue sur</span>
+              <UniLogo :dark="isDarkTheme" class="login-brand" />
+            </h1>
             <p class="text-sm text-muted-color mt-2">Vos services universitaires, réunis au même endroit.</p>
           </div>
         </div>
@@ -121,7 +127,8 @@ onMounted(async () => {
           <div class="flex flex-col gap-4">
             <ul class="flex flex-col gap-5 py-2">
               <li v-for="tool in paginatedTools" :key="tool.name" class="w-full p-0 flex items-center gap-4">
-                <Logo :logo-url="tool.logo" alt="logo de l'iut" class="w-10 bg-white rounded-lg shrink-0"/>
+                <UniLogo v-if="tool.brand" :service="tool.brand" variant="icone" decorative class="shrink-0" />
+                <Logo v-else :logo-url="tool.logo" alt="" class="w-10 bg-white rounded-lg shrink-0"/>
                 <div>
               <span class="font-semibold text-sm">
                 {{ tool.name }}
@@ -159,7 +166,7 @@ onMounted(async () => {
           <div class="text-surface-900 dark:text-surface-0 text-3xl font-bold">Connexion</div>
           <span class="text-muted-color font-medium">Etudiants, personnels de l'Université et vacataires, connectez-vous avec l'authentification de l'Université.</span>
         </div>
-        <Button label="Connexion URCA" class="w-full login-primary" as="router-link" to="/"></Button>
+        <Button label="Connexion URCA" class="w-full" as="router-link" to="/"></Button>
 
         <Divider></Divider>
 
@@ -210,6 +217,10 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.login-brand {
+  --uni-logo-height: 2.25rem;
+}
+
 .bg {
   background-image: linear-gradient(rgba(248, 250, 252, 0.88), rgba(248, 250, 252, 0.88)), url("../assets/iut.jpg");
   background-size: cover;
@@ -237,11 +248,5 @@ onMounted(async () => {
 .pagination-btn.disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-/* Yellow remains the portal accent; dark text keeps its primary action legible. */
-.login-primary {
-  --p-button-primary-color: var(--p-yellow-950);
-  --p-button-primary-hover-color: var(--p-yellow-950);
-  --p-button-primary-active-color: var(--p-yellow-950);
 }
 </style>

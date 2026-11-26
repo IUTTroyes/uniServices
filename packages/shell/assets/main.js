@@ -25,17 +25,17 @@ const MyPreset = definePreset(Aura, {
     semantic: {
         formField: { borderRadius: 'var(--ui-radius-control)' },
         primary: {
-            50: '{violet.50}',
-            100: '{violet.100}',
-            200: '{violet.200}',
-            300: '{violet.300}',
-            400: '{violet.400}',
-            500: '{violet.500}',
-            600: '{violet.600}',
-            700: '{violet.700}',
-            800: '{violet.800}',
-            900: '{violet.900}',
-            950: '{violet.950}'
+            50: 'var(--color-uni-service-50)',
+            100: 'var(--color-uni-service-100)',
+            200: 'var(--color-uni-service-200)',
+            300: 'var(--color-uni-service-300)',
+            400: 'var(--color-uni-service-400)',
+            500: 'var(--color-uni-service-500)',
+            600: 'var(--color-uni-service-600)',
+            700: 'var(--color-uni-service-700)',
+            800: 'var(--color-uni-service-800)',
+            900: 'var(--color-uni-service-900)',
+            950: 'var(--color-uni-service-950)'
         },
     }
 });

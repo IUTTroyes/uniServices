@@ -21,11 +21,8 @@ const sections = computed(() =>
 </script>
 
 <template>
-  <HeaderComponent
-    icon="pi pi-folder"
-    titre="UniFolio"
+  <HeaderComponent app="unifolio"
     description="Portfolio de compétences du BUT : traces, auto-évaluation, évaluation et portfolios."
-    color="emerald"
   />
 
   <LoadingBar v-if="contexte.isLoading" />

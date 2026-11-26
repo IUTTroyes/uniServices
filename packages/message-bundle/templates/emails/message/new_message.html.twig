@@ -1,6 +1,6 @@
 {% extends 'emails/layout.html.twig' %}
 
-{% block subject %}[Messagerie] {{ message.sujet }}{% endblock %}
+{% block subject %}{{ message.sujet }}{% endblock %}
 
 {% block preheader %}Nouveau message de {{ expediteur_nom }} : {{ message.sujet }}{% endblock %}
 

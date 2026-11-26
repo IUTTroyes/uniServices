@@ -1,13 +1,19 @@
 {
-  "name": "Mon Espace / Portail",
-  "description": "Portail et espace personnel UniServices",
+  "name": "UniService",
+  "description": "Portail et espace personnel UniService",
   "urlSlug": "auth",
   "url": "/app/auth/portail",
-  "showInPortal": false,
-  "shortLabel": "Portail",
-  "primaryColor": "yellow",
   "icon": "pi pi-user",
   "aliases": [
-    "portail"
-  ]
+    "portail",
+    "core"
+  ],
+  "showInPortal": false,
+  "brand": {
+    "key": "service",
+    "tagline": "Accéder à tous ses services",
+    "color": "#4D3677",
+    "colorOnDark": "#FFFFFF",
+    "accent": "#F9B000"
+  }
 }

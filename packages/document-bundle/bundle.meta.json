@@ -1,12 +1,17 @@
 {
-  "name": "Documents",
-  "description": "Gestion Électronique de Documents",
+  "name": "UniDocs",
+  "description": "Gestion électronique de documents",
   "urlSlug": "documents",
   "url": "/app/documents",
-  "shortLabel": "Documents",
-  "primaryColor": "blue",
-  "icon": "pi pi-folder",
+  "icon": "pi pi-file",
   "aliases": [
     "document"
-  ]
+  ],
+  "brand": {
+    "key": "docs",
+    "tagline": "Classer et partager les documents",
+    "color": "#3730A3",
+    "colorOnDark": "#A5B4FC",
+    "pictogram": "M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2ZM14 3v5h5M9 13h6M9 17h4"
+  }
 }

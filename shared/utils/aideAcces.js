@@ -3,9 +3,14 @@
  * À tenir synchronisé avec docs/ROLES_ET_ACCES.md et les providers de rôles (*PermissionProvider.php).
  */
 
+import { getApplicationMeta } from './applicationColors';
+
+const nom = (application) => getApplicationMeta(application).name;
+const icone = (application) => getApplicationMeta(application).icon;
+
 export const PRINCIPES = [
     { icone: 'pi pi-building', titre: 'Un rôle vaut pour un département', texte: 'Vos rôles sont attribués par département. Le même rôle donné dans un autre département ne vous donne rien ici, sauf cas précisé (finances).' },
-    { icone: 'pi pi-th-large', titre: 'Un module doit être actif', texte: 'Un rôle n\'a d\'effet que si le module correspondant (finances, stages, helpdesk, questionnaires, portfolio) est activé sur votre affectation.' },
+    { icone: 'pi pi-th-large', titre: 'Un module doit être actif', texte: `Un rôle n'a d'effet que si le module correspondant (${['finance', 'stage', 'helpdesk', 'questionnaire', 'unifolio'].map(nom).join(', ')}) est activé sur votre affectation.` },
     { icone: 'pi pi-sync', titre: 'Département actif', texte: 'Le portail travaille dans un département à la fois (sélecteur en haut de page). Changez-le pour voir ce que vous pouvez faire ailleurs.' },
     { icone: 'pi pi-lock', titre: 'Le serveur décide', texte: 'Un bouton absent signifie que l\'action vous est refusée. Pour obtenir un droit, demandez-le à l\'administrateur de votre département.' },
 ];
@@ -14,11 +19,11 @@ export const GROUPES = [
     { id: 'direction', titre: 'Direction et administration', icone: 'pi pi-shield' },
     { id: 'scolarite', titre: 'Scolarité et enseignement', icone: 'pi pi-book' },
     { id: 'services', titre: 'Services et référents', icone: 'pi pi-users' },
-    { id: 'finance', titre: 'Finances (demandes d\'achat)', icone: 'pi pi-wallet' },
-    { id: 'stages', titre: 'Stages', icone: 'pi pi-briefcase' },
-    { id: 'helpdesk', titre: 'Helpdesk', icone: 'pi pi-ticket' },
-    { id: 'questionnaires', titre: 'Questionnaires', icone: 'pi pi-list-check' },
-    { id: 'portfolio', titre: 'Portfolio', icone: 'pi pi-folder-open' },
+    { id: 'finance', titre: `${nom('finance')} (demandes d'achat)`, icone: icone('finance') },
+    { id: 'stages', titre: nom('stage'), icone: icone('stage') },
+    { id: 'helpdesk', titre: nom('helpdesk'), icone: icone('helpdesk') },
+    { id: 'questionnaires', titre: nom('questionnaire'), icone: icone('questionnaire') },
+    { id: 'portfolio', titre: nom('unifolio'), icone: icone('unifolio') },
 ];
 
 /** role : identifiant technique ; portee : où il s'applique ; permet : ce qu'il permet. */
@@ -46,11 +51,11 @@ export const ROLES = [
     { groupe: 'scolarite', role: 'ROLE_BIATSS', libelle: 'BIATSS', portee: 'Département', permet: 'Personnel administratif et technique (repère de profil).' },
 
     { groupe: 'services', role: 'ROLE_RELAI_COMM', libelle: 'Référent communication', portee: 'Département', permet: 'Gère les actualités du département.' },
-    { groupe: 'services', role: 'ROLE_REFERENT', libelle: 'Référent UniServices', portee: 'Département', permet: 'Référent applicatif du département.' },
-    { groupe: 'services', role: 'ROLE_REFERENT_INTRANET', libelle: 'Référent Intranet', portee: 'Département', permet: 'Contenus de l\'intranet.' },
+    { groupe: 'services', role: 'ROLE_REFERENT', libelle: `Référent ${nom('auth')}`, portee: 'Département', permet: 'Référent applicatif du département.' },
+    { groupe: 'services', role: 'ROLE_REFERENT_INTRANET', libelle: `Référent ${nom('intranet')}`, portee: 'Département', permet: `Contenus de l'application ${nom('intranet')}.` },
     { groupe: 'services', role: 'ROLE_REFERENT_PROJET', libelle: 'Référent Projet', portee: 'Département', permet: 'Suivi des projets.' },
     { groupe: 'services', role: 'ROLE_INFORMATIQUE', libelle: 'Service informatique', portee: 'Département', permet: 'Repère de service.' },
-    { groupe: 'services', role: 'ROLE_COMPTA', libelle: 'Service comptabilité', portee: 'Département', permet: 'Consulte et corrige les heures du prévisionnel. À ne pas confondre avec le service financier du module Finances.' },
+    { groupe: 'services', role: 'ROLE_COMPTA', libelle: 'Service comptabilité', portee: 'Département', permet: `Consulte et corrige les heures du prévisionnel. À ne pas confondre avec le service financier du module ${nom('finance')}.` },
     { groupe: 'services', role: 'ROLE_QUALITE', libelle: 'Service qualité', portee: 'Département', permet: 'Crée, modifie, publie et supprime les questionnaires.' },
 
     { groupe: 'finance', role: 'ROLE_FINANCE_VIEW', libelle: 'Accès aux finances', portee: 'Département', permet: 'Ouvre le module et permet de suivre ses propres demandes.' },
@@ -62,9 +67,9 @@ export const ROLES = [
     { groupe: 'stages', role: 'ROLE_STAGE_MANAGER', libelle: 'Responsable des stages', portee: 'Département', permet: 'Gère périodes, dossiers, avenants et soutenances de son département.' },
 
     { groupe: 'helpdesk', role: 'ROLE_HELPDESK_AGENT', libelle: 'Agent de support', portee: 'Module', permet: 'Traite les tickets. Tout compte connecté peut créer un ticket.' },
-    { groupe: 'helpdesk', role: 'ROLE_HELPDESK_ADMIN', libelle: 'Administrateur Helpdesk', portee: 'Module', permet: 'Administre le helpdesk (inclut le rôle d\'agent).' },
+    { groupe: 'helpdesk', role: 'ROLE_HELPDESK_ADMIN', libelle: `Administrateur ${nom('helpdesk')}`, portee: 'Module', permet: `Administre ${nom('helpdesk')} (inclut le rôle d'agent).` },
 
-    { groupe: 'questionnaires', role: 'ROLE_QUESTIONNAIRE_MANAGER', libelle: 'Administrateur Questionnaires', portee: 'Module', permet: 'Gère les questionnaires du module.' },
+    { groupe: 'questionnaires', role: 'ROLE_QUESTIONNAIRE_MANAGER', libelle: `Administrateur ${nom('questionnaire')}`, portee: 'Module', permet: 'Gère les questionnaires du module.' },
 
     { groupe: 'portfolio', role: 'ROLE_REFERENT_PORTFOLIO', libelle: 'Référent Portfolio', portee: 'Département', permet: 'Pilote les campagnes et les modèles de portfolio.' },
     { groupe: 'portfolio', role: 'ROLE_PORTFOLIO_CORRECTOR', libelle: 'Correcteur de portfolios', portee: 'Département', permet: 'Évalue les portfolios.' },
@@ -106,7 +111,7 @@ export const MATRICE = [
     { domaine: 'APC (référentiels)', valeurs: ['●', '●', '—', '●', '—', '—', '—', '—', '—'] },
     { domaine: 'Prévisionnel', valeurs: ['●', '●', '●', '●', '—', '○', '—', '○', 'ses heures'] },
     { domaine: 'Plans de cours', valeurs: ['●', '●', '●', '●', '—', '—', '—', '—', 'les siens'] },
-    { domaine: 'Questionnaires', valeurs: ['●', '●', '○', '●', '—', '—', '—', '○', '—'] },
+    { domaine: nom('questionnaire'), valeurs: ['●', '●', '○', '●', '—', '—', '—', '○', '—'] },
     { domaine: 'Documents et actualités', valeurs: ['●', '●', '—', '—', '—', '—', '—', '—', '—'] },
 ];
 
@@ -119,7 +124,7 @@ export const RESERVE_SUPER_ADMIN = [
 ];
 
 export const POINTS_VIGILANCE = [
-    'Le rôle « Gestionnaire » du module Finances, même donné dans un seul département, ouvre toutes les demandes de l\'établissement : à réserver à l\'équipe financière.',
+    `Le rôle « Gestionnaire » du module ${nom('finance')}, même donné dans un seul département, ouvre toutes les demandes de l'établissement : à réserver à l'équipe financière.`,
     'Un rôle n\'agit que si le module est actif sur l\'affectation : vérifier les packages en cas de « droit manquant ».',
     '« Service comptabilité » (prévisionnel) et « service financier » (demandes d\'achat) sont deux notions distinctes.',
     'Le super administrateur donné par une affectation vaut pour toute l\'application, quel que soit le département actif.',

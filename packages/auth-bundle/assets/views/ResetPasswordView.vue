@@ -4,6 +4,9 @@ import Logo from '@components/components/Logo.vue';
 import {ValidatedInput, validationRules} from "@components";
 import { updateUserPasswordService } from "@requests";
 import { useToast } from "primevue/usetoast";
+import { getApplicationMeta } from '@utils/applicationColors';
+
+const portail = getApplicationMeta('auth');
 
 const toast = useToast();
 
@@ -50,7 +53,7 @@ const handleSubmit = async () => {
         <div class="flex items-center w-full gap-4">
           <Logo logo-url="common-images/logo/logo_iut.png" alt="logo de l'iut" class="w-1/4 rounded-md"/>
           <div>
-            <div class="text-2xl font-bold">Bienvenue sur UniServices</div>
+            <div class="text-2xl font-bold">Bienvenue sur {{ portail.name }}</div>
             <div>Plateforme de gestion centralisée des services universitaires</div>
           </div>
         </div>

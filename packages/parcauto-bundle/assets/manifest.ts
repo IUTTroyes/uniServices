@@ -1,5 +1,7 @@
 import AppLayout from '@components/components/layout/AppLayout.vue';
+import { getApplicationMeta } from '@utils/applicationColors';
 
+const app = getApplicationMeta('parcauto');
 
 const pages = [
   { component: () => import('./views/PlanningView.vue'), path: 'planning', name: 'parcauto-planning', label: 'Réservations', icon: 'pi pi-calendar' },
@@ -11,8 +13,8 @@ const pages = [
 export default {
   name: 'parcauto',
   menu: {
-    label: 'Parc automobile',
-    icon: 'pi pi-car',
+    label: app.name,
+    icon: `${app.icon} pi-fw`,
     items: [
       { label: 'Tableau de bord', icon: 'pi pi-home', to: '/parcauto' },
       ...pages.map(({ label, icon, path, permission }) => ({ label, icon, to: '/parcauto/' + path, permission })),
@@ -22,8 +24,8 @@ export default {
     {
       path: '/parcauto',
       component: AppLayout,
-      props: { appName: 'Parc automobile' },
-      meta: { title: 'Parc automobile', package: 'parcauto', permission: 'isPersonnel' },
+      props: { appName: app.name },
+      meta: { title: app.name, package: 'parcauto', permission: 'isPersonnel' },
       children: [
         { path: '', name: 'parcauto-home', component: () => import('./views/DashboardView.vue') },
         ...pages.map(({ path, name, label, component, permission }) => ({

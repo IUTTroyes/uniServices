@@ -14,6 +14,9 @@ import RadioButton from 'primevue/radiobutton';
 import ToggleSwitch from 'primevue/toggleswitch';
 import Tag from 'primevue/tag';
 import Dialog from 'primevue/dialog';
+import { getApplicationMeta } from '@utils/applicationColors';
+
+const portail = getApplicationMeta('auth');
 
 const route = useRoute();
 const router = useRouter();
@@ -693,7 +696,7 @@ const submitMessage = async () => {
             id="contenu"
             v-model="contenu"
             rows="8"
-            placeholder="Rédigez votre message ici. Les destinataires pourront le consulter depuis leur espace uniServices..."
+            :placeholder="`Rédigez votre message ici. Les destinataires pourront le consulter depuis leur espace ${portail.name}...`"
             class="w-full font-sans"
             required
           />
