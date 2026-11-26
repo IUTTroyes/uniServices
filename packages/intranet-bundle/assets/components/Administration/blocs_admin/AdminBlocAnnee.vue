@@ -51,12 +51,12 @@ const actionButtons = computed(() => {
     {
       label: 'Étudiants',
       icon: 'pi pi-user',
-      route: aid ? '/intranet/administration/annee/' + aid + '/etudiants' : null,
+      route: aid ? '/formation/annee/' + aid + '/etudiants' : null,
     },
     {
       label: 'Groupes',
       icon: 'pi pi-users',
-      route: aid ? '/intranet/administration/annee/' + aid + '/groupes/affectation' : null,
+      route: aid ? '/formation/annee/' + aid + '/groupes/affectation' : null,
     },
     {
       label: 'Absences',

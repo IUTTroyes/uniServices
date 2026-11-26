@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import {ErrorState} from "@components";
 import { hasPermission } from "@utils/permissions";
+import { estInstalle } from "@utils/distribution";
 
 const isSuperAdmin = computed(() => hasPermission('SUPER_ADMIN'));
 
@@ -31,6 +32,7 @@ const panelMenuUserItems = computed(() => {
 });
 
 const panelMenuItems = [
+  ...(estInstalle('formation') ? [{ label: 'Formations (diplômes, compétences, étudiants)', icon: 'pi pi-sitemap', route: '/formation' }] : []),
   { label: 'Années Universitaires', icon: 'pi pi-clock', route: '/auth/configuration/annees-universitaires' },
   { label: 'Documentation des Composants', icon: 'pi pi-palette', route: '/auth/configuration/styleguide' },
   { label: 'Intégrations', icon: 'pi pi-link', route: '/auth/configuration/integrations' },

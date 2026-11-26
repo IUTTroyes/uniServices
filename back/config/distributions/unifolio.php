@@ -1,7 +1,7 @@
 <?php
 
 // UniFolio autonome : tout le socle de config/bundles.php, mais seulement les packages listés ici.
-$packages = ['AuthBundle', 'UnifolioBundle'];
+$packages = ['AuthBundle', 'FormationBundle', 'UnifolioBundle'];
 
 // Espaces de noms des packages du dépôt : « mon-outil-bundle » => « MonOutilBundle ».
 $duDepot = array_map(

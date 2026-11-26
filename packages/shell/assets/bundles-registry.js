@@ -13,7 +13,10 @@ import message from '../../message-bundle/assets/manifest.ts';
 
 import ParcautoBundle from '../../parcauto-bundle/assets/manifest.ts';
 
+import FormationBundle from '../../formation-bundle/assets/manifest.ts';
+
 export const bundles = [
+  FormationBundle,
   ParcautoBundle,
   auth,
   intranet,

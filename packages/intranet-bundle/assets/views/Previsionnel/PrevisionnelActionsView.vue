@@ -4,7 +4,7 @@ import { EmptyState, ErrorState, ListSkeleton } from '@components';
 import { getAnneesUniversitairesService, getSemestresService } from '@requests';
 import { useUsersStore } from '@stores';
 import { getSelectedAnneeUniversitaireId } from '@helpers/contexteAnnuel.js';
-import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
+import ContexteSelection from '@components/components/Structure/ContexteSelection.vue';
 import { usePrevisionnelSemestres } from '@/composables/usePrevisionnelSemestres.js';
 import { copierPrevisionnelService, importerPrevisionnelService } from '@/service/previsionnelActionsService.js';
 import { colonnesPrevisionnel, lireCsvPrevisionnel } from '@/service/utils/previsionnelCsv.js';

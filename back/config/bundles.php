@@ -25,4 +25,5 @@ return [
     MessageBundle\MessageBundle::class => ['all' => true],
     Sensiolabs\GotenbergBundle\SensiolabsGotenbergBundle::class => ['all' => true],
     ParcautoBundle\ParcautoBundle::class => ['all' => true],
+    FormationBundle\FormationBundle::class => ['all' => true],
 ];

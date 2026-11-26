@@ -8,7 +8,7 @@ import Tab from 'primevue/tab';
 import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
 import SuiviEvaluationsView from '@/views/Evaluations/SuiviEvaluationsView.vue';
-import StructureGroupeView from '@/views/Groupes/StructureGroupeView.vue';
+import StructureGroupeView from '@components/components/Structure/StructureGroupeView.vue';
 
 const route = useRoute();
 const router = useRouter();

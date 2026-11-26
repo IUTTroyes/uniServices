@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { EmptyState, ErrorState, HeaderComponent } from '@components';
 import { useAnneeStore, useAnneeUnivStore, useUsersStore } from '@stores';
 import { getAnneesService, getSemestresService } from '@requests';
-import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
+import ContexteSelection from '@components/components/Structure/ContexteSelection.vue';
 import PlanCoursListView from './PlanCours/Personnel/PlanCoursListView.vue';
 import EnseignantDashboardSection from '../components/Dashboard/EnseignantDashboardSection.vue';
 import AbsenceListeView from './Absence/AbsenceListeView.vue';

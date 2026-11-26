@@ -2,7 +2,7 @@
 import path from 'path';
 
 const PACKAGES = {
-  unifolio: ['auth', 'unifolio'],
+  unifolio: ['auth', 'formation', 'unifolio'],
 };
 
 export function distribution(shellDir, nom = process.env.APP_DISTRIBUTION || 'intranet') {

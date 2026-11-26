@@ -20,7 +20,7 @@ class DistributionsTest extends TestCase
     public static function distributions(): iterable
     {
         yield 'intranet' => ['intranet', null];
-        yield 'unifolio' => ['unifolio', ['AuthBundle', 'UnifolioBundle']];
+        yield 'unifolio' => ['unifolio', ['AuthBundle', 'FormationBundle', 'UnifolioBundle']];
     }
 
     #[DataProvider('distributions')]

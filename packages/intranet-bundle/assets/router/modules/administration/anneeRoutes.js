@@ -3,63 +3,6 @@ import { useAnneeStore } from "@stores";
 export default [
 
   {
-    path: 'etudiants',
-    name: 'liste-etudiants',
-    component: () => import('@/views/Etudiants/EtudiantsListeView.vue'),
-    meta: {
-      permission: 'canViewAdministration',
-      breadcrumb: () => {
-        const anneeStore = useAnneeStore();
-        const selectedAnnee = anneeStore.annee;
-        return [{ label: 'Dashboard', route: '/' }, {
-          label: 'Administration',
-          route: '/intranet/administration',
-          icon: 'pi pi-wrench'
-        },
-        { label: selectedAnnee?.libelle ?? 'Année', route: null },
-        { label: 'Liste des étudiants', route: null }];
-      }
-    },
-  },
-  {
-    path: 'groupes/structure',
-    name: 'structure-groupe',
-    component: () => import('@/views/Administration/AnneeActions/GroupesView.vue'),
-    meta: {
-      permission: 'canViewAdministration',
-      breadcrumb: () => {
-        const anneeStore = useAnneeStore();
-        const selectedAnnee = anneeStore.annee;
-        return [{ label: 'Dashboard', route: '/' }, {
-          label: 'Administration',
-          route: '/intranet/administration',
-          icon: 'pi pi-wrench'
-        },
-        { label: selectedAnnee?.libelle ?? 'Année', route: null },
-        { label: 'Structure des groupes', route: null }];
-      }
-    },
-  },
-  {
-    path: 'groupes/affectation',
-    name: 'affectation-groupe',
-    component: () => import('@/views/Administration/AnneeActions/GroupesView.vue'),
-    // breadcrumb is a function so we can read the store at render time (not at module import)
-    meta: {
-      breadcrumb: () => {
-        const anneeStore = useAnneeStore();
-        const selectedAnnee = anneeStore.annee;
-        return [{ label: 'Dashboard', route: '/' }, {
-          label: 'Administration',
-          route: '/intranet/administration',
-          icon: 'pi pi-wrench'
-        },
-        { label: selectedAnnee?.libelle ?? 'Année', route: null },
-        { label: 'Affectation des groupes', route: null }];
-      }
-    },
-  },
-  {
     path: 'absences/liste',
     name: 'liste-absences',
     component: () => import('@/views/Administration/AnneeActions/AbsencesView.vue'),
@@ -157,7 +100,7 @@ export default [
   {
     path: 'rattrapages/liste',
     name: 'liste-rattrapages',
-    component: () => import('@/views/Groupes/StructureGroupeView.vue'),
+    component: () => import('@components/components/Structure/StructureGroupeView.vue'),
     meta: {
       permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
@@ -172,7 +115,7 @@ export default [
   {
     path: 'mccc/liste',
     name: 'liste-mccc',
-    component: () => import('@/views/Groupes/StructureGroupeView.vue'),
+    component: () => import('@components/components/Structure/StructureGroupeView.vue'),
     meta: {
       permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {

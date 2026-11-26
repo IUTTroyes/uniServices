@@ -52,7 +52,7 @@ const actions = [
     "label": "Dossiers étudiants",
     "description": "Retrouver les dossiers et les informations de scolarité.",
     "icon": "pi pi-graduation-cap",
-    "to": "/intranet/administration/etudiants",
+    "to": "/formation/etudiants",
     "permission": "canViewAdministration",
     "application": null
   },
@@ -61,7 +61,7 @@ const actions = [
     "label": "Équipes du département",
     "description": "Retrouver les personnels et leurs affectations.",
     "icon": "pi pi-id-card",
-    "to": "/intranet/administration/personnels",
+    "to": "/formation/personnels",
     "permission": "isDirectionDepartement",
     "application": null
   },
