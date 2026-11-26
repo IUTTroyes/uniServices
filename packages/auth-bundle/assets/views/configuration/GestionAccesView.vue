@@ -4,11 +4,13 @@ import { HeaderComponent, ButtonEdit, PhotoUser } from '@components'
 import { getPersonnelsService } from '@requests'
 import { useEtablissementStore, useAnneeUnivStore, useUsersStore } from '@stores'
 import api from '@helpers/axios'
+import { hasPermission } from '@utils/permissions'
 import { normalizeIutDirectionRoles } from '@utils/roleCatalog'
 import AccessPersonnelDialog from "./components/AccessPersonnelDialog.vue";
 import CreatePersonnelDialog from "./components/CreatePersonnelDialog.vue";
 import { usePersonnelFilters } from '@composables/filters/usersFilters/usePersonnelFilters.ts';
 
+const isSuperAdmin = computed(() => hasPermission('SUPER_ADMIN'))
 const anneeUnivStore = useAnneeUnivStore();
 const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
 const etablissementStore = useEtablissementStore()
@@ -144,6 +146,9 @@ watchChanges(async() => {
     description="Visualisez et gérez les rôles, permissions et packages par affectation départementale."
   />
 
+  <div v-if="isSuperAdmin" class="flex justify-end mb-3">
+    <Button as="router-link" to="/auth/configuration/aide-acces" label="Rôles et accès : aide globale" icon="pi pi-question-circle" severity="secondary" text size="small" data-test="lien-aide-acces" />
+  </div>
   <div class="card">
     <div class="flex flex-col md:flex-row justify-between items-start w-full card-header">
       <div>

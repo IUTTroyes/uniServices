@@ -3,6 +3,7 @@ import ListAnneeUniv from '../../views/configuration/annee_univ/ListAnneeUniv.vu
 import NewAnneeUniv from "../../views/configuration/annee_univ/NewAnneeUniv.vue";
 import AnneeUnivDiplomes from "../../views/configuration/annee_univ/AnneeUnivDiplomes.vue";
 import EditAnneeUniv from "../../views/configuration/annee_univ/EditAnneeUniv.vue";
+import AideAccesGlobaleView from '../../views/configuration/AideAccesGlobaleView.vue'
 import GestionAccesView from '../../views/configuration/GestionAccesView.vue'
 import EtablissementView from "../../views/configuration/EtablissementView.vue";
 import IntegrationsView from "../../views/configuration/IntegrationsView.vue";
@@ -138,6 +139,21 @@ export default [
         route: '/configuration'
       }, {
         label: 'Gestion des accès',
+        route: null
+      }]
+    },
+  },
+  {
+    path: 'aide-acces',
+    component: AideAccesGlobaleView,
+    name: 'aide-acces',
+    meta: {
+      permission: 'isSuperAdmin',
+      breadcrumb: [{ label: 'Portail', route: '/portail' }, {
+        label: 'Configuration',
+        route: '/configuration'
+      }, {
+        label: 'Rôles et accès',
         route: null
       }]
     },

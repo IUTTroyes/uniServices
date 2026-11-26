@@ -97,6 +97,22 @@ export default {
       ]
     },
     {
+      path: '/auth/profil/acces',
+      component: LayoutComponent,
+      props: () => ({
+        logoUrl: LogoIut,
+        appName: 'Uniservices',
+        breadcrumbItems: [{ label: 'Portail', route: '/portail' }, { label: 'Profil', route: '/profil' }, { label: 'Comprendre mes accès', route: null }]
+      }),
+      children: [
+        {
+          path: '',
+          name: 'profil-acces',
+          component: () => import('./views/AideAccesView.vue'),
+        }
+      ]
+    },
+    {
       path: '/auth/profil',
       component: AppProfil,
       props: route => ({

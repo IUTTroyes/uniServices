@@ -25,6 +25,7 @@ const panelMenuUserItems = computed(() => {
       icon: 'pi pi-graduation-cap',
       route: '/auth/configuration/gestion-acces-etudiants',
     });
+    items.push({ label: 'Rôles et accès (aide)', icon: 'pi pi-question-circle', route: '/auth/configuration/aide-acces' });
   }
   return items;
 });
