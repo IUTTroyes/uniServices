@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.13.0](https://github.com/IUTTroyes/uniServices/compare/v0.12.0...v0.13.0) (2026-11-26)
+
+
+### ✨ Fonctionnalités
+
+* **auth:** aide à la compréhension des rôles et accès utilisateurs ([be271c9](https://github.com/IUTTroyes/uniServices/commit/be271c9c6cf9a251c84a20ac057eda2fbc763eec))
+* **parcauto:** add referential values management and update vehicle handling ([24bd6c9](https://github.com/IUTTroyes/uniServices/commit/24bd6c9408e221b1260c42cba36731d2220e7745))
+* **parcauto:** add urgency handling for vehicle reservations and update permissions ([83ca18a](https://github.com/IUTTroyes/uniServices/commit/83ca18a9a4ec336a943a439d4105417c567d324c))
+* **parcauto:** add urgency handling for vehicle reservations and update permissions ([4f5a785](https://github.com/IUTTroyes/uniServices/commit/4f5a78505d68cdc5bb0d392a1e4b9e1827bc0f5c))
+* **parcauto:** enhance reservation management with additional fields for mission type, motive, and destinations ([4da6e2e](https://github.com/IUTTroyes/uniServices/commit/4da6e2ef6ccab2a1c333658726e4e02839be532b))
+* **parcauto:** enhance vehicle reservation management with new pass handling and status updates ([a3ddcf0](https://github.com/IUTTroyes/uniServices/commit/a3ddcf046dee38724579cc8b084d9abffabf42dc))
+* **parcauto:** implement equipment handling for vehicle reservations and enhance UI for equipment selection ([ecb74bf](https://github.com/IUTTroyes/uniServices/commit/ecb74bf9ab7fe00f5d4e0ba7ba7abb47705383e6))
+
 ## [0.12.0](https://github.com/IUTTroyes/uniServices/compare/v0.11.0...v0.12.0) (2026-11-20)
 
 
