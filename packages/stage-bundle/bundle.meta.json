@@ -1,10 +1,11 @@
 {
-  "name": "Stage/Alternance",
+  "name": "UniStages",
   "description": "Gestion des stages et alternances",
   "urlSlug": "stage",
   "url": "/app/stage",
-  "shortLabel": "Stages",
-  "primaryColor": "teal",
+  "shortLabel": "UniStages",
+  "brand": "stages",
+  "primaryColor": "uni-stages",
   "icon": "pi pi-briefcase",
   "aliases": [
     "stages"

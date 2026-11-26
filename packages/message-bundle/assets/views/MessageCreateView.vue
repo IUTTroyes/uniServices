@@ -693,7 +693,7 @@ const submitMessage = async () => {
             id="contenu"
             v-model="contenu"
             rows="8"
-            placeholder="Rédigez votre message ici. Les destinataires pourront le consulter depuis leur espace uniServices..."
+            placeholder="Rédigez votre message ici. Les destinataires pourront le consulter depuis leur espace UniService..."
             class="w-full font-sans"
             required
           />

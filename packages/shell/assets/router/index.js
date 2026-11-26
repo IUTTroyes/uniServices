@@ -65,7 +65,7 @@ const router = createRouter({
 
 router.beforeEach(async (to, from) => {
   // Update document title
-  document.title = to.meta.title ? (to.meta.title + ' | Uniservices') : 'Uniservices';
+  document.title = to.meta.title ? (to.meta.title + ' | UniService') : 'UniService';
 
   const userStore = useUsersStore();
 

@@ -1,8 +1,12 @@
 {
-  "name": "Correcto",
+  "name": "UniCorrection",
   "description": "Plateforme de correction des travaux et des examens.",
   "urlSlug": "correcto",
-  "shortLabel": "Correcto",
-  "primaryColor": "rose",
-  "icon": "pi pi-pencil"
+  "shortLabel": "UniCorrection",
+  "brand": "correction",
+  "primaryColor": "uni-correction",
+  "icon": "pi pi-pencil",
+  "aliases": [
+    "correction"
+  ]
 }

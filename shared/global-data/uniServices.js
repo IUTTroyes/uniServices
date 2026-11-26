@@ -28,6 +28,7 @@ export const tools = toolsMeta.filter(item => item.showInPortal !== false).map(i
     primaryColor: meta.primaryColor,
     color: meta.primaryColor,
     icon: meta.icon,
+    brand: meta.brand,
   };
 });
 

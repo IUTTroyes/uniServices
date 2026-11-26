@@ -8,7 +8,7 @@ const { version } = useVersion();
 <template>
   <div class="flex justify-between items-center border-t pt-6">
     <div class="flex items-center gap-2">
-      <span class="font-bold">UniServices</span>
+      <span class="font-bold">UniService</span>
       <span>Copyright &copy; 2026</span>
       <span><a class="underline" href="">@David Annebicque</a></span>
       <span>-</span>

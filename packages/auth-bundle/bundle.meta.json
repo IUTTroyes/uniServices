@@ -1,11 +1,12 @@
 {
-  "name": "Mon Espace / Portail",
-  "description": "Portail et espace personnel UniServices",
+  "name": "UniService",
+  "description": "Portail et espace personnel UniService",
   "urlSlug": "auth",
   "url": "/app/auth/portail",
   "showInPortal": false,
-  "shortLabel": "Portail",
-  "primaryColor": "yellow",
+  "shortLabel": "UniService",
+  "brand": "service",
+  "primaryColor": "uni-service",
   "icon": "pi pi-user",
   "aliases": [
     "portail"

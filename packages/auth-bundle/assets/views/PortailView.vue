@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { TopbarComponent, WidgetCard, GlobalLoader, HeaderComponent, PermissionGuard } from '@components';
 import { getApplicationMeta, normalizeAppSlug } from '@utils';
 import { tools } from '@config/uniServices.js';
+import UniLogo from '@components/components/Brand/UniLogo.vue';
 import { getWidgetDataByCodeService, getWidgetsCatalogService, updateDashboardWidgetLayoutService, getActualitesService } from '@requests';
 import { useUsersStore, useAnneeUnivStore, useEtablissementStore } from "@stores";
 import { formatDateLong } from "@helpers/date";
@@ -37,6 +38,15 @@ const bundleColorClasses = {
   lime: 'border-lime-400 hover:bg-lime-400/10',
   yellow: 'border-yellow-400 hover:bg-yellow-400/10',
   rose: 'border-rose-400 hover:bg-rose-400/10',
+  'uni-service': 'border-uni-service-400 hover:bg-uni-service-400/10',
+  'uni-tranet': 'border-uni-tranet-400 hover:bg-uni-tranet-400/10',
+  'uni-folio': 'border-uni-folio-400 hover:bg-uni-folio-400/10',
+  'uni-stages': 'border-uni-stages-400 hover:bg-uni-stages-400/10',
+  'uni-correction': 'border-uni-correction-400 hover:bg-uni-correction-400/10',
+  'uni-qualite': 'border-uni-qualite-400 hover:bg-uni-qualite-400/10',
+  'uni-finance': 'border-uni-finance-400 hover:bg-uni-finance-400/10',
+  'uni-flotte': 'border-uni-flotte-400 hover:bg-uni-flotte-400/10',
+  'uni-message': 'border-uni-message-400 hover:bg-uni-message-400/10',
 };
 
 const activatedBundles = computed(() => {
@@ -216,7 +226,8 @@ watch(() => route.path, async (newPath, oldPath) => {
                       bundleColorClasses[bundle.color] ?? 'border-surface-300 hover:bg-surface-300/20]',
                     ]"
                 >
-                  <span class="flex items-center justify-center shrink-0 w-10 h-10 border rounded-md text-lg" :class="bundle.meta.iconBgClasses" aria-hidden="true">
+                  <UniLogo v-if="bundle.meta.brand" :service="bundle.meta.brand" variant="icone" decorative class="shrink-0" />
+                  <span v-else class="flex items-center justify-center shrink-0 w-10 h-10 border rounded-md text-lg" :class="bundle.meta.iconBgClasses" aria-hidden="true">
                     <i :class="bundle.icon || 'pi pi-th-large'" />
                   </span>
                   <span class="flex flex-col gap-1 min-w-0">

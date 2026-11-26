@@ -4,7 +4,8 @@
   "urlSlug": "unifolio",
   "url": "/app/unifolio",
   "shortLabel": "UniFolio",
-  "primaryColor": "emerald",
+  "brand": "folio",
+  "primaryColor": "uni-folio",
   "icon": "pi pi-book",
   "aliases": [
     "portfolio",

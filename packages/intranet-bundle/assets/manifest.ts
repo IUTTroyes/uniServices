@@ -72,7 +72,7 @@ export default {
       component: LayoutComponent,
       props: route => ({
         logoUrl: Logo,
-        appName: 'Intranet',
+        appName: 'UniTranet',
         breadcrumbItems: typeof route.meta.breadcrumb === 'function'
           ? route.meta.breadcrumb(route)
           : (route.meta.breadcrumb || [])

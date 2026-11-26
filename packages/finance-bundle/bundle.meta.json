@@ -1,10 +1,11 @@
 {
-  "name": "Finances & Achats",
+  "name": "UniFinance",
   "description": "Gestion financière, bons de commande et suivi budgétaire",
   "urlSlug": "finance",
   "url": "/app/finance",
-  "shortLabel": "Finance",
-  "primaryColor": "emerald",
+  "shortLabel": "UniFinance",
+  "brand": "finance",
+  "primaryColor": "uni-finance",
   "icon": "pi pi-wallet",
   "aliases": [
     "finances"

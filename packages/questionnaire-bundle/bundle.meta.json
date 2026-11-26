@@ -1,10 +1,11 @@
 {
-  "name": "Questionnaires",
+  "name": "UniQualité",
   "description": "Création et gestion des questionnaires",
   "urlSlug": "questionnaire",
   "url": "/app/questionnaire",
-  "shortLabel": "Questionnaires",
-  "primaryColor": "green",
+  "shortLabel": "UniQualité",
+  "brand": "qualite",
+  "primaryColor": "uni-qualite",
   "icon": "pi pi-check-square",
   "aliases": [
     "questionnaires"

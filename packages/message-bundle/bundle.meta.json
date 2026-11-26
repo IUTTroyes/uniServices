@@ -1,10 +1,11 @@
 {
-  "name": "Messagerie",
+  "name": "UniMessage",
   "description": "Communications et annonces internes",
   "urlSlug": "message",
   "url": "/app/message",
-  "shortLabel": "Messages",
-  "primaryColor": "cyan",
+  "shortLabel": "UniMessage",
+  "brand": "message",
+  "primaryColor": "uni-message",
   "icon": "pi pi-inbox",
   "aliases": [
     "messages",

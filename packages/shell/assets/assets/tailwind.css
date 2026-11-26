@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tailwindcss-primeui";
+@import "../../../../shared/styles/uni-brand.css";
 
 @variant dark (&:where(.app-dark, .app-dark *));
 
@@ -13,6 +14,10 @@
 @source inline("bg-{red,orange,amber,yellow,lime,green,emerald,teal,cyan,sky,blue,indigo,violet,purple,fuchsia,pink,rose,slate,gray,zinc,neutral,stone,mauve,olive,mist,taupe}-{50,100,200,300,400,500,600,700,800,900,950}");
 @source inline("{bg-{red,orange,amber,yellow,lime,green,emerald,teal,cyan,sky,blue,indigo,violet,purple,fuchsia,pink,rose,slate,gray,zinc,neutral,stone,mauve,olive,mist,taupe}-{50,100},text-{red,orange,amber,yellow,lime,green,emerald,teal,cyan,sky,blue,indigo,violet,purple,fuchsia,pink,rose,slate,gray,zinc,neutral,stone,mauve,olive,mist,taupe}-{600,800},border-{red,orange,amber,yellow,lime,green,emerald,teal,cyan,sky,blue,indigo,violet,purple,fuchsia,pink,rose,slate,gray,zinc,neutral,stone,mauve,olive,mist,taupe}-200}!");
 @source inline("dark:{bg-{red,orange,amber,yellow,lime,green,emerald,teal,cyan,sky,blue,indigo,violet,purple,fuchsia,pink,rose,slate,gray,zinc,neutral,stone,mauve,olive,mist,taupe}-950/{40,60},text-{red,orange,amber,yellow,lime,green,emerald,teal,cyan,sky,blue,indigo,violet,purple,fuchsia,pink,rose,slate,gray,zinc,neutral,stone,mauve,olive,mist,taupe}-300,border-{red,orange,amber,yellow,lime,green,emerald,teal,cyan,sky,blue,indigo,violet,purple,fuchsia,pink,rose,slate,gray,zinc,neutral,stone,mauve,olive,mist,taupe}-800}!");
+
+@source inline("bg-uni-{service,tranet,folio,stages,correction,qualite,finance,flotte,message}-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("{bg-uni-{service,tranet,folio,stages,correction,qualite,finance,flotte,message}-{50,100},text-uni-{service,tranet,folio,stages,correction,qualite,finance,flotte,message}-{600,800},border-uni-{service,tranet,folio,stages,correction,qualite,finance,flotte,message}-200}!");
+@source inline("dark:{bg-uni-{service,tranet,folio,stages,correction,qualite,finance,flotte,message}-950/{40,60},text-uni-{service,tranet,folio,stages,correction,qualite,finance,flotte,message}-300,border-uni-{service,tranet,folio,stages,correction,qualite,finance,flotte,message}-800}!");
 
 .card {
     @apply bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm;

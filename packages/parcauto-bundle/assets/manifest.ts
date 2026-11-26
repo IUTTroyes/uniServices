@@ -22,7 +22,7 @@ export default {
     {
       path: '/parcauto',
       component: AppLayout,
-      props: { appName: 'Parc automobile' },
+      props: { appName: 'UniFlotte' },
       meta: { title: 'Parc automobile', package: 'parcauto', permission: 'isPersonnel' },
       children: [
         { path: '', name: 'parcauto-home', component: () => import('./views/DashboardView.vue') },

@@ -56,7 +56,7 @@ export default {
       component: AppPortail,
       props: route => ({
         logoUrl: LogoIut,
-        appName: 'Uniservices',
+        appName: 'UniService',
       }),
       children: [
         {
@@ -71,7 +71,7 @@ export default {
       component: LayoutComponent,
       props: route => ({
         logoUrl: LogoIut,
-        appName: 'Uniservices',
+        appName: 'UniService',
         breadcrumbItems: typeof route.meta.breadcrumb === 'function'
           ? route.meta.breadcrumb(route)
           : (route.meta.breadcrumb || [])
@@ -85,7 +85,7 @@ export default {
       component: LayoutComponent,
       props: () => ({
         logoUrl: LogoIut,
-        appName: 'Uniservices',
+        appName: 'UniService',
         breadcrumbItems: [{ label: 'Portail', route: '/portail' }, { label: 'Notifications', route: null }]
       }),
       children: [
@@ -101,7 +101,7 @@ export default {
       component: LayoutComponent,
       props: () => ({
         logoUrl: LogoIut,
-        appName: 'Uniservices',
+        appName: 'UniService',
         breadcrumbItems: [{ label: 'Portail', route: '/portail' }, { label: 'Profil', route: '/profil' }, { label: 'Comprendre mes accès', route: null }]
       }),
       children: [

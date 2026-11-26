@@ -1,9 +1,10 @@
 {
-  "name": "Parc automobile",
+  "name": "UniFlotte",
   "description": "Bundle de gestion du parc automobile",
   "urlSlug": "parcauto",
   "url": "/app/parcauto",
-  "shortLabel": "ParcAuto",
-  "primaryColor": "blue",
+  "shortLabel": "UniFlotte",
+  "brand": "flotte",
+  "primaryColor": "uni-flotte",
   "icon": "pi pi-car"
 }

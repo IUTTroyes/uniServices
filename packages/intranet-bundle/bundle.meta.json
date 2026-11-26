@@ -1,10 +1,11 @@
 {
-  "name": "Intranet",
+  "name": "UniTranet",
   "description": "Gestion des formations et étudiants.",
   "urlSlug": "intranet",
   "url": "/app/intranet",
-  "shortLabel": "Intranet",
-  "primaryColor": "violet",
+  "shortLabel": "UniTranet",
+  "brand": "tranet",
+  "primaryColor": "uni-tranet",
   "icon": "pi pi-desktop",
   "isDefault": true
 }

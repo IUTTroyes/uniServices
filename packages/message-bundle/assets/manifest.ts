@@ -21,7 +21,7 @@ export default {
       component: LayoutComponent,
       props: (route) => ({
         logoUrl: Logo,
-        appName: 'Messagerie',
+        appName: 'UniMessage',
         breadcrumbItems: typeof route.meta.breadcrumb === 'function'
           ? route.meta.breadcrumb(route)
           : (route.meta.breadcrumb || [{ label: 'Messagerie', route: null, icon: 'pi pi-inbox' }]),

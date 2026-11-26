@@ -26,6 +26,7 @@ export const APPLICATION_REGISTRY = Object.fromEntries(tools.map(tool => {
     slug: tool.urlSlug,
     name: tool.name,
     shortLabel: tool.shortLabel ?? tool.name,
+    brand: tool.brand ?? null,
     primaryColor,
     color: primaryColor,
     icon: tool.icon ?? 'pi pi-box',
