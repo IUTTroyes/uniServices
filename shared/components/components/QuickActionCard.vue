@@ -47,7 +47,7 @@ const colorClasses = computed(() => {
       <component :is="props.icon" :class="['w-5 h-5', colorClasses.iconText]" />
     </div>
     <div class="flex-1 min-w-0">
-      <h3 class="font-bold text-gray-900 dark:text-white text-base leading-tight">{{ props.title }}</h3>
+      <h3 class="m-0! font-bold text-gray-900 dark:text-white text-base! leading-tight!">{{ props.title }}</h3>
       <p class="text-xs text-gray-600 dark:text-gray-400 mt-1 leading-normal">{{ props.description }}</p>
     </div>
     <div :class="[colorClasses.btn, 'shrink-0']">
@@ -64,7 +64,7 @@ const colorClasses = computed(() => {
       <component :is="props.icon" :class="['w-5 h-5', colorClasses.iconText]" />
     </div>
     <div class="flex-1 min-w-0">
-      <h3 class="font-bold text-gray-900 dark:text-white text-base leading-tight">{{ props.title }}</h3>
+      <h3 class="m-0! font-bold text-gray-900 dark:text-white text-base! leading-tight!">{{ props.title }}</h3>
       <p class="text-xs text-gray-600 dark:text-gray-400 mt-1 leading-normal">{{ props.description }}</p>
     </div>
     <div :class="[colorClasses.btn, 'shrink-0']">

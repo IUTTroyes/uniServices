@@ -143,7 +143,7 @@ const colorClasses = computed(() => {
               <i v-if="typeof icon === 'string'" :class="[icon, 'text-sm', colorClasses ? '' : iconClass]" />
               <component v-else :is="icon" :class="['w-4 h-4', colorClasses ? '' : iconClass]" />
             </span>
-            <h3 class="text-sm font-bold text-slate-900 dark:text-white leading-snug">{{ title }}</h3>
+            <h3 class="m-0! text-sm! font-bold text-slate-900 dark:text-white leading-snug!">{{ title }}</h3>
           </div>
           <p v-if="subtitle" :class="['text-sm text-slate-500 dark:text-slate-400 mt-0.5 leading-normal', icon ? 'pl-11' : '']">
             {{ subtitle }}
