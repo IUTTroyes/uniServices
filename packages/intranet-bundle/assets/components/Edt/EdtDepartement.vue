@@ -1,5 +1,5 @@
 <script setup>
-import ContexteSelection from '../Structure/ContexteSelection.vue';
+import ContexteSelection from '@components/components/Structure/ContexteSelection.vue';
 import {VueCal} from 'vue-cal'
 import 'vue-cal/style'
 import {computed, nextTick, onMounted, ref, watch} from 'vue';

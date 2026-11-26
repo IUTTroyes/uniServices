@@ -9,9 +9,6 @@ api_platform:
         paths:
             - '%kernel.project_dir%/src/ApiDto'
             - '%kernel.project_dir%/src/Entity'
-            - '%kernel.project_dir%/../packages/document-bundle/src/Entity'
-            - '%kernel.project_dir%/../packages/stage-bundle/src/Entity'
-            - '%kernel.project_dir%/../packages/message-bundle/src/Entity'
     defaults:
         security: "is_granted('IS_AUTHENTICATED_FULLY')"
         stateless: true

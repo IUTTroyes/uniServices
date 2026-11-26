@@ -1,18 +1,6 @@
 twig:
     file_name_pattern: '*.twig'
-    paths:
-        # Templates des packages – fusionnés dans le pool global Twig
-        # Un package peut ainsi hériter de 'emails/layout.html.twig' sans namespace
-#        '%kernel.project_dir%/../packages/auth-bundle/templates': ~
-#        '%kernel.project_dir%/../packages/edt-bundle/templates': ~
-#        '%kernel.project_dir%/../packages/helpdesk-bundle/templates': ~
-        '%kernel.project_dir%/../packages/intranet-bundle/templates': Intranet
-        '%kernel.project_dir%/../packages/stage-bundle/templates': Stage
-        '%kernel.project_dir%/../packages/questionnaire-bundle/templates': Questionnaire
-#        '%kernel.project_dir%/../packages/shell/templates': ~
-        '%kernel.project_dir%/../packages/finance-bundle/templates': Finance
-        '%kernel.project_dir%/../packages/unifolio-bundle/templates': ~
-        '%kernel.project_dir%/../packages/message-bundle/templates': ~
+    # Chaque package déclare ses gabarits dans son extension (App\Extension\AbstractPackageExtension).
 
 when@test:
     twig:

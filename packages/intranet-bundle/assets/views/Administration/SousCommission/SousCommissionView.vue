@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
+import ContexteSelection from '@components/components/Structure/ContexteSelection.vue';
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { HeaderComponent, SimpleSkeleton, Kpi } from '@components';

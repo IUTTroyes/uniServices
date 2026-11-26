@@ -6,6 +6,7 @@ import { useUsersStore } from '@stores';
 import { libelleRole } from '@utils/aideAcces';
 import CatalogueRoles from '../components/CatalogueRoles.vue';
 import PrincipesAcces from '../components/PrincipesAcces.vue';
+import { estInstalle } from '@utils/distribution';
 import TableauFinance from '../components/TableauFinance.vue';
 
 /** Aide : rôles et accès de la personne connectée, puis catalogue. Source : docs/ROLES_ET_ACCES.md. */
@@ -64,6 +65,6 @@ const affectations = computed(() => {
         </Card>
 
         <CatalogueRoles />
-        <TableauFinance />
+        <TableauFinance v-if="estInstalle('finance')" />
     </div>
 </template>

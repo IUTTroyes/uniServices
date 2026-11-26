@@ -1,13 +1,19 @@
 import { getBaseConfig } from "../../shared/vite.config.base.js";
 import path from "path";
+import { distribution } from "./distributions.js";
 
 const rootDir = path.resolve(__dirname, "../../");
+const { registre, packages } = distribution(__dirname);
 
 // The Vue Shell builds to back/public/app and runs with base path /app/
 // All bundled frontends share one development server.
 export default getBaseConfig(__dirname, "app", {
+  define: {
+    __PACKAGES__: JSON.stringify(packages),
+  },
   resolve: {
     alias: [
+      { find: "@bundles-registry", replacement: registre },
       {
         find: /^\@\/(.*)/,
         replacement: "$1",

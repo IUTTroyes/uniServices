@@ -1,47 +1,6 @@
+# Les contrôleurs des packages enregistrés sont importés par App\Kernel : rien à déclarer ici.
 controllers:
     resource:
         path: ../src/Controller/
         namespace: App\Controller
-    type: attribute
-
-intranet_controllers:
-    resource:
-        path: '../../packages/intranet-bundle/src/Controller/'
-        namespace: IntranetBundle\Controller
-    type: attribute
-
-stage_controllers:
-    resource:
-        path: '../../packages/stage-bundle/src/Controller/'
-        namespace: StageBundle\Controller
-    type: attribute
-
-questionnaire_controllers:
-    resource:
-        path: '../../packages/questionnaire-bundle/src/Controller/'
-        namespace: QuestionnaireBundle\Controller
-    type: attribute
-
-finance_controllers:
-    resource:
-        path: '../../packages/finance-bundle/src/Controller/'
-        namespace: FinanceBundle\Controller
-    type: attribute
-
-message_controllers:
-    resource:
-        path: '../../packages/message-bundle/src/Controller/'
-        namespace: MessageBundle\Controller
-    type: attribute
-
-unifolio_controllers:
-    resource:
-        path: '../../packages/unifolio-bundle/src/Controller/'
-        namespace: UnifolioBundle\Controller
-    type: attribute
-
-parcauto_controllers:
-    resource:
-        path: '../../packages/parcauto-bundle/src/Controller/'
-        namespace: ParcautoBundle\Controller
     type: attribute

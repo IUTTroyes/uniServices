@@ -2,17 +2,12 @@
 
 namespace IntranetBundle\DependencyInjection;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Extension\Extension;
-use Symfony\Component\Config\FileLocator;
-use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
+use App\Extension\AbstractPackageExtension;
 
-class IntranetExtension extends Extension
+class IntranetExtension extends AbstractPackageExtension
 {
-    public function load(array $configs, ContainerBuilder $container): void
+    protected function espaceTwig(): ?string
     {
-        $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
-        $loader->load('routes.yaml');
-        $loader->load('services.yaml');
+        return 'Intranet';
     }
 }

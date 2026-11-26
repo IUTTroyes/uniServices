@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { bundles } from '../bundles-registry';
+import { bundles } from '@bundles-registry';
 import { useUsersStore, useSecurity } from '@stores';
 import { hasPermission } from '@utils';
 import { applyBundleTheme } from '../composables/useBundleTheme';
@@ -25,6 +25,11 @@ const router = createRouter({
     {
       path: '/login',
       redirect: '/auth/login'
+    },
+    {
+      // Ancienne adresse, encore présente dans des favoris.
+      path: '/reset-password',
+      redirect: (to) => ({ path: '/auth/reset-password', query: to.query })
     },
     {
       path: '/portail',

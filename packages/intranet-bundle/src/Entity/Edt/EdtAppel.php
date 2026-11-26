@@ -35,7 +35,7 @@ class EdtAppel
     #[Groups(['edt_pointage:read'])]
     private ?bool $etat = null;
 
-    #[ORM\OneToOne(inversedBy: 'appel', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     private ?EdtEvent $edtEvent = null;
 
     public function getId(): ?int

@@ -19,6 +19,13 @@ if (!str_ends_with($bundlePascal, 'Bundle')) {
     $bundlePascal .= 'Bundle';
 }
 
+require_once $projectRoot . '/scripts/utils/distributions.php';
+$citations = distributions_utilisant($projectRoot, $bundleKebab, $bundlePascal);
+if ($citations !== []) {
+    fwrite(STDERR, "Désactivation refusée : $bundlePascal est utilisé par " . implode(', ', $citations) . ".\n");
+    exit(1);
+}
+
 echo "Deactivating bundle $bundlePascal...\n";
 
 // 1. Remove from back/config/bundles.php

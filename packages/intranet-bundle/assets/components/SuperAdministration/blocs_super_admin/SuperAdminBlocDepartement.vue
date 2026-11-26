@@ -4,8 +4,8 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 const panelMenuItems = [
-  { label: 'Créer un département', icon: 'pi pi-plus', command: () => {router.push('/intranet/super-administration/departement')} },
-  { label: 'Liste des départements', icon: 'pi pi-list', command: () => {router.push('/intranet/super-administration/departements')} },
+  { label: 'Créer un département', icon: 'pi pi-plus', command: () => {router.push('/formation/departement')} },
+  { label: 'Liste des départements', icon: 'pi pi-list', command: () => {router.push('/formation/departements')} },
 ];
 </script>
 

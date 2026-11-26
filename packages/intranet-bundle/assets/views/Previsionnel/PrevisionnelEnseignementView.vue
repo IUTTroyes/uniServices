@@ -2,7 +2,7 @@
 import { ref, watch } from 'vue';
 import { EmptyState, ErrorState, ListSkeleton } from '@components';
 import { getEnseignementsService, getSemestreEnseignementPreviService } from '@requests';
-import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
+import ContexteSelection from '@components/components/Structure/ContexteSelection.vue';
 import { usePrevisionnelSemestres } from '@/composables/usePrevisionnelSemestres.js';
 
 const { semestres, semestre, chargementSemestres, erreurSemestres } = usePrevisionnelSemestres();

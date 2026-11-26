@@ -1,0 +1,25 @@
+{% extends 'emails/layout.html.twig' %}
+
+{% block subject %}Votre mot de passe universitaire{% endblock %}
+
+{% block preheader %}Votre mot de passe est géré par votre université.{% endblock %}
+
+{% block body %}
+    <h1>Mot de passe universitaire</h1>
+
+    <p>Bonjour <strong>{{ user.prenom }} {{ user.nom }}</strong>,</p>
+
+    <p>
+        Vous vous connectez à UniServices avec l'authentification de votre université : votre mot de passe ne se
+        modifie pas ici.
+    </p>
+
+    <p>
+        <a href="{{ casUrl }}" class="btn">Gérer mon mot de passe universitaire</a>
+    </p>
+
+    <p style="font-size:13px;color:#718096;">
+        Si vous n'avez pas fait cette demande, vous pouvez ignorer cet e-mail.<br>
+        <a href="{{ casUrl }}" style="word-break:break-all;">{{ casUrl }}</a>
+    </p>
+{% endblock %}

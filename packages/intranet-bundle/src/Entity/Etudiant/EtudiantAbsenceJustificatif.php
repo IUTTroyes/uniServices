@@ -2,6 +2,7 @@
 
 namespace IntranetBundle\Entity\Etudiant;
 
+use App\Extension\RattachementPerimetreInterface;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Metadata\Delete;
@@ -65,7 +66,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         'order[scolariteSemestre.scolarite.etudiant.nom]' => new QueryParameter(filter: OrderFilter::class),
     ]
 )]
-class EtudiantAbsenceJustificatif
+class EtudiantAbsenceJustificatif implements RattachementPerimetreInterface
 {
     use UuidTrait;
 
@@ -279,5 +280,10 @@ class EtudiantAbsenceJustificatif
     public function getEtudiant() {
 
         return $this->scolariteSemestre?->getScolarite()?->getEtudiant();
+    }
+
+    public function getSujetDePerimetre(): mixed
+    {
+        return $this->getScolariteSemestre();
     }
 }

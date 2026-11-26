@@ -1,0 +1,10 @@
+{
+    "name": "Formations",
+    "description": "Diplômes, maquettes, compétences, étudiants et personnels",
+    "urlSlug": "formation",
+    "url": "/app/formation",
+    "shortLabel": "Formations",
+    "primaryColor": "blue",
+    "icon": "pi pi-sitemap",
+    "showInPortal": false
+}

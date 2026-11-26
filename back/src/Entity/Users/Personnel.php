@@ -16,10 +16,7 @@ use App\Entity\Scolarite\ScolEvaluationRattrapage;
 use App\Entity\Structure\StructureService;
 use App\State\Provider\Personnel\PersonnelConfigProvider;
 use App\State\Provider\Personnel\PersonnelCountProvider;
-use HelpdeskBundle\Entity\HelpdeskTicket;
-use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
-use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Structure\StructureDiplome;
@@ -151,12 +148,6 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
     #[Groups(['personnel:detail', 'personnel:config'])]
     private Collection $departementsPersonnel;
 
-    /**
-     * @var Collection<int, EtudiantAbsence>
-     */
-    #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'personnel')]
-    private Collection $absences;
-
     #[ORM\Column(type: Types::JSON, nullable: true)]
     #[Groups(['personnel:detail'])]
     private ?array $idEduSign = null;
@@ -232,24 +223,11 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
     private ?array $contraintesEdt = null;
 
     /**
-     * @var Collection<int, Previsionnel>
-     */
-    #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'personnel')]
-    #[Groups(['previsionnel:detail'])]
-    private Collection $previsionnels;
-
-    /**
      * @var Collection<int, PersonnelEnseignantHrs>
      */
     #[ORM\OneToMany(targetEntity: PersonnelEnseignantHrs::class, mappedBy: 'personnel', orphanRemoval: true)]
     #[Groups(['personnel:detail'])]
     private Collection $enseignantHrs;
-
-    /**
-     * @var Collection<int, HelpdeskTicket>
-     */
-    #[ORM\OneToMany(targetEntity: HelpdeskTicket::class, mappedBy: 'auteur', orphanRemoval: true)]
-    private Collection $helpdeskTickets;
 
     /**
      * @var Collection<int, StructureService>
@@ -269,12 +247,9 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
         $this->responsableDiplome = new ArrayCollection();
         $this->assistantDiplome = new ArrayCollection();
         $this->departementsPersonnel = new ArrayCollection();
-        $this->absences = new ArrayCollection();
         $this->evaluations = new ArrayCollection();
         $this->events = new ArrayCollection();
-        $this->previsionnels = new ArrayCollection();
         $this->enseignantHrs = new ArrayCollection();
-        $this->helpdeskTickets = new ArrayCollection();
         $this->structureServices = new ArrayCollection();
         $this->scolEvaluationRattrapages = new ArrayCollection();
     }
@@ -506,36 +481,6 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
     public function getAdressePersonnelle(): ?Adresse
     {
         return Adresse::fromArray($this->adressePersonnelle);
-    }
-
-    /**
-     * @return Collection<int, EtudiantAbsence>
-     */
-    public function getAbsences(): Collection
-    {
-        return $this->absences;
-    }
-
-    public function addAbsence(EtudiantAbsence $absence): static
-    {
-        if (!$this->absences->contains($absence)) {
-            $this->absences->add($absence);
-            $absence->setPersonnel($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAbsence(EtudiantAbsence $absence): static
-    {
-        if ($this->absences->removeElement($absence)) {
-            // set the owning side to null (unless already changed)
-            if ($absence->getPersonnel() === $this) {
-                $absence->setPersonnel(null);
-            }
-        }
-
-        return $this;
     }
 
     public function getIdEduSign(): ?array
@@ -801,36 +746,6 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
         return $this;
     }
 
-    /**
-     * @return Collection<int, Previsionnel>
-     */
-    public function getPrevisionnels(): Collection
-    {
-        return $this->previsionnels;
-    }
-
-    public function addPrevisionnel(Previsionnel $previsionnel): static
-    {
-        if (!$this->previsionnels->contains($previsionnel)) {
-            $this->previsionnels->add($previsionnel);
-            $previsionnel->setPersonnel($this);
-        }
-
-        return $this;
-    }
-
-    public function removePrevisionnel(Previsionnel $previsionnel): static
-    {
-        if ($this->previsionnels->removeElement($previsionnel)) {
-            // set the owning side to null (unless already changed)
-            if ($previsionnel->getPersonnel() === $this) {
-                $previsionnel->setPersonnel(null);
-            }
-        }
-
-        return $this;
-    }
-
     #[Groups(['personnel:detail', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read', 'personnel:liste'])]
     public function getStatutSeverity(): string
     {
@@ -861,36 +776,6 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
             // set the owning side to null (unless already changed)
             if ($enseignantHr->getPersonnel() === $this) {
                 $enseignantHr->setPersonnel(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, HelpdeskTicket>
-     */
-    public function getHelpdeskTickets(): Collection
-    {
-        return $this->helpdeskTickets;
-    }
-
-    public function addHelpdeskTicket(HelpdeskTicket $helpdeskTicket): static
-    {
-        if (!$this->helpdeskTickets->contains($helpdeskTicket)) {
-            $this->helpdeskTickets->add($helpdeskTicket);
-            $helpdeskTicket->setAuteur($this);
-        }
-
-        return $this;
-    }
-
-    public function removeHelpdeskTicket(HelpdeskTicket $helpdeskTicket): static
-    {
-        if ($this->helpdeskTickets->removeElement($helpdeskTicket)) {
-            // set the owning side to null (unless already changed)
-            if ($helpdeskTicket->getAuteur() === $this) {
-                $helpdeskTicket->setAuteur(null);
             }
         }
 

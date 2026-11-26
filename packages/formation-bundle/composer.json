@@ -1,0 +1,15 @@
+{
+    "name": "iuttroyes/formation-bundle",
+    "type": "symfony-bundle",
+    "description": "FormationBundle for uniServices",
+    "require": {
+        "php": "^8.4",
+        "symfony/framework-bundle": "^8.1",
+        "symfony/http-kernel": "^8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "FormationBundle\\": "src/"
+        }
+    }
+}

@@ -4,9 +4,9 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 const panelMenuItems = [
-  { label: 'Liste des étudiants', icon: 'pi pi-list', route: '/intranet/administration/etudiants' },
-  { label: 'Accès aux applications', icon: 'pi pi-th-large', route: '/intranet/administration/etudiants' },
-  { label: 'Ajouter des étudiants', icon: 'pi pi-plus-circle', route: '/intranet/administration/etudiant/ajout/' },
+  { label: 'Liste des étudiants', icon: 'pi pi-list', route: '/formation/etudiants' },
+  { label: 'Accès aux applications', icon: 'pi pi-th-large', route: '/formation/etudiants' },
+  { label: 'Ajouter des étudiants', icon: 'pi pi-plus-circle', route: '/formation/etudiant/ajout/' },
   { label: 'Gestion des cohortes', icon: 'pi pi-users', command: () => {} },
   { label: 'Gestion des absences', icon: 'pi pi-calendar', command: () => {} },
 ];

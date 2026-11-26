@@ -13,6 +13,8 @@
             <directory>tests/Notification</directory>
             <directory>tests/Email</directory>
             <directory>tests/Security</directory>
+            <directory>tests/Architecture</directory>
+            <directory>tests/Referentiel</directory>
         </testsuite>
         <testsuite name="MessageBundle">
             <directory>packages/message-bundle/tests</directory>

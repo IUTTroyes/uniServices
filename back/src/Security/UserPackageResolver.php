@@ -5,6 +5,7 @@ namespace App\Security;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
  * Packages (applications) dont dispose une personne : source unique, utilisée par le contexte de sécurité du front
@@ -23,6 +24,12 @@ class UserPackageResolver
     public function __construct(
         private readonly StructureDepartementPersonnelRepository $affectations,
         private readonly UserEffectivePermissionService $permissions,
+        /** @var list<string> */
+        #[Autowire('%app.paquets_implicites%')]
+        private readonly array $paquetsImplicites = [],
+        /** @var list<string> */
+        #[Autowire('%app.applications_etudiant%')]
+        private readonly array $applicationsEtudiant = ['intranet'],
     ) {
     }
 
@@ -30,9 +37,9 @@ class UserPackageResolver
     public function packages(Personnel|Etudiant $user): array
     {
         if ($user instanceof Etudiant) {
-            $brutes = array_map(static fn ($a) => (string) $a, $user->getApplications() ?? ['Intranet']);
+            $brutes = array_map(static fn ($a) => (string) $a, $user->getApplications() ?? []);
 
-            return $this->normaliser($brutes === [] ? ['intranet'] : $brutes);
+            return $this->normaliser(array_merge($brutes === [] ? $this->applicationsEtudiant : $brutes, $this->paquetsImplicites));
         }
 
         $dps = $this->affectations->findBy(['personnel' => $user]);
@@ -44,7 +51,7 @@ class UserPackageResolver
         }
         $retenue ??= ($dps[0] ?? null);
 
-        return $this->normaliser($retenue?->getPackages() ?? []);
+        return $this->normaliser(array_merge($retenue?->getPackages() ?? [], $this->paquetsImplicites));
     }
 
     public function hasPackage(Personnel|Etudiant $user, string $package): bool

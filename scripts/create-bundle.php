@@ -171,15 +171,75 @@ class $bundlePascal extends Bundle
 PHP;
 file_put_contents($bundlePath . '/src/' . $bundlePascal . '.php', $bundleFileContent);
 
+// 2b. Le package déclare lui-même sa configuration (services, mapping, migrations, gabarits).
+$bundleBase = preg_replace('/Bundle$/', '', $bundlePascal);
+foreach (['/src/DependencyInjection', '/src/Resources/config', '/src/AnneeUniversitaire'] as $dossier) {
+    mkdir($bundlePath . $dossier, 0755, true);
+}
+
+$extension = <<<PHP
+<?php
+
+namespace $bundlePascal\DependencyInjection;
+
+use App\Extension\AbstractPackageExtension;
+
+class {$bundleBase}Extension extends AbstractPackageExtension
+{
+}
+
+PHP;
+file_put_contents($bundlePath . "/src/DependencyInjection/{$bundleBase}Extension.php", $extension);
+
+$services = <<<YAML
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  $bundlePascal\:
+    resource: '../../'
+    exclude:
+      - '../../Entity/'
+      - '../../DependencyInjection/'
+      - '../../$bundlePascal.php'
+
+YAML;
+file_put_contents($bundlePath . '/src/Resources/config/services.yaml', $services);
+
+$perimetre = <<<PHP
+<?php
+
+declare(strict_types=1);
+
+namespace $bundlePascal\AnneeUniversitaire;
+
+use App\Extension\AbstractPerimetreAnnuelProvider;
+
+/**
+ * Chaque ressource du package doit être déclarée ici : chemins() si elle dépend d'une année universitaire,
+ * independants() sinon. Les contrôleurs du package portent l'attribut #[ContexteAnnuel].
+ */
+final class PerimetreAnnuel$bundleBase extends AbstractPerimetreAnnuelProvider
+{
+    public function espaceDeNoms(): string
+    {
+        return '$bundlePascal';
+    }
+}
+
+PHP;
+file_put_contents($bundlePath . "/src/AnneeUniversitaire/PerimetreAnnuel{$bundleBase}.php", $perimetre);
+
 // 3. Create composer.json
 $composerContent = [
     "name" => "iuttroyes/$bundleKebab",
     "type" => "symfony-bundle",
     "description" => "$bundlePascal for uniServices",
     "require" => [
-        "php" => "^8.2",
-        "symfony/framework-bundle" => "^7.0",
-        "symfony/http-kernel" => "^7.0"
+        "php" => "^8.4",
+        "symfony/framework-bundle" => "^8.1",
+        "symfony/http-kernel" => "^8.1"
     ],
     "autoload" => [
         "psr-4" => [
@@ -304,4 +364,5 @@ if ($pnpmVersionExitCode === 0) {
 }
 
 echo "\nBundle $bundlePascal created successfully!\n";
+echo "Il fait partie de la distribution « intranet » seulement (voir docs/DISTRIBUTIONS.md).\n";
 echo "Lancez 'npm run dev' puis ouvrez http://localhost:3000/app/$metaUrlSlug pour vérifier la vue d'accueil.\n";

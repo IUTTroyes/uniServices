@@ -2,6 +2,7 @@
 
 namespace IntranetBundle\Security\Voter;
 
+use App\Service\Enseignement\AffectationsEnseignement;
 use App\Entity\Users\Personnel;
 use App\Security\UserEffectivePermissionService;
 use IntranetBundle\Entity\PlanCours\PlanCours;
@@ -15,7 +16,10 @@ final class PlanCoursVoter extends Voter
 {
     public const MANAGE = 'CAN_MANAGE_PLAN_COURS';
 
-    public function __construct(private readonly UserEffectivePermissionService $permissions) {}
+    public function __construct(
+        private readonly UserEffectivePermissionService $permissions,
+        private readonly AffectationsEnseignement $affectations,
+    ) {}
 
     public function supportsAttribute(string $attribute): bool
     {
@@ -56,8 +60,8 @@ final class PlanCoursVoter extends Voter
             return true;
         }
 
-        foreach ($teaching->getPrevisionnels() as $assignment) {
-            if ($assignment->getPersonnel() === $user && $assignment->getAnneeUniversitaire() === $plan->getAnneeUniversitaire()) {
+        foreach ($this->affectations->personnels($teaching, $plan->getAnneeUniversitaire()) as $personnel) {
+            if ($personnel === $user) {
                 return true;
             }
         }

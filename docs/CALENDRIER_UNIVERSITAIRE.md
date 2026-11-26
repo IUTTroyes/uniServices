@@ -37,7 +37,7 @@ Les quatre vues EDT transmettent une date civile, au lieu d’un numéro ISO. El
 {"semestreId": 12, "dateLundi": "2026-09-14", "contrainte": "stage"}
 ```
 
-Le serveur vérifie les droits EDT et l’appartenance de la date au calendrier de l’année universitaire du semestre. Les contraintes sont stockées dans `EdtContraintesSemestre`, par année et semestre, avec des clés `AAAA-MM-JJ`. L’ancien paramètre `weekId` n’est plus utilisé.
+Le serveur vérifie les droits EDT et l’appartenance de la date au calendrier de l’année universitaire du semestre. Les contraintes d’emploi du temps par semestre (`EdtContraintesSemestre` et la route `/api/edt-calendrier-contraintes`) ont été supprimées ; une base existante peut conserver la table `edt_contraintes_semestre`.
 
 L’ancien DTO `PersonnelsContraintes`, dont le provider était absent du dépôt, et les anciens provider/filtre du calendrier ont été retirés. Les semaines n’ont plus d’identifiant persistant ni d’opérations CRUD ; la page de calendrier configure la date annuelle et affiche le résultat calculé.
 

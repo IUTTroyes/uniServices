@@ -14,7 +14,6 @@ use App\Repository\Structure\StructureServiceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use HelpdeskBundle\Entity\HelpdeskCategorie;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -71,13 +70,6 @@ class StructureService
     private ?string $libelle = null;
 
     /**
-     * @var Collection<int, HelpdeskCategorie>
-     */
-    #[ORM\OneToMany(targetEntity: HelpdeskCategorie::class, mappedBy: 'service', orphanRemoval: true)]
-    #[Groups(['service:read','service:form_ticket'])]
-    private Collection $helpdeskCategories;
-
-    /**
      * @var Collection<int, Personnel>
      */
     #[ORM\ManyToMany(targetEntity: Personnel::class, inversedBy: 'structureServices')]
@@ -86,7 +78,6 @@ class StructureService
 
     public function __construct()
     {
-        $this->helpdeskCategories = new ArrayCollection();
         $this->personnel = new ArrayCollection();
     }
 
@@ -103,36 +94,6 @@ class StructureService
     public function setLibelle(string $libelle): static
     {
         $this->libelle = $libelle;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, HelpdeskCategorie>
-     */
-    public function getHelpdeskCategories(): Collection
-    {
-        return $this->helpdeskCategories;
-    }
-
-    public function addHelpdeskCategory(HelpdeskCategorie $helpdeskCategory): static
-    {
-        if (!$this->helpdeskCategories->contains($helpdeskCategory)) {
-            $this->helpdeskCategories->add($helpdeskCategory);
-            $helpdeskCategory->setService($this);
-        }
-
-        return $this;
-    }
-
-    public function removeHelpdeskCategory(HelpdeskCategorie $helpdeskCategory): static
-    {
-        if ($this->helpdeskCategories->removeElement($helpdeskCategory)) {
-            // set the owning side to null (unless already changed)
-            if ($helpdeskCategory->getService() === $this) {
-                $helpdeskCategory->setService(null);
-            }
-        }
 
         return $this;
     }

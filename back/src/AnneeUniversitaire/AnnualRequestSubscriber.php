@@ -26,8 +26,7 @@ final readonly class AnnualRequestSubscriber implements EventSubscriberInterface
         if (is_string($class)) {
             $baseMode = $this->registry->mode($class);
             $annual = $baseMode === ContexteAnnuel::ANNUEL;
-            if ($class === \QuestionnaireBundle\Entity\Questionnaires\Questionnaire::class
-                && ($request->query->getBoolean('estModele') || ($this->context->body($request)['estModele'] ?? false) === true)) { $annual = false; $baseMode = ContexteAnnuel::INDEPENDANT; }
+            if ($this->registry->requeteHorsAnnee($class, $request, $this->context->body($request))) { $annual = false; $baseMode = ContexteAnnuel::INDEPENDANT; }
             $operation = $request->attributes->get('_api_operation');
             if ($operation === null && $this->metadataFactory !== null) {
                 $operation = $this->metadataFactory->create($class)->getOperation($request->attributes->get('_api_operation_name'));
@@ -44,12 +43,8 @@ final readonly class AnnualRequestSubscriber implements EventSubscriberInterface
             if (!$annual && $baseMode === ContexteAnnuel::ANNUEL) $mode = ContexteAnnuel::INDEPENDANT;
             $request->attributes->set('_politique_annuelle', $mode);
             if ($annual && !$item && !$this->context->toutesAutorisees($class)) $this->normaliser($request);
-            if ($mode === ContexteAnnuel::RESSOURCE && str_starts_with($class, 'QuestionnaireBundle\\ApiDto\\')) {
-                $entity = null;
-                foreach (['questionnaireUuid', 'surveyId'] as $key) {
-                    if ($uuid = $request->attributes->get($key)) $entity = $this->em->getRepository(\QuestionnaireBundle\Entity\Questionnaires\Questionnaire::class)->findOneBy(['uuid' => $uuid]);
-                }
-                if ($token = $request->attributes->get('token')) $entity = $this->em->getRepository(\QuestionnaireBundle\Entity\Questionnaires\QuestionnaireInvitation::class)->findOneBy(['token' => $token]);
+            if ($mode === ContexteAnnuel::RESSOURCE) {
+                $entity = $this->registry->entiteDeContexte($class, $request);
                 if ($entity !== null && count($years = $this->context->years($entity)) === 1) $request->attributes->set('_annee_universitaire_id', $years[0]);
             }
             return;
@@ -60,7 +55,7 @@ final readonly class AnnualRequestSubscriber implements EventSubscriberInterface
         $attributes = $method->getAttributes(ContexteAnnuel::class) ?: $method->getDeclaringClass()->getAttributes(ContexteAnnuel::class);
         if ($attributes === []) {
             // Les contrôleurs techniques des bundles tiers ne sont pas des opérations métier du projet.
-            if (!in_array(explode('\\', $method->getDeclaringClass()->getName())[0], ['App', 'IntranetBundle', 'UnifolioBundle', 'MessageBundle', 'StageBundle', 'QuestionnaireBundle', 'FinanceBundle', 'DocumentBundle', 'HelpdeskBundle'], true)) return;
+            if (!$this->registry->politiqueObligatoire($method->getDeclaringClass()->getName())) return;
             throw new \LogicException('Déclarer #[ContexteAnnuel(...)] sur '.$method->getDeclaringClass()->getName().'::'.$method->getName().'.');
         }
         $policy = $attributes[0]->newInstance();

@@ -297,7 +297,7 @@ class StructureDepartement implements TimestampableInterface
             'edt' => false,
             'stage' => false,
             'resp_ri' => '',
-            // Réglages du package questionnaire (politique du département), gérés par QuestionnaireBundle\Services\QuestionnaireReglages.
+            // Réglages du package questionnaire (politique du département), gérés par ce package.
             'questionnaire' => [],
         ]);
 

@@ -243,6 +243,14 @@ class Etablissement
         return $this->resolveSettings($this->settings ?? []);
     }
 
+    /** Adresse où gérer un mot de passe universitaire (CAS). Affichée publiquement : http(s) uniquement. */
+    public function getUrlMotDePasseCas(): ?string
+    {
+        $url = trim((string) ($this->getSettings()['integrations']['cas']['urlMotDePasse'] ?? ''));
+
+        return preg_match('~^https?://[^\s]+$~i', $url) === 1 ? $url : null;
+    }
+
     public function setSettings(?array $settings): static
     {
         $this->settings = $this->resolveSettings($settings ?? []);
@@ -270,7 +278,11 @@ class Etablissement
                     'enabled' => false,
                     'apiUrl' => null,
                 ],
+                'cas' => [
+                    'urlMotDePasse' => null,
+                ],
             ]);
+            $integrationsResolver->setAllowedTypes('cas', 'array');
             $integrationsResolver->setAllowedTypes('edusign', 'array');
             $integrationsResolver->setAllowedTypes('orebut', 'array');
             $resolvedIntegrations = $integrationsResolver->resolve($integrations);
@@ -297,6 +309,11 @@ class Etablissement
             $orebutResolver->setAllowedTypes('apiKey', ['null', 'string']);
             $orebutResolver->setAllowedTypes('apiUrl', ['null', 'string']);
 
+            $casResolver = new OptionsResolver();
+            $casResolver->setDefaults(['urlMotDePasse' => null]);
+            $casResolver->setAllowedTypes('urlMotDePasse', ['null', 'string']);
+
+            $resolvedIntegrations['cas'] = $casResolver->resolve($resolvedIntegrations['cas']);
             $resolvedIntegrations['edusign'] = $edusignResolver->resolve($resolvedIntegrations['edusign']);
             $resolvedIntegrations['orebut'] = $orebutResolver->resolve($resolvedIntegrations['orebut']);
 
@@ -343,6 +360,9 @@ class Etablissement
                 'orebut' => [
                     'enabled' => false,
                     'apiUrl' => null,
+                ],
+                'cas' => [
+                    'urlMotDePasse' => null,
                 ],
             ],
             'stage' => [

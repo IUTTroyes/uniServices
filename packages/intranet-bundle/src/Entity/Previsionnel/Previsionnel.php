@@ -102,12 +102,12 @@ class Previsionnel
     #[Groups(['previsionnel:read'])]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'previsionnels')]
+    #[ORM\ManyToOne]
     #[Groups(['previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read', 'edt_event:read:agenda'])]
     #[Assert\NotNull]
     private ?Personnel $personnel = null;
 
-    #[ORM\ManyToOne(inversedBy: 'previsionnels')]
+    #[ORM\ManyToOne]
     #[Groups(['previsionnel:read', 'previsionnel_personnel:read'])]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
@@ -123,7 +123,7 @@ class Previsionnel
     #[Groups(['previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read'])]
     private array $groupes = [];
 
-    #[ORM\ManyToOne(inversedBy: 'previsionnels')]
+    #[ORM\ManyToOne]
     #[Groups(['previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'previsionnel_personnel:read'])]
     #[Assert\NotNull]
     private ?ScolEnseignement $enseignement = null;

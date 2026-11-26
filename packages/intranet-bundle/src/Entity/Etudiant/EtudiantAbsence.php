@@ -2,6 +2,7 @@
 
 namespace IntranetBundle\Entity\Etudiant;
 
+use App\Extension\RattachementPerimetreInterface;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
@@ -80,7 +81,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         'scolariteSemestre' => new QueryParameter(filter: AbsenceFilter::class),
     ]
 )]
-class EtudiantAbsence implements TimestampableInterface
+class EtudiantAbsence implements TimestampableInterface, RattachementPerimetreInterface
 {
     use UuidTrait;
     use EduSignTrait;
@@ -92,7 +93,7 @@ class EtudiantAbsence implements TimestampableInterface
     #[Groups(['absence:administration', 'justificatif:administration'])]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'absences')]
+    #[ORM\ManyToOne]
     #[Groups(['absence:administration', 'justificatif:administration'])]
     private ?Personnel $personnel = null;
 
@@ -105,12 +106,12 @@ class EtudiantAbsence implements TimestampableInterface
     #[Groups(['absence:administration'])]
     private ?EtudiantAbsenceJustificatif $absenceJustificatif = null;
 
-    #[ORM\ManyToOne(inversedBy: 'absence')]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     #[Groups(['absence:administration'])]
     private ?EtudiantScolariteSemestre $scolariteSemestre = null;
 
-    #[ORM\ManyToOne(inversedBy: 'absences')]
+    #[ORM\ManyToOne]
     #[Groups(['absence:administration', 'absence:write:administration', 'justificatif:administration'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?EdtEvent $event = null;
@@ -184,5 +185,10 @@ class EtudiantAbsence implements TimestampableInterface
     {
         return $this->absenceJustificatif !== null
             && $this->absenceJustificatif->getEtat() === EtatJustificatifEnum::VALIDE;
+    }
+
+    public function getSujetDePerimetre(): mixed
+    {
+        return $this->getScolariteSemestre();
     }
 }

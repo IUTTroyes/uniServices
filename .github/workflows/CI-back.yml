@@ -6,12 +6,16 @@ on:
     paths:
       - 'back/**'
       - 'packages/**'
+      - 'tests/**'
+      - 'phpunit.xml.dist'
       - '.github/workflows/CI-back.yml'
   pull_request:
     branches: [main]
     paths:
       - 'back/**'
       - 'packages/**'
+      - 'tests/**'
+      - 'phpunit.xml.dist'
       - '.github/workflows/CI-back.yml'
 
 permissions:
@@ -43,3 +47,33 @@ jobs:
 
       - name: Run backend quality checks
         run: make check
+
+  # Job distinct : l'isolation des packages reste visible même si les autres contrôles échouent.
+  # Aucun serveur de base de données n'est nécessaire.
+  architecture:
+    name: Isolation et distributions
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: 'mysql://ci:ci@127.0.0.1:3306/ci?serverVersion=8.0.32'
+      DATABASE_URL_ORIGINAL: 'mysql://ci:ci@127.0.0.1:3306/ci?serverVersion=8.0.32'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, intl, pdo_mysql, iconv, simplexml, gd
+          coverage: none
+          tools: composer:v2
+
+      - name: Installer les dépendances
+        run: |
+          composer install --no-progress --no-interaction --prefer-dist --no-scripts
+          composer install --no-progress --no-interaction --prefer-dist --no-scripts --working-dir=back
+
+      - name: Vérifier l'architecture
+        run: vendor/bin/phpunit tests/Architecture
+

@@ -47,7 +47,7 @@ class HelpdeskCategorie
     #[Groups(['category:read','service:read','service:form_ticket'])]
     private ?Collection $enfants;
 
-    #[ORM\ManyToOne(inversedBy: 'helpdeskCategories')]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['category:read','service:read'])]
     private ?StructureService $service = null;

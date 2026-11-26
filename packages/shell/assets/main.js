@@ -3,6 +3,8 @@ import { createPinia } from "pinia";
 import App from './App.vue';
 import '@styles/main.scss';
 import router from './router';
+import { bundles } from '@bundles-registry';
+import { CLE_BUNDLES } from '@utils/distribution';
 import { registerPermissionDirective } from '@utils';
 import { setupInactivityTimer } from '@helpers/authService';
 import { registerAllBundleWidgets } from './widgets/registerBundleWidgets';
@@ -45,6 +47,7 @@ const app = createApp(App);
 
 registerAllBundleWidgets();
 
+app.provide(CLE_BUNDLES, bundles);
 app.use(pinia);
 app.use(router);
 

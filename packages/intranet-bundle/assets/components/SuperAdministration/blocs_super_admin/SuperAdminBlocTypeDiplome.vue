@@ -4,8 +4,8 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 const panelMenuItems = [
-  { label: 'Créer un type de diplôme', icon: 'pi pi-plus', command: () => { router.push('/intranet/super-administration/type-diplome'); } },
-  { label: 'Liste des types de diplômes', icon: 'pi pi-list', command: () => { router.push('/intranet/super-administration/types-diplomes'); } },
+  { label: 'Créer un type de diplôme', icon: 'pi pi-plus', command: () => { router.push('/formation/type-diplome'); } },
+  { label: 'Liste des types de diplômes', icon: 'pi pi-list', command: () => { router.push('/formation/types-diplomes'); } },
 ];
 </script>
 

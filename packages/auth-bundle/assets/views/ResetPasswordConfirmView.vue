@@ -55,7 +55,7 @@ const handleSubmit = async () => {
 
     // Rediriger vers la page de connexion après 3 secondes
     setTimeout(() => {
-      router.push('/login');
+      router.push('/auth/login');
     }, 3000);
   } catch (error) {
     console.error('Error:', error);
@@ -103,7 +103,7 @@ const handleSubmit = async () => {
                 @validation="result => handleValidation('confirmPassword', result)"
             />
             <div class="mb-4 flex justify-end items-center">
-              <router-link to="/login" class="font-medium ml-2 text-right cursor-pointer text-primary underline">Retour au login</router-link>
+              <router-link to="/auth/login" class="font-medium ml-2 text-right cursor-pointer text-primary underline">Retour au login</router-link>
             </div>
             <div class="w-full flex flex-col gap-2">
               <Message v-if="!formValid" severity="error">

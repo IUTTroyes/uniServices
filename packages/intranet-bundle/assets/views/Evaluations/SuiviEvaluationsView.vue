@@ -1,7 +1,7 @@
 <script setup>
 import { hasPermission } from '@utils/permissions';
 import { calcEvaluationProgress } from '@/components/Evaluation/evaluationProgress';
-import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
+import ContexteSelection from '@components/components/Structure/ContexteSelection.vue';
 import {computed, onMounted, ref, watch} from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {

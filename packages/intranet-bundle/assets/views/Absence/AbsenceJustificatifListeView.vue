@@ -1,5 +1,5 @@
 <script setup>
-import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
+import ContexteSelection from '@components/components/Structure/ContexteSelection.vue';
 import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
 import { EmptyState, HeaderComponent, Kpi, EdtEventRow, ValidatedInput, validationRules, SimpleSkeleton, ButtonInfo, ButtonDelete} from '@components';
 import {useAnneeStore, useUsersStore} from '@stores';

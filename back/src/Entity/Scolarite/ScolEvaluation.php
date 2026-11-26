@@ -287,26 +287,6 @@ class ScolEvaluation
         return DiplomeScope::fromSubject($this)?->getDepartement()?->getId();
     }
 
-    /** @return list<int> */
-    #[Groups(['evaluation:detail', 'evaluation:init'])]
-    public function getIntervenantIdsPourInitialisation(): array
-    {
-        $anneeId = $this->getAnneeUniversitaire()?->getId();
-        if ($this->getEtat() !== EtatEvaluationEnum::ETAT_NON_INITIALISEE || $anneeId === null) {
-            return [];
-        }
-
-        $ids = [];
-        foreach ($this->getEnseignement()?->getPrevisionnels() ?? [] as $previsionnel) {
-            $personnelId = $previsionnel->getPersonnel()?->getId();
-            if ($personnelId !== null && $previsionnel->getAnneeUniversitaire()?->getId() === $anneeId) {
-                $ids[$personnelId] = $personnelId;
-            }
-        }
-
-        return array_values($ids);
-    }
-
     public function getSemestre(): ?StructureSemestre
     {
         return $this->semestre;
@@ -471,7 +451,6 @@ class ScolEvaluation
 
         return $severityMap[$this->etat->value] ?? null;
     }
-
 
     public function getTypeGroupe(): ?TypeGroupeEnum
     {

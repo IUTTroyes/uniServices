@@ -1,6 +1,6 @@
 <script setup>
 import AbsencesPeriodesTable from '@/components/Absence/AbsencesPeriodesTable.vue';
-import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
+import ContexteSelection from '@components/components/Structure/ContexteSelection.vue';
 import {computed, onMounted, ref, watch} from "vue";
 import { EmptyState, SimpleSkeleton, HeaderComponent, ButtonDelete, Kpi} from "@components";
 import {useAnneeStore, useUsersStore} from "@stores";

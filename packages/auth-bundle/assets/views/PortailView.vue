@@ -7,6 +7,8 @@ import { tools } from '@config/uniServices.js';
 import { getWidgetDataByCodeService, getWidgetsCatalogService, updateDashboardWidgetLayoutService, getActualitesService } from '@requests';
 import { useUsersStore, useAnneeUnivStore, useEtablissementStore } from "@stores";
 import { formatDateLong } from "@helpers/date";
+import { estInstalle } from "@utils/distribution";
+import { hasPermission } from "@utils/permissions";
 
 const router = useRouter();
 const route = useRoute();
@@ -27,6 +29,8 @@ defineProps({
     default: '',
   },
 });
+
+const peutGererFormations = computed(() => estInstalle('formation') && hasPermission('canViewAdministration'));
 
 const bundleColorClasses = {
   violet: 'border-violet-400 hover:bg-violet-400/10',
@@ -240,6 +244,14 @@ watch(() => route.path, async (newPath, oldPath) => {
               <Message v-else severity="info">
                 Aucune application accessible dans le département {{ departementLabel }}. Contactez votre administrateur pour faire vérifier vos accès.
               </Message>
+              <!-- Accès selon le rôle, indépendamment des paquets activés. -->
+              <router-link v-if="peutGererFormations" to="/formation" class="flex items-center gap-3 p-1.5 border rounded-md transition-colors duration-200 hover:bg-surface-400/20">
+                <span class="flex items-center justify-center shrink-0 w-10 h-10 border rounded-md text-lg bg-surface-100 text-surface-800" aria-hidden="true">
+                  <i class="pi pi-sitemap" />
+                </span>
+                <span class="font-semibold text-sm">Formations</span>
+                <i class="pi pi-arrow-right ml-auto shrink-0 text-muted-color text-xs" aria-hidden="true" />
+              </router-link>
             </div>
           </div>
         </aside>

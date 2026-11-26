@@ -21,8 +21,10 @@ final readonly class AnnualQueryExtension implements QueryCollectionExtensionInt
             $queryBuilder->leftJoin($queryBuilder->getRootAliases()[0].'.scolarites', $alias)->andWhere($alias.'.id IS NULL');
             return;
         }
-        if ($resourceClass === \QuestionnaireBundle\Entity\Questionnaires\Questionnaire::class && $this->context->request()?->query->getBoolean('estModele')) {
-            $queryBuilder->andWhere($queryBuilder->getRootAliases()[0].'.estModele = true');
+        $request = $this->context->request();
+        if ($request !== null && $this->registry->requeteHorsAnnee($resourceClass, $request)
+            && ($condition = $this->registry->conditionHorsAnnee($resourceClass, $queryBuilder->getRootAliases()[0])) !== null) {
+            $queryBuilder->andWhere($condition);
             return;
         }
         if ($this->registry->path($resourceClass) === null || $this->context->toutesAutorisees($resourceClass)) return;

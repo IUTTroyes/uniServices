@@ -42,6 +42,18 @@
         "showInPortal": true
     },
     {
+        "name": "Formations",
+        "description": "Dipl\u00f4mes, maquettes, comp\u00e9tences, \u00e9tudiants et personnels",
+        "urlSlug": "formation",
+        "url": "/app/formation",
+        "shortLabel": "Formations",
+        "primaryColor": "blue",
+        "icon": "pi pi-sitemap",
+        "aliases": [],
+        "isDefault": false,
+        "showInPortal": false
+    },
+    {
         "name": "HelpDesk",
         "description": "Syst\u00e8me de tickets",
         "urlSlug": "helpdesk",

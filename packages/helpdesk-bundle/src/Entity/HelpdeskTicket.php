@@ -109,7 +109,7 @@ class HelpdeskTicket implements TimestampableInterface
     #[Groups(['ticket:write','ticket:read','ticket:delete'])]
     private Collection $helpdeskMessages;
 
-    #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['ticket:write','ticket:read','ticket:delete'])]
     private ?Personnel $auteur = null;

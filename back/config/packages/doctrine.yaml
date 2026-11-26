@@ -37,36 +37,6 @@ doctrine:
                         dir: '%kernel.project_dir%/src/Entity'
                         prefix: 'App\Entity'
                         alias: App
-                    IntranetBundle:
-                        is_bundle: true
-                        type: attribute
-                        dir: 'src/Entity'
-                        prefix: 'IntranetBundle\Entity'
-                        alias: Intranet
-                    AuthBundle:
-                        is_bundle: true
-                        type: attribute
-                        dir: 'src/Entity'
-                        prefix: 'AuthBundle\Entity'
-                        alias: Auth
-                    MessageBundle:
-                        is_bundle: true
-                        type: attribute
-                        dir: 'src/Entity'
-                        prefix: 'MessageBundle\Entity'
-                        alias: Message
-                    UnifolioBundle:
-                        is_bundle: true
-                        type: attribute
-                        dir: 'src/Entity'
-                        prefix: 'UnifolioBundle\Entity'
-                        alias: Unifolio
-                    ParcautoBundle:
-                        is_bundle: true
-                        type: attribute
-                        dir: 'src/Entity'
-                        prefix: 'ParcautoBundle\Entity'
-                        alias: Parcauto
 
 when@test:
     doctrine:

@@ -1,13 +1,13 @@
 <script setup>
 import { useLayout } from './composables/layout.js';
-import { computed } from 'vue';
+import { computed, inject } from 'vue';
 import { useRoute } from 'vue-router';
 import AppFooter from './AppFooter.vue';
 import AppSidebar from './AppSidebar.vue';
 import AppTopbar from './AppTopbar.vue';
 import AppBreadcrumb from "./AppBreadcrumb.vue";
 import { hasPermission } from '@utils/permissions';
-import { bundles } from '../../../../packages/shell/assets/bundles-registry';
+import { CLE_BUNDLES } from '../../../utils/distribution.js';
 
 const props = defineProps({
   menuItems: {
@@ -30,6 +30,7 @@ const props = defineProps({
 });
 
 const currentRoute = useRoute();
+const bundles = inject(CLE_BUNDLES, []);
 
 const { layoutConfig, layoutState, isSidebarActive, resetMenu } = useLayout();
 const selectedAnneeUniversitaire = computed(
