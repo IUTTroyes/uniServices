@@ -2,8 +2,8 @@
 
 namespace App\Controller;
 
+use App\Service\Security\MotDePasseOublie;
 use App\ApiDto\Security\ResetPasswordDto;
-use App\Entity\ResetToken;
 use App\Repository\EtudiantRepository;
 use App\Repository\PersonnelRepository;
 use App\Repository\ResetTokenRepository;
@@ -17,12 +17,10 @@ use App\Entity\Users\Etudiant;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTCreatedEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
@@ -77,7 +75,7 @@ class SecurityController extends AbstractController
     #[IsGranted('PUBLIC_ACCESS')]
     public function changePassword(
         Request $request,
-        MailerInterface $mailer,
+        MotDePasseOublie $motDePasseOublie,
         #[Autowire(service: 'limiter.password_reset')] RateLimiterFactory $passwordResetLimiter
     ): JsonResponse
     {
@@ -90,65 +88,10 @@ class SecurityController extends AbstractController
             );
         }
 
-        $emailAddress = $request->getContent();
-
-        // chercher un utilisateur par son email dans les champs mail_univ ou mail_perso des entités Etudiant et Personnel
-        $user = $this->personnelRepository->findOneBy(['mailUniv' => $emailAddress])
-            ?? $this->personnelRepository->findOneBy(['mailPerso' => $emailAddress])
-            ?? $this->etudiantRepository->findOneBy(['mailUniv' => $emailAddress])
-            ?? $this->etudiantRepository->findOneBy(['mailPerso' => $emailAddress]);
-
-        // si on trouve l'utilisateur
-        if ($user) {
-            // Nettoyer les anciens tokens pour cet utilisateur
-            $this->resetTokenRepository->removeExpiredTokens();
-
-            // Supprimer les anciens tokens de cet utilisateur (un seul token actif à la fois)
-            $this->resetTokenRepository->removeTokensForUser($user);
-
-            // Générer un token de réinitialisation
-            $resetToken = bin2hex(random_bytes(32));
-
-            // Stocker le HASH du token (pas le token en clair)
-            // Ainsi, si la BDD est compromise, les tokens ne peuvent pas être utilisés
-            $hashedToken = hash('sha256', $resetToken);
-
-            // Créer et sauvegarder le token en base
-            $tokenEntity = new ResetToken();
-            $tokenEntity->setToken($hashedToken);
-
-            // Associer le token à l'utilisateur (étudiant ou personnel)
-            if ($user->getTypeUser() === 'etudiant') {
-                $tokenEntity->setEtudiant($user);
-            } else {
-                $tokenEntity->setPersonnel($user);
-            }
-
-            $this->resetTokenRepository->save($tokenEntity, true);
-
-            $url_front = $_ENV['URL_FRONTEND'];
-            // Construire le mail de réinitialisation
-            $resetUrl = sprintf(
-                $url_front.'/auth/reset-password/confirm?token=%s',
-                $resetToken
-            );
-
-            // Déterminer l'adresse email à utiliser (mail universitaire en priorité, sinon mail personnel)
-            $recipientEmail = $user->getMailUniv() ?? $user->getMailPerso();
-
-            $email = (new TemplatedEmail())
-                ->from('no-reply@univ-reims.fr')
-                ->to($recipientEmail)
-                ->subject('UniServices - Réinitialisation de mot de passe')
-                ->htmlTemplate('emails/reset_password.html.twig')
-                ->context(['resetUrl' => $resetUrl, 'user' => $user]);
-            $mailer->send($email);
-
-            return new JsonResponse(['message' => 'Un email de réinitialisation a été envoyé si l\'adresse existe dans notre système.'], JsonResponse::HTTP_OK);
-        }
+        $motDePasseOublie->demander($request->getContent());
 
         // Pour des raisons de sécurité, ne pas indiquer si l'email existe ou non
-        return new JsonResponse(['message' => 'Un email de réinitialisation a été envoyé si l\'adresse existe dans notre système.'], JsonResponse::HTTP_OK);
+        return new JsonResponse(['message' => 'Un email a été envoyé si l\'adresse existe dans notre système.'], JsonResponse::HTTP_OK);
     }
 
 

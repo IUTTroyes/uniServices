@@ -21,6 +21,9 @@ const defaultSettings = {
       enabled: false,
       apiUrl: null,
     },
+    cas: {
+      urlMotDePasse: null,
+    },
   },
 };
 
@@ -29,8 +32,14 @@ const ensureSettingsObject = (settings) => {
   const edusign = integrations.edusign ?? {};
   const orebut = integrations.orebut ?? {};
 
+  // Les autres réglages de l'établissement (e-mails, stage…) sont renvoyés tels quels : les omettre les effacerait.
   return {
+    ...settings,
     integrations: {
+      ...integrations,
+      cas: {
+        urlMotDePasse: integrations.cas?.urlMotDePasse?.trim() || null,
+      },
       edusign: {
         enabled: !!edusign.enabled,
         scope: Array.isArray(edusign.scope) ? edusign.scope.filter(scope => ['FI', 'FC'].includes(scope)) : [],
@@ -185,6 +194,21 @@ const toggleEdusignScope = (scope) => {
                   :rules="[]"
                   class="w-full"
               />
+            </div>
+
+            <div class="mb-3">
+              <ValidatedInput
+                  v-model="etablissement.settings.integrations.cas.urlMotDePasse"
+                  name="cas_url_mot_de_passe"
+                  label="Adresse de gestion du mot de passe universitaire (CAS)"
+                  type="text"
+                  :rules="[]"
+                  class="w-full"
+              />
+              <small class="text-sm text-muted-color">
+                Affichée sur « Mot de passe oublié » et envoyée aux comptes sans mot de passe dans UniServices. Elle doit
+                commencer par https:// ou http://.
+              </small>
             </div>
 
             <Button label="Enregistrer" class="w-full" type="submit"/>

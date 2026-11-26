@@ -190,7 +190,7 @@ onMounted(async () => {
               <label for="rememberme1">Se souvenir de moi</label>
             </div>
             <div class="flex justify-end items-center">
-              <router-link to="/reset-password" class="font-medium underline ml-2 text-right cursor-pointer text-surface-700 dark:text-surface-200">Mot de passe oublié ?</router-link>
+              <router-link to="/auth/reset-password" class="font-medium underline ml-2 text-right cursor-pointer text-surface-700 dark:text-surface-200">Mot de passe oublié ?</router-link>
             </div>
             <div class="w-full flex flex-col gap-2">
               <Message v-if="errorMessage" severity="error">

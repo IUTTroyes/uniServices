@@ -27,6 +27,11 @@ const router = createRouter({
       redirect: '/auth/login'
     },
     {
+      // Ancienne adresse, encore présente dans des favoris.
+      path: '/reset-password',
+      redirect: (to) => ({ path: '/auth/reset-password', query: to.query })
+    },
+    {
       path: '/portail',
       redirect: '/auth/portail'
     },

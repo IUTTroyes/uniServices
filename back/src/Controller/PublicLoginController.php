@@ -13,8 +13,11 @@ final class PublicLoginController
     public function __invoke(EtablissementRepository $repository): JsonResponse
     {
         // Liste explicite : ne jamais sérialiser les paramètres privés de l'établissement.
+        $etablissement = $repository->findSingleEtablissement();
+
         return new JsonResponse([
-            'logo_name' => $repository->findSingleEtablissement()?->getLogoName(),
+            'logo_name' => $etablissement?->getLogoName(),
+            'url_mot_de_passe_cas' => $etablissement?->getUrlMotDePasseCas(),
         ]);
     }
 }
